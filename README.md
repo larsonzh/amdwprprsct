@@ -47,7 +47,7 @@ Asuswrt-Merlin dual WAN port router policy routing service configuration tool
 <li>IPTV机顶盒内网IP地址设置功能。</li>
 <li>IPTV网络服务IP网址/网段列表数据文件设置功能。</li>
 <li>路由器WAN口IPTV连接方式设置功能，支持PPPoE、静态IP、DHCP或IPoE的连接方式。</li>
-<li>UDPXY组播数据转HTTP流传输代理设置功能，可根据需要设置UDPXY端口号、缓冲区大小、内网客户端数量。</li></ul?
+<li>UDPXY组播数据转HTTP流传输代理设置功能，可根据需要设置UDPXY端口号、缓冲区大小、内网客户端数量。</li></ul>
 
 # 五、外置脚本功能
 <ul><li>外置用户自定义配置脚本设置功能。</li>
