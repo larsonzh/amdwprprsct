@@ -24,6 +24,7 @@ Asuswrt-Merlin dual WAN port router policy routing service configuration tool
 <li>可采用均分出口或反向均分出口方式分配流量出口，将待访问运营商目标网段条目平均划分为两部分，前一部分匹配路由器第一WAN口，后一部分匹配第二WAN口，或者是反向匹配流量出口。</li>
 <li>可任意设置上述某个待访问网络运营商目标网段的数据流量由系统采用负载均衡技术自动分配流量出口。</li>
 <li>定时自动更新ISP网络运营商CIDR网段数据。</li></ul>
+
 <strong>二、高级功能</strong>
 <ul><li>可自定义目标网址/网段流量出口和流量出口方式。</li>
 <li>可按照优先级自定义本地网络中的客户端及源网址/网段流量出口。</li>
@@ -34,10 +35,12 @@ Asuswrt-Merlin dual WAN port router policy routing service configuration tool
 <li>可设置SS服务流量出口。</li>
 <li>可设置OpenVPN Server客户端访问外网路由器出口。</li>
 <li>可设置路由器主机内部应用访问外网WAN口。</li></ul>
+
 <strong>三、运行功能</strong>
 <ul><li>应用模式：可选择动态分流模式、静态分流模式两种应用模式中的一种。</li>
 <li>可设置是否启用路由表缓存功能。</li>
 <li>可设置自动清理路由表缓存功能。</li></ul>
+
 <strong>四、IPTV功能</strong>
 <ul><li>IPTV机顶盒播放源接入口及IGMP组播数据转内网传输代理设置功能。</li>
 <li>IGMP组播管理协议版本号设置功能。</li>
@@ -47,10 +50,12 @@ Asuswrt-Merlin dual WAN port router policy routing service configuration tool
 <li>IPTV网络服务IP网址/网段列表数据文件设置功能。</li>
 <li>路由器WAN口IPTV连接方式设置功能，支持PPPoE、静态IP、DHCP或IPoE的连接方式。</li>
 <li>UDPXY组播数据转HTTP流传输代理设置功能，可根据需要设置UDPXY端口号、缓冲区大小、内网客户端数量。</li></ul>
+
 <strong>五、外置脚本功能</strong>
 <ul><li>外置用户自定义配置脚本设置功能。</li>
 <li>外置用户自定义双线路脚本设置功能。</li>
 <li>外置用户自定义清理资源脚本设置功能。</li></ul>
+
 <strong>安装及使用方法</strong>
 <ul>华硕改版固件路由器双线路双拨策略分流方案
 https://koolshare.cn/thread-145491-1-1.html
