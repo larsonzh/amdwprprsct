@@ -7,7 +7,7 @@ Asuswrt-Merlin dual WAN port router policy routing service configuration tool
 
 一、基础功能
 
-    可按如下11个网络运营商IPv4目标网段的划分分配路由器流量出口：
+    [*]可按如下11个网络运营商IPv4目标网段的划分分配路由器流量出口：
       1.国外运营商网段
       2.中国电信网段
       3.中国联通/网通网段
