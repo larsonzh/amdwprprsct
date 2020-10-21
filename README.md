@@ -54,6 +54,6 @@ Asuswrt-Merlin dual WAN port router policy routing service configuration tool
 <li>外置用户自定义清理资源脚本设置功能。</li></ul>
 
 # 安装及使用方法
-<ul><a>华硕改版固件路由器双线路双拨策略分流方案</a>
-<a>https://koolshare.cn/thread-145491-1-1.html</a>
-<a>(出处: KoolShare)</a></ul>
+<ul>华硕改版固件路由器双线路双拨策略分流方案
+https://koolshare.cn/thread-145491-1-1.html
+(出处: KoolShare)</ul>
