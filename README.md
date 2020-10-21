@@ -3,9 +3,9 @@ Asuswrt-Merlin dual WAN port router policy routing service configuration tool
 
 本软件为华硕改版固件外网双线接入路由器的策略路由服务配置工具，应用目的不是为实现应用中网络带速叠加，也不专注于实现路由器多个出口链路网络或带宽的聚合，而是用于在双线路接入路由器的不同网络出口之间精准控制网络访问经由路径，可有效解决路由器双线路接入时不能正常登录和访问网站，以及网络访问卡慢、断流、不稳定等问题，提高路由器使用的稳定性、流畅性和带宽资源利用率，挖掘和发挥设备潜能和剩余价值，减少设备重复采购，改善电磁环境，提高生活质量。避免因WiFi信号太多，经常为切换使用SSID而纠结，预防选择恐惧症。
 
-#主要功能
+# 主要功能
 
-一、基础功能
+# 一、基础功能
 
     可按如下11个网络运营商IPv4目标网段的划分分配路由器流量出口：
       1.国外运营商网段
@@ -24,7 +24,7 @@ Asuswrt-Merlin dual WAN port router policy routing service configuration tool
     可任意设置上述某个待访问网络运营商目标网段的数据流量由系统采用负载均衡技术自动分配流量出口。
     定时自动更新ISP网络运营商CIDR网段数据。
 
-二、高级功能
+# 二、高级功能
 
     可自定义目标网址/网段流量出口和流量出口方式。
     可按照优先级自定义本地网络中的客户端及源网址/网段流量出口。
@@ -36,13 +36,13 @@ Asuswrt-Merlin dual WAN port router policy routing service configuration tool
     可设置OpenVPN Server客户端访问外网路由器出口。
     可设置路由器主机内部应用访问外网WAN口。
 
-三、运行功能
+# 三、运行功能
 
     应用模式：可选择动态分流模式、静态分流模式两种应用模式中的一种。
     可设置是否启用路由表缓存功能。
     可设置自动清理路由表缓存功能。
 
-四、IPTV功能
+# 四、IPTV功能
 
     IPTV机顶盒播放源接入口及IGMP组播数据转内网传输代理设置功能。
     IGMP组播管理协议版本号设置功能。
@@ -53,13 +53,13 @@ Asuswrt-Merlin dual WAN port router policy routing service configuration tool
     路由器WAN口IPTV连接方式设置功能，支持PPPoE、静态IP、DHCP或IPoE的连接方式。
     UDPXY组播数据转HTTP流传输代理设置功能，可根据需要设置UDPXY端口号、缓冲区大小、内网客户端数量。
 
-五、外置脚本功能
+# 五、外置脚本功能
 
     外置用户自定义配置脚本设置功能。
     外置用户自定义双线路脚本设置功能。
     外置用户自定义清理资源脚本设置功能。
 
-安装及使用方法
+# 安装及使用方法
 
     华硕改版固件路由器双线路双拨策略分流方案
     https://koolshare.cn/thread-145491-1-1.html
