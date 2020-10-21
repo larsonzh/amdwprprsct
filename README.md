@@ -7,7 +7,7 @@ Asuswrt-Merlin dual WAN port router policy routing service configuration tool
 
 <strong>主要功能</strong>
 
-<ul><strong>一、基础功能</strong>
+<strong>一、基础功能</strong>
 <ul><li>可按如下11个网络运营商IPv4目标网段的划分分配路由器流量出口：</li>
 <ul><li>国外运营商网段</li>
 <li>中国电信网段</li>
@@ -23,7 +23,7 @@ Asuswrt-Merlin dual WAN port router policy routing service configuration tool
 <li>可任意设置上述某个待访问网络运营商目标网段的数据流量使用指定的路由器出口。</li>
 <li>可采用均分出口或反向均分出口方式分配流量出口，将待访问运营商目标网段条目平均划分为两部分，前一部分匹配路由器第一WAN口，后一部分匹配第二WAN口，或者是反向匹配流量出口。</li>
 <li>可任意设置上述某个待访问网络运营商目标网段的数据流量由系统采用负载均衡技术自动分配流量出口。</li>
-<li>定时自动更新ISP网络运营商CIDR网段数据。</li></ul></ul>
+<li>定时自动更新ISP网络运营商CIDR网段数据。</li></ul>
 <strong>二、高级功能</strong>
 <ul><li>可自定义目标网址/网段流量出口和流量出口方式。</li>
 <li>可按照优先级自定义本地网络中的客户端及源网址/网段流量出口。</li>
