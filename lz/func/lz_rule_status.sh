@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_status.sh v3.5.6
+# lz_rule_status.sh v3.5.7
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 显示脚本运行状态脚本
@@ -32,8 +32,6 @@ lz_define_status_constant() {
 	STATUS_CUSTOM_OUTPUT_CONNMARK_CHAIN="LZOPCNMK"
 	STATUS_CUSTOM_FORWARD_CHAIN="LZHASHFORWARD"
 	STATUS_UPDATE_ISPIP_DATA_TIMEER_ID=lz_update_ispip_data
-	STATUS_PATH_SS=/koolshare/ss
-	STATUS_SS_FILENAME=ssconfig.sh
 	STATUS_IGMP_PROXY_CONF_NAME="igmpproxy.conf"
 	STATUS_PATH_TMP=${PATH_LZ}/tmp
 	STATUS_LZ_IPTV=888
@@ -84,8 +82,6 @@ lz_uninstall_status_constant() {
 	unset STATUS_LZ_IPTV
 	unset STATUS_PATH_TMP
 	unset STATUS_IGMP_PROXY_CONF_NAME
-	unset STATUS_PATH_SS
-	unset STATUS_SS_FILENAME
 	unset STATUS_UPDATE_ISPIP_DATA_TIMEER_ID
 	unset STATUS_CUSTOM_PREROUTING_CHAIN
 	unset STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN
@@ -241,7 +237,6 @@ lz_set_parameter_status_variable() {
 	status_wan1_dest_udp_port=
 	status_wan1_dest_udplite_port=
 	status_wan1_dest_sctp_port=
-	status_ss_wan_port=
 	status_ovs_client_wan_port=
 	status_wan_access_port=
 	status_list_mode_threshold=
@@ -325,7 +320,6 @@ lz_unset_parameter_status_variable() {
 	unset status_wan1_dest_udp_port
 	unset status_wan1_dest_udplite_port
 	unset status_wan1_dest_sctp_port
-	unset status_ss_wan_port
 	unset status_ovs_client_wan_port
 	unset status_wan_access_port
 	unset status_list_mode_threshold
@@ -527,8 +521,6 @@ lz_read_box_data_status() {
 	[ "$?" = "0" ] && {
 		[ -n "$( grep "^lz_config_wan1_dest_sctp_port=" "${PATH_CONFIGS}/lz_rule_config.box" )" ] && status_wan1_dest_sctp_port=""
 	}
-
-	status_ss_wan_port="$( lz_get_file_cache_data_status "lz_config_ss_wan_port" "5" )"
 
 	status_ovs_client_wan_port="$( lz_get_file_cache_data_status "lz_config_ovs_client_wan_port" "0" )"
 
@@ -1064,207 +1056,17 @@ lz_show_regularly_update_ispip_data_task() {
 	}
 }
 
-## 获取DNS解析服务器状态函数
-## 输入项：无
-## 返回值：
-##     DNS解析服务器IPv4网络地址
-lz_get_server_resolver_status() {
-	local local_server_resolver=$( dbus get ss_basic_server_resolver )
-	local local_server_resolver_user=$( dbus get ss_basic_server_resolver_user )
-	local RESOLVER="114.114.114.114"
-	if [ "$local_server_resolver" = "1" ]; then
-		local ISP_DNS1=$( nvram get wan0_dns | sed 's/ /\n/g' | grep -v 0.0.0.0 | grep -v 127.0.0.1 | sed -n 1p )
-		local ISP_DNS2=$( nvram get wan0_dns | sed 's/ /\n/g' | grep -v 0.0.0.0 | grep -v 127.0.0.1 | sed -n 2p )
-		local IFIP_DNS1=$( echo $ISP_DNS1 | grep -E "([0-9]{1,3}[\.]){3}[0-9]{1,3}" )
-		local IFIP_DNS2=$( echo $ISP_DNS2 | grep -E "([0-9]{1,3}[\.]){3}[0-9]{1,3}" )
-		if [ -n "$IFIP_DNS1" ]; then
-			RESOLVER="$ISP_DNS1"
-		else
-			[ -n "$IFIP_DNS2" ] && RESOLVER="$ISP_DNS2"
-		fi
-	fi
-	[ "$local_server_resolver" = "2" ] && RESOLVER="223.5.5.5"
-	[ "$local_server_resolver" = "3" ] && RESOLVER="223.6.6.6"
-	[ "$local_server_resolver" = "4" ] && RESOLVER="114.114.114.114"
-	[ "$local_server_resolver" = "5" ] && RESOLVER="114.114.115.115"
-	[ "$local_server_resolver" = "6" ] && RESOLVER="1.2.4.8"
-	[ "$local_server_resolver" = "7" ] && RESOLVER="210.2.4.8"
-	[ "$local_server_resolver" = "8" ] && RESOLVER="117.50.11.11"
-	[ "$local_server_resolver" = "9" ] && RESOLVER="117.50.22.22"
-	[ "$local_server_resolver" = "10" ] && RESOLVER="180.76.76.76"
-	[ "$local_server_resolver" = "11" ] && RESOLVER="119.29.29.29"
-	[ "$local_server_resolver" = "12" ] && {
-		[ -n "$local_server_resolver_user" ] && RESOLVER="$local_server_resolver_user"
-	}
-	echo $RESOLVER
-}
-
-## 显示SS服务状态信息函数
+## 显示SS服务支持状态函数
 ## 输入项：
 ##     全局变量及常量
 ## 返回值：无
-lz_show_ss_status() {
-	## 在dbus数据库加载SS环境数据
-#	eval `dbus export ss`
-
+lz_ss_support_status() {
+	[ ! -f ${PATH_SS}/${SS_FILENAME} ] && return
 	## 获取SS服务运行参数
-	local local_ss_enable=$( dbus get ss_basic_enable )
-	local local_ss_mode=$( dbus get ss_acl_default_mode )
-	local local_ss_server=$( dbus get ss_basic_server_ip )
-	local local_lb_enable=$( dbus get ss_lb_enable )
-	[ "$local_ss_enable" = "0" ] && local_ss_mode=0
-
-	## 获取DNS解析服务器状态
-	## 输入项：无
-	## 返回值：
-	##     DNS解析服务器IPv4网络地址
-	local local_ss_basic_dnslookup_server="$( lz_get_server_resolver_status )"
-	[ -z "$local_ss_basic_dnslookup_server" ] && local_ss_basic_dnslookup_server="114.114.114.114"
-
-	local local_ss_export_str="Primary WAN"
-	[ "$status_ss_wan_port" = "1" ] && local_ss_export_str="Secondary WAN"
-
-	## 当SS启用访问控制，其中添加主机的路由规则，其他主机默认规则设为不通过代理时，acl_default_mode=0，正常为1。
-	## 如果不使用acl_default_mode做判据，仅通过ss_basic_enable判断，有可能令其这种场景的规则失效，试一把吧！看反响。
-	## 摸黑赶路，一切靠蒙，真尼玛难，刺激啊！
-	if [ -n "$local_ss_server" -a "$local_ss_enable" != "0" ]; then
-		## SS负载均衡模式
-		if [ "$local_lb_enable" = "1" -a "$local_ss_server" = "127.0.0.1" ] && [ $( dbus get ss_basic_port ) = $( dbus get ss_lb_port ) ]; then
-			local local_lb_nodes=$( dbus list ssconf_basic_use_lb_ | sed 's/ssconf_basic_use_lb_//g' | cut -d "=" -f 1 | sort -n | sed '/^$/d' )
-			local local_node_no=1
-			local local_lb_node=
-			local local_echo_first_line_mark=0
-			for local_lb_node in $local_lb_nodes
-			do
-				local local_ss_basic_server_ip=$( dbus get ssconf_basic_server_$local_lb_node )
-				local local_ss_server_ip=$( echo $local_ss_basic_server_ip | grep -E "([0-9]{1,3}[\.]){3}[0-9]{1,3}" )
-				if [ -z "$local_ss_server_ip" ]; then
-					## 检测到节点为域名格式，将尝试进行解析...
-					## 使用nslookup方式解析SS服务器的ip地址，解析dns：$ss_basic_dnslookup_server
-					local_ss_server_ip=$( nslookup "$local_ss_basic_server_ip" $local_ss_basic_dnslookup_server 2> /dev/null | sed '1,4d' | awk '{print $3}' | grep -v : | awk 'NR==1{print}' )
-					if [ -z "$local_ss_server_ip" ]; then
-						## 使用resolveip方式解析SS服务器的ip地址.
-						local_ss_server_ip=$( resolveip -4 -t 2 "$local_ss_basic_server_ip" 2> /dev/null | awk 'NR==1{print}' )
-						if [ -z "$local_ss_server_ip" ]; then
-							## 节点ip解析失败，将由haproxy自己尝试解析.
-							[ $local_echo_first_line_mark = 0 ] && {
-								echo $(date) [$$]: ----------------------------------------
-								local_echo_first_line_mark=1
-							}
-							echo $(date) [$$]: "   SS Server $local_node_no  $local_ss_basic_server_ip:$( dbus get ssconf_basic_port_$local_lb_node ) resolve ip by haproxy"
-						else
-							## 节点ip地址解析成功
-							[ $local_echo_first_line_mark = 0 ] && {
-								echo $(date) [$$]: ----------------------------------------
-								local_echo_first_line_mark=1
-							}
-							echo $(date) [$$]: "   SS Server $local_node_no  $local_ss_basic_server_ip $local_ss_server_ip:$( dbus get ssconf_basic_port_$local_lb_node )"
-						fi
-					else
-						[ $local_echo_first_line_mark = 0 ] && {
-							echo $(date) [$$]: ----------------------------------------
-							local_echo_first_line_mark=1
-						}
-						echo $(date) [$$]: "   SS Server $local_node_no  $local_ss_basic_server_ip $local_ss_server_ip:$( dbus get ssconf_basic_port_$local_lb_node )"
-					fi
-				else
-					## 检测到节点已经是IP格式，跳过解析... 
-					[ $local_echo_first_line_mark = 0 ] && {
-						echo $(date) [$$]: ----------------------------------------
-						local_echo_first_line_mark=1
-					}
-					local local_space_str=""
-					if [ $local_node_no -lt 10 ]; then
-						local_space_str="    "
-					else
-						if [ $local_node_no -lt 100 ]; then
-							local_space_str="   "
-						else
-							if [ $local_node_no -lt 1000 ]; then
-								local_space_str="  "
-							else
-								[ $local_node_no -lt 10000 ] && local_space_str=" "
-							fi
-						fi
-					fi
-					echo $(date) [$$]: "   SS Server $local_node_no$local_space_str $local_ss_server_ip:$( dbus get ssconf_basic_port_$local_lb_node )"
-				fi
-				let local_node_no++
-			done
-			[ $local_echo_first_line_mark = 0 ] && {
-				echo $(date) [$$]: ----------------------------------------
-				local_echo_first_line_mark=1
-			}
-			echo $(date) [$$]: "   SS LB Server    $local_ss_server:$( dbus get ss_basic_port )"
-			[ $local_echo_first_line_mark = 0 ] && {
-				echo $(date) [$$]: ----------------------------------------
-				local_echo_first_line_mark=1
-			}
-			echo $(date) [$$]: "   SS Export       $local_ss_export_str"
-		## 普通单节点服务器模式
-		elif [ -n "$local_ss_server" ]; then
-			## 获取SS节点服务器ip地址
-			local local_ss_basic_server_ip="$local_ss_server"
-			## 判断是否为ip地址
-			local local_ss_server_ip=$( echo $local_ss_basic_server_ip | grep -E "([0-9]{1,3}[\.]){3}[0-9]{1,3}" )
-			if [ -z "$local_ss_server_ip" ]; then
-				## 不是ip地址，先用外部DNS解析，强制由114解析，以免还未开始工作而导致解析失败；
-				## 不成功则再次由本机进行解析；
-				## 若再不成功则由ss内部去解析，由于得不到该节点地址，无法对该线路进行分流干预，交由系统控制
-				local_ss_server_ip=$( nslookup "$local_ss_basic_server_ip" $local_ss_basic_dnslookup_server 2> /dev/null | sed '1,4d' | awk '{print $3}' | grep -v : | awk 'NR==1{print}' )
-				if [ -z "$local_ss_server_ip" ]; then
-					local_ss_server_ip=$( resolveip -4 -t 2 "$local_ss_basic_server_ip" 2> /dev/null | awk 'NR==1{print}' )
-					if [ -z "$local_ss_server_ip" ]; then
-						echo $(date) [$$]: ----------------------------------------
-						echo $(date) [$$]: "   SS Server   $local_ss_basic_server_ip:$( dbus get ss_basic_port ) resolve ip by ss-redir"
-					else
-						echo $(date) [$$]: ----------------------------------------
-						echo $(date) [$$]: "   SS Server   $local_ss_basic_server_ip $local_ss_server_ip:$( dbus get ss_basic_port )"
-					fi
-				else
-					echo $(date) [$$]: ----------------------------------------
-					echo $(date) [$$]: "   SS Server   $local_ss_basic_server_ip $local_ss_server_ip:$( dbus get ss_basic_port )"
-				fi
-			else
-				echo $(date) [$$]: ----------------------------------------
-				echo $(date) [$$]: "   SS Server       $local_ss_server_ip:$( dbus get ss_basic_port )"
-			fi
-			if [ -n "$local_ss_server_ip" ] && [ "$local_ss_server_ip" != "127.0.0.1" ] \
-				&& [ "$( dbus get ss_basic_use_kcp )" = "1" ]; then
-				echo $(date) [$$]: "   SS KCP Server   127.0.0.1:$( dbus get ss_basic_kcp_lport )"
-			fi
-			echo $(date) [$$]: "   SS Export       $local_ss_export_str"
-		fi
-	## 其他SS模式：不干预状态
-	elif [ "$local_ss_enable" != "0" ]; then
-		echo $(date) [$$]: ----------------------------------------
-		echo $(date) [$$]: "   No intervention control for SS lines"
-		echo $(date) [$$]: "   SS Export       $local_ss_export_str"
-	fi
-}
-
-## 显示SS服务支持状态信息函数
-## 输入项：
-##     全局变量及常量
-## 返回值：无
-lz_show_ss_support_status() {
-	[ "$status_ss_wan_port" != "0" -a "$status_ss_wan_port" != "1" ] && return
-	[ -z "$( echo $status_route_os_name | grep Merlin )" -o ! -d ${STATUS_PATH_SS} -o ! -f ${STATUS_PATH_SS}/${STATUS_SS_FILENAME} ] && return
-	if [ "$status_route_hardware_type" = "armv7l" ]; then
-		## 不支持X7.2以下的固件版本
-		local local_firmware_version=$( nvram get extendno | cut -d "X" -f2 | cut -d "-" -f1 | cut -d "_" -f1 )
-		[ -n "$local_firmware_version" ] && return
-		[ "$( versioncmp $local_firmware_version 7.2 )" = "1" ] && return
-		## 显示SS服务状态信息
-		## 输入项：
-		##     全局变量及常量
-		## 返回值：无
-		lz_show_ss_status
-	## koolshare merlin aarch64固件平台
-	## 科学上网插件v1.4.2 +
-	elif [ "$status_route_hardware_type" = "aarch64" ]; then
-		lz_show_ss_status
-	fi
+	local local_ss_enable=$( dbus get ss_basic_enable 2> /dev/null )
+	[ -z "$local_ss_enable" -o "$local_ss_enable" != "1" ] && return
+	echo $(date) [$$]: ----------------------------------------
+	echo $(date) [$$]: Fancyss is running.
 }
 
 ## 显示OpenVPN服务支持状态信息函数
@@ -2417,12 +2219,6 @@ __status_main() {
 		echo $(date) [$$]: The router has successfully joined into two WANs.
 		echo $(date) [$$]: Policy routing service has been started.
 
-		## 显示SS服务支持状态信息
-		## 输入项：
-		##     全局变量及常量
-		## 返回值：无
-		lz_show_ss_support_status
-
 		## 显示OpenVPN服务支持状态信息
 		## 输入项：
 		##     全局常量及变量
@@ -2436,6 +2232,13 @@ __status_main() {
 		lz_deployment_routing_policy_status
 
 		echo $(date) [$$]: Policy routing service has been started successfully.
+
+		## 显示SS服务支持状态
+		## 输入项：
+		##     全局变量及常量
+		## 返回值：无
+		lz_ss_support_status
+
 	## 单线路
 	elif [ -n "$( ip route | grep default | sed -n 1p )" ]; then
 		echo $(date) [$$]: The router is connected to only one WAN.
@@ -2446,6 +2249,13 @@ __status_main() {
 		##     全局变量及常量
 		## 返回值：无
 		lz_show_single_net_iptv_status
+
+		## 显示SS服务支持状态
+		## 输入项：
+		##     全局变量及常量
+		## 返回值：无
+		lz_ss_support_status
+
 	## 无外网连接
 	else
 		echo $(date) [$$]: The router hasn\'t been connected to the two WANs.

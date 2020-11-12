@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule.sh v3.5.6
+# lz_rule.sh v3.5.7
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # 本版本采用CIDR（无类别域间路由，Classless Inter-Domain Routing）技术
@@ -72,20 +72,12 @@
 ##    12."解除运行锁"命令用于在脚本运行过程中，由于意外原因中断运行，如操作Ctrl+C键等，导致程序被同步运
 ##       行安全机制锁住，在不重启路由器的情况下，脚本无法再次启动或有关命令无法继续执行，可通过此命令强
 ##       制解锁。注意，在脚本正常运行过程中不要执行此命令。
-##    13.若在Koolshare固件机型上启用过SS服务支持，脚本升级或删除本脚本前请运行停止命令，以清除程序自动
-##       创建的接口文件，亦可手工去/koolshare/ss/postscripts/目录清除P99_lz_rule.sh文件。
 
 ## ----------------------------------------------------
 ## -------------全局数据定义及初始化-------------------
 
 ## 版本号
-LZ_VERSION=v3.5.6
-
-## 停止SS服务命令
-SS_START="ss_start"
-
-## 停止SS服务命令
-SS_STOP="ss_stop"
+LZ_VERSION=v3.5.7
 
 ## 运行状态查询命令
 SHOW_STATUS="status"
@@ -96,11 +88,9 @@ ADDRESS_QUERY="address"
 ## 解除运行锁命令
 FORCED_UNLOCKING="unlock"
 
-[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && {
-	echo $(date) [$$]:
-	echo $(date) [$$]: LZ $LZ_VERSION script commands start......
-	echo $(date) [$$]: By LZ \(larsonzhang@gmail.com\)
-}
+echo $(date) [$$]:
+echo $(date) [$$]: LZ $LZ_VERSION script commands start......
+echo $(date) [$$]: By LZ \(larsonzhang@gmail.com\)
 
 ## 项目文件部署路径
 PATH_BASE=/jffs/scripts
@@ -142,11 +132,10 @@ if [ "$1" != "$FORCED_UNLOCKING" ]; then
 		if [ "$local_instance" = "lz_$1" \
 			-a "$local_instance" != "lz_$SHOW_STATUS" -a "$local_instance" != "lz_$ADDRESS_QUERY" ]; then
 			unset local_instance
-			if [ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ]; then
-				echo $(date) [$$]: The policy routing service is being started by another instance.
-				echo $(date) [$$]: LZ $LZ_VERSION script commands executed!
-				echo $(date) [$$]:
-			fi
+			echo $(date) [$$]: The policy routing service is being started by another instance.
+			echo $(date) [$$]: ----------------------------------------
+			echo $(date) [$$]: LZ $LZ_VERSION script commands executed!
+			echo $(date) [$$]:
 			## 解除文件同步锁
 			flock -u "$LOCK_FILE_ID" > /dev/null 2>&1
 			exit
@@ -194,44 +183,37 @@ lz_project_file_management() {
 	## 检查脚本关键文件是否存在，若有不存在项则退出运行。
 	local local_scripts_file_exist=1
 	[ ! -f ${PATH_FUNC}/lz_initialize_config.sh ] && {
-		[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && \
-			echo $(date) [$$]: The file ${PATH_FUNC}/lz_initialize_config.sh does not exist.
+		echo $(date) [$$]: The file ${PATH_FUNC}/lz_initialize_config.sh does not exist.
 		echo $(date) [$$]: LZ ${PATH_FUNC}/lz_initialize_config.sh does not exist. >> /tmp/syslog.log
 		local_scripts_file_exist=0
 	}
 	[ ! -f ${PATH_FUNC}/lz_define_global_variables.sh ] && {
-		[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && \
-			echo $(date) [$$]: The file ${PATH_FUNC}/lz_define_global_variables.sh does not exist.
+		echo $(date) [$$]: The file ${PATH_FUNC}/lz_define_global_variables.sh does not exist.
 		echo $(date) [$$]: LZ ${PATH_FUNC}/lz_define_global_variables.sh does not exist. >> /tmp/syslog.log
 		local_scripts_file_exist=0
 	}
 	[ ! -f ${PATH_FUNC}/lz_clear_custom_scripts_data.sh ] && {
-		[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && \
-			echo $(date) [$$]: The file ${PATH_FUNC}/lz_clear_custom_scripts_data.sh does not exist.
+		echo $(date) [$$]: The file ${PATH_FUNC}/lz_clear_custom_scripts_data.sh does not exist.
 		echo $(date) [$$]: LZ ${PATH_FUNC}/lz_clear_custom_scripts_data.sh does not exist. >> /tmp/syslog.log
 		local_scripts_file_exist=0
 	}
 	[ ! -f ${PATH_FUNC}/lz_rule_func.sh ] && {
-		[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && \
-			echo $(date) [$$]: The file ${PATH_FUNC}/lz_rule_func.sh does not exist.
+		echo $(date) [$$]: The file ${PATH_FUNC}/lz_rule_func.sh does not exist.
 		echo $(date) [$$]: LZ ${PATH_FUNC}/lz_rule_func.sh does not exist. >> /tmp/syslog.log
 		local_scripts_file_exist=0
 	}
 	[ ! -f ${PATH_FUNC}/lz_rule_status.sh ] && {
-		[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && \
-			echo $(date) [$$]: The file ${PATH_FUNC}/lz_rule_status.sh does not exist.
+		echo $(date) [$$]: The file ${PATH_FUNC}/lz_rule_status.sh does not exist.
 		echo $(date) [$$]: LZ ${PATH_FUNC}/lz_rule_status.sh does not exist. >> /tmp/syslog.log
 		local_scripts_file_exist=0
 	}
 	[ ! -f ${PATH_FUNC}/lz_rule_address_query.sh ] && {
-		[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && \
-			echo $(date) [$$]: The file ${PATH_FUNC}/lz_rule_address_query.sh does not exist.
+		echo $(date) [$$]: The file ${PATH_FUNC}/lz_rule_address_query.sh does not exist.
 		echo $(date) [$$]: LZ ${PATH_FUNC}/lz_rule_address_query.sh does not exist. >> /tmp/syslog.log
 		local_scripts_file_exist=0
 	}
 	if [ "$local_scripts_file_exist" = "0" ]; then
-		[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && \
-			echo $(date) [$$]: Policy routing service can\'t be started.
+		echo $(date) [$$]: Policy routing service can\'t be started.
 		echo $(date) [$$]: -------- No LZ $LZ_VERSION rules run! -------------- >> /tmp/syslog.log
 		echo $(date) [$$]: >> /tmp/syslog.log
 		return 1
@@ -250,8 +232,7 @@ lz_check_instance() {
 	[ $( cat ${INSTANCE_LIST} 2> /dev/null | grep -c 'lz_' ) -le 0 ] && return 1
 	local local_instance=$( cat ${INSTANCE_LIST} 2> /dev/null | grep 'lz_' | sed -n 1p | sed -e 's/^[ ]*//g' -e 's/[ ]*$//g' )
 	[ "$local_instance" != "lz_$1" -o "$local_instance" = "lz_$SHOW_STATUS" -o "$local_instance" = "lz_$ADDRESS_QUERY"  ] && return 1
-	[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && \
-		echo $(date) [$$]: The policy routing service is being started by another instance.
+	echo $(date) [$$]: The policy routing service is being started by another instance.
 	echo $(date) [$$]: LZ Another script instance is running. >> /tmp/syslog.log
 	echo $(date) [$$]: -------- LZ $LZ_VERSION rules running! ------------- >> /tmp/syslog.log
 	echo $(date) [$$]: >> /tmp/syslog.log
@@ -271,8 +252,7 @@ lz_instance_exit() {
 
 __lz_main() {
 
-	[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && \
-		echo $(date) [$$]: Initialization script configuration parameters......
+	echo $(date) [$$]: Initialization script configuration parameters......
 
 	## 初始化脚本配置
 	## 输入项：
@@ -303,10 +283,8 @@ __lz_main() {
 	## 载入函数功能定义
 	${CALL_FUNC_SUBROUTINE}/lz_rule_func.sh
 
-	[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && {
-		echo $(date) [$$]: Configuration parameters initialization is complete.
-		echo $(date) [$$]: Get the router device information......
-	}
+	echo $(date) [$$]: Configuration parameters initialization is complete.
+	echo $(date) [$$]: Get the router device information......
 
 	## 启动延时5秒
 #	sleep 5s
@@ -341,8 +319,7 @@ __lz_main() {
 
 	lz_check_instance "$1" && return
 
-	[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && \
-		echo $(date) [$$]: Initializes the policy routing library......
+	echo $(date) [$$]: Initializes the policy routing library......
 	echo $(date) [$$]: -------- LZ $LZ_VERSION rules initializing! -------- >> /tmp/syslog.log
 
 	## 处理系统负载均衡分流策略规则
@@ -372,8 +349,7 @@ __lz_main() {
 	##     ip_rule_exist--删除后剩余条目数，正常为0，全局变量
 	lz_data_cleaning "$1"
 
-	[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && \
-		echo $(date) [$$]: Policy routing library has been initialized.
+	echo $(date) [$$]: Policy routing library has been initialized.
 	echo $(date) [$$]: -------- LZ $LZ_VERSION rules initialized! --------- >> /tmp/syslog.log
 
 	## 接到停止运行命令
@@ -412,9 +388,15 @@ __lz_main() {
 		## 返回值：无
 		lz_sys_load_balance_control "$IP_RULE_PRIO_BALANCE"
 
-		[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && \
-			echo $(date) [$$]: Policy routing service has stopped.
+		echo $(date) [$$]: Policy routing service has stopped.
 		echo $(date) [$$]: -------- LZ $LZ_VERSION rules stopped! ------------- >> /tmp/syslog.log
+
+		## SS服务支持
+		## 输入项：
+		##     全局变量及常量
+		## 返回值：无
+		lz_ss_support
+
 		echo $(date) [$$]: >> /tmp/syslog.log
 
 		return
@@ -458,10 +440,8 @@ __lz_main() {
 	## 双线路
 	if [ -n "$( ip route | grep nexthop | sed -n 1p )" -a $ip_rule_exist = 0 ]; then
 
-		[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && {
-			echo $(date) [$$]: The router has successfully joined into two WANs.
-			echo $(date) [$$]: Policy routing service is being started......
-		}
+		echo $(date) [$$]: The router has successfully joined into two WANs.
+		echo $(date) [$$]: Policy routing service is being started......
 
 		## 部署流量路由策略
 		## 输入项：
@@ -486,18 +466,22 @@ __lz_main() {
 		## 返回值：无
 		lz_ip_rule_output_syslog "$IP_RULE_PRIO_TOPEST" "$IP_RULE_PRIO"
 
-		[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && \
-			echo $(date) [$$]: Policy routing service has been started successfully.
+		echo $(date) [$$]: Policy routing service has been started successfully.
 		echo $(date) [$$]: -------- LZ $LZ_VERSION rules run ok! -------------- >> /tmp/syslog.log
+
+		## SS服务支持
+		## 输入项：
+		##     全局变量及常量
+		## 返回值：无
+		lz_ss_support
+
 		echo $(date) [$$]: >> /tmp/syslog.log
 
 	## 单线路
 	elif [ -n "$( ip route | grep default | sed -n 1p )" -a $ip_rule_exist = 0 ]; then
 
-		[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && {
-			echo $(date) [$$]: The router is connected to only one WAN.
-			echo $(date) [$$]: ----------------------------------------
-		}
+		echo $(date) [$$]: The router is connected to only one WAN.
+		echo $(date) [$$]: ----------------------------------------
 		echo $(date) [$$]: LZ The router is connected to only one WAN. >> /tmp/syslog.log
 		echo $(date) [$$]: ----------------------------------------------- >> /tmp/syslog.log
 
@@ -532,22 +516,25 @@ __lz_main() {
 		lz_clear_interface_scripts "$1"
 
 		if [ "$ip_rule_exist" -gt "0" ]; then
-			[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && \
-				echo $(date) [$$]: Only IPTV rules is running.
+			echo $(date) [$$]: Only IPTV rules is running.
 			echo $(date) [$$]: -------- LZ $LZ_VERSION IPTV rules is running. ----- >> /tmp/syslog.log
-			echo $(date) [$$]: >> /tmp/syslog.log
 		else
-			[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && \
-				echo $(date) [$$]: The policy routing service isn\'t running.
+			echo $(date) [$$]: The policy routing service isn\'t running.
 			echo $(date) [$$]: -------- No LZ $LZ_VERSION rules run! -------------- >> /tmp/syslog.log
-			echo $(date) [$$]: >> /tmp/syslog.log
 		fi
+
+		## SS服务支持
+		## 输入项：
+		##     全局变量及常量
+		## 返回值：无
+		lz_ss_support
+
+		echo $(date) [$$]: >> /tmp/syslog.log
 
 	## 无外网连接
 	else
 
-		[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && \
-			echo $(date) [$$]: The router hasn\'t been connected to the two WANs.
+		echo $(date) [$$]: The router hasn\'t been connected to the two WANs.
 		echo $(date) [$$]: LZ The router hasn\'t been connected to the two WANs. >> /tmp/syslog.log
 
 		## 输出IPTV规则条目数至系统记录
@@ -573,8 +560,7 @@ __lz_main() {
 		## 返回值：无
 		lz_clear_interface_scripts "$1"
 
-		[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && \
-			echo $(date) [$$]: The policy routing service isn\'t running.
+		echo $(date) [$$]: The policy routing service isn\'t running.
 		echo $(date) [$$]: -------- No LZ $LZ_VERSION rules run! -------------- >> /tmp/syslog.log
 		echo $(date) [$$]: >> /tmp/syslog.log
 	fi
@@ -650,11 +636,10 @@ if lz_project_file_management; then
 				echo $(date) [$$]: -------- LZ $LZ_VERSION rules running! ------------- >> /tmp/syslog.log
 				echo $(date) [$$]: >> /tmp/syslog.log
 
-				if [ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ]; then
-					echo $(date) [$$]: The policy routing service is being started by another instance.
-					echo $(date) [$$]: LZ $LZ_VERSION script commands executed!
-					echo $(date) [$$]:
-				fi
+				echo $(date) [$$]: The policy routing service is being started by another instance.
+				echo $(date) [$$]: ----------------------------------------
+				echo $(date) [$$]: LZ $LZ_VERSION script commands executed!
+				echo $(date) [$$]:
 
 				## 实例退出处理
 				## 输入项：
@@ -684,8 +669,7 @@ if lz_project_file_management; then
 
 		else
 
-			[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && \
-				echo $(date) [$$]: The policy routing service is being started by another instance.
+			echo $(date) [$$]: The policy routing service is being started by another instance.
 			echo $(date) [$$]: LZ Another script instance is running. >> /tmp/syslog.log
 			echo $(date) [$$]: -------- LZ $LZ_VERSION rules running! ------------- >> /tmp/syslog.log
 			echo $(date) [$$]: >> /tmp/syslog.log
@@ -693,10 +677,9 @@ if lz_project_file_management; then
 	fi
 fi
 
-[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && {
-	echo $(date) [$$]: LZ $LZ_VERSION script commands executed!
-	echo $(date) [$$]:
-}
+[ "$1" != "$ADDRESS_QUERY" ] && echo $(date) [$$]: ----------------------------------------
+echo $(date) [$$]: LZ $LZ_VERSION script commands executed!
+echo $(date) [$$]:
 
 [ "$1" != "$FORCED_UNLOCKING" ] && {
 	lz_instance_exit
