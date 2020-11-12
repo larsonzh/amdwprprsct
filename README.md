@@ -3,6 +3,8 @@ Asuswrt-Merlin dual WAN port router policy routing service configuration tool
 
 华硕改版固件路由器外网双线路接入策略路由服务配置工具
 
+v3.5.7
+
 本软件目的不是为实现应用中网络带速叠加，也不专注于实现路由器多个出口链路网络或带宽的聚合，而是用于在双线路接入路由器的不同网络出口之间精准控制网络访问经由路径，可有效解决路由器双线路接入时不能正常登录和访问网站，以及网络访问卡慢、断流、不稳定等问题，提高路由器使用的稳定性、流畅性和带宽资源利用率，挖掘和发挥设备潜能和剩余价值，减少设备重复采购，改善电磁环境，提高生活质量。避免因WiFi信号太多，经常为切换使用SSID而纠结，预防选择恐惧症。
 
 <strong>主要功能</strong>
@@ -32,7 +34,7 @@ Asuswrt-Merlin dual WAN port router policy routing service configuration tool
 <li>可设置本地客户端网址/网段分流黑名单，指定某个客户端的访问外网时不按照分流规则输出流量，由系统采用负载均衡技术自动分配流量出口。</li>
 <li>协议分流（系统内核中需有layer7模块支持和安装有l7-protocals协议包方可使用，需要重新编译系统内核）。</li>
 <li>端口分流。</li>
-<li>科学上网Fancyss服务支持。</li>
+<li>科学上网Fancyss插件服务支持。</li>
 <li>可设置OpenVPN Server客户端访问外网路由器出口。</li>
 <li>可设置路由器主机内部应用访问外网WAN口。</li></ul>
 
