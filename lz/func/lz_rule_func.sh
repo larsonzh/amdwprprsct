@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v3.5.6
+# lz_rule_func.sh v3.5.7
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 函数功能定义
@@ -224,7 +224,7 @@ lz_get_policy_mode() {
 ##     MATCH_SET--iptables设置操作符宏变量，全局常量
 ##     route_local_ip--路由器本地IP地址，全局变量
 lz_get_route_info() {
-	[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: ----------------------------------------
+	echo $(date) [$$]: ----------------------------------------
 	## 匹配设置iptables操作符及输出显示路由器硬件类型
 	case $route_hardware_type in
 		armv7l)
@@ -246,49 +246,49 @@ lz_get_route_info() {
 	[ -z "$local_route_product_model" ] && local_route_product_model="$( nvram get model | sed -n 1p )"
 	if [ -n "$local_route_product_model" ]; then
 		echo $(date) [$$]: LZ Route Model: $local_route_product_model >> /tmp/syslog.log
-		[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: "   Route Model: $local_route_product_model"
+		echo $(date) [$$]: "   Route Model: $local_route_product_model"
 	fi
 
 	## 输出显示路由器硬件类型
 	[ -z "$route_hardware_type" ] && route_hardware_type="Unknown"
 	echo $(date) [$$]: LZ Hardware Type: $route_hardware_type >> /tmp/syslog.log
-	[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: "   Hardware Type: $route_hardware_type"
+	echo $(date) [$$]: "   Hardware Type: $route_hardware_type"
 
 	## 输出显示路由器主机名
 	local local_route_hostname=$( uname -n )
 	[ -z "$local_route_hostname" ] && local_route_hostname="Unknown"
 	echo $(date) [$$]: LZ Host Name: $local_route_hostname >> /tmp/syslog.log
-	[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: "   Host Name: $local_route_hostname"
+	echo $(date) [$$]: "   Host Name: $local_route_hostname"
 
 	## 输出显示路由器操作系统内核名称
 	local local_route_Kernel_name=$( uname )
 	[ -z "$local_route_Kernel_name" ] && local_route_Kernel_name="Unknown"
 	echo $(date) [$$]: LZ Kernel Name: $local_route_Kernel_name >> /tmp/syslog.log
-	[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: "   Kernel Name: $local_route_Kernel_name"
+	echo $(date) [$$]: "   Kernel Name: $local_route_Kernel_name"
 
 	## 输出显示路由器操作系统内核发行编号
 	local local_route_kernel_release=$( uname -r )
 	[ -z "$local_route_kernel_release" ] && local_route_kernel_release="Unknown"
 	echo $(date) [$$]: LZ Kernel Release: $local_route_kernel_release >> /tmp/syslog.log
-	[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: "   Kernel Release: $local_route_kernel_release"
+	echo $(date) [$$]: "   Kernel Release: $local_route_kernel_release"
 
 	## 输出显示路由器操作系统内核版本号
 	local local_route_kernel_version=$( uname -v )
 	[ -z "$local_route_kernel_version" ] && local_route_kernel_version="Unknown"
 	echo $(date) [$$]: LZ Kernel Version: $local_route_kernel_version >> /tmp/syslog.log
-	[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: "   Kernel Version: $local_route_kernel_version"
+	echo $(date) [$$]: "   Kernel Version: $local_route_kernel_version"
 
 	## 输出显示路由器操作系统名称
 	[ -z "$route_os_name" ] && route_os_name="Unknown"
 	echo $(date) [$$]: LZ OS Name: $route_os_name >> /tmp/syslog.log
-	[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: "   OS Name: $route_os_name"
+	echo $(date) [$$]: "   OS Name: $route_os_name"
 
 	if [ "$route_os_name" = "Merlin-Koolshare" ]; then
 		## 输出显示路由器固件版本号
 		local local_firmware_version=$( nvram get extendno | cut -d "X" -f2 | cut -d "-" -f1 | cut -d "_" -f1 )
 		[ -z "$local_firmware_version" ] && local_firmware_version="Unknown"
 		echo $(date) [$$]: LZ Firmware Version: $local_firmware_version >> /tmp/syslog.log
-		[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: "   Firmware Version: $local_firmware_version"
+		echo $(date) [$$]: "   Firmware Version: $local_firmware_version"
 	else
 		local local_firmware_version=$( nvram get firmver )
 		[ -n "$local_firmware_version" ] && {
@@ -306,7 +306,7 @@ lz_get_route_info() {
 					local_firmware_version="$local_firmware_version.$local_firmware_webs_state_info"
 				fi
 				echo $(date) [$$]: LZ Firmware Version: $local_firmware_version >> /tmp/syslog.log
-				[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: "   Firmware Version: $local_firmware_version"
+				echo $(date) [$$]: "   Firmware Version: $local_firmware_version"
 			}
 		}
 	fi
@@ -315,14 +315,14 @@ lz_get_route_info() {
 	local local_firmware_build="$( nvram get buildinfo 2> /dev/null | sed -n 1p )"
 	[ -n "$local_firmware_build" ] && {
 		echo $(date) [$$]: LZ Firmware Build: $local_firmware_build >> /tmp/syslog.log
-		[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: "   Firmware Build: $local_firmware_build"
+		echo $(date) [$$]: "   Firmware Build: $local_firmware_build"
 	}
 
 	## 输出显示路由器CFE固件版本信息
 	local local_bootloader_cfe="$( nvram get bl_version 2> /dev/null | sed -n 1p )"
 	[ -n "$local_bootloader_cfe" ] && {
 		echo -e $(date) [$$]: LZ Bootloader \(CFE\): $local_bootloader_cfe >> /tmp/syslog.log
-		[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: "   Bootloader (CFE): $local_bootloader_cfe"
+		echo $(date) [$$]: "   Bootloader (CFE): $local_bootloader_cfe"
 	}
 
 	## 输出显示路由器CPU和内存主频
@@ -330,9 +330,9 @@ lz_get_route_info() {
 	local local_memory_frequency="$( nvram get clkfreq 2> /dev/null | sed -n 1p | awk -F ',' '{print $2}' )"
 	if [ -n "$local_cpu_frequency" -a -n "$local_memory_frequency" ]; then
 		echo $(date) [$$]: LZ CPU clkfreq: $local_cpu_frequency MHz >> /tmp/syslog.log
-		[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: "   CPU clkfreq: $local_cpu_frequency MHz"
+		echo $(date) [$$]: "   CPU clkfreq: $local_cpu_frequency MHz"
 		echo $(date) [$$]: LZ Mem clkfreq: $local_memory_frequency MHz >> /tmp/syslog.log
-		[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: "   Mem clkfreq: $local_memory_frequency MHz"
+		echo $(date) [$$]: "   Mem clkfreq: $local_memory_frequency MHz"
 	fi
 
 	## 输出显示路由器CPU温度
@@ -341,11 +341,11 @@ lz_get_route_info() {
 		local_cpu_temperature="$( cat /sys/class/thermal/thermal_zone0/temp 2> /dev/null | awk '{print $1 / 1000}' | sed -n 1p )"
 		[ -n "$local_cpu_temperature" ] && {
 			echo $(date) [$$]: LZ CPU temperature: $local_cpu_temperature degrees C >> /tmp/syslog.log
-			[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: "   CPU temperature: $local_cpu_temperature degrees C"
+			echo $(date) [$$]: "   CPU temperature: $local_cpu_temperature degrees C"
 		}
 	else
 		echo $(date) [$$]: LZ CPU temperature: $local_cpu_temperature >> /tmp/syslog.log
-		[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: "   CPU temperature: $local_cpu_temperature"
+		echo $(date) [$$]: "   CPU temperature: $local_cpu_temperature"
 	fi
 
 	## 输出显示路由器无线网卡温度及无线信号强度
@@ -376,44 +376,44 @@ lz_get_route_info() {
 	if [ -z "$local_interface_5g2" ]; then
 		[ -n "$local_interface_2g_temperature" ] && {
 			echo $(date) [$$]: LZ 2.4 GHz temperature: $local_interface_2g_temperature >> /tmp/syslog.log
-			[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: "   2.4 GHz temperature: $local_interface_2g_temperature"
+			echo $(date) [$$]: "   2.4 GHz temperature: $local_interface_2g_temperature"
 		}
 		[ -n "$local_wl_txpwr_2g" ] && {
 			echo $(date) [$$]: LZ 2.4 GHz Tx Power: $local_wl_txpwr_2g >> /tmp/syslog.log
-			[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: "   2.4 GHz Tx Power: $local_wl_txpwr_2g"
+			echo $(date) [$$]: "   2.4 GHz Tx Power: $local_wl_txpwr_2g"
 		}
 		[ -n "$local_interface_5g1_temperature" ] && {
 			echo $(date) [$$]: LZ 5 GHz temperature: $local_interface_5g1_temperature >> /tmp/syslog.log
-			[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: "   5 GHz temperature: $local_interface_5g1_temperature"
+			echo $(date) [$$]: "   5 GHz temperature: $local_interface_5g1_temperature"
 		}
 		[ -n "$local_wl_txpwr_5g1" ] && {
 			echo $(date) [$$]: LZ 5 GHz Tx Power: $local_wl_txpwr_5g1 >> /tmp/syslog.log
-			[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: "   5 GHz Tx Power: $local_wl_txpwr_5g1"
+			echo $(date) [$$]: "   5 GHz Tx Power: $local_wl_txpwr_5g1"
 		}
 	else
 		[ -n "$local_interface_2g_temperature" ] && {
 			echo $(date) [$$]: LZ 2.4 GHz temperature: $local_interface_2g_temperature >> /tmp/syslog.log
-			[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: "   2.4 GHz temperature: $local_interface_2g_temperature"
+			echo $(date) [$$]: "   2.4 GHz temperature: $local_interface_2g_temperature"
 		}
 		[ -n "$local_wl_txpwr_2g" ] && {
 			echo $(date) [$$]: LZ 2.4 GHz Tx Power: $local_wl_txpwr_2g >> /tmp/syslog.log
-			[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: "   2.4 GHz Tx Power: $local_wl_txpwr_2g"
+			echo $(date) [$$]: "   2.4 GHz Tx Power: $local_wl_txpwr_2g"
 		}
 		[ -n "$local_interface_5g1_temperature" ] && {
 			echo $(date) [$$]: LZ 5 GHz-1 temperature: $local_interface_5g1_temperature >> /tmp/syslog.log
-			[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: "   5 GHz-1 temperature: $local_interface_5g1_temperature"
+			echo $(date) [$$]: "   5 GHz-1 temperature: $local_interface_5g1_temperature"
 		}
 		[ -n "$local_wl_txpwr_5g1" ] && {
 			echo $(date) [$$]: LZ 5 GHz-1 Tx Power: $local_wl_txpwr_5g1 >> /tmp/syslog.log
-			[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: "   5 GHz-1 Tx Power: $local_wl_txpwr_5g1"
+			echo $(date) [$$]: "   5 GHz-1 Tx Power: $local_wl_txpwr_5g1"
 		}
 		[ -n "$local_interface_5g2_temperature" ] && {
 			echo $(date) [$$]: LZ 5 GHz-2 temperature: $local_interface_5g2_temperature >> /tmp/syslog.log
-			[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: "   5 GHz-2 temperature: $local_interface_5g2_temperature"
+			echo $(date) [$$]: "   5 GHz-2 temperature: $local_interface_5g2_temperature"
 		}
 		[ -n "$local_wl_txpwr_5g2" ] && {
 			echo $(date) [$$]: LZ 5 GHz-2 Tx Power: $local_wl_txpwr_5g2 >> /tmp/syslog.log
-			[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: "   5 GHz-2 Tx Power: $local_wl_txpwr_5g2"
+			echo $(date) [$$]: "   5 GHz-2 Tx Power: $local_wl_txpwr_5g2"
 		}
 	fi
 
@@ -426,7 +426,7 @@ lz_get_route_info() {
 				| sed -n 1p )"
 	if [ -n "$local_nvram_usage" ]; then
 		echo $(date) [$$]: LZ NVRAM usage: $local_nvram_usage >> /tmp/syslog.log
-		[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: "   NVRAM usage: $local_nvram_usage"
+		echo $(date) [$$]: "   NVRAM usage: $local_nvram_usage"
 	fi
 
 	## 获取路由器本地网络信息
@@ -484,101 +484,101 @@ lz_get_route_info() {
 	## 输出路由器网络状态基本信息至Asuswrt系统记录
 	[ -z "$local_route_local_info" ] && {
 		echo $(date) [$$]: LZ Route Local Info: Unknown >> /tmp/syslog.log
-		[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: "   Route Local Info: Unknown"
+		echo $(date) [$$]: "   Route Local Info: Unknown"
 	}
 	echo $(date) [$$]: LZ Route Status: $local_route_local_link_status >> /tmp/syslog.log
-	[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: "   Route Status: $local_route_local_link_status"
+	echo $(date) [$$]: "   Route Status: $local_route_local_link_status"
 	echo $(date) [$$]: LZ Route Encap: $local_route_local_encap >> /tmp/syslog.log
-	[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: "   Route Encap: $local_route_local_encap"
+	echo $(date) [$$]: "   Route Encap: $local_route_local_encap"
 	echo $(date) [$$]: LZ Route HWaddr: $local_route_local_mac >> /tmp/syslog.log
-	[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: "   Route HWaddr: $local_route_local_mac"
+	echo $(date) [$$]: "   Route HWaddr: $local_route_local_mac"
 	echo $(date) [$$]: LZ Route Local IP Addr: $route_local_ip >> /tmp/syslog.log
-	[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: "   Route Local IP Addr: $route_local_ip"
+	echo $(date) [$$]: "   Route Local IP Addr: $route_local_ip"
 	echo $(date) [$$]: LZ Route Local Bcast: $local_route_local_bcast_ip >> /tmp/syslog.log
-	[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: "   Route Local Bcast: $local_route_local_bcast_ip"
+	echo $(date) [$$]: "   Route Local Bcast: $local_route_local_bcast_ip"
 	echo $(date) [$$]: LZ Route Local Mask: $route_local_ip_mask >> /tmp/syslog.log
-	[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: "   Route Local Mask: $route_local_ip_mask"
+	echo $(date) [$$]: "   Route Local Mask: $route_local_ip_mask"
 
 	if [ -n "$( ip route | grep nexthop | sed -n 1p )" ]; then
 		if [ "$usage_mode" = "0" ]; then
 			echo $(date) [$$]: LZ Route Usage Mode: Dynamic Policy >> /tmp/syslog.log
-			[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: "   Route Usage Mode: Dynamic Policy"
+			echo $(date) [$$]: "   Route Usage Mode: Dynamic Policy"
 		else
 			echo $(date) [$$]: LZ Route Usage Mode: Static Policy >> /tmp/syslog.log
-			[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: "   Route Usage Mode: Static Policy"
+			echo $(date) [$$]: "   Route Usage Mode: Static Policy"
 		fi
 		if [ "$policy_mode" = "0" ]; then
 			echo $(date) [$$]: LZ Route Policy Mode: Mode 1 >> /tmp/syslog.log
-			[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: "   Route Policy Mode: Mode 1"
+			echo $(date) [$$]: "   Route Policy Mode: Mode 1"
 		elif [ "$policy_mode" = "1" ]; then
 			echo $(date) [$$]: LZ Route Policy Mode: Mode 2 >> /tmp/syslog.log
-			[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: "   Route Policy Mode: Mode 2"
+			echo $(date) [$$]: "   Route Policy Mode: Mode 2"
 		else
 			echo $(date) [$$]: LZ Route Policy Mode: Mode 3 >> /tmp/syslog.log
-			[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: "   Route Policy Mode: Mode 3"
+			echo $(date) [$$]: "   Route Policy Mode: Mode 3"
 		fi
 		if [ "$usage_mode" = "0" ]; then
 			if [ "$wan_access_port" = "0" ]; then
 				echo $(date) [$$]: LZ Route Host DDNS Export: Primary WAN >> /tmp/syslog.log
-				[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: "   Route Host DDNS Export: Primary WAN"
+				echo $(date) [$$]: "   Route Host DDNS Export: Primary WAN"
 			elif [ "$wan_access_port" = "1" ]; then
 				echo $(date) [$$]: LZ Route Host DDNS Export: Secondary WAN >> /tmp/syslog.log
-				[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: "   Route Host DDNS Export: Secondary WAN"
+				echo $(date) [$$]: "   Route Host DDNS Export: Secondary WAN"
 			else
 				echo $(date) [$$]: LZ Route Host DDNS Export: Load Balancing >> /tmp/syslog.log
-				[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: "   Route Host DDNS Export: Load Balancing"
+				echo $(date) [$$]: "   Route Host DDNS Export: Load Balancing"
 			fi
 		else
 			if [ "$wan_access_port" = "0" ]; then
 				echo $(date) [$$]: LZ Route Host DDNS Export: Primary WAN >> /tmp/syslog.log
-				[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: "   Route Host DDNS Export: Primary WAN"
+				echo $(date) [$$]: "   Route Host DDNS Export: Primary WAN"
 			elif [ "$wan_access_port" = "1" ]; then
 				echo $(date) [$$]: LZ Route Host DDNS Export: Secondary WAN >> /tmp/syslog.log
-				[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: "   Route Host DDNS Export: Secondary WAN"
+				echo $(date) [$$]: "   Route Host DDNS Export: Secondary WAN"
 			elif [ "$wan_access_port" = "2" ]; then
 				echo $(date) [$$]: LZ Route Host DDNS Export: by Policy >> /tmp/syslog.log
-				[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: "   Route Host DDNS Export: by Policy"
+				echo $(date) [$$]: "   Route Host DDNS Export: by Policy"
 			else
 				echo $(date) [$$]: LZ Route Host DDNS Export: Load Balancing >> /tmp/syslog.log
-				[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: "   Route Host DDNS Export: Load Balancing"
+				echo $(date) [$$]: "   Route Host DDNS Export: Load Balancing"
 			fi
 		fi
 		if [ "$usage_mode" = "0" ]; then
 			echo $(date) [$$]: LZ Route Host App Export: Load Balancing >> /tmp/syslog.log
-			[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: "   Route Host App Export: Load Balancing"
+			echo $(date) [$$]: "   Route Host App Export: Load Balancing"
 		else
 			if [ "$wan_access_port" = "0" ]; then
 				echo $(date) [$$]: LZ Route Host App Export: Primary WAN >> /tmp/syslog.log
-				[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: "   Route Host App Export: Primary WAN"
+				echo $(date) [$$]: "   Route Host App Export: Primary WAN"
 			elif [ "$wan_access_port" = "1" ]; then
 				echo $(date) [$$]: LZ Route Host App Export: Secondary WAN >> /tmp/syslog.log
-				[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: "   Route Host App Export: Secondary WAN"
+				echo $(date) [$$]: "   Route Host App Export: Secondary WAN"
 			elif [ "$wan_access_port" = "2" ]; then
 				echo $(date) [$$]: LZ Route Host App Export: by Policy >> /tmp/syslog.log
-				[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: "   Route Host App Export: by Policy"
+				echo $(date) [$$]: "   Route Host App Export: by Policy"
 			else
 				echo $(date) [$$]: LZ Route Host App Export: Load Balancing >> /tmp/syslog.log
-				[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: "   Route Host App Export: Load Balancing"
+				echo $(date) [$$]: "   Route Host App Export: Load Balancing"
 			fi
 		fi
 		if [ "$route_cache" = "0" ]; then
 			echo $(date) [$$]: LZ Route Cache: Enable >> /tmp/syslog.log
-			[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: "   Route Cache: Enable"
+			echo $(date) [$$]: "   Route Cache: Enable"
 		else
 			echo $(date) [$$]: LZ Route Cache: Disable >> /tmp/syslog.log
-			[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: "   Route Cache: Disable"
+			echo $(date) [$$]: "   Route Cache: Disable"
 		fi
 		if [ "$clear_route_cache_time_interval" -gt "0" -a "$clear_route_cache_time_interval" -le "24" ]; then
 			local local_interval_suffix_str="s"
 			[ "$clear_route_cache_time_interval" = "1" ] && local_interval_suffix_str=""
 			echo $(date) [$$]: LZ Route Flush Cache: Every "$clear_route_cache_time_interval" hour$local_interval_suffix_str >> /tmp/syslog.log
-			[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: "   Route Flush Cache: Every $clear_route_cache_time_interval hour$local_interval_suffix_str"
+			echo $(date) [$$]: "   Route Flush Cache: Every $clear_route_cache_time_interval hour$local_interval_suffix_str"
 		else
 			echo $(date) [$$]: LZ Route Flush Cache: System >> /tmp/syslog.log
-			[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: "   Route Flush Cache: System"
+			echo $(date) [$$]: "   Route Flush Cache: System"
 		fi
 	fi
-	[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: ----------------------------------------
+	echo $(date) [$$]: ----------------------------------------
 
 	route_local_ip="$( echo "$route_local_ip" | grep -Eo "([0-9]{1,3}[\.]){3}[0-9]{1,3}" )"
 	route_local_ip_mask="$( echo "$route_local_ip_mask" | grep -Eo "([0-9]{1,3}[\.]){3}[0-9]{1,3}" )"
@@ -688,7 +688,7 @@ EOF
 	local OS=$( uname -r )
 	if [ -f /lib/modules/${OS}/kernel/net/netfilter/xt_set.ko ] && [ -z "$xt" ]; then
 		echo $(date) [$$]: Load xt_set.ko kernel module. >> /tmp/syslog.log
-		[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: Load xt_set.ko kernel module.
+		echo $(date) [$$]: Load xt_set.ko kernel module.
 		insmod /lib/modules/${OS}/kernel/net/netfilter/xt_set.ko > /dev/null 2>&1
 	fi
 }
@@ -703,7 +703,7 @@ lz_load_hashlimit_module() {
 	local OS=$( uname -r )
 	if [ -f /lib/modules/${OS}/kernel/net/netfilter/xt_hashlimit.ko ] && [ -z "$xt" ]; then
 		echo $(date) [$$]: Load xt_hashlimit.ko kernel module. >> /tmp/syslog.log
-		[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: Load xt_hashlimit.ko kernel module.
+		echo $(date) [$$]: Load xt_hashlimit.ko kernel module.
 		insmod /lib/modules/${OS}/kernel/net/netfilter/xt_hashlimit.ko > /dev/null 2>&1
 	fi
 }
@@ -1201,6 +1201,15 @@ lz_set_hnd_bcmmcast_if() {
 	return $reval
 }
 
+## 删除SS服务启停触发脚本文件函数
+## 输入项：
+##     全局常量
+## 返回值：无
+lz_clear_ss_start_command() {
+	[ -f ${PATH_SS_PS}/${SS_INTERFACE_FILENAME} ] && \
+		rm ${PATH_SS_PS}/${SS_INTERFACE_FILENAME} > /dev/null 2>&1
+}
+
 ## 数据清理函数
 ## 输入项：
 ##     $1--主执行脚本运行输入参数
@@ -1272,6 +1281,12 @@ lz_data_cleaning() {
 	## 返回值：无
 	lz_clear_openvpn_support
 
+	## 删除SS服务启停触发脚本文件
+	## 输入项：
+	##     全局常量
+	## 返回值：无
+	lz_clear_ss_start_command
+
 	## 删除更新ISP网络运营商CIDR网段数据定时任务
 	[ "$1" = "STOP" ] && cru d ${UPDATE_ISPIP_DATA_TIMEER_ID} > /dev/null 2>&1
 
@@ -1309,9 +1324,7 @@ lz_data_cleaning() {
 			killall igmpproxy > /dev/null 2>&1
 			sleep 1s
 
-			[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && {
-				echo $(date) [$$]: IGMP service has been closed.
-			}
+			echo $(date) [$$]: IGMP service has been closed.
 			echo $(date) [$$]: IGMP service has been closed. >> /tmp/syslog.log
 
 			if [ -f "/tmp/igmpproxy.conf" -a -n "$local_udpxy_wan1_dev" ]; then
@@ -1346,9 +1359,7 @@ EOF
 		##     udpxy_used--设置后的值，全局变量
 		lz_set_udpxy_used_value "5"
 
-		[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && {
-			echo $(date) [$$]: All of UDPXY services have been cleared.
-		}
+		echo $(date) [$$]: All of UDPXY services have been cleared.
 		echo $(date) [$$]: All of UDPXY services have been cleared. >> /tmp/syslog.log
 
 		local local_udpxy_enable_x="$( nvram get udpxy_enable_x | grep -Eo '^[1-9][0-9]{0,4}$' | sed -n 1p )"
@@ -1410,15 +1421,6 @@ lz_ip_rule_output_syslog() {
 		echo $(date) [$$]: LZ No policy rules in use. >> /tmp/syslog.log
 }
 
-## 删除SS服务启停触发脚本文件函数
-## 输入项：
-##     全局常量
-## 返回值：无
-lz_clear_ss_start_command() {
-	[ -f ${PATH_SS_PS}/${SS_INTERFACE_FILENAME} ] && \
-		rm ${PATH_SS_PS}/${SS_INTERFACE_FILENAME} > /dev/null 2>&1
-}
-
 ## 清除openvpn-event中命令行函数
 ## 输入项：
 ##     全局常量
@@ -1470,12 +1472,6 @@ lz_clear_firewall_start_command() {
 ##     全局常量
 ## 返回值：无
 lz_clear_interface_scripts() {
-	## 删除SS服务启停触发脚本文件
-	## 输入项：
-	##     全局常量
-	## 返回值：无
-	lz_clear_ss_start_command
-
 	## 清除openvpn-event中命令行
 	## 输入项：
 	##     全局常量
@@ -1761,11 +1757,9 @@ lz_establish_regularly_update_ispip_data_task() {
 			[ "$local_ruid_day" = "1" ] && local_day_suffix_str=""
 			echo $(date) [$$]: LZ Update ISP Data: $local_ruid_hour:$local_ruid_min Every $local_ruid_day day$local_day_suffix_str >> /tmp/syslog.log
 			echo $(date) [$$]: -------- LZ $LZ_VERSION Regularly Update ISPIP ----- >> /tmp/syslog.log
-			[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && {
-				echo $(date) [$$]: ----------------------------------------
-				echo $(date) [$$]: "   Update ISP Data: $local_ruid_hour:$local_ruid_min Every $local_ruid_day day$local_day_suffix_str"
-				echo $(date) [$$]: ----------------------------------------
-			}
+			echo $(date) [$$]: ----------------------------------------
+			echo $(date) [$$]: "   Update ISP Data: $local_ruid_hour:$local_ruid_min Every $local_ruid_day day$local_day_suffix_str"
+			echo $(date) [$$]: ----------------------------------------
 		}
 	fi
 }
@@ -3628,429 +3622,35 @@ EOF
 	fi
 }
 
-## 生成SS服务启停触发脚本文件函数
-## 脚本命名格式：P+数字+名字.sh
+## SS服务支持函数
 ## 输入项：
-##     全局常量
-## 返回值：无
-lz_create_ss_start_command_file() {
-	cat > ${PATH_SS_PS}/${SS_INTERFACE_FILENAME} <<EOF
-#!/bin/sh
-# ${SS_INTERFACE_FILENAME} $LZ_VERSION
-# By LZ 妙妙呜 (larsonzhang@gmail.com)
-# Do not manually modify!!!
-# 内容自动生成，请勿编辑修改或删除!!!
-
-# shadowsocks script for AM380 merlin firmware or HND router with kernel 4.1.27 merlin firmware
-# by sadog (sadoneli@gmail.com) from koolshare.cn
-
-# 此脚本是一个示例，实际写法按照自己的方法来做
-# 更改此脚本的名字，保证此脚本的名字格式是： P+数字+名字.sh
-# 例如在/koolshare/ss/postscripts下放入两个脚本:P01V2ray.sh, P99Brook.sh
-# SS插件运行后货自动按照数字从小到大顺序运行 P01V2ray.sh start, P99Brook.sh start
-# SS插件关闭前会自动按照数字从大到小顺序运行 P99Brook.sh stop, P01V2ray.sh stop
-#------------------------------------------
-source /koolshare/scripts/base.sh
-# 读取SS配置
-eval \`dbus export ss\`
-# 保持打印日志时间格式和ss插件一致
-alias echo_date='echo 【\$(TZ=UTC-8 date -R +%Y年%m月%d日\ %X)】:'
-#------------------------------------------
-case \$1 in
-	start)
-		echo_date "Start ${PROJECT_ID}"
-		echo_date "等等……妙妙呜……一会儿就好……"
-		# do something here
-		if [ -d ${PATH_LZ} ] && [ -f ${PATH_LZ}/${PROJECT_FILENAME} ] && [ -r ${PATH_LZ}/${PROJECT_FILENAME} ] && [ -x ${PATH_LZ}/${PROJECT_FILENAME} ]; then
-			echo \$(date) [\$$]: -------- LZ $LZ_VERSION rules catching ss! --------- >> /tmp/syslog.log
-			sh ${PATH_LZ}/${PROJECT_FILENAME} $SS_START
-			if [ \$( ip route show table $WAN0 | grep -c "dev" ) -gt 0 -a \$( ip route show table $WAN1 | grep -c "dev" ) -gt 0 ]; then
-				echo \$(date) [\$$]: -------- LZ $LZ_VERSION rules locked ss! ----------- >> /tmp/syslog.log
-			else
-				echo \$(date) [\$$]: -------- LZ $LZ_VERSION rules unlocked ss! --------- >> /tmp/syslog.log
-			fi
-		fi
-	;;
-	stop)
-		echo_date "Stop ${PROJECT_ID}"
-		echo_date "等等……妙妙呜……一会儿就好……"
-		# do something here
-		if [ -d ${PATH_LZ} ] && [ -f ${PATH_LZ}/${PROJECT_FILENAME} ] && [ -r ${PATH_LZ}/${PROJECT_FILENAME} ] && [ -x ${PATH_LZ}/${PROJECT_FILENAME} ]; then
-			echo \$(date) [\$$]: -------- LZ $LZ_VERSION rules unlocking ss! -------- >> /tmp/syslog.log
-			sh ${PATH_LZ}/${PROJECT_FILENAME} $SS_STOP
-			echo \$(date) [\$$]: -------- LZ $LZ_VERSION rules released ss! --------- >> /tmp/syslog.log
-		fi
-	;;
-esac
-#------------------------------------------
-
-EOF
-	## 设置为可执行权限
-	chmod +x ${PATH_SS_PS}/${SS_INTERFACE_FILENAME} > /dev/null 2>&1
-}
-
-## 创建SS服务启停触发脚本文件函数
-## 脚本命名格式：P+数字+名字.sh
-## 输入项：
-##     全局常量
-## 返回值：无
-lz_create_ss_start_command() {
-	if [ ! -d ${PATH_SS_PS} ]; then
-		mkdir -p ${PATH_SS_PS} > /dev/null 2>&1
-	fi
-
-	## 创建接口文件
-	if [ ! -f ${PATH_SS_PS}/${SS_INTERFACE_FILENAME} ]; then
-		## 生成SS服务启停触发脚本文件
-		## 脚本命名格式：P+数字+名字.sh
-		## 输入项：
-		##     全局常量
-		## 返回值：无
-		lz_create_ss_start_command_file
-	else
-		## 版本改变
-		local local_write_scripts=$( cat ${PATH_SS_PS}/${SS_INTERFACE_FILENAME} | grep "# ${SS_INTERFACE_FILENAME} $LZ_VERSION" )
-		if [ -z "$local_write_scripts" ]; then
-			## 生成SS服务启停触发脚本文件
-			## 脚本命名格式：P+数字+名字.sh
-			## 输入项：
-			##     全局常量
-			## 返回值：无
-			lz_create_ss_start_command_file
-		fi
-	fi
-}
-
-## 获取DNS解析服务器函数
-## 输入项：无
-## 返回值：
-##     DNS解析服务器IPv4网络地址
-lz_get_server_resolver() {
-	local local_server_resolver=$( dbus get ss_basic_server_resolver )
-	local local_server_resolver_user=$( dbus get ss_basic_server_resolver_user )
-	local RESOLVER="114.114.114.114"
-	if [ "$local_server_resolver" = "1" ]; then
-		local ISP_DNS1=$( nvram get wan0_dns | sed 's/ /\n/g' | grep -v 0.0.0.0 | grep -v 127.0.0.1 | sed -n 1p )
-		local ISP_DNS2=$( nvram get wan0_dns | sed 's/ /\n/g' | grep -v 0.0.0.0 | grep -v 127.0.0.1 | sed -n 2p )
-		local IFIP_DNS1=$( echo $ISP_DNS1 | grep -E "([0-9]{1,3}[\.]){3}[0-9]{1,3}" )
-		local IFIP_DNS2=$( echo $ISP_DNS2 | grep -E "([0-9]{1,3}[\.]){3}[0-9]{1,3}" )
-		if [ -n "$IFIP_DNS1" ]; then
-			RESOLVER="$ISP_DNS1"
-		else
-			[ -n "$IFIP_DNS2" ] && RESOLVER="$ISP_DNS2"
-		fi
-	fi
-	[ "$local_server_resolver" = "2" ] && RESOLVER="223.5.5.5"
-	[ "$local_server_resolver" = "3" ] && RESOLVER="223.6.6.6"
-	[ "$local_server_resolver" = "4" ] && RESOLVER="114.114.114.114"
-	[ "$local_server_resolver" = "5" ] && RESOLVER="114.114.115.115"
-	[ "$local_server_resolver" = "6" ] && RESOLVER="1.2.4.8"
-	[ "$local_server_resolver" = "7" ] && RESOLVER="210.2.4.8"
-	[ "$local_server_resolver" = "8" ] && RESOLVER="117.50.11.11"
-	[ "$local_server_resolver" = "9" ] && RESOLVER="117.50.22.22"
-	[ "$local_server_resolver" = "10" ] && RESOLVER="180.76.76.76"
-	[ "$local_server_resolver" = "11" ] && RESOLVER="119.29.29.29"
-	[ "$local_server_resolver" = "12" ] && {
-		[ -n "$local_server_resolver_user" ] && RESOLVER="$local_server_resolver_user"
-	}
-	echo $RESOLVER
-}
-
-## 启动SS服务支持函数
-## 输入项：
-##     $1--主执行脚本运行输入参数
-##     全局常量
-## 返回值：无
-lz_start_ss_support() {
-	## 在dbus数据库加载SS环境数据
-#	eval `dbus export ss`
-
-	## 获取SS服务运行参数
-	local local_ss_enable=$( dbus get ss_basic_enable )
-	local local_ss_mode=$( dbus get ss_acl_default_mode )
-	local local_ss_server=$( dbus get ss_basic_server_ip )
-	local local_lb_enable=$( dbus get ss_lb_enable )
-	[ "$local_ss_enable" = "0" ] && local_ss_mode=0
-
-	## 获取DNS解析服务器
-	## 输入项：无
-	## 返回值：
-	##     DNS解析服务器IPv4网络地址
-	local local_ss_basic_dnslookup_server="$( lz_get_server_resolver )"
-	[ -z "$local_ss_basic_dnslookup_server" ] && local_ss_basic_dnslookup_server="114.114.114.114"
-
-	local local_ss_export_str="Primary WAN"
-	[ "$ss_wan_port" = "1" ] && local_ss_export_str="Secondary WAN"
-
-	## 当SS启用访问控制，其中添加主机的路由规则，其他主机默认规则设为不通过代理时，acl_default_mode=0，正常为1。
-	## 如果不使用acl_default_mode做判据，仅通过ss_basic_enable判断，有可能令其这种场景的规则失效，试一把吧！看反响。
-	## 摸黑赶路，一切靠蒙，真尼玛难，刺激啊！
-	if [ -n "$local_ss_server" -a "$local_ss_enable" != "0" ]; then
-		## SS负载均衡模式
-		if [ "$local_lb_enable" = "1" -a "$local_ss_server" = "127.0.0.1" ] && [ $( dbus get ss_basic_port ) = $( dbus get ss_lb_port ) ]; then
-			local local_lb_nodes=$( dbus list ssconf_basic_use_lb_ | sed 's/ssconf_basic_use_lb_//g' | cut -d "=" -f 1 | sort -n | sed '/^$/d' )
-			local local_node_no=1
-			local local_lb_node=
-			local local_echo_first_line_mark=0
-			for local_lb_node in $local_lb_nodes
-			do
-				local local_ss_basic_server_ip=$( dbus get ssconf_basic_server_$local_lb_node )
-				local local_ss_server_ip=$( echo $local_ss_basic_server_ip | grep -E "([0-9]{1,3}[\.]){3}[0-9]{1,3}" )
-				if [ -z "$local_ss_server_ip" ]; then
-					## 检测到节点为域名格式，将尝试进行解析...
-					## 使用nslookup方式解析SS服务器的ip地址，解析dns：$ss_basic_dnslookup_server
-					local_ss_server_ip=$( nslookup "$local_ss_basic_server_ip" $local_ss_basic_dnslookup_server 2> /dev/null | sed '1,4d' | awk '{print $3}' | grep -v : | awk 'NR==1{print}' )
-					if [ -z "$local_ss_server_ip" ]; then
-						## 使用resolveip方式解析SS服务器的ip地址.
-						local_ss_server_ip=$( resolveip -4 -t 2 "$local_ss_basic_server_ip" 2> /dev/null | awk 'NR==1{print}' )
-						if [ -z "$local_ss_server_ip" ]; then
-							## 节点ip解析失败，将由haproxy自己尝试解析.
-							echo $(date) [$$]: LZ ss_server_$local_node_no = $local_ss_basic_server_ip:$( dbus get ssconf_basic_port_$local_lb_node )  resolve ip by haproxy >> /tmp/syslog.log
-							[ "$1" != "$SS_START" ] && {
-								[ $local_echo_first_line_mark = 0 ] && {
-									echo $(date) [$$]: ----------------------------------------
-									local_echo_first_line_mark=1
-								}
-								echo $(date) [$$]: "   SS Server $local_node_no  $local_ss_basic_server_ip:$( dbus get ssconf_basic_port_$local_lb_node ) resolve ip by haproxy"
-							}
-						else
-							## 节点ip地址解析成功
-							echo $(date) [$$]: LZ ss_server_$local_node_no = $local_ss_basic_server_ip $local_ss_server_ip:$( dbus get ssconf_basic_port_$local_lb_node ) >> /tmp/syslog.log
-							[ "$1" != "$SS_START" ] && {
-								[ $local_echo_first_line_mark = 0 ] && {
-									echo $(date) [$$]: ----------------------------------------
-									local_echo_first_line_mark=1
-								}
-								echo $(date) [$$]: "   SS Server $local_node_no  $local_ss_basic_server_ip $local_ss_server_ip:$( dbus get ssconf_basic_port_$local_lb_node )"
-							}
-						fi
-					else
-						echo $(date) [$$]: LZ ss_server_$local_node_no = $local_ss_basic_server_ip $local_ss_server_ip:$( dbus get ssconf_basic_port_$local_lb_node ) >> /tmp/syslog.log
-						[ "$1" != "$SS_START" ] && {
-							[ $local_echo_first_line_mark = 0 ] && {
-								echo $(date) [$$]: ----------------------------------------
-								local_echo_first_line_mark=1
-							}
-							echo $(date) [$$]: "   SS Server $local_node_no  $local_ss_basic_server_ip $local_ss_server_ip:$( dbus get ssconf_basic_port_$local_lb_node )"
-						}
-					fi
-				else
-					## 检测到节点已经是IP格式，跳过解析... 
-					echo $(date) [$$]: LZ ss_server_$local_node_no = $local_ss_server_ip:$( dbus get ssconf_basic_port_$local_lb_node ) >> /tmp/syslog.log
-					[ "$1" != "$SS_START" ] && {
-						[ $local_echo_first_line_mark = 0 ] && {
-							echo $(date) [$$]: ----------------------------------------
-							local_echo_first_line_mark=1
-						}
-						local local_space_str=""
-						if [ $local_node_no -lt 10 ]; then
-							local_space_str="    "
-						else
-							if [ $local_node_no -lt 100 ]; then
-								local_space_str="   "
-							else
-								if [ $local_node_no -lt 1000 ]; then
-									local_space_str="  "
-								else
-									[ $local_node_no -lt 10000 ] && local_space_str=" "
-								fi
-							fi
-						fi
-						echo $(date) [$$]: "   SS Server $local_node_no$local_space_str $local_ss_server_ip:$( dbus get ssconf_basic_port_$local_lb_node )"
-					}
-				fi
-
-				if [ -n "$local_ss_server_ip" ] && [ "$local_ss_server_ip" != "127.0.0.1" ]; then
-					[ "$( lz_get_ipset_total_number "$LOCAL_IP_SET" )" -gt "0" ] && {
-						## 本地内网网址/网段数据集中排除SS线路网址/网段
-						ipset -! del $LOCAL_IP_SET "$local_ss_server_ip" > /dev/null 2>&1
-						ipset -! add $LOCAL_IP_SET "$local_ss_server_ip" nomatch > /dev/null 2>&1
-					}
-					ip rule add from $local_ss_server_ip table $SS_WAN_ID prio $SS_RULE_FROM_PRIO > /dev/null 2>&1
-					## 国外网段数据集中排除SS线路网址/网段
-					[ "$( lz_get_ipset_total_number "$ISPIP_ALL_CN_SET" )" -gt "0" ] && {
-						ipset -! del $ISPIP_ALL_CN_SET "$local_ss_server_ip" > /dev/null 2>&1
-						ipset -! add $ISPIP_ALL_CN_SET "$local_ss_server_ip" > /dev/null 2>&1
-					}
-					## 第一WAN口ISP国内网段数据集中排除SS线路网址/网段
-					[ "$( lz_get_ipset_total_number "$ISPIP_SET_0" )" -gt "0" ] && {
-						ipset -! del $ISPIP_SET_0 "$local_ss_server_ip" > /dev/null 2>&1
-						ipset -! add $ISPIP_SET_0 "$local_ss_server_ip" nomatch > /dev/null 2>&1
-					}
-					## 第二WAN口ISP国内网段数据集中排除SS线路网址/网段
-					[ "$( lz_get_ipset_total_number "$ISPIP_SET_1" )" -gt "0" ] && {
-						ipset -! del $ISPIP_SET_1 "$local_ss_server_ip" > /dev/null 2>&1
-						ipset -! add $ISPIP_SET_1 "$local_ss_server_ip" nomatch > /dev/null 2>&1
-					}
-					ip rule add from all to $local_ss_server_ip table $SS_WAN_ID prio $SS_RULE_TO_PRIO > /dev/null 2>&1
-				fi
-
-				let local_node_no++
-			done
-
-			echo $(date) [$$]: LZ ss_lb_server = $local_ss_server:$( dbus get ss_basic_port ) >> /tmp/syslog.log
-			[ "$1" != "$SS_START" ] && {
-				[ $local_echo_first_line_mark = 0 ] && {
-					echo $(date) [$$]: ----------------------------------------
-					local_echo_first_line_mark=1
-				}
-				echo $(date) [$$]: "   SS LB Server    $local_ss_server:$( dbus get ss_basic_port )"
-			}
-
-#			ip rule add from $local_ss_server table $SS_WAN_ID prio $SS_RULE_FROM_PRIO > /dev/null 2>&1
-#			ip rule add to $local_ss_server table $SS_WAN_ID prio $SS_RULE_TO_PRIO > /dev/null 2>&1
-
-			echo $(date) [$$]: -------- LZ $LZ_VERSION ss_wan_port = $ss_wan_port ------------ >> /tmp/syslog.log
-			[ "$1" != "$SS_START" ] && {
-				[ $local_echo_first_line_mark = 0 ] && {
-					echo $(date) [$$]: ----------------------------------------
-					local_echo_first_line_mark=1
-				}
-				echo $(date) [$$]: "   SS Export       $local_ss_export_str"
-			}
-
-		## 普通单节点服务器模式
-		elif [ -n "$local_ss_server" ]; then
-			## 获取SS节点服务器ip地址
-			local local_ss_basic_server_ip="$local_ss_server"
-			## 判断是否为ip地址
-			local local_ss_server_ip=$( echo $local_ss_basic_server_ip | grep -E "([0-9]{1,3}[\.]){3}[0-9]{1,3}" )
-			if [ -z "$local_ss_server_ip" ]; then
-				## 不是ip地址，先用外部DNS解析，强制由114解析，以免还未开始工作而导致解析失败；
-				## 不成功则再次由本机进行解析；
-				## 若再不成功则由ss内部去解析，由于得不到该节点地址，无法对该线路进行分流干预，交由系统控制
-				local_ss_server_ip=$( nslookup "$local_ss_basic_server_ip" $local_ss_basic_dnslookup_server 2> /dev/null | sed '1,4d' | awk '{print $3}' | grep -v : | awk 'NR==1{print}' )
-				if [ -z "$local_ss_server_ip" ]; then
-					local_ss_server_ip=$( resolveip -4 -t 2 "$local_ss_basic_server_ip" 2> /dev/null | awk 'NR==1{print}' )
-					if [ -z "$local_ss_server_ip" ]; then
-						echo $(date) [$$]: LZ ss_server = $local_ss_basic_server_ip:$( dbus get ss_basic_port ) resolve ip by ss-redir >> /tmp/syslog.log
-						[ "$1" != "$SS_START" ] && {
-							echo $(date) [$$]: ----------------------------------------
-							echo $(date) [$$]: "   SS Server   $local_ss_basic_server_ip:$( dbus get ss_basic_port ) resolve ip by ss-redir"
-						}
-					else
-						echo $(date) [$$]: LZ ss_server = $local_ss_basic_server_ip $local_ss_server_ip:$( dbus get ss_basic_port ) >> /tmp/syslog.log
-						[ "$1" != "$SS_START" ] && {
-							echo $(date) [$$]: ----------------------------------------
-							echo $(date) [$$]: "   SS Server   $local_ss_basic_server_ip $local_ss_server_ip:$( dbus get ss_basic_port )"
-						}
-					fi
-				else
-					echo $(date) [$$]: LZ ss_server = $local_ss_basic_server_ip $local_ss_server_ip:$( dbus get ss_basic_port ) >> /tmp/syslog.log
-					[ "$1" != "$SS_START" ] && {
-						echo $(date) [$$]: ----------------------------------------
-						echo $(date) [$$]: "   SS Server   $local_ss_basic_server_ip $local_ss_server_ip:$( dbus get ss_basic_port )"
-					}
-				fi
-			else
-				echo $(date) [$$]: LZ ss_server = $local_ss_server_ip:$( dbus get ss_basic_port ) >> /tmp/syslog.log
-				[ "$1" != "$SS_START" ] && {
-					echo $(date) [$$]: ----------------------------------------
-					echo $(date) [$$]: "   SS Server       $local_ss_server_ip:$( dbus get ss_basic_port )"
-				}
-			fi
-
-			if [ -n "$local_ss_server_ip" ] && [ "$local_ss_server_ip" != "127.0.0.1" ]; then
-				[ "$( lz_get_ipset_total_number "$LOCAL_IP_SET" )" -gt "0" ] && {
-					## 本地内网网址/网段数据集中排除SS线路网址/网段
-					ipset -! del $LOCAL_IP_SET "$local_ss_server_ip" > /dev/null 2>&1
-					ipset -! add $LOCAL_IP_SET "$local_ss_server_ip" nomatch > /dev/null 2>&1
-				}
-				ip rule add from $local_ss_server_ip table $SS_WAN_ID prio $SS_RULE_FROM_PRIO > /dev/null 2>&1
-				## 国外网段数据集中排除SS线路网址/网段
-				[ "$( lz_get_ipset_total_number "$ISPIP_ALL_CN_SET" )" -gt "0" ] && {
-					ipset -! del $ISPIP_ALL_CN_SET "$local_ss_server_ip" > /dev/null 2>&1
-					ipset -! add $ISPIP_ALL_CN_SET "$local_ss_server_ip" > /dev/null 2>&1
-				}
-				## 第一WAN口ISP国内网段数据集中排除SS线路网址/网段
-				[ "$( lz_get_ipset_total_number "$ISPIP_SET_0" )" -gt "0" ] && {
-					ipset -! del $ISPIP_SET_0 "$local_ss_server_ip" > /dev/null 2>&1
-					ipset -! add $ISPIP_SET_0 "$local_ss_server_ip" nomatch > /dev/null 2>&1
-				}
-				## 第二WAN口ISP国内网段数据集中排除SS线路网址/网段
-				[ "$( lz_get_ipset_total_number "$ISPIP_SET_1" )" -gt "0" ] && {
-					ipset -! del $ISPIP_SET_1 "$local_ss_server_ip" > /dev/null 2>&1
-					ipset -! add $ISPIP_SET_1 "$local_ss_server_ip" nomatch > /dev/null 2>&1
-				}
-				ip rule add from all to $local_ss_server_ip table $SS_WAN_ID prio $SS_RULE_TO_PRIO > /dev/null 2>&1
-
-				if [ "$( dbus get ss_basic_use_kcp )" = "1" ]; then
-					[ "$1" != "$SS_START" ] && {
-						echo $(date) [$$]: LZ ss_kcp_server = 127.0.0.1:$( dbus get ss_basic_kcp_lport ) >> /tmp/syslog.log
-						echo $(date) [$$]: "   SS KCP Server   127.0.0.1:$( dbus get ss_basic_kcp_lport )"
-					}
-				fi
-			fi
-
-			echo $(date) [$$]: -------- LZ $LZ_VERSION ss_wan_port = $ss_wan_port ------------ >> /tmp/syslog.log
-			[ "$1" != "$SS_START" ] && echo $(date) [$$]: "   SS Export       $local_ss_export_str"
-		fi
-
-	## 其他SS模式：不干预状态
-	elif [ "$local_ss_enable" != "0" ]; then
-		echo $(date) [$$]: LZ no intervention control for SS lines >> /tmp/syslog.log
-		echo $(date) [$$]: -------- LZ $LZ_VERSION ss_wan_port = $ss_wan_port ------------ >> /tmp/syslog.log
-		[ "$1" != "$SS_START" ] && {
-			echo $(date) [$$]: ----------------------------------------
-			echo $(date) [$$]: "   No intervention control for SS lines"
-			echo $(date) [$$]: "   SS Export       $local_ss_export_str"
-		}
-	fi
-
-	## 创建SS服务启停触发脚本文件：P99_lz_rule.sh
-	## 脚本命名格式：P+数字+名字.sh
-	## 输入项：
-	##     全局常量
-	## 返回值：无
-	lz_create_ss_start_command
-}
-
-## SS服务支持（线路分流）函数
-## 输入项：
-##     $1--主执行脚本运行输入参数
 ##     全局变量及常量
 ## 返回值：无
 lz_ss_support() {
-	if [ "$ss_wan_port" = "0" -o "$ss_wan_port" = "1" ]; then
-		if [ -n "$( echo $route_os_name | grep Merlin )" -a -d ${PATH_SS} -a -f ${PATH_SS}/${SS_FILENAME} ]; then
-			## AM380 merlin firmware
-			## koolshare merlin armv7l固件平台
-			## 科学上网插件v4.0.9 +
-			if [ "$route_hardware_type" = "armv7l" ]; then
-				## 不支持X7.2以下的固件版本
-				local local_firmware_version=$( nvram get extendno | cut -d "X" -f2 | cut -d "-" -f1 | cut -d "_" -f1 )
-				if [ -n "$local_firmware_version" ]; then
-					local local_firmware_comp=$( versioncmp $local_firmware_version 7.2 )
-					if [ "$local_firmware_comp" != "1" ]; then
-						## 启动SS服务支持
-						## 输入项：
-						##     $1--主执行脚本运行输入参数
-						##     全局常量
-						## 返回值：无
-						lz_start_ss_support "$1"
-					else
-						## 删除SS服务启停触发脚本文件
-						## 输入项：
-						##     全局常量
-						## 返回值：无
-						lz_clear_ss_start_command
-					fi
-				else
-					lz_clear_ss_start_command
-				fi
-			## koolshare merlin aarch64固件平台
-			## 科学上网插件v1.4.2 +
-			elif [ "$route_hardware_type" = "aarch64" ]; then
-				lz_start_ss_support "$1"
-			else
-				lz_clear_ss_start_command
-			fi
-		else
-			lz_clear_ss_start_command
-		fi
-	else
-		lz_clear_ss_start_command
+	[ ! -f ${PATH_SS}/${SS_FILENAME} ] && return
+	## 获取SS服务运行参数
+	local local_ss_enable=$( dbus get ss_basic_enable 2> /dev/null )
+	[ -z "$local_ss_enable" -o "$local_ss_enable" != "1" ] && return
+	echo $(date) [$$]: Closing Fancyss...... >> /tmp/syslog.log
+	echo $(date) [$$]: ----------------------------------------
+	echo $(date) [$$]: Closing Fancyss......
+	[ -f "/koolshare/ss/stop.sh" ] && sh /koolshare/ss/stop.sh stop_all > /dev/null 2>&1 || \
+		sh ${PATH_SS}/${SS_FILENAME} stop > /dev/null 2>&1
+	echo $(date) [$$]: Fancyss has been successfully shut down.
+	echo $(date) [$$]: Restarting Fancyss......
+	echo $(date) [$$]: Fancyss has been successfully shut down. >> /tmp/syslog.log
+	echo $(date) [$$]: Restarting Fancyss...... >> /tmp/syslog.log
+	if [ "$route_hardware_type" = "armv7l" ]; then
+		[ -n "$( dbus get softcenter_module_shadowsocks_description 2> /dev/null | grep -wo 380 )" ] || \
+			[ -n "$( grep -m 10 '.*' ${PATH_SS}/${SS_FILENAME} 2> /dev/null | grep -iwo AM380 )" ] && \
+			dbus set ss_basic_action=1 2> /dev/null
+	elif [ "$route_hardware_type" = "mips" ]; then
+		dbus set ss_basic_action=1 2> /dev/null
 	fi
+	sh ${PATH_SS}/${SS_FILENAME} restart > /dev/null 2>&1
+	echo $(date) [$$]: Fancyss started successfully.
+	echo $(date) [$$]: Fancyss started successfully. >> /tmp/syslog.log
+	echo $(date) [$$]: -------- LZ $LZ_VERSION Fancyss running! ----------- >> /tmp/syslog.log
 }
 
 ## 填写openvpn-event事件触发文件内容并添加路由规则项脚本函数
@@ -4484,22 +4084,18 @@ lz_openvpn_support() {
 			local local_openvpn_subnet=$( echo $local_tun_list | awk -F ":" '{print $1}' )
 			local local_tun_number=$( echo $local_tun_list | awk -F ":" '{print $2}' )
 			echo $(date) [$$]: LZ openvpn_server_$local_ov_no = $echo $local_tun_number $local_openvpn_subnet >> /tmp/syslog.log
-			[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && {
-				[ $local_ov_no = 1 ] && echo $(date) [$$]: ----------------------------------------
-				echo $(date) [$$]: "   OpenVPN Server $local_ov_no: $local_tun_number $local_openvpn_subnet"
-			}
+			[ $local_ov_no = 1 ] && echo $(date) [$$]: ----------------------------------------
+			echo $(date) [$$]: "   OpenVPN Server $local_ov_no: $local_tun_number $local_openvpn_subnet"
 		done
 	fi
 
 	if [ $local_ov_no -gt 0 ]; then
-		[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && {
-			local local_ovs_client_wan_port="Load Balancing"
-			[ "$ovs_client_wan_port" = "0" ] && local_ovs_client_wan_port="Primary WAN"
-			[ "$ovs_client_wan_port" = "1" ] && local_ovs_client_wan_port="Secondary WAN"
-			[ "$ovs_client_wan_port" = "2" ] && local_ovs_client_wan_port="by Policy"
-			echo $(date) [$$]: "   OVS Client Export: $local_ovs_client_wan_port"
-			echo $(date) [$$]: "LZ Route OVS Client Export: $local_ovs_client_wan_port" >> /tmp/syslog.log
-		}
+		local local_ovs_client_wan_port="Load Balancing"
+		[ "$ovs_client_wan_port" = "0" ] && local_ovs_client_wan_port="Primary WAN"
+		[ "$ovs_client_wan_port" = "1" ] && local_ovs_client_wan_port="Secondary WAN"
+		[ "$ovs_client_wan_port" = "2" ] && local_ovs_client_wan_port="by Policy"
+		echo $(date) [$$]: "   OVS Client Export: $local_ovs_client_wan_port"
+		echo $(date) [$$]: "LZ Route OVS Client Export: $local_ovs_client_wan_port" >> /tmp/syslog.log
 		echo $(date) [$$]: -------- LZ $LZ_VERSION OpenVPN Server running! ---- >> /tmp/syslog.log
 	fi
 
@@ -4751,29 +4347,27 @@ lz_output_ispip_info_to_system_records() {
 	echo $(date) [$$]: LZ "Primary WAN   ""$2" >> /tmp/syslog.log
 	echo $(date) [$$]: LZ "Secondary WAN ""$3" >> /tmp/syslog.log
 	echo $(date) [$$]: -------- LZ $LZ_VERSION WAN ISP -------------------- >> /tmp/syslog.log
-	[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && {
-		echo $(date) [$$]: ----------------------------------------
-		echo $(date) [$$]: "   Primary WAN     ""$2"
-		[ "$2" != "Unknown" ] && {
-			if [ "$local_wan0_pub_ip" = "$local_wan0_local_ip" ]; then
-				echo $(date) [$$]: "                         "$local_wan0_pub_ip""
-			else
-				echo $(date) [$$]: "                         "$local_wan0_local_ip""
-				echo $(date) [$$]: "                   Pub   "$local_wan0_pub_ip""
-			fi
-		}
-		echo $(date) [$$]: ----------------------------------------
-		echo $(date) [$$]: "   Secondary WAN   ""$3"
-		[ "$3" != "Unknown" ] && {
-			if [ "$local_wan1_pub_ip" = "$local_wan1_local_ip" ]; then
-				echo $(date) [$$]: "                         "$local_wan1_pub_ip""
-			else
-				echo $(date) [$$]: "                         "$local_wan1_local_ip""
-				echo $(date) [$$]: "                   Pub   "$local_wan1_pub_ip""
-			fi
-		}
-		echo $(date) [$$]: ----------------------------------------
+	echo $(date) [$$]: ----------------------------------------
+	echo $(date) [$$]: "   Primary WAN     ""$2"
+	[ "$2" != "Unknown" ] && {
+		if [ "$local_wan0_pub_ip" = "$local_wan0_local_ip" ]; then
+			echo $(date) [$$]: "                         "$local_wan0_pub_ip""
+		else
+			echo $(date) [$$]: "                         "$local_wan0_local_ip""
+			echo $(date) [$$]: "                   Pub   "$local_wan0_pub_ip""
+		fi
 	}
+	echo $(date) [$$]: ----------------------------------------
+	echo $(date) [$$]: "   Secondary WAN   ""$3"
+	[ "$3" != "Unknown" ] && {
+		if [ "$local_wan1_pub_ip" = "$local_wan1_local_ip" ]; then
+			echo $(date) [$$]: "                         "$local_wan1_pub_ip""
+		else
+			echo $(date) [$$]: "                         "$local_wan1_local_ip""
+			echo $(date) [$$]: "                   Pub   "$local_wan1_pub_ip""
+		fi
+	}
+	echo $(date) [$$]: ----------------------------------------
 
 	local local_hd=""
 	local local_primary_wan_hd="     HD"
@@ -4803,9 +4397,7 @@ lz_output_ispip_info_to_system_records() {
 		##     Equal Division--均分出口
 		##     Load Balancing--系统负载均衡分配出口
 		echo $(date) [$$]: LZ "Foreign       $( lz_get_ispip_info "$isp_wan_port_0" )$local_hd" >> /tmp/syslog.log
-		[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && {
-			echo $(date) [$$]: "   Foreign         $( lz_get_ispip_info "$isp_wan_port_0" )$local_hd"
-		}
+		echo $(date) [$$]: "   Foreign         $( lz_get_ispip_info "$isp_wan_port_0" )$local_hd"
 		local_exist=1
 	}
 	local local_index=1
@@ -4842,16 +4434,14 @@ lz_output_ispip_info_to_system_records() {
 			[ "$local_index" = "9" ] && local_isp_name="Macao         "
 			[ "$local_index" = "10" ] && local_isp_name="Taiwan        "
 			echo $(date) [$$]: LZ "$local_isp_name$( lz_get_ispip_info "$( lz_get_isp_wan_port "$local_index" )" )$local_hd" >> /tmp/syslog.log
-			[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && {
-				echo $(date) [$$]: "   $local_isp_name  $( lz_get_ispip_info "$( lz_get_isp_wan_port "$local_index" )" )$local_hd"
-			}
+			echo $(date) [$$]: "   $local_isp_name  $( lz_get_ispip_info "$( lz_get_isp_wan_port "$local_index" )" )$local_hd"
 			local_exist=1
 		}
 		let local_index++
 	done
 	[ "$local_exist" = "1" ] && {
 		echo $(date) [$$]: -------- LZ $LZ_VERSION ISPIP Policy --------------- >> /tmp/syslog.log
-		[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: ----------------------------------------
+		echo $(date) [$$]: ----------------------------------------
 	}
 	local_exist=0
 	local local_item_num=0
@@ -4879,9 +4469,7 @@ lz_output_ispip_info_to_system_records() {
 				fi
 			fi
 			echo $(date) [$$]: LZ "Custom-1      $( lz_get_ispip_info "$custom_data_wan_port_1" )$local_hd" >> /tmp/syslog.log
-			[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && {
-				echo $(date) [$$]: "   Custom-1        $( lz_get_ispip_info "$custom_data_wan_port_1" )$local_hd"
-			}
+			echo $(date) [$$]: "   Custom-1        $( lz_get_ispip_info "$custom_data_wan_port_1" )$local_hd"
 			local_exist=1
 		}
 	}
@@ -4909,9 +4497,7 @@ lz_output_ispip_info_to_system_records() {
 				fi
 			fi
 			echo $(date) [$$]: LZ "Custom-2      $( lz_get_ispip_info "$custom_data_wan_port_2" )$local_hd" >> /tmp/syslog.log
-			[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && {
-				echo $(date) [$$]: "   Custom-2        $( lz_get_ispip_info "$custom_data_wan_port_2" )$local_hd"
-			}
+			echo $(date) [$$]: "   Custom-2        $( lz_get_ispip_info "$custom_data_wan_port_2" )$local_hd"
 			local_exist=1
 		}
 	}
@@ -4929,9 +4515,7 @@ lz_output_ispip_info_to_system_records() {
 				fi
 			fi
 			echo $(date) [$$]: LZ "SrcLst-1      Primary WAN$local_hd" >> /tmp/syslog.log
-			[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && {
-				echo $(date) [$$]: "   SrcLst-1        Primary WAN$local_hd"
-			}
+			echo $(date) [$$]: "   SrcLst-1        Primary WAN$local_hd"
 			local_exist=1
 		}
 	}
@@ -4949,9 +4533,7 @@ lz_output_ispip_info_to_system_records() {
 				fi
 			fi
 			echo $(date) [$$]: LZ "SrcLst-2      Secondary WAN$local_hd" >> /tmp/syslog.log
-			[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && {
-				echo $(date) [$$]: "   SrcLst-2        Secondary WAN$local_hd"
-			}
+			echo $(date) [$$]: "   SrcLst-2        Secondary WAN$local_hd"
 			local_exist=1
 		}
 	}
@@ -4969,9 +4551,7 @@ lz_output_ispip_info_to_system_records() {
 				fi
 			fi
 			echo $(date) [$$]: LZ "HighSrcLst-1  Primary WAN$local_hd" >> /tmp/syslog.log
-			[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && {
-				echo $(date) [$$]: "   HighSrcLst-1    Primary WAN$local_hd"
-			}
+			echo $(date) [$$]: "   HighSrcLst-1    Primary WAN$local_hd"
 			local_exist=1
 		}
 	}
@@ -4989,9 +4569,7 @@ lz_output_ispip_info_to_system_records() {
 				fi
 			fi
 			echo $(date) [$$]: LZ "HighSrcLst-2  Secondary WAN$local_hd" >> /tmp/syslog.log
-			[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && {
-				echo $(date) [$$]: "   HighSrcLst-2    Secondary WAN$local_hd"
-			}
+			echo $(date) [$$]: "   HighSrcLst-2    Secondary WAN$local_hd"
 			local_exist=1
 		}
 	}
@@ -5000,9 +4578,7 @@ lz_output_ispip_info_to_system_records() {
 		[ "$local_item_num" -gt "0" ] && {
 			local_hd=$local_primary_wan_hd
 			echo $(date) [$$]: LZ "SrcToDstLst-1 Primary WAN$local_hd" >> /tmp/syslog.log
-			[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && {
-				echo $(date) [$$]: "   SrcToDstLst-1   Primary WAN$local_hd"
-			}
+			echo $(date) [$$]: "   SrcToDstLst-1   Primary WAN$local_hd"
 			local_exist=1
 		}
 	}
@@ -5011,9 +4587,7 @@ lz_output_ispip_info_to_system_records() {
 		[ "$local_item_num" -gt "0" ] && {
 			local_hd=$local_secondary_wan_hd
 			echo $(date) [$$]: LZ "SrcToDstLst-2 Secondary WAN$local_hd" >> /tmp/syslog.log
-			[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && {
-				echo $(date) [$$]: "   SrcToDstLst-2   Secondary WAN$local_hd"
-			}
+			echo $(date) [$$]: "   SrcToDstLst-2   Secondary WAN$local_hd"
 			local_exist=1
 		}
 	}
@@ -5022,9 +4596,7 @@ lz_output_ispip_info_to_system_records() {
 		[ "$local_item_num" -gt "0" ] && {
 			local_hd=$local_primary_wan_hd
 			echo $(date) [$$]: LZ "HiSrcToDstLst Primary WAN$local_hd" >> /tmp/syslog.log
-			[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && {
-				echo $(date) [$$]: "   HiSrcToDstLst   Primary WAN$local_hd"
-			}
+			echo $(date) [$$]: "   HiSrcToDstLst   Primary WAN$local_hd"
 			local_exist=1
 		}
 	}
@@ -5032,9 +4604,7 @@ lz_output_ispip_info_to_system_records() {
 	[ "$local_item_num" -gt "0" ] && {
 		local_hd=$local_load_balancing_hd
 		echo $(date) [$$]: LZ "LocalIPBlcLst Load Balancing$local_hd" >> /tmp/syslog.log
-		[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] &&{
-			echo $(date) [$$]: "   LocalIPBlcLst   Load Balancing$local_hd"
-		}
+		echo $(date) [$$]: "   LocalIPBlcLst   Load Balancing$local_hd"
 		local_exist=1
 	}
 	local_item_num=$( lz_get_ipv4_data_file_item_total "$iptv_box_ip_lst_file" )
@@ -5042,16 +4612,12 @@ lz_output_ispip_info_to_system_records() {
 		if [ "$iptv_igmp_switch" = "0" ]; then
 			local_hd=$local_primary_wan_hd
 			echo $(date) [$$]: LZ "IPTVSTBIPLst  Primary WAN$local_hd" >> /tmp/syslog.log
-			[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] &&{
-				echo $(date) [$$]: "   IPTVSTBIPLst    Primary WAN$local_hd"
-			}
+			echo $(date) [$$]: "   IPTVSTBIPLst    Primary WAN$local_hd"
 			local_exist=1
 		elif [ "$iptv_igmp_switch" = "1" ]; then
 			local_hd=$local_secondary_wan_hd
 			echo $(date) [$$]: LZ "IPTVSTBIPLst  Secondary WAN$local_hd" >> /tmp/syslog.log
-			[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] &&{
-				echo $(date) [$$]: "   IPTVSTBIPLst    Secondary WAN$local_hd"
-			}
+			echo $(date) [$$]: "   IPTVSTBIPLst    Secondary WAN$local_hd"
 			local_exist=1
 		fi
 	}
@@ -5060,16 +4626,14 @@ lz_output_ispip_info_to_system_records() {
 			local_item_num=$( lz_get_ipv4_data_file_item_total "$iptv_isp_ip_lst_file" )
 			[ "$local_item_num" -gt "0" ] && {
 				echo $(date) [$$]: LZ "IPTVSrvIPLst  Available" >> /tmp/syslog.log
-				[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] &&{
-					echo $(date) [$$]: "   IPTVSrvIPLst    Available"
-				}
+				echo $(date) [$$]: "   IPTVSrvIPLst    Available"
 				local_exist=1
 			}
 		fi
 	}
 	[ "$local_exist" = "1" ] && {
 		echo $(date) [$$]: -------- LZ $LZ_VERSION Customization Policy ------- >> /tmp/syslog.log
-		[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: ----------------------------------------
+		echo $(date) [$$]: ----------------------------------------
 	}
 }
 
@@ -5085,46 +4649,46 @@ lz_output_dport_policy_info_to_system_records() {
 	local local_dports=$( iptables -t mangle -L $CUSTOM_PREROUTING_CONNMARK_CHAIN -v -n --line-numbers | grep "MARK set $DEST_PORT_FWMARK_0" | grep tcp | awk -F "dports " '{print $2}' | awk -F " " '{print $1}' )
 	[ -n "$local_dports" ] && local_item_exist=1 && {
 		echo $(date) [$$]: LZ "Primary WAN   "TCP:"$local_dports" >> /tmp/syslog.log
-		[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: "   Primary WAN     TCP:$local_dports"
+		echo $(date) [$$]: "   Primary WAN     TCP:$local_dports"
 	}
 	local_dports=$( iptables -t mangle -L $CUSTOM_PREROUTING_CONNMARK_CHAIN -v -n --line-numbers | grep "MARK set $DEST_PORT_FWMARK_0" | grep "udp " | awk -F "dports " '{print $2}' | awk -F " " '{print $1}' )
 	[ -n "$local_dports" ] && local_item_exist=1 && {
 		echo $(date) [$$]: LZ "Primary WAN   "UDP:"$local_dports" >> /tmp/syslog.log
-		[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: "   Primary WAN     UDP:$local_dports"
+		echo $(date) [$$]: "   Primary WAN     UDP:$local_dports"
 	}
 	local_dports=$( iptables -t mangle -L $CUSTOM_PREROUTING_CONNMARK_CHAIN -v -n --line-numbers | grep "MARK set $DEST_PORT_FWMARK_0" | grep udplite | awk -F "dports " '{print $2}' | awk -F " " '{print $1}' )
 	[ -n "$local_dports" ] && local_item_exist=1 && {
 		echo $(date) [$$]: LZ "Primary WAN   "UDPLITE:"$local_dports" >> /tmp/syslog.log
-		[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: "   Primary WAN     UDPLITE:$local_dports"
+		echo $(date) [$$]: "   Primary WAN     UDPLITE:$local_dports"
 	}
 	local_dports=$( iptables -t mangle -L $CUSTOM_PREROUTING_CONNMARK_CHAIN -v -n --line-numbers | grep "MARK set $DEST_PORT_FWMARK_0" | grep sctp | awk -F "dports " '{print $2}' | awk -F " " '{print $1}' )
 	[ -n "$local_dports" ] && local_item_exist=1 && {
 		echo $(date) [$$]: LZ "Primary WAN   "SCTP:"$local_dports" >> /tmp/syslog.log
-		[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: "   Primary WAN     SCTP:$local_dports"
+		echo $(date) [$$]: "   Primary WAN     SCTP:$local_dports"
 	}
 	local_dports=$( iptables -t mangle -L $CUSTOM_PREROUTING_CONNMARK_CHAIN -v -n --line-numbers | grep "MARK set $DEST_PORT_FWMARK_1" | grep tcp | awk -F "dports " '{print $2}' | awk -F " " '{print $1}' )
 	[ -n "$local_dports" ] && local_item_exist=1 && {
 		echo $(date) [$$]: LZ "Secondary WAN "TCP:"$local_dports" >> /tmp/syslog.log
-		[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: "   Secondary WAN   TCP:$local_dports"
+		echo $(date) [$$]: "   Secondary WAN   TCP:$local_dports"
 	}
 	local_dports=$( iptables -t mangle -L $CUSTOM_PREROUTING_CONNMARK_CHAIN -v -n --line-numbers | grep "MARK set $DEST_PORT_FWMARK_1" | grep "udp " | awk -F "dports " '{print $2}' | awk -F " " '{print $1}' )
 	[ -n "$local_dports" ] && local_item_exist=1 && {
 		echo $(date) [$$]: LZ "Secondary WAN "UDP:"$local_dports" >> /tmp/syslog.log
-		[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: "   Secondary WAN   UDP:$local_dports"
+		echo $(date) [$$]: "   Secondary WAN   UDP:$local_dports"
 	}
 	local_dports=$( iptables -t mangle -L $CUSTOM_PREROUTING_CONNMARK_CHAIN -v -n --line-numbers | grep "MARK set $DEST_PORT_FWMARK_1" | grep udplite | awk -F "dports " '{print $2}' | awk -F " " '{print $1}' )
 	[ -n "$local_dports" ] && local_item_exist=1 && {
 		echo $(date) [$$]: LZ "Secondary WAN "UDPLITE:"$local_dports" >> /tmp/syslog.log
-		[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: "   Secondary WAN   UDPLITE:$local_dports"
+		echo $(date) [$$]: "   Secondary WAN   UDPLITE:$local_dports"
 	}
 	local_dports=$( iptables -t mangle -L $CUSTOM_PREROUTING_CONNMARK_CHAIN -v -n --line-numbers | grep "MARK set $DEST_PORT_FWMARK_1" | grep sctp | awk -F "dports " '{print $2}' | awk -F " " '{print $1}' )
 	[ -n "$local_dports" ] && {
 		echo $(date) [$$]: LZ "Secondary WAN "SCTP:"$local_dports" >> /tmp/syslog.log
-		[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: "   Secondary WAN   SCTP:$local_dports"
+		echo $(date) [$$]: "   Secondary WAN   SCTP:$local_dports"
 	}
 	[ "$local_item_exist" = "1" ] && {
 		echo $(date) [$$]: -------- LZ $LZ_VERSION Dst Ports Policy ----------- >> /tmp/syslog.log
-		[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && echo $(date) [$$]: ----------------------------------------
+		echo $(date) [$$]: ----------------------------------------
 	}
 }
 
@@ -5738,15 +5302,7 @@ lz_deployment_routing_policy() {
 		lz_define_fwmark_flow_export "$CLIENT_SRC_FWMARK_1" "$WAN1" "$IP_RULE_PRIO_WAN_2_CLIENT_SRC_DATA"
 	fi
 
-	## SS服务支持（线路分流）
-	## 输入项：
-	##     $1--主执行脚本运行输入参数
-	##     全局变量及常量
-	## 返回值：无
-	## 当主脚本的输入参数 $1=$SS_STOP 指令时不启动SS服务支持
-	[ "$1" != "$SS_STOP" ] && lz_ss_support "$1"
-
-	## 对自定义客户端或指定网址访问进行分流
+	## 对采用命令方式自定义客户端或指定网址访问进行分流
 	if [ -f ${PATH_CONFIGS}/lz_rule_func_config.sh ]; then
 		${CALL_CONFIG_SUBROUTINE}/lz_rule_func_config.sh
 	fi
@@ -6091,25 +5647,19 @@ lz_deployment_routing_policy() {
 		if [ "$local_auto_traffic" = "0" ]; then
 			echo $(date) [$$]: LZ "All in High Speed Direct DT Mode." >> /tmp/syslog.log
 			echo $(date) [$$]: -------- LZ $LZ_VERSION Data Transmission ---------- >> /tmp/syslog.log
-			[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && {
-				echo $(date) [$$]: "   All in High Speed Direct DT Mode."
-				echo $(date) [$$]: ----------------------------------------
-			}
+			echo $(date) [$$]: "   All in High Speed Direct DT Mode."
+			echo $(date) [$$]: ----------------------------------------
 		else
 			echo $(date) [$$]: LZ "Using Link Load Balancing Technology." >> /tmp/syslog.log
 			echo $(date) [$$]: -------- LZ $LZ_VERSION Data Transmission ---------- >> /tmp/syslog.log
-			[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && {
-				echo $(date) [$$]: "   Using Link Load Balancing Technology."
-				echo $(date) [$$]: ----------------------------------------
-			}
+			echo $(date) [$$]: "   Using Link Load Balancing Technology."
+			echo $(date) [$$]: ----------------------------------------
 		fi
 	else
 		echo $(date) [$$]: LZ "Using Netfilter Technology." >> /tmp/syslog.log
 		echo $(date) [$$]: -------- LZ $LZ_VERSION Data Transmission ---------- >> /tmp/syslog.log
-		[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && {
-			echo $(date) [$$]: "   Using Netfilter Technology."
-			echo $(date) [$$]: ----------------------------------------
-		}
+		echo $(date) [$$]: "   Using Netfilter Technology."
+		echo $(date) [$$]: ----------------------------------------
 	fi
 
 	if [ "$udpxy_used" = "0" ]; then
@@ -6117,53 +5667,51 @@ lz_deployment_routing_policy() {
 		local local_igmp_proxy_started="$( ps | grep "\/usr\/sbin\/igmpproxy" | grep "${PATH_TMP}\/$local_igmp_proxy_conf_name" )"
 		local local_udpxy_wan1_started="$( ps | grep "\/usr\/sbin\/udpxy" | grep "\-m $local_udpxy_wan1_dev \-p $wan1_udpxy_port \-B $wan1_udpxy_buffer \-c $wan1_udpxy_client_num" )"
 		local local_udpxy_wan2_started="$( ps | grep "\/usr\/sbin\/udpxy" | grep "\-m $local_udpxy_wan2_dev \-p $wan2_udpxy_port \-B $wan2_udpxy_buffer \-c $wan2_udpxy_client_num" )"
-		[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && {
-			[ "$local_wan1_igmp_start" = "1" ] && {
-				if [ -n "$local_igmp_proxy_started" ]; then
-					echo $(date) [$$]: IGMP service in Primary WAN \( "$local_udpxy_wan1_dev" \) has been started.
-				else
-					if [ -z "$( which bcmmcastctl 2> /dev/null )" ]; then
-						echo $(date) [$$]: Start IGMP service in Primary WAN \( "$local_udpxy_wan1_dev" \) failure.
-					fi
+		[ "$local_wan1_igmp_start" = "1" ] && {
+			if [ -n "$local_igmp_proxy_started" ]; then
+				echo $(date) [$$]: IGMP service in Primary WAN \( "$local_udpxy_wan1_dev" \) has been started.
+			else
+				if [ -z "$( which bcmmcastctl 2> /dev/null )" ]; then
+					echo $(date) [$$]: Start IGMP service in Primary WAN \( "$local_udpxy_wan1_dev" \) failure.
 				fi
-			}
-			[ "$local_wan2_igmp_start" = "1" ] && {
-				if [ -n "$local_igmp_proxy_started" ]; then
-					echo $(date) [$$]: IGMP service in Secondary WAN \( "$local_udpxy_wan2_dev" \) has been started.
-				else
-					if [ -z "$( which bcmmcastctl 2> /dev/null )" ]; then
-						echo $(date) [$$]: Start IGMP service in Secondary WAN \( "$local_udpxy_wan2_dev" \) failure.
-					fi
+			fi
+		}
+		[ "$local_wan2_igmp_start" = "1" ] && {
+			if [ -n "$local_igmp_proxy_started" ]; then
+				echo $(date) [$$]: IGMP service in Secondary WAN \( "$local_udpxy_wan2_dev" \) has been started.
+			else
+				if [ -z "$( which bcmmcastctl 2> /dev/null )" ]; then
+					echo $(date) [$$]: Start IGMP service in Secondary WAN \( "$local_udpxy_wan2_dev" \) failure.
 				fi
-			}
-			[ "$local_wan1_udpxy_start" = "1" ] && {
-				if [ -n "$local_udpxy_wan1_started" ]; then
-					echo $(date) [$$]: UDPXY service in Primary WAN \( "$route_local_ip:$wan1_udpxy_port" "$local_udpxy_wan1_dev" \) has been started.
-				else
-					echo $(date) [$$]: Start UDPXY service in Primary WAN \( "$route_local_ip:$wan1_udpxy_port" "$local_udpxy_wan1_dev" \) failure.
-				fi
-			}
-			[ "$local_wan2_udpxy_start" = "1" ] && {
-				if [ -n "$local_udpxy_wan2_started" ]; then
-					echo $(date) [$$]: UDPXY service in Secondary WAN \( "$route_local_ip:$wan2_udpxy_port" "$local_udpxy_wan2_dev" \) has been started.
-				else
-					echo $(date) [$$]: Start UDPXY service in Secondary WAN \( "$route_local_ip:$wan2_udpxy_port" "$local_udpxy_wan2_dev" \) failure.
-				fi
-			}
-			[ "$iptv_igmp_switch" = "0" ] && {
-				if [ -n "$( ip route show table $LZ_IPTV | grep default )" ]; then
-					echo $(date) [$$]: IPTV STB can be connected to "$local_udpxy_wan1_dev" interface for use.
-				else
-					echo $(date) [$$]: Connection "$local_udpxy_wan1_dev" IPTV interface failure !!!
-				fi
-			}
-			[ "$iptv_igmp_switch" = "1" ] && {
-				if [ -n "$( ip route show table $LZ_IPTV | grep default )" ]; then
-					echo $(date) [$$]: IPTV STB can be connected to "$local_udpxy_wan2_dev" interface for use.
-				else
-					echo $(date) [$$]: Connection "$local_udpxy_wan2_dev" IPTV interface failure !!!
-				fi
-			}
+			fi
+		}
+		[ "$local_wan1_udpxy_start" = "1" ] && {
+			if [ -n "$local_udpxy_wan1_started" ]; then
+				echo $(date) [$$]: UDPXY service in Primary WAN \( "$route_local_ip:$wan1_udpxy_port" "$local_udpxy_wan1_dev" \) has been started.
+			else
+				echo $(date) [$$]: Start UDPXY service in Primary WAN \( "$route_local_ip:$wan1_udpxy_port" "$local_udpxy_wan1_dev" \) failure.
+			fi
+		}
+		[ "$local_wan2_udpxy_start" = "1" ] && {
+			if [ -n "$local_udpxy_wan2_started" ]; then
+				echo $(date) [$$]: UDPXY service in Secondary WAN \( "$route_local_ip:$wan2_udpxy_port" "$local_udpxy_wan2_dev" \) has been started.
+			else
+				echo $(date) [$$]: Start UDPXY service in Secondary WAN \( "$route_local_ip:$wan2_udpxy_port" "$local_udpxy_wan2_dev" \) failure.
+			fi
+		}
+		[ "$iptv_igmp_switch" = "0" ] && {
+			if [ -n "$( ip route show table $LZ_IPTV | grep default )" ]; then
+				echo $(date) [$$]: IPTV STB can be connected to "$local_udpxy_wan1_dev" interface for use.
+			else
+				echo $(date) [$$]: Connection "$local_udpxy_wan1_dev" IPTV interface failure !!!
+			fi
+		}
+		[ "$iptv_igmp_switch" = "1" ] && {
+			if [ -n "$( ip route show table $LZ_IPTV | grep default )" ]; then
+				echo $(date) [$$]: IPTV STB can be connected to "$local_udpxy_wan2_dev" interface for use.
+			else
+				echo $(date) [$$]: Connection "$local_udpxy_wan2_dev" IPTV interface failure !!!
+			fi
 		}
 		[ "$local_wan1_igmp_start" = "1" ] && {
 			if [ -n "$local_igmp_proxy_started" ]; then
@@ -6461,44 +6009,42 @@ lz_start_single_net_iptv_box_services() {
 		local local_igmp_proxy_started="$( ps | grep "\/usr\/sbin\/igmpproxy" | grep "${PATH_TMP}\/$local_igmp_proxy_conf_name" )"
 		local local_udpxy_wan1_started="$( ps | grep "\/usr\/sbin\/udpxy" | grep "\-m $iptv_wan0_ifname \-p $wan1_udpxy_port \-B $wan1_udpxy_buffer \-c $wan1_udpxy_client_num" )"
 		local local_udpxy_wan2_started="$( ps | grep "\/usr\/sbin\/udpxy" | grep "\-m $iptv_wan1_ifname \-p $wan2_udpxy_port \-B $wan2_udpxy_buffer \-c $wan2_udpxy_client_num" )"
-		[ "$1" != "$SS_START" -a "$1" != "$SS_STOP" ] && {
-			[ "$local_wan_igmp_start" = "1" ] && {
-				if [ -n "$local_igmp_proxy_started" ]; then
-					echo $(date) [$$]: IGMP service \( "$iptv_interface_id" \) has been started.
-				else
-					if [ -z "$( which bcmmcastctl 2> /dev/null )" ]; then
-						echo $(date) [$$]: Start IGMP service \( "$iptv_interface_id" \) failure.
-					fi
+		[ "$local_wan_igmp_start" = "1" ] && {
+			if [ -n "$local_igmp_proxy_started" ]; then
+				echo $(date) [$$]: IGMP service \( "$iptv_interface_id" \) has been started.
+			else
+				if [ -z "$( which bcmmcastctl 2> /dev/null )" ]; then
+					echo $(date) [$$]: Start IGMP service \( "$iptv_interface_id" \) failure.
 				fi
-			}
-			[ "$local_wan1_udpxy_start" = "1" ] && {
-				if [ -n "$local_udpxy_wan1_started" ]; then
-					echo $(date) [$$]: UDPXY service \( "$route_local_ip:$wan1_udpxy_port" "$iptv_wan0_ifname" \) has been started.
-				else
-					echo $(date) [$$]: Start UDPXY service \( "$route_local_ip:$wan1_udpxy_port" "$iptv_wan0_ifname" \) failure.
-				fi
-			}
-			[ "$local_wan2_udpxy_start" = "1" ] && {
-				if [ -n "$local_udpxy_wan2_started" ]; then
-					echo $(date) [$$]: UDPXY service \( "$route_local_ip:$wan2_udpxy_port" "$iptv_wan1_ifname" \) has been started.
-				else
-					echo $(date) [$$]: Start UDPXY service \( "$route_local_ip:$wan2_udpxy_port" "$iptv_wan1_ifname" \) failure.
-				fi
-			}
-			[ "$iptv_igmp_switch" = "0" ] && {
-				if [ -n "$( ip route show table $LZ_IPTV | grep default )" ]; then
-					echo $(date) [$$]: IPTV STB can be connected to "$iptv_wan0_ifname" interface for use.
-				else
-					echo $(date) [$$]: Connection "$iptv_wan0_ifname" IPTV interface failure !!!
-				fi
-			}
-			[ "$iptv_igmp_switch" = "1" ] && {
-				if [ -n "$( ip route show table $LZ_IPTV | grep default )" ]; then
-					echo $(date) [$$]: IPTV STB can be connected to "$iptv_wan1_ifname" interface for use.
-				else
-					echo $(date) [$$]: Connection "$iptv_wan1_ifname" IPTV interface failure !!!
-				fi
-			}
+			fi
+		}
+		[ "$local_wan1_udpxy_start" = "1" ] && {
+			if [ -n "$local_udpxy_wan1_started" ]; then
+				echo $(date) [$$]: UDPXY service \( "$route_local_ip:$wan1_udpxy_port" "$iptv_wan0_ifname" \) has been started.
+			else
+				echo $(date) [$$]: Start UDPXY service \( "$route_local_ip:$wan1_udpxy_port" "$iptv_wan0_ifname" \) failure.
+			fi
+		}
+		[ "$local_wan2_udpxy_start" = "1" ] && {
+			if [ -n "$local_udpxy_wan2_started" ]; then
+				echo $(date) [$$]: UDPXY service \( "$route_local_ip:$wan2_udpxy_port" "$iptv_wan1_ifname" \) has been started.
+			else
+				echo $(date) [$$]: Start UDPXY service \( "$route_local_ip:$wan2_udpxy_port" "$iptv_wan1_ifname" \) failure.
+			fi
+		}
+		[ "$iptv_igmp_switch" = "0" ] && {
+			if [ -n "$( ip route show table $LZ_IPTV | grep default )" ]; then
+				echo $(date) [$$]: IPTV STB can be connected to "$iptv_wan0_ifname" interface for use.
+			else
+				echo $(date) [$$]: Connection "$iptv_wan0_ifname" IPTV interface failure !!!
+			fi
+		}
+		[ "$iptv_igmp_switch" = "1" ] && {
+			if [ -n "$( ip route show table $LZ_IPTV | grep default )" ]; then
+				echo $(date) [$$]: IPTV STB can be connected to "$iptv_wan1_ifname" interface for use.
+			else
+				echo $(date) [$$]: Connection "$iptv_wan1_ifname" IPTV interface failure !!!
+			fi
 		}
 		[ "$local_wan_igmp_start" = "1" ] && {
 			if [ -n "$local_igmp_proxy_started" ]; then

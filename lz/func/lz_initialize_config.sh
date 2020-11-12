@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_initialize_config.sh v3.5.6
+# lz_initialize_config.sh v3.5.7
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 初始化脚本配置
@@ -50,7 +50,6 @@ local_wan1_dest_tcp_port=
 local_wan1_dest_udp_port=
 local_wan1_dest_udplite_port=
 local_wan1_dest_sctp_port=
-local_ss_wan_port=
 local_ovs_client_wan_port=
 local_wan_access_port=
 local_list_mode_threshold=
@@ -128,7 +127,6 @@ local_ini_wan1_dest_tcp_port=
 local_ini_wan1_dest_udp_port=
 local_ini_wan1_dest_udplite_port=
 local_ini_wan1_dest_sctp_port=
-local_ini_ss_wan_port=
 local_ini_ovs_client_wan_port=
 local_ini_wan_access_port=
 local_ini_list_mode_threshold=
@@ -205,7 +203,6 @@ local_wan1_dest_tcp_port_changed=0
 local_wan1_dest_udp_port_changed=0
 local_wan1_dest_udplite_port_changed=0
 local_wan1_dest_sctp_port_changed=0
-local_ss_wan_port_changed=0
 local_ovs_client_wan_port_changed=0
 local_wan_access_port_changed=0
 local_list_mode_threshold_changed=0
@@ -324,8 +321,6 @@ lz_restore_default_config() {
 ##    12."解除运行锁"命令用于在脚本运行过程中，由于意外原因中断运行，如操作Ctrl+C键等，导致程序被同步运
 ##       行安全机制锁住，在不重启路由器的情况下，脚本无法再次启动或有关命令无法继续执行，可通过此命令强
 ##       制解锁。注意，在脚本正常运行过程中不要执行此命令。
-##    13.若在Koolshare固件机型上启用过SS服务支持，脚本升级或删除本脚本前请运行停止命令，以清除程序自动
-##       创建的接口文件，亦可手工去/koolshare/ss/postscripts/目录清除P99_lz_rule.sh文件。
 
 ## ----------------------------------------------------
 ## ----------------用户运行策略自定义区----------------
@@ -335,10 +330,9 @@ lz_restore_default_config() {
 ##     3.应用模式：动态分流模式
 ##                主要采用动态路由技术，按基于连接跟踪的报文数据包地址匹配标记导流出口方式输出流量。
 ##     4.未启用定时更新ISP网络运营商CIDR网段数据。
-##     5.不干预SS服务。
-##     6.OpenVPNServer客户端通过第一WAN口访问外网。
-##     7.外网访问路由器使用第一WAN口。
-##     8.未启用IPTV功能。
+##     5.OpenVPNServer客户端通过第一WAN口访问外网。
+##     6.外网访问路由器使用第一WAN口。
+##     7.未启用IPTV功能。
 ##     如有不同需求，请在自定义区修改下面的参数配置。
 
 ## 策略规则优先级执行顺序：由高到低排列，系统抢先执行高优先级策略。
@@ -352,7 +346,6 @@ lz_restore_default_config() {
 ##     最高优先级用户自定义客户端或特定网址/网段流量出口静态路由方式命令绑定分流出口规则
 ##     第二WAN口客户端及源网址/网段高优先级流量出口列表（总条目数≤list_mode_threshold阈值时）静态路由方式绑定出口规则（high_wan_2_client_src_addr_file）
 ##     第一WAN口客户端及源网址/网段高优先级流量出口列表（总条目数≤list_mode_threshold阈值时）静态路由方式绑定出口规则（high_wan_1_client_src_addr_file）
-##     SS服务线路静态路由方式绑定干预出口规则
 ##     路由器主机内部应用访问外网及外网访问路由器静态路由方式出入口规则
 ##     高优先级用户自定义客户端或特定网址/网段流量出口静态路由方式命令绑定分流出口规则
 ##     用户自定义客户端或特定网址/网段流量出口静态路由方式命令绑定分流出口规则
@@ -604,12 +597,6 @@ wan1_dest_udp_port=
 wan1_dest_udplite_port=
 wan1_dest_sctp_port=
 
-## SS服务使用路由器WAN口（0--第一WAN口；1--第二WAN口；>1--不干预SS服务）
-## 缺省为不干预SS服务（5）。
-## 适配koolshare merlin armv7l固件平台，固件版本7.2以上的科学上网插件 shadowsocks v4.0.9+。
-## 适配koolshare merlin aarch64固件平台的科学上网插件 shadowsocks v1.4.2+。
-ss_wan_port=5
-
 ## OpenVPNServer客户端访问外网路由器出口
 ## （0--第一WAN口；1--第二WAN口；2--按网段分流规则匹配出口；>2--由系统自动分配出口）
 ## 缺省为第一WAN口（0）。
@@ -856,8 +843,6 @@ lz_restore_cfg_file() {
 ##    12."解除运行锁"命令用于在脚本运行过程中，由于意外原因中断运行，如操作Ctrl+C键等，导致程序被同步运
 ##       行安全机制锁住，在不重启路由器的情况下，脚本无法再次启动或有关命令无法继续执行，可通过此命令强
 ##       制解锁。注意，在脚本正常运行过程中不要执行此命令。
-##    13.若在Koolshare固件机型上启用过SS服务支持，脚本升级或删除本脚本前请运行停止命令，以清除程序自动
-##       创建的接口文件，亦可手工去/koolshare/ss/postscripts/目录清除P99_lz_rule.sh文件。
 
 ## ----------------------------------------------------
 ## ----------------用户运行策略自定义区----------------
@@ -867,10 +852,9 @@ lz_restore_cfg_file() {
 ##     3.应用模式：动态分流模式
 ##                主要采用动态路由技术，按基于连接跟踪的报文数据包地址匹配标记导流出口方式输出流量。
 ##     4.未启用定时更新ISP网络运营商CIDR网段数据。
-##     5.不干预SS服务。
-##     6.OpenVPNServer客户端通过第一WAN口访问外网。
-##     7.外网访问路由器使用第一WAN口。
-##     8.未启用IPTV功能。
+##     5.OpenVPNServer客户端通过第一WAN口访问外网。
+##     6.外网访问路由器使用第一WAN口。
+##     7.未启用IPTV功能。
 ##     如有不同需求，请在自定义区修改下面的参数配置。
 
 ## 策略规则优先级执行顺序：由高到低排列，系统抢先执行高优先级策略。
@@ -884,7 +868,6 @@ lz_restore_cfg_file() {
 ##     最高优先级用户自定义客户端或特定网址/网段流量出口静态路由方式命令绑定分流出口规则
 ##     第二WAN口客户端及源网址/网段高优先级流量出口列表（总条目数≤list_mode_threshold阈值时）静态路由方式绑定出口规则（high_wan_2_client_src_addr_file）
 ##     第一WAN口客户端及源网址/网段高优先级流量出口列表（总条目数≤list_mode_threshold阈值时）静态路由方式绑定出口规则（high_wan_1_client_src_addr_file）
-##     SS服务线路静态路由方式绑定干预出口规则
 ##     路由器主机内部应用访问外网及外网访问路由器静态路由方式出入口规则
 ##     高优先级用户自定义客户端或特定网址/网段流量出口静态路由方式命令绑定分流出口规则
 ##     用户自定义客户端或特定网址/网段流量出口静态路由方式命令绑定分流出口规则
@@ -1135,12 +1118,6 @@ wan1_dest_tcp_port=$local_wan1_dest_tcp_port
 wan1_dest_udp_port=$local_wan1_dest_udp_port
 wan1_dest_udplite_port=$local_wan1_dest_udplite_port
 wan1_dest_sctp_port=$local_wan1_dest_sctp_port
-
-## SS服务使用路由器WAN口（0--第一WAN口；1--第二WAN口；>1--不干预SS服务）
-## 缺省为不干预SS服务（5）。
-## 适配koolshare merlin armv7l固件平台，固件版本7.2以上的科学上网插件 shadowsocks v4.0.9+。
-## 适配koolshare merlin aarch64固件平台的科学上网插件 shadowsocks v1.4.2+。
-ss_wan_port=$local_ss_wan_port
 
 ## OpenVPNServer客户端访问外网路由器出口
 ## （0--第一WAN口；1--第二WAN口；2--按网段分流规则匹配出口；>2--由系统自动分配出口）
@@ -1534,9 +1511,6 @@ lz_read_config_param() {
 		[ -n "$( grep "^wan1_dest_sctp_port=" "${PATH_CONFIGS}/lz_rule_config.sh" )" ] && local_wan1_dest_sctp_port="" || local_exist=0
 	}
 
-	local_ss_wan_port="$( lz_get_file_cache_data "ss_wan_port" "5" )"
-	[ "$?" = "0" ] && local_exist=0
-
 	local_ovs_client_wan_port="$( lz_get_file_cache_data "ovs_client_wan_port" "0" )"
 	[ "$?" = "0" ] && local_exist=0
 
@@ -1719,7 +1693,6 @@ lz_cfg_is_default() {
 	[ "$local_wan1_dest_udp_port" != "" ] && return 0
 	[ "$local_wan1_dest_udplite_port" != "" ] && return 0
 	[ "$local_wan1_dest_sctp_port" != "" ] && return 0
-	[ "$local_ss_wan_port" != "5" ] && return 0
 	[ "$local_ovs_client_wan_port" != "0" ] && return 0
 	[ "$local_wan_access_port" != "0" ] && return 0
 	[ "$local_list_mode_threshold" != "512" ] && return 0
@@ -1805,7 +1778,6 @@ lz_config_wan1_dest_tcp_port=$local_wan1_dest_tcp_port
 lz_config_wan1_dest_udp_port=$local_wan1_dest_udp_port
 lz_config_wan1_dest_udplite_port=$local_wan1_dest_udplite_port
 lz_config_wan1_dest_sctp_port=$local_wan1_dest_sctp_port
-lz_config_ss_wan_port=$local_ss_wan_port
 lz_config_ovs_client_wan_port=$local_ovs_client_wan_port
 lz_config_wan_access_port=$local_wan_access_port
 lz_config_list_mode_threshold=$local_list_mode_threshold
@@ -1892,7 +1864,6 @@ lz_config_wan1_dest_tcp_port=$local_ini_wan1_dest_tcp_port
 lz_config_wan1_dest_udp_port=$local_ini_wan1_dest_udp_port
 lz_config_wan1_dest_udplite_port=$local_ini_wan1_dest_udplite_port
 lz_config_wan1_dest_sctp_port=$local_ini_wan1_dest_sctp_port
-lz_config_ss_wan_port=$local_ini_ss_wan_port
 lz_config_ovs_client_wan_port=$local_ini_ovs_client_wan_port
 lz_config_wan_access_port=$local_ini_wan_access_port
 lz_config_list_mode_threshold=$local_ini_list_mode_threshold
@@ -2146,9 +2117,6 @@ lz_read_box_data() {
 		[ -n "$( grep "^lz_config_wan1_dest_sctp_port=" "${PATH_CONFIGS}/lz_rule_config.box" )" ] && local_ini_wan1_dest_sctp_port="" || local_exist=0
 	}
 
-	local_ini_ss_wan_port="$( lz_get_file_cache_data "lz_config_ss_wan_port" "5" )"
-	[ "$?" = "0" ] && local_exist=0
-
 	local_ini_ovs_client_wan_port="$( lz_get_file_cache_data "lz_config_ovs_client_wan_port" "0" )"
 	[ "$?" = "0" ] && local_exist=0
 
@@ -2317,7 +2285,6 @@ lz_cfg_is_changed() {
 	[ "$local_ini_wan1_dest_udp_port" != "$local_wan1_dest_udp_port" ] && local_wan1_dest_udp_port_changed=1 && local_cfg_changed=1
 	[ "$local_ini_wan1_dest_udplite_port" != "$local_wan1_dest_udplite_port" ] && local_wan1_dest_udplite_port_changed=1 && local_cfg_changed=1
 	[ "$local_ini_wan1_dest_sctp_port" != "$local_wan1_dest_sctp_port" ] && local_wan1_dest_sctp_port_changed=1 && local_cfg_changed=1
-	[ "$local_ini_ss_wan_port" != "$local_ss_wan_port" ] && local_ss_wan_port_changed=1 && local_cfg_changed=1
 	[ "$local_ini_ovs_client_wan_port" != "$local_ovs_client_wan_port" ] && local_ovs_client_wan_port_changed=1 && local_cfg_changed=1
 	[ "$local_ini_wan_access_port" != "$local_wan_access_port" ] && local_wan_access_port_changed=1 && local_cfg_changed=1
 	[ "$local_ini_list_mode_threshold" != "$local_list_mode_threshold" ] && local_list_mode_threshold_changed=1 && local_cfg_changed=1
@@ -2409,7 +2376,6 @@ lz_restore_config() {
 	[ $local_wan1_dest_udplite_port_changed = 1 ] && sed -i "s|^wan1_dest_udplite_port="$local_wan1_dest_udplite_port"|wan1_dest_udplite_port="$local_ini_wan1_dest_udplite_port"|" ${PATH_CONFIGS}/lz_rule_config.sh > /dev/null 2>&1
 	[ $local_wan1_dest_sctp_port_changed = 1 ] && sed -i "s|^wan1_dest_sctp_port="$local_wan1_dest_sctp_port"|wan1_dest_sctp_port="$local_ini_wan1_dest_sctp_port"|" ${PATH_CONFIGS}/lz_rule_config.sh > /dev/null 2>&1
 
-	[ $local_ss_wan_port_changed = 1 ] && sed -i "s:^ss_wan_port="$local_ss_wan_port":ss_wan_port="$local_ini_ss_wan_port":" ${PATH_CONFIGS}/lz_rule_config.sh > /dev/null 2>&1
 	[ $local_ovs_client_wan_port_changed = 1 ] && sed -i "s:^ovs_client_wan_port="$local_ovs_client_wan_port":ovs_client_wan_port="$local_ini_ovs_client_wan_port":" ${PATH_CONFIGS}/lz_rule_config.sh > /dev/null 2>&1
 	[ $local_wan_access_port_changed = 1 ] && sed -i "s:^wan_access_port="$local_wan_access_port":wan_access_port="$local_ini_wan_access_port":" ${PATH_CONFIGS}/lz_rule_config.sh > /dev/null 2>&1
 	[ $local_list_mode_threshold_changed = 1 ] && sed -i "s:^list_mode_threshold="$local_list_mode_threshold":list_mode_threshold="$local_ini_list_mode_threshold":" ${PATH_CONFIGS}/lz_rule_config.sh > /dev/null 2>&1
@@ -2853,7 +2819,6 @@ unset local_ini_wan1_dest_tcp_port
 unset local_ini_wan1_dest_udp_port
 unset local_ini_wan1_dest_udplite_port
 unset local_ini_wan1_dest_sctp_port
-unset local_ini_ss_wan_port
 unset local_ini_ovs_client_wan_port
 unset local_ini_wan_access_port
 unset local_ini_list_mode_threshold
@@ -2931,7 +2896,6 @@ unset local_wan1_dest_tcp_port
 unset local_wan1_dest_ucp_port
 unset local_wan1_dest_udplite_port
 unset local_wan1_dest_sctp_port
-unset local_ss_wan_port
 unset local_ovs_client_wan_port
 unset local_wan_access_port
 unset local_list_mode_threshold
@@ -3008,7 +2972,6 @@ unset local_wan1_dest_tcp_port_changed
 unset local_wan1_dest_udp_port_changed
 unset local_wan1_dest_udplite_port_changed
 unset local_wan1_dest_sctp_port_changed
-unset local_ss_wan_port_changed
 unset local_ovs_client_wan_port_changed
 unset local_wan_access_port_changed
 unset local_list_mode_threshold_changed
