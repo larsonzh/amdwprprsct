@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_status.sh v3.5.7
+# lz_rule_status.sh v3.5.8
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 显示脚本运行状态脚本
@@ -792,15 +792,21 @@ lz_get_route_status_info() {
 		[ -n "$local_firmware_version" ] && {
 			local local_firmware_buildno=$( nvram get buildno )
 			[ -n "$local_firmware_buildno" ] && {
-				local local_firmware_webs_state_info=$( nvram get webs_state_info | sed 's/^[^_]*[_]/&LZZL/' | sed 's/[_]LZZL/\./' )
+				local local_firmware_webs_state_info=$( nvram get webs_state_info | sed 's/\(^[0-9]*\)[^0-9]*\([0-9].*$\)/\1\.\2/g' | sed 's/\(^[0-9]*[\.][0-9]*\)[^0-9]*\([0-9].*$\)/\1\.\2/g' )
 				if [ -z "$local_firmware_webs_state_info" ]; then
-					local local_firmware_webs_state_info_beta=$( nvram get webs_state_info_beta | sed 's/^[^_]*[_]/&LZZL/' | sed 's/[_]LZZL/\./' )
+					local local_firmware_webs_state_info_beta=$( nvram get webs_state_info_beta | sed 's/\(^[0-9]*\)[^0-9]*\([0-9].*$\)/\1\.\2/g' | sed 's/\(^[0-9]*[\.][0-9]*\)[^0-9]*\([0-9].*$\)/\1\.\2/g' )
 					if [ -z "$local_firmware_webs_state_info_beta" ]; then
 						local_firmware_version="$local_firmware_version.$local_firmware_buildno"
 					else
+						if [ "$( echo $local_firmware_version | sed 's/[^0-9]//g' )" = "$( echo $local_firmware_webs_state_info_beta | sed 's/\(^[0-9]*\).*$/\1/g' )" ]; then
+							local_firmware_webs_state_info_beta=$( echo $local_firmware_webs_state_info_beta | sed 's/^[0-9]*[^0-9]*\([0-9].*$\)/\1/g' )
+						fi
 						local_firmware_version="$local_firmware_version.$local_firmware_webs_state_info_beta"
 					fi
 				else
+					if [ "$( echo $local_firmware_version | sed 's/[^0-9]//g' )" = "$( echo $local_firmware_webs_state_info | sed 's/\(^[0-9]*\).*$/\1/g' )" ]; then
+						local_firmware_webs_state_info=$( echo $local_firmware_webs_state_info | sed 's/^[0-9]*[^0-9]*\([0-9].*$\)/\1/g' )
+					fi
 					local_firmware_version="$local_firmware_version.$local_firmware_webs_state_info"
 				fi
 				echo $(date) [$$]: "   Firmware Version: $local_firmware_version"
