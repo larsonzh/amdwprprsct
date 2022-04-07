@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_config.sh v3.5.8
+# lz_rule_config.sh v3.5.9
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # 本版本采用CIDR（无类别域间路由，Classless Inter-Domain Routing）技术
