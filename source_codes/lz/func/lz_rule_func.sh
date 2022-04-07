@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v3.5.8
+# lz_rule_func.sh v3.5.9
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 函数功能定义
@@ -1849,6 +1849,7 @@ lz_cal_8bit_mask_bit_counter() {
 
 	return $local_mask_bit_counter
 }
+
 ## 计算ipv4网络地址掩码位数函数
 ## 输入项：
 ##     $1--ipv4网络地址掩码
@@ -3338,6 +3339,11 @@ EOF
 			[ "$( lz_get_ipset_total_number "$ISPIP_SET_0" )" -gt "0" ] && lz_add_dst_net_address_sets "$wan_1_src_to_dst_addr_file" "$ISPIP_SET_0" "1" "1"
 			## 第二WAN口ISP国内网段数据集中排除出口相同的该目标网址/网段数据
 			[ "$( lz_get_ipset_total_number "$ISPIP_SET_1" )" -gt "0" ] && lz_add_dst_net_address_sets "$wan_1_src_to_dst_addr_file" "$ISPIP_SET_1" "1" "1"
+
+			## 模式3动态分流时，需将静态路由的本目标网址/网段添加进NO_BALANCE_DST_IP_SET数据集，以在balance链中阻止负载均衡为其网络连接分配出口
+			if [ "$usage_mode" = "0" -a "$balance_chain_existing" != "0" ]; then
+				lz_add_dst_net_address_sets "$wan_1_src_to_dst_addr_file" "$NO_BALANCE_DST_IP_SET" "1" "0"
+			fi
 		}
 	fi
 
@@ -3350,6 +3356,11 @@ EOF
 			[ "$( lz_get_ipset_total_number "$ISPIP_SET_0" )" -gt "0" ] && lz_add_dst_net_address_sets "$wan_2_src_to_dst_addr_file" "$ISPIP_SET_0" "1" "1"
 			## 第二WAN口ISP国内网段数据集中排除出口相同的该目标网址/网段数据
 			[ "$( lz_get_ipset_total_number "$ISPIP_SET_1" )" -gt "0" ] && lz_add_dst_net_address_sets "$wan_2_src_to_dst_addr_file" "$ISPIP_SET_1" "1" "1"
+
+			## 模式3动态分流时，需将静态路由的本目标网址/网段添加进NO_BALANCE_DST_IP_SET数据集，以在balance链中阻止负载均衡为其网络连接分配出口
+			if [ "$usage_mode" = "0" -a "$balance_chain_existing" != "0" ]; then
+				lz_add_dst_net_address_sets "$wan_2_src_to_dst_addr_file" "$NO_BALANCE_DST_IP_SET" "1" "0"
+			fi
 		}
 	fi
 
@@ -3362,6 +3373,11 @@ EOF
 			[ "$( lz_get_ipset_total_number "$ISPIP_SET_0" )" -gt "0" ] && lz_add_dst_net_address_sets "$high_wan_1_src_to_dst_addr_file" "$ISPIP_SET_0" "1" "1"
 			## 第二WAN口ISP国内网段数据集中排除出口相同的该目标网址/网段数据
 			[ "$( lz_get_ipset_total_number "$ISPIP_SET_1" )" -gt "0" ] && lz_add_dst_net_address_sets "$high_wan_1_src_to_dst_addr_file" "$ISPIP_SET_1" "1" "1"
+
+			## 模式3动态分流时，需将静态路由的本目标网址/网段添加进NO_BALANCE_DST_IP_SET数据集，以在balance链中阻止负载均衡为其网络连接分配出口
+			if [ "$usage_mode" = "0" -a "$balance_chain_existing" != "0" ]; then
+				lz_add_dst_net_address_sets "$high_wan_1_src_to_dst_addr_file" "$NO_BALANCE_DST_IP_SET" "1" "0"
+			fi
 		}
 	fi
 
