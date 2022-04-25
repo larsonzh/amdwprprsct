@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_define_global_variables.sh v3.5.9
+# lz_define_global_variables.sh v3.6.0
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 # QnkgTFog5aaZ5aaZ5ZGc77yI6Juk6J+G5aKp5YS/77yJ（首次运行标识，切勿修改）
 
@@ -344,7 +344,6 @@ MATCH_SET='--match-set'
 
 ## iptables -m state针对网络数据包状态匹配设置的操作符宏变量
 MATCH_STATE=''
-[ "$prevent_invalid_network_packets" = "0" ] && MATCH_STATE='-m state ! --state INVALID'
 
 ## 动态分流模式时，路由器主机内部应用访问外网WAN口采用"按网段分流规则匹配出口"与"由系统自动分配出口"等效
 [ "$usage_mode" = "0" -a "$wan_access_port" = "2" ] && wan_access_port=5
@@ -379,6 +378,7 @@ localhost_nf_policy=5
 ## 阻止网段分流时分流无效网络数据包（0--启用；非0--禁用）
 ## 缺省为禁用（5）；一些网络应用会产生非正常状态网络数据包，若由此导致网络访问故障，请禁用此项。
 prevent_invalid_network_packets=5
+[ "$prevent_invalid_network_packets" = "0" ] && MATCH_STATE='-m state ! --state INVALID'
 
 ## 路由器硬件类型
 route_hardware_type=$( uname -m )

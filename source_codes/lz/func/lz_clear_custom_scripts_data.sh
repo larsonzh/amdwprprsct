@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_clear_custom_scripts_data.sh v3.5.9
+# lz_clear_custom_scripts_data.sh v3.6.0
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 清除用户自定义脚本数据
@@ -19,7 +19,7 @@ fi
 ## 为避免脚本升级更新后需要重新录入自定义代码，强烈建议将代码放入lz_rule_config.sh中定义的用户自定义
 ## 清理资源脚本文件中，今后不要再此文件中添加和编辑代码。
 
-<<EOF
+<<EOF_X
 cru定时命令
 add:     cru a <unique id> <"min hour day month week command">
 delete:  cru d <unique id>
@@ -40,10 +40,10 @@ cru a Timer_ID3 "*/5 * * * * /sbin/reboot"
 cru d Timer_ID3
 例5：显示所有定时器列表：
 cru l
-EOF
+EOF_X
 
 ## 以下为本脚本中代码结构框架编制示例
-<<EOF
+<<EOF_Y
 ## 释放资源
 ## 删除自定义脚本定时任务
 local local_timer_idx_exist=$( cru l | grep -c "#Timer_IDx#" )
@@ -63,4 +63,4 @@ if [ "$1" != "stop" -a "$1" != "STOP" ]; then
 		/目录名/其他自定义脚本文件名.sh
 	fi
 fi
-EOF
+EOF_Y

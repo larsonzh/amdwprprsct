@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v3.5.9
+# lz_rule_func.sh v3.6.0
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 函数功能定义
@@ -5094,6 +5094,7 @@ lz_insert_custom_balance_rules() {
 		## 负载均衡门卫控制：阻止对目标是本地网络和网关出口的数据流量进行负载均衡
 		iptables -t mangle -I balance -m set $MATCH_SET $BALANCE_GUARD_IP_SET dst -j RETURN > /dev/null 2>&1
 	fi
+<<EOF_0x90000000
 	## 固件中如没有对第二WAN口通道的0x90000000/0x90000000标记的数据包进行比对处理，在此修正
 	## balance链
 	iptables -t mangle -C balance -m connmark --mark 0x80000000/0x80000000 -j RETURN > /dev/null 2>&1
@@ -5107,6 +5108,7 @@ lz_insert_custom_balance_rules() {
 			fi
 		fi
 	fi
+EOF_0x90000000
 	## PREROUTING链
 	iptables -t mangle -C PREROUTING -i br0 -m connmark --mark 0x80000000/0x80000000 -j CONNMARK --restore-mark --nfmask 0xf0000000 --ctmask 0xf0000000 > /dev/null 2>&1
 	if [ "$?" = "0" ]; then
@@ -5250,20 +5252,19 @@ lz_deployment_routing_policy() {
 	#	ip rule add to 103.10.4.108 table $local_access_wan prio $IP_RULE_PRIO_INNER_ACCESS > /dev/null 2>&1
 		ip rule add from all to $route_local_ip table $local_access_wan prio $IP_RULE_PRIO_INNER_ACCESS > /dev/null 2>&1
 		ip rule add from $route_local_ip table $local_access_wan prio $IP_RULE_PRIO_INNER_ACCESS > /dev/null 2>&1
-	elif [ "$wan_access_port" = "2" -a "$usage_mode" = "0" \
-			-a "$localhost_nf_policy" != "0" ]; then
+	elif [ "$wan_access_port" = "2" -a "$usage_mode" = "0" -a "$localhost_nf_policy" != "0" ]; then
 		## 负载均衡方式
 		if [ "$balance_chain_existing" != "0" ]; then
-			ip rule add from all fwmark 0x80000000/0xf0000000 table $WAN0 prio $IP_RULE_PRIO_TOPEST > /dev/null 2>&1
-			ip rule add from all fwmark 0x90000000/0xf0000000 table $WAN1 prio $IP_RULE_PRIO_TOPEST > /dev/null 2>&1
+			ip rule add from $route_local_ip fwmark 0x80000000/0xf0000000 table $WAN0 prio $IP_RULE_PRIO_TOPEST > /dev/null 2>&1
+			ip rule add from $route_local_ip fwmark 0x90000000/0xf0000000 table $WAN1 prio $IP_RULE_PRIO_TOPEST > /dev/null 2>&1
 		else
 			ip rule add from $route_local_ip table main prio $IP_RULE_PRIO_TOPEST > /dev/null 2>&1
 		fi
 	elif [ "$wan_access_port" != "0" -a "$wan_access_port" != "1" -a "$wan_access_port" != "2" ]; then
 		## 负载均衡方式
 		if [ "$balance_chain_existing" != "0" ]; then
-			ip rule add from all fwmark 0x80000000/0xf0000000 table $WAN0 prio $IP_RULE_PRIO_TOPEST > /dev/null 2>&1
-			ip rule add from all fwmark 0x90000000/0xf0000000 table $WAN1 prio $IP_RULE_PRIO_TOPEST > /dev/null 2>&1
+			ip rule add from $route_local_ip fwmark 0x80000000/0xf0000000 table $WAN0 prio $IP_RULE_PRIO_TOPEST > /dev/null 2>&1
+			ip rule add from $route_local_ip fwmark 0x90000000/0xf0000000 table $WAN1 prio $IP_RULE_PRIO_TOPEST > /dev/null 2>&1
 		else
 			ip rule add from $route_local_ip table main prio $IP_RULE_PRIO_TOPEST > /dev/null 2>&1
 		fi
@@ -5361,15 +5362,17 @@ lz_deployment_routing_policy() {
 	lz_is_auto_traffic && local_auto_traffic=1
 
 	local local_show_hd=0
-	local local_no_balance_client_used=0
 
 	if [ "$balance_chain_existing" != "0" ]; then
 		## 创建出口目标网址/网段负载均衡数据集
 		ipset -! create $BALANCE_DST_IP_SET nethash #--hashsize 65535
 		ipset -q flush $BALANCE_DST_IP_SET
 	fi
-	if [ "$usage_mode" = "1" ]; then
+
+	if [ "$usage_mode" != "0" ]; then
+		## 静态分流模式
 		if [ "$local_auto_traffic" != "0" ]; then
+			## 存在需要系统负载均衡自动分配出口的运营商网段和用户自定义网址/网段时
 			## 国外地区
 			[ "$isp_wan_port_0" -lt "0" -o "$isp_wan_port_0" -gt "1" ] && \
 				[ "$balance_chain_existing" != "0" ] && \
@@ -5433,7 +5436,15 @@ lz_deployment_routing_policy() {
 					ip rule add from all fwmark 0x90000000/0xf0000000 table $WAN1 prio $IP_RULE_PRIO_ISP_DATA_LB > /dev/null 2>&1
 				fi
 			}
+		fi
 
+		[ "$policy_mode" = "0" ] && ip rule add from all table $WAN1 prio $IP_RULE_PRIO > /dev/null 2>&1
+		[ "$policy_mode" = "1" ] && ip rule add from all table $WAN0 prio $IP_RULE_PRIO > /dev/null 2>&1
+		[ "$local_netfilter_used" = "0" ] && local_show_hd=1
+	fi
+
+	[ "$( lz_get_ipv4_data_file_item_total "$local_ipsets_file" )" -gt "0" ] && {
+		if [ "$balance_chain_existing" = "0" ]; then
 			## 本地客户端网址/网段流量出口列表绑定黑名单负载均衡规则
 			## IPv4源网址/网段列表数据命令绑定路由器外网出口
 			## 输入项：
@@ -5442,28 +5453,12 @@ lz_deployment_routing_policy() {
 			##     $3--策略规则优先级
 			##     $4--0:不效验文件格式，非0：效验文件格式
 			## 返回值：无
-			[ "$balance_chain_existing" = "0" ] && \
-				[ "$( lz_get_ipv4_data_file_item_total "$local_ipsets_file" )" -gt "0" ] && {
-				lz_add_ipv4_src_addr_list_binding_wan "$local_ipsets_file" "main" "$IP_RULE_PRIO_BLCLST_LB" "1"
-				local_no_balance_client_used=1
-			}
+			lz_add_ipv4_src_addr_list_binding_wan "$local_ipsets_file" "main" "$IP_RULE_PRIO_BLCLST_LB" "1"
+		elif [ "$usage_mode" != "0" ]; then
+			## 静态分流模式
+			ip rule add from all fwmark 0x80000000/0xf0000000 table $WAN0 prio $IP_RULE_PRIO_BLCLST_LB > /dev/null 2>&1
+			ip rule add from all fwmark 0x90000000/0xf0000000 table $WAN1 prio $IP_RULE_PRIO_BLCLST_LB > /dev/null 2>&1
 		fi
-		[ "$policy_mode" = "0" ] && ip rule add from all table $WAN1 prio $IP_RULE_PRIO > /dev/null 2>&1
-		[ "$policy_mode" = "1" ] && ip rule add from all table $WAN0 prio $IP_RULE_PRIO > /dev/null 2>&1
-		[ "$local_netfilter_used" = "0" ] && local_show_hd=1
-	fi
-
-	## 本地客户端网址/网段流量出口列表绑定黑名单负载均衡规则
-	## IPv4源网址/网段列表数据命令绑定路由器外网出口
-	## 输入项：
-	##     $1--全路径网段数据文件名
-	##     $2--WAN口路由表ID号
-	##     $3--策略规则优先级
-	##     $4--0:不效验文件格式，非0：效验文件格式
-	## 返回值：无
-	[ "$balance_chain_existing" = "0" ] && [ "$local_no_balance_client_used" = "0" ] && \
-		[ "$( lz_get_ipv4_data_file_item_total "$local_ipsets_file" )" -gt "0" ] && {
-		lz_add_ipv4_src_addr_list_binding_wan "$local_ipsets_file" "main" "$IP_RULE_PRIO_BLCLST_LB" "1"
 	}
 
 	## 禁用路由缓存
