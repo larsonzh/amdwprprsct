@@ -60,5 +60,5 @@ v3.6.0
 
 <strong>安装及使用方法</strong>
 <ul>华硕改版固件路由器双线路双拨策略分流方案
-https://koolshare.cn/thread-145491-1-1.html
-(出处: KoolShare)</ul>
+https://www.koolcenter.com/posts/85
+(出处: KoolCenter)</ul>
