@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule.sh v3.6.0
+# lz_rule.sh v3.6.1
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # 本版本采用CIDR（无类别域间路由，Classless Inter-Domain Routing）技术
@@ -77,7 +77,7 @@
 ## -------------全局数据定义及初始化-------------------
 
 ## 版本号
-LZ_VERSION=v3.6.0
+LZ_VERSION=v3.6.1
 
 ## 运行状态查询命令
 SHOW_STATUS="status"
@@ -596,7 +596,7 @@ if lz_project_file_management; then
 			fi
 			rm -rf ${INSTANCE_LIST} > /dev/null 2>&1
 			if [ -f "${LOCK_FILE}" ]; then
-				rm -rf ${INSTANCE_LIST} > /dev/null 2>&1
+				rm -rf ${LOCK_FILE} > /dev/null 2>&1
 				echo $(date) [$$]: Program synchronization lock has been successfully unlocked.
 			else
 				echo $(date) [$$]: There is no program synchronization lock.
