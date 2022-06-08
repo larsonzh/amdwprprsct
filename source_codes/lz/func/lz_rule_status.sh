@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_status.sh v3.6.1
+# lz_rule_status.sh v3.6.2
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 显示脚本运行状态脚本
@@ -991,6 +991,7 @@ lz_get_route_status_info() {
 		else
 			echo $(date) [$$]: "   Route Policy Mode: Mode 3"
 		fi
+<<EOF_STATUS_DDNS
 		if [ "$status_usage_mode" = "0" ]; then
 			if [ "$status_wan_access_port" = "0" ]; then
 				echo $(date) [$$]: "   Route Host DDNS Export: Primary WAN"
@@ -1010,6 +1011,13 @@ lz_get_route_status_info() {
 				echo $(date) [$$]: "   Route Host DDNS Export: Load Balancing"
 			fi
 		fi
+EOF_STATUS_DDNS
+		if [ "$status_wan_access_port" = "1" ]; then
+			echo $(date) [$$]: "   Route Host Access Port: Secondary WAN"
+		else
+			echo $(date) [$$]: "   Route Host Access Port: Primary WAN"
+		fi
+<<EOF_STATUS_ACCESS
 		if [ "$status_usage_mode" = "0" ]; then
 			echo $(date) [$$]: "   Route Host App Export: Load Balancing"
 		else
@@ -1023,6 +1031,7 @@ lz_get_route_status_info() {
 				echo $(date) [$$]: "   Route Host App Export: Load Balancing"
 			fi
 		fi
+EOF_STATUS_ACCESS
 		if [ "$status_route_cache" = "0" ]; then
 			echo $(date) [$$]: "   Route Cache: Enable"
 		else
@@ -1539,7 +1548,7 @@ lz_output_ispip_status_info() {
 				local_hd=$local_primary_wan_hd
 			else
 				if [ "$local_item_num" -gt "$status_list_mode_threshold" ]; then
-					[ "$status_policy_mode" = "1" ] && local_hd=$local_primary_wan_hd
+					[ "$status_usage_mode" != "0" ] && local_hd=$local_primary_wan_hd
 				else
 					[ "$local_item_num" -ge "1" ] && local_hd=$local_primary_wan_hd
 				fi
@@ -1556,7 +1565,7 @@ lz_output_ispip_status_info() {
 				local_hd=$local_secondary_wan_hd
 			else
 				if [ "$local_item_num" -gt "$status_list_mode_threshold" ]; then
-					[ "$status_policy_mode" = "0" ] && local_hd=$local_secondary_wan_hd
+					[ "$status_usage_mode" != "0" ] && local_hd=$local_secondary_wan_hd
 				else
 					[ "$local_item_num" -ge "1" ] && local_hd=$local_secondary_wan_hd
 				fi
@@ -1573,7 +1582,7 @@ lz_output_ispip_status_info() {
 				local_hd=$local_primary_wan_hd
 			else
 				if [ "$local_item_num" -gt "$status_list_mode_threshold" ]; then
-					[ "$status_policy_mode" = "1" ] && local_hd=$local_primary_wan_hd
+					[ "$status_usage_mode" != "0" ] && local_hd=$local_primary_wan_hd
 				else
 					[ "$local_item_num" -ge "1" ] && local_hd=$local_primary_wan_hd
 				fi
@@ -1590,7 +1599,7 @@ lz_output_ispip_status_info() {
 				local_hd=$local_secondary_wan_hd
 			else
 				if [ "$local_item_num" -gt "$status_list_mode_threshold" ]; then
-					[ "$status_policy_mode" = "0" ] && local_hd=$local_secondary_wan_hd
+					[ "$status_usage_mode" != "0" ] && local_hd=$local_secondary_wan_hd
 				else
 					[ "$local_item_num" -ge "1" ] && local_hd=$local_secondary_wan_hd
 				fi
@@ -1624,7 +1633,7 @@ lz_output_ispip_status_info() {
 		}
 	}
 	local_item_num=$( lz_get_ipv4_data_file_item_total_status "$status_local_ipsets_file" )
-	[ "$local_item_num" -gt "0" ] && {
+	[ "$status_usage_mode" = "0" ] && [ "$local_item_num" -gt "0" ] && {
 		local_hd=$local_load_balancing_hd
 		echo $(date) [$$]: "   LocalIPBlcLst   Load Balancing$local_hd"
 		local_exist=1
@@ -1833,7 +1842,7 @@ lz_is_auto_traffic_status() {
 	done
 	[ "$status_custom_data_wan_port_1" = "2" ] && [ "$( lz_get_ipv4_data_file_item_total_status "$status_custom_data_file_1" )" -gt "0" ] && return 0
 	[ "$status_custom_data_wan_port_2" = "2" ] && [ "$( lz_get_ipv4_data_file_item_total_status "$status_custom_data_file_2" )" -gt "0" ] && return 0
-	[ "$( lz_get_ipv4_data_file_item_total_status "$status_local_ipsets_file" )" -gt "0" ] && return 0
+	[ "$status_usage_mode" = "0" ] && [ "$( lz_get_ipv4_data_file_item_total_status "$status_local_ipsets_file" )" -gt "0" ] && return 0
 	return 1
 }
 
@@ -2023,7 +2032,7 @@ lz_deployment_routing_policy_status() {
 	lz_is_auto_traffic_status && local_auto_traffic=1
 
 	local local_show_hd=0
-	[ "$status_usage_mode" = "1" -a "$local_netfilter_used" = "0" ] && local_show_hd=1
+	[ "$status_usage_mode" != "0" -a "$local_netfilter_used" = "0" ] && local_show_hd=1
 
 	## 输出网段出口状态信息
 	## 输入项：

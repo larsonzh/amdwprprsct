@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_initialize_config.sh v3.6.1
+# lz_initialize_config.sh v3.6.2
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 初始化脚本配置
@@ -562,6 +562,7 @@ high_wan_1_src_to_dst_addr_file="/jffs/scripts/lz/data/high_wan_1_src_to_dst_add
 ## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
 ## 在动态分流模式下，列入该网址/网段名单列表的设备访问外网时不受分流规则控制，仅由路由器自身的负载均衡
 ## 功能自动分配流量出口，可实现一些特殊用途的应用（如带速叠加下载，但外部影响因素较多，不保证能实现）。
+## 该功能在静态分流模式下无效。
 local_ipsets_file="/jffs/scripts/lz/data/local_ipsets_data.txt"
 
 ## 内网保留网址/网段列表数据文件
@@ -574,6 +575,7 @@ private_ipsets_file="/jffs/scripts/lz/data/private_ipsets_data.txt"
 ## 缺省为禁用（5）。
 ## 该功能需要系统中有用于OSI模型第七层应用层控制的layer7模块，否则需重新编译和配置Linux内核，打netfilter
 ## 补丁和安装l7-protocals协议包。
+## 仅能在动态分流模式下使用。
 l7_protocols=5
 
 ## 协议分流流量出口网络应用层协议绑定列表文件（文件路径、名称可自定义和修改）
@@ -586,6 +588,7 @@ l7_protocols_file="/jffs/scripts/lz/configs/lz_protocols.txt"
 ## （最多可设置15个不连续的端口号埠，仅针对TCP、UDP、UDPLITE、SCTP四类协议端口；不设置且为空时--禁用）
 ## 例如，TCP协议端口：wan0_dest_tcp_port=80,443,6881:6889,25671
 ## 其中：6881:6889表示6881~6889的连续端口号，不连续的端口号埠之间用英文半角“,”逗号相隔，不要有多余空格。
+## 仅能在动态分流模式下使用。
 wan0_dest_tcp_port=
 wan0_dest_udp_port=
 wan0_dest_udplite_port=
@@ -593,6 +596,7 @@ wan0_dest_sctp_port=
 
 ## 第二WAN口目标访问端口分流
 ## （最多可设置15个不连续的端口号埠，仅针对TCP、UDP、UDPLITE、SCTP四类协议端口；不设置且为空时--禁用）
+## 仅能在动态分流模式下使用。
 wan1_dest_tcp_port=
 wan1_dest_udp_port=
 wan1_dest_udplite_port=
@@ -603,13 +607,10 @@ wan1_dest_sctp_port=
 ## 缺省为第一WAN口（0）。
 ovs_client_wan_port=0
 
-## 路由器主机内部应用访问外网WAN口
-## （0--第一WAN口；1--第二WAN口；2--按网段分流规则匹配出口；>2--由系统自动分配出口）
+## 外网访问路由器主机WAN入口（0--第一WAN口；1--第二WAN口）
 ## 缺省为第一WAN口（0）。
-## "按网段分流规则匹配出口（2）"仅在静态分流模式下有效；其他情况下，路由器主机内部应用访问外网WAN口由系
-## 统自动分配出口。
-## 该端口也用于外网访问路由器Asuswrt管理界面及内网设备，正常应与DDNS出口保持一致，一般不建议更改缺省值。
-## 大部分380及以下系列版本固件系统DDNS已内部绑定第一WAN口，更改或可导致访问失败。
+## 该端口用于外网访问路由器Asuswrt管理界面及内网设备，正常应与DDNS出口保持一致，一般不建议更改缺省值。
+## 部分版本的固件系统，尤其是一些老机型，已内部将DDNS绑定至第一WAN口，更改或可导致访问失败。
 wan_access_port=0
 
 
@@ -635,8 +636,9 @@ usage_mode=0
 ## 列表数据总条目数≤该阈值时，采用按地址映射直接路由出口方式将列表中的网址/网段绑定至指定路由器出口。
 ## 列表数据总条目数>该阈值时，采用基于连接跟踪的报文数据包地址匹配标记导流出口方式将列表中的网址/网段绑
 ## 定至指定路由器出口。
-## 本阈值仅作用于用户自定义目标网址/网段流量出口数据文件及WAN口客户端及源网址/网段流量出口列表绑定数据文
-## 件，对WAN口用户自定义源网址/网段至目标网址/网段流量出口列表绑定数据文件无影响。
+## 本阈值仅在动态分流模式下共同作用于用户自定义目标网址/网段流量出口数据文件、WAN口客户端及源网址/网段流
+## 量出口列表绑定数据文件，对WAN口用户自定义源网址/网段至目标网址/网段流量出口列表绑定数据文件无影响。
+## 仅能在动态分流模式下使用。
 list_mode_threshold=512
 
 ## 路由表缓存（0--启用；非0--禁用）
@@ -1085,6 +1087,7 @@ high_wan_1_src_to_dst_addr_file=$local_high_wan_1_src_to_dst_addr_file
 ## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
 ## 在动态分流模式下，列入该网址/网段名单列表的设备访问外网时不受分流规则控制，仅由路由器自身的负载均衡
 ## 功能自动分配流量出口，可实现一些特殊用途的应用（如带速叠加下载，但外部影响因素较多，不保证能实现）。
+## 该功能在静态分流模式下无效。
 local_ipsets_file=$local_local_ipsets_file
 
 ## 内网保留网址/网段列表数据文件
@@ -1097,6 +1100,7 @@ private_ipsets_file=$local_private_ipsets_file
 ## 缺省为禁用（5）。
 ## 该功能需要系统中有用于OSI模型第七层应用层控制的layer7模块，否则需重新编译和配置Linux内核，打netfilter
 ## 补丁和安装l7-protocals协议包。
+## 仅能在动态分流模式下使用。
 l7_protocols=$local_l7_protocols
 
 ## 协议分流流量出口网络应用层协议绑定列表文件（文件路径、名称可自定义和修改）
@@ -1109,6 +1113,7 @@ l7_protocols_file=$local_l7_protocols_file
 ## （最多可设置15个不连续的端口号埠，仅针对TCP、UDP、UDPLITE、SCTP四类协议端口；不设置且为空时--禁用）
 ## 例如，TCP协议端口：wan0_dest_tcp_port=80,443,6881:6889,25671
 ## 其中：6881:6889表示6881~6889的连续端口号，不连续的端口号埠之间用英文半角“,”逗号相隔，不要有多余空格。
+## 仅能在动态分流模式下使用。
 wan0_dest_tcp_port=$local_wan0_dest_tcp_port
 wan0_dest_udp_port=$local_wan0_dest_udp_port
 wan0_dest_udplite_port=$local_wan0_dest_udplite_port
@@ -1116,6 +1121,7 @@ wan0_dest_sctp_port=$local_wan0_dest_sctp_port
 
 ## 第二WAN口目标访问端口分流
 ## （最多可设置15个不连续的端口号埠，仅针对TCP、UDP、UDPLITE、SCTP四类协议端口；不设置且为空时--禁用）
+## 仅能在动态分流模式下使用。
 wan1_dest_tcp_port=$local_wan1_dest_tcp_port
 wan1_dest_udp_port=$local_wan1_dest_udp_port
 wan1_dest_udplite_port=$local_wan1_dest_udplite_port
@@ -1126,13 +1132,10 @@ wan1_dest_sctp_port=$local_wan1_dest_sctp_port
 ## 缺省为第一WAN口（0）。
 ovs_client_wan_port=$local_ovs_client_wan_port
 
-## 路由器主机内部应用访问外网WAN口
-## （0--第一WAN口；1--第二WAN口；2--按网段分流规则匹配出口；>2--由系统自动分配出口）
+## 外网访问路由器主机WAN入口（0--第一WAN口；1--第二WAN口）
 ## 缺省为第一WAN口（0）。
-## "按网段分流规则匹配出口（2）"仅在静态分流模式下有效；其他情况下，路由器主机内部应用访问外网WAN口由系
-## 统自动分配出口。
-## 该端口也用于外网访问路由器Asuswrt管理界面及内网设备，正常应与DDNS出口保持一致，一般不建议更改缺省值。
-## 大部分380及以下系列版本固件系统DDNS已内部绑定第一WAN口，更改或可导致访问失败。
+## 该端口用于外网访问路由器Asuswrt管理界面及内网设备，正常应与DDNS出口保持一致，一般不建议更改缺省值。
+## 部分版本的固件系统，尤其是一些老机型，已内部将DDNS绑定至第一WAN口，更改或可导致访问失败。
 wan_access_port=$local_wan_access_port
 
 
@@ -1158,8 +1161,9 @@ usage_mode=$local_usage_mode
 ## 列表数据总条目数≤该阈值时，采用按地址映射直接路由出口方式将列表中的网址/网段绑定至指定路由器出口。
 ## 列表数据总条目数>该阈值时，采用基于连接跟踪的报文数据包地址匹配标记导流出口方式将列表中的网址/网段绑
 ## 定至指定路由器出口。
-## 本阈值仅作用于用户自定义目标网址/网段流量出口数据文件及WAN口客户端及源网址/网段流量出口列表绑定数据文
-## 件，对WAN口用户自定义源网址/网段至目标网址/网段流量出口列表绑定数据文件无影响。
+## 本阈值仅在动态分流模式下共同作用于用户自定义目标网址/网段流量出口数据文件、WAN口客户端及源网址/网段流
+## 量出口列表绑定数据文件，对WAN口用户自定义源网址/网段至目标网址/网段流量出口列表绑定数据文件无影响。
+## 仅能在动态分流模式下使用。
 list_mode_threshold=$local_list_mode_threshold
 
 ## 路由表缓存（0--启用；非0--禁用）
@@ -1518,6 +1522,8 @@ lz_read_config_param() {
 
 	local_wan_access_port="$( lz_get_file_cache_data "wan_access_port" "0" )"
 	[ "$?" = "0" ] && local_exist=0
+	## wan_access_port现在只能为0或1
+	[ "$local_wan_access_port" -lt "0" -o "$local_wan_access_port" -gt "1" ] && local_wan_access_port=0 && local_exist=0
 
 	local_list_mode_threshold="$( lz_get_file_cache_data "list_mode_threshold" "512" )"
 	[ "$?" = "0" ] && local_exist=0
@@ -2124,6 +2130,8 @@ lz_read_box_data() {
 
 	local_ini_wan_access_port="$( lz_get_file_cache_data "lz_config_wan_access_port" "0" )"
 	[ "$?" = "0" ] && local_exist=0
+	## wan_access_port现在只能为0或1
+	[ "$local_ini_wan_access_port" -lt "0" -o "$local_ini_wan_access_port" -gt "1" ] && local_ini_wan_access_port=0 && local_exist=0
 
 	local_ini_list_mode_threshold="$( lz_get_file_cache_data "lz_config_list_mode_threshold" "512" )"
 	[ "$?" = "0" ] && local_exist=0

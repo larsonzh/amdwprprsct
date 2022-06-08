@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v3.6.1
+# lz_rule_func.sh v3.6.2
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 函数功能定义
@@ -105,7 +105,7 @@ lz_is_auto_traffic() {
 	done
 	[ "$custom_data_wan_port_1" = "2" ] && [ "$( lz_get_ipv4_data_file_item_total "$custom_data_file_1" )" -gt "0" ] && return 0
 	[ "$custom_data_wan_port_2" = "2" ] && [ "$( lz_get_ipv4_data_file_item_total "$custom_data_file_2" )" -gt "0" ] && return 0
-	[ "$( lz_get_ipv4_data_file_item_total "$local_ipsets_file" )" -gt "0" ] && return 0
+	[ "$usage_mode" = "0" ] && [ "$( lz_get_ipv4_data_file_item_total "$local_ipsets_file" )" -gt "0" ] && return 0
 	return 1
 }
 
@@ -523,6 +523,7 @@ lz_get_route_info() {
 			echo $(date) [$$]: LZ Route Policy Mode: Mode 3 >> /tmp/syslog.log
 			echo $(date) [$$]: "   Route Policy Mode: Mode 3"
 		fi
+<<EOF_DDNS
 		if [ "$usage_mode" = "0" ]; then
 			if [ "$wan_access_port" = "0" ]; then
 				echo $(date) [$$]: LZ Route Host DDNS Export: Primary WAN >> /tmp/syslog.log
@@ -549,24 +550,29 @@ lz_get_route_info() {
 				echo $(date) [$$]: "   Route Host DDNS Export: Load Balancing"
 			fi
 		fi
+EOF_DDNS
+		if [ "$wan_access_port" = "1" ]; then
+			echo $(date) [$$]: LZ Route Host Access Port: Secondary WAN >> /tmp/syslog.log
+			echo $(date) [$$]: "   Route Host Access Port: Secondary WAN"
+		else
+			echo $(date) [$$]: LZ Route Host Access Port: Primary WAN >> /tmp/syslog.log
+			echo $(date) [$$]: "   Route Host Access Port: Primary WAN"
+		fi
+<<EOF_ACCESS
 		if [ "$usage_mode" = "0" ]; then
-			echo $(date) [$$]: LZ Route Host App Export: Load Balancing >> /tmp/syslog.log
 			echo $(date) [$$]: "   Route Host App Export: Load Balancing"
 		else
 			if [ "$wan_access_port" = "0" ]; then
-				echo $(date) [$$]: LZ Route Host App Export: Primary WAN >> /tmp/syslog.log
 				echo $(date) [$$]: "   Route Host App Export: Primary WAN"
 			elif [ "$wan_access_port" = "1" ]; then
-				echo $(date) [$$]: LZ Route Host App Export: Secondary WAN >> /tmp/syslog.log
 				echo $(date) [$$]: "   Route Host App Export: Secondary WAN"
 			elif [ "$wan_access_port" = "2" ]; then
-				echo $(date) [$$]: LZ Route Host App Export: by Policy >> /tmp/syslog.log
 				echo $(date) [$$]: "   Route Host App Export: by Policy"
 			else
-				echo $(date) [$$]: LZ Route Host App Export: Load Balancing >> /tmp/syslog.log
 				echo $(date) [$$]: "   Route Host App Export: Load Balancing"
 			fi
 		fi
+EOF_ACCESS
 		if [ "$route_cache" = "0" ]; then
 			echo $(date) [$$]: LZ Route Cache: Enable >> /tmp/syslog.log
 			echo $(date) [$$]: "   Route Cache: Enable"
@@ -643,14 +649,20 @@ lz_sys_load_balance_control() {
 		done
 	fi
 
+	## 调整策略规则路由数据库中负载均衡策略规则条目的优先级
+	## 仅对位于IP_RULE_PRIO_TOPEST--IP_RULE_PRIO范围之外的负载均衡策略规则条目进行优先级调整
 	## a.对固件系统中第一WAN口的负载均衡分流策略采取主动控制措施
 	local local_sys_load_balance_wan0_exist=$( ip rule show | grep -c "from all fwmark 0x80000000\/0xf0000000" )
-	if [ $local_sys_load_balance_wan0_exist -gt 0 ]; then
+	if [ $local_sys_load_balance_wan0_exist -gt 0 -o $balance_chain_existing = 1 ]; then
 		until [ $local_sys_load_balance_wan0_exist = 0 ]
 		do
-			ip rule show | grep "from all fwmark 0x80000000\/0xf0000000" | sed "s/^\(.*\)\:.*$/ip rule del prio \1/g" | \
+		#	ip rule show | grep "from all fwmark 0x80000000\/0xf0000000" | sed "s/^\(.*\)\:.*$/ip rule del prio \1/g" | \
+		#		awk '{system($0 " > \/dev\/null 2>\&1")}'
+		#	local_sys_load_balance_wan0_exist=$( ip rule show | grep -c "from all fwmark 0x80000000\/0xf0000000" )
+			ip rule show | grep "from all fwmark 0x80000000\/0xf0000000" | \
+				awk -F: '$1<"'"$IP_RULE_PRIO_TOPEST"'" || $1>"'"IP_RULE_PRIO"'" {print "ip rule del prio",$1}' | \
 				awk '{system($0 " > \/dev\/null 2>\&1")}'
-			local_sys_load_balance_wan0_exist=$( ip rule show | grep -c "from all fwmark 0x80000000\/0xf0000000" )
+			local_sys_load_balance_wan0_exist=$( ip rule show | grep "from all fwmark 0x80000000\/0xf0000000" | awk -F: '$1<"'"$IP_RULE_PRIO_TOPEST"'" || $1>"'"IP_RULE_PRIO"'" {print $1}' | grep -c '^.*$' )
 		done
 		ip route flush cache > /dev/null 2>&1
 		## 不清除系统负载均衡策略中的分流功能，但降低其执行优先级，防止先于自定义分流规则执行
@@ -660,12 +672,16 @@ lz_sys_load_balance_control() {
 
 	## b.对固件系统中第二WAN口的负载均衡分流策略采取主动控制措施
 	local local_sys_load_balance_wan1_exist=$( ip rule show | grep -c "from all fwmark 0x90000000\/0xf0000000" )
-	if [ $local_sys_load_balance_wan1_exist -gt 0 ]; then
+	if [ $local_sys_load_balance_wan1_exist -gt 0 -o $balance_chain_existing = 1 ]; then
 		until [ $local_sys_load_balance_wan1_exist = 0 ]
 		do
-			ip rule show | grep "from all fwmark 0x90000000\/0xf0000000" | sed "s/^\(.*\)\:.*$/ip rule del prio \1/g" | \
+		#	ip rule show | grep "from all fwmark 0x90000000\/0xf0000000" | sed "s/^\(.*\)\:.*$/ip rule del prio \1/g" | \
+		#		awk '{system($0 " > \/dev\/null 2>\&1")}'
+		#	local_sys_load_balance_wan1_exist=$( ip rule show | grep -c "from all fwmark 0x90000000\/0xf0000000" )
+			ip rule show | grep "from all fwmark 0x90000000\/0xf0000000" | \
+				awk -F: '$1<"'"$IP_RULE_PRIO_TOPEST"'" || $1>"'"IP_RULE_PRIO"'" {print "ip rule del prio",$1}' | \
 				awk '{system($0 " > \/dev\/null 2>\&1")}'
-			local_sys_load_balance_wan1_exist=$( ip rule show | grep -c "from all fwmark 0x90000000\/0xf0000000" )
+			local_sys_load_balance_wan1_exist=$( ip rule show | grep "from all fwmark 0x90000000\/0xf0000000" | awk -F: '$1<"'"$IP_RULE_PRIO_TOPEST"'" || $1>"'"IP_RULE_PRIO"'" {print $1}' | grep -c '^.*$' )
 		done
 		ip route flush cache > /dev/null 2>&1
 		## 不清除系统负载均衡策略中的分流功能，但降低其执行优先级，防止先于自定义分流规则执行
@@ -754,7 +770,7 @@ lz_clear_iptv_route() {
 
 ## 删除旧分流规则并输出旧分流规则每个优先级的条目数至系统记录函数
 ## 输入项：
-##     $1--IP_RULE_PRIO_TOPEST--分流规则条目优先级上限数值（例如：IP_RULE_PRIO-31=24969）
+##     $1--IP_RULE_PRIO_TOPEST--分流规则条目优先级上限数值（例如：IP_RULE_PRIO-40=24960）
 ##     $2--IP_RULE_PRIO--既有分流规则条目优先级下限数值（例如：IP_RULE_PRIO=25000）
 ## 返回值：
 ##     ip_rule_exist--删除后剩余条目数，正常为0，全局变量
@@ -1242,7 +1258,7 @@ lz_data_cleaning() {
 	## 删除优先级 IP_RULE_PRIO_TOPEST ~ IP_RULE_PRIO 的旧规则
 	## 删除旧分流规则并输出旧分流规则每个优先级的条目数至系统记录
 	## 输入项：
-	##     $1--IP_RULE_PRIO_TOPEST--分流规则条目优先级上限数值（例如：IP_RULE_PRIO-31=24969）
+	##     $1--IP_RULE_PRIO_TOPEST--分流规则条目优先级上限数值（例如：IP_RULE_PRIO-40=24960）
 	##     $2--IP_RULE_PRIO--既有分流规则条目优先级下限数值（例如：IP_RULE_PRIO=25000）
 	## 返回值：
 	##     ip_rule_exist--删除后剩余条目数，正常为0，全局变量
@@ -2419,12 +2435,13 @@ lz_get_ipset_total_number() {
 lz_high_client_src_addr_binding_wan() {
 	local local_item_num=0
 	## 第一WAN口客户端及源网址/网段高优先级绑定列表
-	## 模式1、模式3时，大于条目阈值数的动态路由，小于的静态路由
+	## 模式1时，静态路由
 	## 模式2时，客户端直接通过本通道的整体静态路由推送访问外网，无须单独设置路由
+	## 模式3时，大于条目阈值数的动态路由，小于的静态路由
 	## 动态和静态路由均在balance链中通过识别客户端地址，阻止负载均衡为其分配网络出口
 	if [ "$high_wan_1_client_src_addr" = "0" -a "$policy_mode" != "1" ]; then
 		local_item_num=$( lz_get_ipv4_data_file_item_total "$high_wan_1_client_src_addr_file" )
-		if [ "$local_item_num" -gt "$list_mode_threshold" ]; then
+		if [ "$usage_mode" = "0" -a "$local_item_num" -gt "$list_mode_threshold" ]; then
 			## 创建或加载网段出口数据集
 			## 输入项：
 			##     $1--全路径网段数据文件名
@@ -2463,12 +2480,13 @@ lz_high_client_src_addr_binding_wan() {
 		fi
 	fi
 	## 第二WAN口客户端及源网址/网段高优先级绑定列表
-	## 模式2、模式3时，大于条目阈值数的动态路由，小于的静态路由
 	## 模式1时，客户端直接通过本通道的整体静态路由推送访问外网，无须单独设置路由
+	## 模式2时，静态路由
+	## 模式3时，大于条目阈值数的动态路由，小于的静态路由
 	## 动态和静态路由均在balance链中通过识别客户端地址，阻止负载均衡为其分配网络出口
 	if [ "$high_wan_2_client_src_addr" = "0" -a "$policy_mode" != "0" ]; then
 		local_item_num=$( lz_get_ipv4_data_file_item_total "$high_wan_2_client_src_addr_file" )
-		if [ "$local_item_num" -gt "$list_mode_threshold" ]; then
+		if [ "$usage_mode" = "0" -a "$local_item_num" -gt "$list_mode_threshold" ]; then
 			lz_add_net_address_sets "$high_wan_2_client_src_addr_file" "$HIGH_CLIENT_SRC_SET_1" "1" "0"
 			iptables -t mangle -A $CUSTOM_PREROUTING_CONNMARK_CHAIN -m connmark ! --mark $HIGH_CLIENT_SRC_FWMARK_1/$HIGH_CLIENT_SRC_FWMARK_1 -m set $MATCH_SET $HIGH_CLIENT_SRC_SET_1 src -j CONNMARK --set-xmark $HIGH_CLIENT_SRC_FWMARK_1/$FWMARK_MASK > /dev/null 2>&1
 			iptables -t mangle -A $CUSTOM_PREROUTING_CONNMARK_CHAIN -m connmark --mark $HIGH_CLIENT_SRC_FWMARK_1/$HIGH_CLIENT_SRC_FWMARK_1 -j RETURN > /dev/null 2>&1
@@ -2721,7 +2739,7 @@ EOF
 
 	LOCAL_IPSETS_SRC=""
 	if [ -n "$local_route_local_ip_mask" -a "$local_ipv4_cidr_mask" != "0" -a "$local_ipv4_cidr_mask" != "32" ]; then
-		if [ "$balance_chain_existing" != "0" ]; then
+		if [ "$balance_chain_existing" = "1" ]; then
 			## 创建负载均衡门卫网址/网段数据集
 			ipset -! create $BALANCE_GUARD_IP_SET nethash #--hashsize 65535
 			ipset -q flush $BALANCE_GUARD_IP_SET
@@ -2732,12 +2750,12 @@ EOF
 			ipset -! create $BALANCE_IP_SET nethash #--hashsize 65535
 			ipset -q flush $BALANCE_IP_SET
 			## 模式1、模式2时
-			if [ "$usage_mode" = "1" ]; then
+			if [ "$usage_mode" != "0" ]; then
 				ipset -! add $BALANCE_IP_SET "$route_local_ip/$local_ipv4_cidr_mask" > /dev/null 2>&1
 				ipset -! add $BALANCE_IP_SET "$( ip -o -4 addr list | grep "$( nvram get wan0_ifname | sed 's/ /\n/g' | sed -n 1p )" | awk -F ' ' '{print $4}' )" > /dev/null 2>&1
 				ipset -! add $BALANCE_IP_SET "$( ip -o -4 addr list | grep "$( nvram get wan1_ifname | sed 's/ /\n/g' | sed -n 1p )" | awk -F ' ' '{print $4}' )" > /dev/null 2>&1
 				## 加载本地客户端网址/网段分流黑名单列表数据文件
-				[ "$( lz_get_ipv4_data_file_item_total "$local_ipsets_file" )" -gt "0" ] && {
+			#	[ "$( lz_get_ipv4_data_file_item_total "$local_ipsets_file" )" -gt "0" ] && {
 					## 创建或加载网段出口数据集
 					## 输入项：
 					##     $1--全路径网段数据文件名
@@ -2746,8 +2764,8 @@ EOF
 					##     $4--0:正匹配数据，非0：反匹配（nomatch）数据
 					## 返回值：
 					##     网址/网段数据集--全局变量
-					lz_add_net_address_sets "$local_ipsets_file" "$BALANCE_IP_SET" "1" "1"
-				}
+			#		lz_add_net_address_sets "$local_ipsets_file" "$BALANCE_IP_SET" "1" "1"
+			#	}
 			elif [ "$wan_access_port" != "2" ]; then
 				ipset -! add $BALANCE_IP_SET "$route_local_ip" > /dev/null 2>&1
 			fi
@@ -2760,7 +2778,7 @@ EOF
 		ipset -! add $LOCAL_IP_SET "$( ip -o -4 addr list | grep "$( nvram get wan1_ifname | sed 's/ /\n/g' | sed -n 1p )" | awk -F ' ' '{print $4}' )" > /dev/null 2>&1
 		[ "$wan_access_port" != "2" ] && ipset -! add $LOCAL_IP_SET "$route_local_ip" nomatch > /dev/null 2>&1
 		## 加载不受目标网址/网段匹配访问控制的本地客户端网址
-		[ "$( lz_get_ipv4_data_file_item_total "$local_ipsets_file" )" -gt "0" ] && {
+		[ "$usage_mode" = "0" ] && [ "$( lz_get_ipv4_data_file_item_total "$local_ipsets_file" )" -gt "0" ] && {
 			lz_add_net_address_sets "$local_ipsets_file" "$LOCAL_IP_SET" "1" "1"
 		}
 		## 加载排除绑定第一WAN口的客户端及源网址/网段列表数据
@@ -2768,7 +2786,7 @@ EOF
 			[ "$( lz_get_ipv4_data_file_item_total "$wan_1_client_src_addr_file" )" -gt "0" ] && {
 				lz_add_net_address_sets "$wan_1_client_src_addr_file" "$LOCAL_IP_SET" "1" "1"
 				## 模式3时
-				if [ "$balance_chain_existing" != "0" -a "$usage_mode" = "0" ]; then
+				if [ "$balance_chain_existing" = "1" -a "$usage_mode" = "0" ]; then
 					lz_add_net_address_sets "$wan_1_client_src_addr_file" "$BALANCE_IP_SET" "1" "0"
 				fi
 			}
@@ -2778,7 +2796,7 @@ EOF
 			[ "$( lz_get_ipv4_data_file_item_total "$wan_2_client_src_addr_file" )" -gt "0" ] && {
 				lz_add_net_address_sets "$wan_2_client_src_addr_file" "$LOCAL_IP_SET" "1" "1"
 				## 模式3时
-				if [ "$balance_chain_existing" != "0" -a "$usage_mode" = "0" ]; then
+				if [ "$balance_chain_existing" = "1" -a "$usage_mode" = "0" ]; then
 					lz_add_net_address_sets "$wan_2_client_src_addr_file" "$BALANCE_IP_SET" "1" "0"
 				fi
 			}
@@ -2788,7 +2806,7 @@ EOF
 			[ "$( lz_get_ipv4_data_file_item_total "$high_wan_1_client_src_addr_file" )" -gt "0" ] && {
 				lz_add_net_address_sets "$high_wan_1_client_src_addr_file" "$LOCAL_IP_SET" "1" "1"
 				## 模式3时
-				if [ "$balance_chain_existing" != "0" -a "$usage_mode" = "0" ]; then
+				if [ "$balance_chain_existing" = "1" -a "$usage_mode" = "0" ]; then
 					lz_add_net_address_sets "$high_wan_1_client_src_addr_file" "$BALANCE_IP_SET" "1" "0"
 				fi
 			}
@@ -2798,7 +2816,7 @@ EOF
 			[ "$( lz_get_ipv4_data_file_item_total "$high_wan_2_client_src_addr_file" )" -gt "0" ] && {
 				lz_add_net_address_sets "$high_wan_2_client_src_addr_file" "$LOCAL_IP_SET" "1" "1"
 				## 模式3时
-				if [ "$balance_chain_existing" != "0" -a "$usage_mode" = "0" ]; then
+				if [ "$balance_chain_existing" = "1" -a "$usage_mode" = "0" ]; then
 					lz_add_net_address_sets "$high_wan_2_client_src_addr_file" "$BALANCE_IP_SET" "1" "0"
 				fi
 			}
@@ -2816,7 +2834,7 @@ EOF
 				##     网址/网段数据集--全局变量
 				lz_add_src_net_address_sets "$wan_1_src_to_dst_addr_file" "$LOCAL_IP_SET" "1" "1"
 				## 模式3时
-				if [ "$balance_chain_existing" != "0" -a "$usage_mode" = "0" ]; then
+				if [ "$balance_chain_existing" = "1" -a "$usage_mode" = "0" ]; then
 					lz_add_src_net_address_sets "$wan_1_src_to_dst_addr_file" "$BALANCE_IP_SET" "1" "0"
 				fi
 			}
@@ -2826,7 +2844,7 @@ EOF
 			[ "$( lz_get_ipv4_src_to_dst_data_file_item_total "$wan_2_src_to_dst_addr_file" )" -gt "0" ] && {
 				lz_add_src_net_address_sets "$wan_2_src_to_dst_addr_file" "$LOCAL_IP_SET" "1" "1"
 				## 模式3时
-				if [ "$balance_chain_existing" != "0" -a "$usage_mode" = "0" ]; then
+				if [ "$balance_chain_existing" = "1" -a "$usage_mode" = "0" ]; then
 					lz_add_src_net_address_sets "$wan_2_src_to_dst_addr_file" "$BALANCE_IP_SET" "1" "0"
 				fi
 			}
@@ -2836,7 +2854,7 @@ EOF
 			[ "$( lz_get_ipv4_src_to_dst_data_file_item_total "$high_wan_1_src_to_dst_addr_file" )" -gt "0" ] && {
 				lz_add_src_net_address_sets "$high_wan_1_src_to_dst_addr_file" "$LOCAL_IP_SET" "1" "1"
 				## 模式3时
-				if [ "$balance_chain_existing" != "0" -a "$usage_mode" = "0" ]; then
+				if [ "$balance_chain_existing" = "1" -a "$usage_mode" = "0" ]; then
 					lz_add_src_net_address_sets "$high_wan_1_src_to_dst_addr_file" "$BALANCE_IP_SET" "1" "0"
 				fi
 			}
@@ -2888,13 +2906,13 @@ EOF
 	##     $7--端口分流出口规则策略规则优先级
 	##     全局变量
 	## 返回值：无
-	lz_dest_port_policy "$wan0_dest_tcp_port" "$wan0_dest_udp_port" "$wan0_dest_udplite_port" "$wan0_dest_sctp_port" "$DEST_PORT_FWMARK_0" "$WAN0" "$IP_RULE_PRIO_WAN_1_PORT"
+	[ "$usage_mode" = "0" ] && lz_dest_port_policy "$wan0_dest_tcp_port" "$wan0_dest_udp_port" "$wan0_dest_udplite_port" "$wan0_dest_sctp_port" "$DEST_PORT_FWMARK_0" "$WAN0" "$IP_RULE_PRIO_WAN_1_PORT"
 
 	## 第二WAN口目标访问端口分流
 	## 模式1、模式2、模式3时，均为动态路由
 	## 模式1、模式2时，在balance链中通过识别客户端地址，阻止负载均衡为其分配网络出口
 	## 模式3时，在balance链中通过识别报文数据包标记，阻止负载均衡为其分配网络出口
-	lz_dest_port_policy "$wan1_dest_tcp_port" "$wan1_dest_udp_port" "$wan1_dest_udplite_port" "$wan1_dest_sctp_port" "$DEST_PORT_FWMARK_1" "$WAN1" "$IP_RULE_PRIO_WAN_2_PORT"
+	[ "$usage_mode" = "0" ] && lz_dest_port_policy "$wan1_dest_tcp_port" "$wan1_dest_udp_port" "$wan1_dest_udplite_port" "$wan1_dest_sctp_port" "$DEST_PORT_FWMARK_1" "$WAN1" "$IP_RULE_PRIO_WAN_2_PORT"
 
 	## 协议分流
 	## 协议策略分流
@@ -2902,17 +2920,18 @@ EOF
 	##     $1--协议分流网络应用层协议列表文件全路径文件名
 	##     全局常量及变量
 	## 返回值：无
-	[ "$l7_protocols" = "0" ] && lz_protocols_policy "$l7_protocols_file"
+	[ "$usage_mode" = "0" -a "$l7_protocols" = "0" ] && lz_protocols_policy "$l7_protocols_file"
 
 	local local_item_num=0
 
 	## 第一WAN口客户端及源网址/网段绑定列表
-	## 模式1、模式3时，大于条目阈值数的动态路由，小于的静态路由
+	## 模式1时，静态路由
 	## 模式2时，客户端直接通过本通道的整体静态路由推送访问外网，无须单独设置路由
+	## 模式3时，大于条目阈值数的动态路由，小于的静态路由
 	## 动态和静态路由均在balance链中通过识别客户端地址，阻止负载均衡为其分配网络出口
 	if [ "$wan_1_client_src_addr" = "0" -a "$policy_mode" != "1" ]; then
 		local_item_num=$( lz_get_ipv4_data_file_item_total "$wan_1_client_src_addr_file" )
-		if [ "$local_item_num" -gt "$list_mode_threshold" ]; then
+		if [ "$usage_mode" = "0" -a "$local_item_num" -gt "$list_mode_threshold" ]; then
 			## 创建或加载网段出口数据集
 			## 输入项：
 			##     $1--全路径网段数据文件名
@@ -2941,12 +2960,13 @@ EOF
 	fi
 
 	## 第二WAN口客户端及源网址/网段绑定列表
-	## 模式2、模式3时，大于条目阈值数的动态路由，小于的静态路由
 	## 模式1时，客户端直接通过本通道的整体静态路由推送访问外网，无须单独设置路由
+	## 模式2时，静态路由
+	## 模式3时，大于条目阈值数的动态路由，小于的静态路由
 	## 动态和静态路由均在balance链中通过识别客户端地址，阻止负载均衡为其分配网络出口
 	if [ "$wan_2_client_src_addr" = "0" -a "$policy_mode" != "0" ]; then
 		local_item_num=$( lz_get_ipv4_data_file_item_total "$wan_2_client_src_addr_file" )
-		if [ "$local_item_num" -gt "$list_mode_threshold" ]; then
+		if [ "$usage_mode" = "0" -a "$local_item_num" -gt "$list_mode_threshold" ]; then
 			lz_add_net_address_sets "$wan_2_client_src_addr_file" "$CLIENT_SRC_SET_1" "1" "0"
 			iptables -t mangle -A $CUSTOM_PREROUTING_CONNMARK_CHAIN -m connmark ! --mark $CLIENT_SRC_FWMARK_1/$CLIENT_SRC_FWMARK_1 -m set $MATCH_SET $CLIENT_SRC_SET_1 src -j CONNMARK --set-xmark $CLIENT_SRC_FWMARK_1/$FWMARK_MASK > /dev/null 2>&1
 			iptables -t mangle -A $CUSTOM_PREROUTING_CONNMARK_CHAIN -m connmark --mark $CLIENT_SRC_FWMARK_1/$CLIENT_SRC_FWMARK_1 -j RETURN > /dev/null 2>&1
@@ -3250,7 +3270,7 @@ EOF
 						##     $4--0:不效验文件格式，非0：效验文件格式
 						## 返回值：无
 						lz_add_ipv4_dst_addr_list_binding_wan "$custom_data_file_1" "$LOCAL_WAN_ID" "$IP_RULE_PRIO_CUSTOM_1_DATA" "1"
-						if [ "$balance_chain_existing" != "0" ]; then
+						if [ "$balance_chain_existing" = "1" ]; then
 							lz_add_net_address_sets "$custom_data_file_1" "$NO_BALANCE_DST_IP_SET" "1" "0"
 						fi
 					fi
@@ -3308,7 +3328,7 @@ EOF
 						[ "$custom_data_wan_port_2" = "0" ] && LOCAL_WAN_ID=$WAN0
 						[ "$custom_data_wan_port_2" = "1" ] && LOCAL_WAN_ID=$WAN1
 						lz_add_ipv4_dst_addr_list_binding_wan "$custom_data_file_2" "$LOCAL_WAN_ID" "$IP_RULE_PRIO_CUSTOM_2_DATA" "1"
-						if [ "$balance_chain_existing" != "0" ]; then
+						if [ "$balance_chain_existing" = "1" ]; then
 							lz_add_net_address_sets "$custom_data_file_2" "$NO_BALANCE_DST_IP_SET" "1" "0"
 						fi
 					fi
@@ -3341,7 +3361,7 @@ EOF
 			[ "$( lz_get_ipset_total_number "$ISPIP_SET_1" )" -gt "0" ] && lz_add_dst_net_address_sets "$wan_1_src_to_dst_addr_file" "$ISPIP_SET_1" "1" "1"
 
 			## 模式3动态分流时，需将静态路由的本目标网址/网段添加进NO_BALANCE_DST_IP_SET数据集，以在balance链中阻止负载均衡为其网络连接分配出口
-			if [ "$usage_mode" = "0" -a "$balance_chain_existing" != "0" ]; then
+			if [ "$usage_mode" = "0" -a "$balance_chain_existing" = "1" ]; then
 				lz_add_dst_net_address_sets "$wan_1_src_to_dst_addr_file" "$NO_BALANCE_DST_IP_SET" "1" "0"
 			fi
 		}
@@ -3358,7 +3378,7 @@ EOF
 			[ "$( lz_get_ipset_total_number "$ISPIP_SET_1" )" -gt "0" ] && lz_add_dst_net_address_sets "$wan_2_src_to_dst_addr_file" "$ISPIP_SET_1" "1" "1"
 
 			## 模式3动态分流时，需将静态路由的本目标网址/网段添加进NO_BALANCE_DST_IP_SET数据集，以在balance链中阻止负载均衡为其网络连接分配出口
-			if [ "$usage_mode" = "0" -a "$balance_chain_existing" != "0" ]; then
+			if [ "$usage_mode" = "0" -a "$balance_chain_existing" = "1" ]; then
 				lz_add_dst_net_address_sets "$wan_2_src_to_dst_addr_file" "$NO_BALANCE_DST_IP_SET" "1" "0"
 			fi
 		}
@@ -3375,7 +3395,7 @@ EOF
 			[ "$( lz_get_ipset_total_number "$ISPIP_SET_1" )" -gt "0" ] && lz_add_dst_net_address_sets "$high_wan_1_src_to_dst_addr_file" "$ISPIP_SET_1" "1" "1"
 
 			## 模式3动态分流时，需将静态路由的本目标网址/网段添加进NO_BALANCE_DST_IP_SET数据集，以在balance链中阻止负载均衡为其网络连接分配出口
-			if [ "$usage_mode" = "0" -a "$balance_chain_existing" != "0" ]; then
+			if [ "$usage_mode" = "0" -a "$balance_chain_existing" = "1" ]; then
 				lz_add_dst_net_address_sets "$high_wan_1_src_to_dst_addr_file" "$NO_BALANCE_DST_IP_SET" "1" "0"
 			fi
 		}
@@ -3510,7 +3530,7 @@ EOF
 			do
 				ipset -! del $ISPIP_ALL_CN_SET $local_wan_ip > /dev/null 2>&1
 				ipset -! add $ISPIP_ALL_CN_SET $local_wan_ip > /dev/null 2>&1
-				[ "$balance_chain_existing" != "0" ] && \
+				[ "$balance_chain_existing" = "1" ] && \
 					ipset -! add $ISPIP_ALL_CN_SET $local_wan_ip > /dev/null 2>&1
 			done
 		fi
@@ -3522,7 +3542,7 @@ EOF
 			do
 				ipset -! del $ISPIP_ALL_CN_SET $local_wan_ip > /dev/null 2>&1
 				ipset -! add $ISPIP_ALL_CN_SET $local_wan_ip > /dev/null 2>&1
-				[ "$balance_chain_existing" != "0" ] && \
+				[ "$balance_chain_existing" = "1" ] && \
 					ipset -! add $BALANCE_GUARD_IP_SET $local_wan_ip > /dev/null 2>&1
 			done
 		fi
@@ -3531,25 +3551,25 @@ EOF
 		[ -n "$local_ifip_wan0_dns1" ] && {
 			ipset -! del $ISPIP_ALL_CN_SET $local_ifip_wan0_dns1 > /dev/null 2>&1
 			ipset -! add $ISPIP_ALL_CN_SET $local_ifip_wan0_dns1 > /dev/null 2>&1
-			[ "$balance_chain_existing" != "0" ] && \
+			[ "$balance_chain_existing" = "1" ] && \
 				ipset -! add $BALANCE_GUARD_IP_SET $local_ifip_wan0_dns1 > /dev/null 2>&1
 		}
 		[ -n "$local_ifip_wan0_dns2" ] && {
 			ipset -! del $ISPIP_ALL_CN_SET $local_ifip_wan0_dns2 > /dev/null 2>&1
 			ipset -! add $ISPIP_ALL_CN_SET $local_ifip_wan0_dns2 > /dev/null 2>&1
-			[ "$balance_chain_existing" != "0" ] && \
+			[ "$balance_chain_existing" = "1" ] && \
 				ipset -! add $BALANCE_GUARD_IP_SET $local_ifip_wan0_dns2 > /dev/null 2>&1
 		}
 		[ -n "$local_ifip_wan1_dns1" ] && {
 			ipset -! del $ISPIP_ALL_CN_SET $local_ifip_wan1_dns1 > /dev/null 2>&1
 			ipset -! add $ISPIP_ALL_CN_SET $local_ifip_wan1_dns1 > /dev/null 2>&1
-			[ "$balance_chain_existing" != "0" ] && \
+			[ "$balance_chain_existing" = "1" ] && \
 				ipset -! add $BALANCE_GUARD_IP_SET $local_ifip_wan1_dns1 > /dev/null 2>&1
 		}
 		[ -n "$local_ifip_wan1_dns2" ] && {
 			ipset -! del $ISPIP_ALL_CN_SET $local_ifip_wan1_dns2 > /dev/null 2>&1
 			ipset -! add $ISPIP_ALL_CN_SET $local_ifip_wan1_dns2 > /dev/null 2>&1
-			[ "$balance_chain_existing" != "0" ] && \
+			[ "$balance_chain_existing" = "1" ] && \
 				ipset -! add $BALANCE_GUARD_IP_SET $local_ifip_wan1_dns2 > /dev/null 2>&1
 		}
 
@@ -3566,7 +3586,7 @@ EOF
 			ipset -! del $ISPIP_ALL_CN_SET $local_wan_ip > /dev/null 2>&1
 			ipset -! add $ISPIP_ALL_CN_SET $local_wan_ip > /dev/null 2>&1
 		}
-	elif [ "$balance_chain_existing" != "0" ]; then
+	elif [ "$balance_chain_existing" = "1" ]; then
 		## 阻止访问WAN口外网IPv4网关地址负载均衡
 		local_wan_ip_list=$( ip -o -4 addr list | grep ppp | awk -F ' ' '{print $6}' )
 		if [ -n "$local_wan_ip_list" ]; then
@@ -3720,7 +3740,7 @@ EOF_A
 EOF_B
 
 	elif [ "$ovs_client_wan_port" = "2" ]; then
-		if [ "$usage_mode" = "1" ]; then
+		if [ "$usage_mode" != "0" ]; then
 
 	cat >> ${1}/${2} <<EOF_C
 		if [ -n "\$( ipset -q -n list $BALANCE_IP_SET )" ]; then
@@ -3732,7 +3752,7 @@ EOF_C
 		fi
 	else
 		## 负载均衡方式
-		if [ "$balance_chain_existing" != "0" ]; then
+		if [ "$balance_chain_existing" = "1" ]; then
 
 	cat >> ${1}/${2} <<EOF_D
 		echo "\$lz_route_list" | sed 's/^.*\$/ip rule add from & fwmark 0x80000000/0xf0000000 table $WAN0 prio $IP_RULE_PRIO_OPENVPN/g' | awk '{system(\$0 " > /dev/null 2>&1")}'
@@ -3852,7 +3872,7 @@ EOF_A
 		if [ "$ovs_client_wan_port" -lt "0" -o "$ovs_client_wan_port" -gt "2" ]; then
 			## 改变至由系统自动分配流量出口
 			## 负载均衡方式
-			if [ "$balance_chain_existing" != "0" ]; then
+			if [ "$balance_chain_existing" = "1" ]; then
 				if [ -z "$( echo "$local_openvpn_event_interface_scripts" | grep "/ip rule add from & fwmark 0x80000000/0xf0000000 table $WAN0 prio $IP_RULE_PRIO_OPENVPN/g" )" ]; then
 					llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
 					break
@@ -3913,7 +3933,7 @@ EOF_A
 				break
 			fi
 
-			if [ "$usage_mode" = "1" ]; then
+			if [ "$usage_mode" != "0" ]; then
 				## 阻止由系统通过负载均衡为VPN客户端分配访问外网的出口
 				if [ -z "$( echo "$local_openvpn_event_interface_scripts" | grep "ipset -q -n list $BALANCE_IP_SET" )" ]; then
 					llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
@@ -4060,7 +4080,7 @@ lz_openvpn_support() {
 					awk '{print $0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
 			}
 		elif [ "$ovs_client_wan_port" = "2" ]; then
-			if [ "$usage_mode" = "1" ]; then
+			if [ "$usage_mode" != "0" ]; then
 				[ -n "$( ipset -q -n list $BALANCE_IP_SET )" ] && {
 					echo "$local_tun_list" | sed "s/^.*$/-! del "$BALANCE_IP_SET" &/g" | \
 						awk '{print $0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
@@ -4070,7 +4090,7 @@ lz_openvpn_support() {
 			fi
 		else
 			## 负载均衡方式
-			if [ "$balance_chain_existing" != "0" ]; then
+			if [ "$balance_chain_existing" = "1" ]; then
 				echo "$local_tun_list" | \
 					sed "s/^.*$/ip rule add from & fwmark 0x80000000\/0xf0000000 table "$WAN0" prio "$IP_RULE_PRIO_OPENVPN"/g" | \
 					awk '{system($0 " > \/dev\/null 2>\&1")}'
@@ -4531,7 +4551,7 @@ lz_output_ispip_info_to_system_records() {
 				local_hd=$local_primary_wan_hd
 			else
 				if [ "$local_item_num" -gt "$list_mode_threshold" ]; then
-					[ "$policy_mode" = "1" ] && local_hd=$local_primary_wan_hd
+					[ "$usage_mode" != "0" ] && local_hd=$local_primary_wan_hd
 				else
 					[ "$local_item_num" -ge "1" ] && local_hd=$local_primary_wan_hd
 				fi
@@ -4549,7 +4569,7 @@ lz_output_ispip_info_to_system_records() {
 				local_hd=$local_secondary_wan_hd
 			else
 				if [ "$local_item_num" -gt "$list_mode_threshold" ]; then
-					[ "$policy_mode" = "0" ] && local_hd=$local_secondary_wan_hd
+					[ "$usage_mode" != "0" ] && local_hd=$local_secondary_wan_hd
 				else
 					[ "$local_item_num" -ge "1" ] && local_hd=$local_secondary_wan_hd
 				fi
@@ -4567,7 +4587,7 @@ lz_output_ispip_info_to_system_records() {
 				local_hd=$local_primary_wan_hd
 			else
 				if [ "$local_item_num" -gt "$list_mode_threshold" ]; then
-					[ "$policy_mode" = "1" ] && local_hd=$local_primary_wan_hd
+					[ "$usage_mode" != "0" ] && local_hd=$local_primary_wan_hd
 				else
 					[ "$local_item_num" -ge "1" ] && local_hd=$local_primary_wan_hd
 				fi
@@ -4585,7 +4605,7 @@ lz_output_ispip_info_to_system_records() {
 				local_hd=$local_secondary_wan_hd
 			else
 				if [ "$local_item_num" -gt "$list_mode_threshold" ]; then
-					[ "$policy_mode" = "0" ] && local_hd=$local_secondary_wan_hd
+					[ "$usage_mode" != "0" ] && local_hd=$local_secondary_wan_hd
 				else
 					[ "$local_item_num" -ge "1" ] && local_hd=$local_secondary_wan_hd
 				fi
@@ -4623,7 +4643,7 @@ lz_output_ispip_info_to_system_records() {
 		}
 	}
 	local_item_num=$( lz_get_ipv4_data_file_item_total "$local_ipsets_file" )
-	[ "$local_item_num" -gt "0" ] && {
+	[ "$usage_mode" = "0" ] && [ "$local_item_num" -gt "0" ] && {
 		local_hd=$local_load_balancing_hd
 		echo $(date) [$$]: LZ "LocalIPBlcLst Load Balancing$local_hd" >> /tmp/syslog.log
 		echo $(date) [$$]: "   LocalIPBlcLst   Load Balancing$local_hd"
@@ -4949,7 +4969,7 @@ lz_start_iptv_box_services() {
 	else
 		if [ -f "$iptv_box_ip_lst_file" ]; then
 			## 模式3时需阻止系统对IPTV流量进行负载均衡
-			if [ "$balance_chain_existing" != "0" -a "$usage_mode" = "0" ]; then
+			if [ "$balance_chain_existing" = "1" -a "$usage_mode" = "0" ]; then
 				## 创建或加载网段出口数据集函数
 				## 输入项：
 				##     $1--全路径网段数据文件名
@@ -4996,16 +5016,16 @@ lz_start_iptv_box_services() {
 ##     全局常量及变量
 ## 返回值：无
 lz_insert_custom_balance_rules() {
-	[ "$balance_chain_existing" = "0" ] && return
+	[ "$balance_chain_existing" != "1" ] && return
 	## 在路由前mangle表balance负载均衡规则链中插入避免系统原生负载均衡影响分流的规则
 	## 模式1、模式2时
-	if [ "$usage_mode" = "1" ]; then
+	if [ "$usage_mode" != "0" ]; then
 		local local_jump_1=0; local local_jump_2=0;
 		if [ "$( lz_get_ipset_total_number "$LOCAL_IP_SET" )" -gt "0" ]; then
 			if [ "$isp_wan_port_0" != "0" -a "$isp_wan_port_0" != "1" ]; then
-				[ "$( lz_get_ipset_total_number "$ISPIP_ALL_CN_SET" )" -gt "0" ] && local_jump_1=1
+				[ "$( lz_get_ipset_total_number "$ISPIP_ALL_CN_SET" )" -gt "0" ] && local_jump_1=0 # 1 取消静态分流模式下国外运营商网段流量的负载均衡功能
 			fi
-			[ "$( lz_get_ipset_total_number "$BALANCE_DST_IP_SET" )" -gt "0" ] && local_jump_2=1
+			[ "$( lz_get_ipset_total_number "$BALANCE_DST_IP_SET" )" -gt "0" ] && local_jump_2=0 # 1 取消静态分流模式下国内运营商网段流量的负载均衡功能
 		fi
 		if [ "$( lz_get_ipset_total_number "$BALANCE_IP_SET" )" -gt "0" ]; then
 			## 只对客户端分流黑名单设备和含有指定标记的网络流量放行，去进行负载均衡
@@ -5254,7 +5274,7 @@ lz_deployment_routing_policy() {
 		ip rule add from $route_local_ip table $local_access_wan prio $IP_RULE_PRIO_INNER_ACCESS > /dev/null 2>&1
 	elif [ "$wan_access_port" = "2" -a "$usage_mode" = "0" -a "$localhost_nf_policy" != "0" ]; then
 		## 负载均衡方式
-		if [ "$balance_chain_existing" != "0" ]; then
+		if [ "$balance_chain_existing" = "1" ]; then
 			ip rule add from $route_local_ip fwmark 0x80000000/0xf0000000 table $WAN0 prio $IP_RULE_PRIO_TOPEST > /dev/null 2>&1
 			ip rule add from $route_local_ip fwmark 0x90000000/0xf0000000 table $WAN1 prio $IP_RULE_PRIO_TOPEST > /dev/null 2>&1
 		else
@@ -5262,7 +5282,7 @@ lz_deployment_routing_policy() {
 		fi
 	elif [ "$wan_access_port" != "0" -a "$wan_access_port" != "1" -a "$wan_access_port" != "2" ]; then
 		## 负载均衡方式
-		if [ "$balance_chain_existing" != "0" ]; then
+		if [ "$balance_chain_existing" = "1" ]; then
 			ip rule add from $route_local_ip fwmark 0x80000000/0xf0000000 table $WAN0 prio $IP_RULE_PRIO_TOPEST > /dev/null 2>&1
 			ip rule add from $route_local_ip fwmark 0x90000000/0xf0000000 table $WAN1 prio $IP_RULE_PRIO_TOPEST > /dev/null 2>&1
 		else
@@ -5363,7 +5383,7 @@ lz_deployment_routing_policy() {
 
 	local local_show_hd=0
 
-	if [ "$balance_chain_existing" != "0" ]; then
+	if [ "$balance_chain_existing" = "1" ]; then
 		## 创建出口目标网址/网段负载均衡数据集
 		ipset -! create $BALANCE_DST_IP_SET nethash #--hashsize 65535
 		ipset -q flush $BALANCE_DST_IP_SET
@@ -5371,11 +5391,12 @@ lz_deployment_routing_policy() {
 
 	if [ "$usage_mode" != "0" ]; then
 		## 静态分流模式
+<<EOF_BALANCE_ISP_IP_SETS
 		if [ "$local_auto_traffic" != "0" ]; then
 			## 存在需要系统负载均衡自动分配出口的运营商网段和用户自定义网址/网段时
 			## 国外地区
 			[ "$isp_wan_port_0" -lt "0" -o "$isp_wan_port_0" -gt "1" ] && \
-				[ "$balance_chain_existing" != "0" ] && \
+				[ "$balance_chain_existing" = "1" ] && \
 				[ "$isp_data_0_item_total" -gt "0" ] && {
 					## 创建或加载网段出口数据集
 					## 输入项：
@@ -5395,7 +5416,7 @@ lz_deployment_routing_policy() {
 					"$( lz_get_isp_wan_port "$local_index" )" -gt "3" ] && \
 					[ "$( lz_get_isp_data_item_total_variable "$local_index" )" -gt "0" ] && {
 					## 运营商网段分流出口负载均衡规则
-					if [ "$balance_chain_existing" = "0" ]; then
+					if [ "$balance_chain_existing" != "1" ]; then
 						## IPv4目标网址/网段列表数据命令绑定路由器外网出口
 						## 输入项：
 						##     $1--全路径网段数据文件名
@@ -5413,7 +5434,7 @@ lz_deployment_routing_policy() {
 			## 用户自定义网址/网段-1
 			[ "$custom_data_wan_port_1" = "2" ] && \
 				[ "$( lz_get_ipv4_data_file_item_total "$custom_data_file_1" )" -gt "0" ] && {
-					if [ "$balance_chain_existing" = "0" ]; then
+					if [ "$balance_chain_existing" != "1" ]; then
 						lz_add_ipv4_dst_addr_list_binding_wan "$custom_data_file_1" "main" "$IP_RULE_PRIO_ISP_DATA_LB" "1"
 					else
 						lz_add_net_address_sets "$custom_data_file_1" "$BALANCE_DST_IP_SET" "1" "0"
@@ -5422,13 +5443,13 @@ lz_deployment_routing_policy() {
 			## 用户自定义网址/网段-2
 			[ "$custom_data_wan_port_2" = "2" ] && \
 				[ "$( lz_get_ipv4_data_file_item_total "$custom_data_file_2" )" -gt "0" ] && {
-					if [ "$balance_chain_existing" = "0" ]; then
+					if [ "$balance_chain_existing" != "1" ]; then
 						lz_add_ipv4_dst_addr_list_binding_wan "$custom_data_file_2" "main" "$IP_RULE_PRIO_ISP_DATA_LB" "1"
 					else
 						lz_add_net_address_sets "$custom_data_file_2" "$BALANCE_DST_IP_SET" "1" "0"
 					fi
 			}
-			[ "$balance_chain_existing" != "0" ] && {
+			[ "$balance_chain_existing" = "1" ] && {
 				if [ "$( lz_get_ipset_total_number "$BALANCE_DST_IP_SET" )" -gt "0" ] || \
 					[ "$isp_wan_port_0" != "0" -a "$isp_wan_port_0" != "1" -a \
 						"$( lz_get_ipset_total_number "$ISPIP_ALL_CN_SET" )" -gt "0" ]; then
@@ -5437,14 +5458,14 @@ lz_deployment_routing_policy() {
 				fi
 			}
 		fi
-
+EOF_BALANCE_ISP_IP_SETS
 		[ "$policy_mode" = "0" ] && ip rule add from all table $WAN1 prio $IP_RULE_PRIO > /dev/null 2>&1
 		[ "$policy_mode" = "1" ] && ip rule add from all table $WAN0 prio $IP_RULE_PRIO > /dev/null 2>&1
 		[ "$local_netfilter_used" = "0" ] && local_show_hd=1
 	fi
-
+<<EOF_BALANCE_BLCLST
 	[ "$( lz_get_ipv4_data_file_item_total "$local_ipsets_file" )" -gt "0" ] && {
-		if [ "$balance_chain_existing" = "0" ]; then
+		if [ "$balance_chain_existing" != "1" ]; then
 			## 本地客户端网址/网段流量出口列表绑定黑名单负载均衡规则
 			## IPv4源网址/网段列表数据命令绑定路由器外网出口
 			## 输入项：
@@ -5460,7 +5481,7 @@ lz_deployment_routing_policy() {
 			ip rule add from all fwmark 0x90000000/0xf0000000 table $WAN1 prio $IP_RULE_PRIO_BLCLST_LB > /dev/null 2>&1
 		fi
 	}
-
+EOF_BALANCE_BLCLST
 	## 禁用路由缓存
 	[ "$route_cache" != "0" ] && {
 		[ -f "/proc/sys/net/ipv4/rt_cache_rebuild_count" ] && echo -1 > /proc/sys/net/ipv4/rt_cache_rebuild_count
