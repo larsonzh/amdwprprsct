@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_status.sh v3.6.3
+# lz_rule_status.sh v3.6.4
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 显示脚本运行状态脚本
@@ -1104,10 +1104,9 @@ lz_show_openvpn_support_status() {
 	fi
 
 	if [ $local_ov_no -gt 0 ]; then
-		local local_ovs_client_wan_port="Load Balancing"
+		local local_ovs_client_wan_port="by Policy"
 		[ "$status_ovs_client_wan_port" = "0" ] && local_ovs_client_wan_port="Primary WAN"
 		[ "$status_ovs_client_wan_port" = "1" ] && local_ovs_client_wan_port="Secondary WAN"
-		[ "$status_ovs_client_wan_port" = "2" ] && local_ovs_client_wan_port="by Policy"
 		echo $(date) [$$]: "   OVS Client Export: $local_ovs_client_wan_port"
 	fi
 }

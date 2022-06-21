@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_define_global_variables.sh v3.6.3
+# lz_define_global_variables.sh v3.6.4
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 # QnkgTFog5aaZ5aaZ5ZGc77yI6Juk6J+G5aKp5YS/77yJ（首次运行标识，切勿修改）
 
@@ -17,9 +17,6 @@ BOOTLOADER_NAME=firewall-start
 ## 项目标识及项目文件名：取自本主执行脚本文件名称且保持一致
 PROJECT_ID=lz_rule
 PROJECT_FILENAME=${PROJECT_ID}.sh
-
-## 项目临时文件目录
-PATH_TMP=${PATH_LZ}/tmp
 
 ## 自动清理路由表缓存定时任务时间ID
 CLEAR_ROUTE_CACHE_TIMEER_ID=lz_clear_route_cache
@@ -133,6 +130,9 @@ OPENVPN_EVENT_NAME=openvpn-event
 
 ## OpenVPN事件触发接口文件名
 OPENVPN_EVENT_INTERFACE_NAME=lz_openvpn_event.sh
+
+## OpenVPN子网网段地址列表文件
+OPENVPN_SUBNET_LIST=lz_openvpn_subnet.lst
 
 ## SS启动文件路径
 PATH_SS=/koolshare/ss

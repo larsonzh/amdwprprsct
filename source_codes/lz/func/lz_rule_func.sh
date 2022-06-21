@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v3.6.3
+# lz_rule_func.sh v3.6.4
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 函数功能定义
@@ -1168,6 +1168,10 @@ lz_clear_openvpn_support() {
 		local_ip_route=$( ip route list table $WAN1 | grep $local_tun_number )
 		ip route del $local_ip_route table $WAN1 > /dev/null 2>&1
 	done
+
+	## 清除OpenVPN子网网段地址列表文件
+	[ -f ${PATH_TMP}/${OPENVPN_SUBNET_LIST} ] && \
+		rm ${PATH_TMP}/${OPENVPN_SUBNET_LIST} > /dev/null 2>&1
 }
 
 ## 设置udpxy_used参数函数
@@ -3702,11 +3706,7 @@ lz_ss_support() {
 ##     全局常量及变量
 ## 返回值：无
 lz_add_openvpn_event_scripts() {
-	local local_ovs_client_wan=main
-	[ "$ovs_client_wan_port" = "0" ] && local_ovs_client_wan=$WAN0
-	[ "$ovs_client_wan_port" = "1" ] && local_ovs_client_wan=$WAN1
-
-	cat >> ${1}/${2} <<EOF_A
+	cat >> ${1}/${2} <<EOF_OVPN_A
 # ${2} $LZ_VERSION
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 # Do not manually modify!!!
@@ -3715,8 +3715,9 @@ lz_add_openvpn_event_scripts() {
 [ ! -d ${PATH_LOCK} ] && { mkdir -p ${PATH_LOCK} > /dev/null 2>&1; chmod 777 ${PATH_LOCK} > /dev/null 2>&1; }
 exec $LOCK_FILE_ID<>${LOCK_FILE}; flock -x $LOCK_FILE_ID > /dev/null 2>&1;
 
-sleep 5
+echo \$(date) [\$\$]: Running LZ openvpn-event $LZ_VERSION >> /tmp/syslog.log
 
+lz_ovpn_subnet_list="\$( grep -Eo '^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}' ${PATH_TMP}/${OPENVPN_SUBNET_LIST} 2> /dev/null )"
 ip rule show | grep $IP_RULE_PRIO_OPENVPN: | sed 's/^\($IP_RULE_PRIO_OPENVPN\):.*\$/ip rule del prio \1/g' | awk '{system(\$0 " > /dev/null 2>&1")}'
 if [ -n "\$( ip route | grep nexthop | sed -n 1p )" ]; then
 	lz_route_list=\$( ip route | grep -Ev 'default|nexthop' )
@@ -3727,84 +3728,71 @@ if [ -n "\$( ip route | grep nexthop | sed -n 1p )" ]; then
 			echo "\$lz_route_list" | sed 's/^.*\$/ip route add & table $LZ_IPTV/g' | awk '{system(\$0 " > /dev/null 2>&1")}'
 		fi
 		lz_route_list=\$( echo "\$lz_route_list" | grep -E 'tap|tun' | awk '{print \$1}' )
-EOF_A
+EOF_OVPN_A
 
 	if [ "$ovs_client_wan_port" = "0" -o "$ovs_client_wan_port" = "1" ]; then
-
-	cat >> ${1}/${2} <<EOF_B
+		local local_ovs_client_wan=$WAN0
+		[ "$ovs_client_wan_port" = "1" ] && local_ovs_client_wan=$WAN1
+		cat >> ${1}/${2} <<EOF_OVPN_B
 		echo "\$lz_route_list" | sed 's/^.*\$/ip rule add from & table $local_ovs_client_wan prio $IP_RULE_PRIO_OPENVPN/g' | awk '{system(\$0 " > /dev/null 2>&1")}'
 		if [ -n "\$( ipset -q -n list $BALANCE_IP_SET )" ]; then
+			echo "\$lz_ovpn_subnet_list" | sed 's/^.*\$/-! del $BALANCE_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
 			echo "\$lz_route_list" | sed 's/^.*\$/-! del $BALANCE_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
 			echo "\$lz_route_list" | sed 's/^.*\$/-! add $BALANCE_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
 		fi
-EOF_B
-
-	elif [ "$ovs_client_wan_port" = "2" ]; then
-		if [ "$usage_mode" != "0" ]; then
-
-	cat >> ${1}/${2} <<EOF_C
+EOF_OVPN_B
+	elif [ "$usage_mode" != "0" ]; then
+		cat >> ${1}/${2} <<EOF_OVPN_C
 		if [ -n "\$( ipset -q -n list $BALANCE_IP_SET )" ]; then
+			echo "\$lz_ovpn_subnet_list" | sed 's/^.*\$/-! del $BALANCE_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
 			echo "\$lz_route_list" | sed 's/^.*\$/-! del $BALANCE_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
 			echo "\$lz_route_list" | sed 's/^.*\$/-! add $BALANCE_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
 		fi
-EOF_C
-
-		fi
-	else
-		## 负载均衡方式
-		if [ "$balance_chain_existing" = "1" ]; then
-
-	cat >> ${1}/${2} <<EOF_D
-		echo "\$lz_route_list" | sed 's/^.*\$/ip rule add from & fwmark 0x80000000/0xf0000000 table $WAN0 prio $IP_RULE_PRIO_OPENVPN/g' | awk '{system(\$0 " > /dev/null 2>&1")}'
-		echo "\$lz_route_list" | sed 's/^.*\$/ip rule add from & fwmark 0x90000000/0xf0000000 table $WAN1 prio $IP_RULE_PRIO_OPENVPN/g' | awk '{system(\$0 " > /dev/null 2>&1")}'
-EOF_D
-
-		else
-
-	cat >> ${1}/${2} <<EOF_F
-		echo "\$lz_route_list" | sed 's/^.*\$/ip rule add from & table $local_ovs_client_wan prio $IP_RULE_PRIO_OPENVPN/g' | awk '{system(\$0 " > /dev/null 2>&1")}'
-EOF_F
-		fi
+EOF_OVPN_C
 	fi
 
-	cat >> ${1}/${2} <<EOF_G
+	cat >> ${1}/${2} <<EOF_OVPN_D
 		if [ -n "\$( ipset -q -n list $LOCAL_IP_SET )" ]; then
+			echo "\$lz_ovpn_subnet_list" | sed 's/^.*\$/-! del $LOCAL_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
 			echo "\$lz_route_list" | sed 's/^.*\$/-! del $LOCAL_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
-EOF_G
+EOF_OVPN_D
 
-	if [ "$ovs_client_wan_port" = "2" ]; then
-
-	cat >> ${1}/${2} <<EOF_H
+	if [ "$ovs_client_wan_port" != "0" -a "$ovs_client_wan_port" != "1" ]; then
+		cat >> ${1}/${2} <<EOF_OVPN_E
 			echo "\$lz_route_list" | sed 's/^.*\$/-! add $LOCAL_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
-EOF_H
-
+EOF_OVPN_E
 	else
-
-	cat >> ${1}/${2} <<EOF_I
+		cat >> ${1}/${2} <<EOF_OVPN_F
 			echo "\$lz_route_list" | sed 's/^.*\$/-! add $LOCAL_IP_SET & nomatch/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
-EOF_I
-
+EOF_OVPN_F
 	fi
 
-	cat >> ${1}/${2} <<EOF_J
+	cat >> ${1}/${2} <<EOF_OVPN_G
 		fi
 		if [ -n "\$( ipset -q -n list $BALANCE_GUARD_IP_SET )" ]; then
+			echo "\$lz_ovpn_subnet_list" | sed 's/^.*\$/-! del $BALANCE_GUARD_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
 			echo "\$lz_route_list" | sed 's/^.*\$/-! del $BALANCE_GUARD_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
 			echo "\$lz_route_list" | sed 's/^.*\$/-! add $BALANCE_GUARD_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
 		fi
+		echo "\$lz_route_list" > ${PATH_TMP}/${OPENVPN_SUBNET_LIST}
 	fi
+	if [ -n "\$lz_route_list" ]; then
+		ip route | grep -E 'tap|tun' | awk '{print "'"\$(date) [\$\$]: LZ OpenVPN Subnet"'",NR":",\$1,\$3}' >> /tmp/syslog.log
+	else
+		echo \$(date) [\$\$]: LZ OpenVPN Subnet: None >> /tmp/syslog.log
+	fi
+else
+	echo \$(date) [\$\$]: Non dual network operation mode >> /tmp/syslog.log
 fi
 
 ip route flush cache > /dev/null 2>&1
 
-echo \$(date) [\$\$]: Running LZ openvpn-event $LZ_VERSION >> /tmp/syslog.log
-
 flock -u $LOCK_FILE_ID > /dev/null 2>&1
-EOF_J
+
+EOF_OVPN_G
 
 	chmod +x ${1}/${2}
 }
-
 
 ## 创建openvpn-event事件触发文件并添加路由规则项函数
 ## 输入项：
@@ -3812,11 +3800,10 @@ EOF_J
 ## 返回值：无
 lz_create_openvpn_event_command() {
 	## 创建openvpn-event事件触发接口文件
-	[ ! -d ${PATH_INTERFACE} ] && mkdir -p ${PATH_INTERFACE} > /dev/null 2>&1
 	if [ ! -f ${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME} ]; then
-		cat > ${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME} <<EOF_A
+		cat > ${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME} <<EOF_OVPN_SCRIPTS_A
 #!/bin/sh
-EOF_A
+EOF_OVPN_SCRIPTS_A
 	fi
 	if [ -z "$( cat ${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME} | grep -m 1 '.' | sed -e 's/^[ ]*//g' -e 's/[ ]*$//g' | grep "^#!/bin/sh$" )" ]; then
 		sed -i '1i #!/bin/sh' ${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME} > /dev/null 2>&1
@@ -3869,58 +3856,8 @@ EOF_A
 		fi
 
 		## OpenVPN Server出口发生改变
-		if [ "$ovs_client_wan_port" -lt "0" -o "$ovs_client_wan_port" -gt "2" ]; then
-			## 改变至由系统自动分配流量出口
-			## 负载均衡方式
-			if [ "$balance_chain_existing" = "1" ]; then
-				if [ -z "$( echo "$local_openvpn_event_interface_scripts" | grep "/ip rule add from & fwmark 0x80000000/0xf0000000 table $WAN0 prio $IP_RULE_PRIO_OPENVPN/g" )" ]; then
-					llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
-					break
-				fi
-				if [ -z "$( echo "$local_openvpn_event_interface_scripts" | grep "/ip rule add from & fwmark 0x90000000/0xf0000000 table $WAN1 prio $IP_RULE_PRIO_OPENVPN/g" )" ]; then
-					llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
-					break
-				fi
-			else
-				if [ -z "$( echo "$local_openvpn_event_interface_scripts" | grep "/ip rule add from & table main prio $IP_RULE_PRIO_OPENVPN/g" )" ]; then
-					llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
-					break
-				fi
-			fi
-
-			## 第一WAN口改变至系统分配出口
-			if [ -n "$( echo "$local_openvpn_event_interface_scripts" | grep "/ip rule add from & table $WAN0 prio $IP_RULE_PRIO_OPENVPN/g" )" ]; then
-				llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
-				break
-			fi
-
-			## 第二WAN口改变至系统分配出口
-			if [ -n "$( echo "$local_openvpn_event_interface_scripts" | grep "/ip rule add from & table $WAN1 prio $IP_RULE_PRIO_OPENVPN/g" )" ]; then
-				llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
-				break
-			fi
-
-			## 需要由系统通过负载均衡为VPN客户端分配访问外网的出口
-			if [ -n "$( echo "$local_openvpn_event_interface_scripts" | grep "ipset -q -n list $BALANCE_IP_SET" )" ]; then
-				llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
-				break
-			fi
-		elif [ "$ovs_client_wan_port" = "2" ]; then
-			## 改变至按网段分流、协议分流和端口分流规则匹配出口
-			## 取消由系统自动分配流量出口
-			if [ -n "$( echo "$local_openvpn_event_interface_scripts" | grep "/ip rule add from & fwmark 0x80000000/0xf0000000 table $WAN0 prio $IP_RULE_PRIO_OPENVPN/g" )" ]; then
-				llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
-				break
-			fi
-			if [ -n "$( echo "$local_openvpn_event_interface_scripts" | grep "/ip rule add from & fwmark 0x90000000/0xf0000000 table $WAN1 prio $IP_RULE_PRIO_OPENVPN/g" )" ]; then
-				llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
-				break
-			fi
-			if [ -n "$( echo "$local_openvpn_event_interface_scripts" | grep "/ip rule add from & table main prio $IP_RULE_PRIO_OPENVPN/g" )" ]; then
-				llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
-				break
-			fi
-
+		if [ "$ovs_client_wan_port" -lt "0" -o "$ovs_client_wan_port" -gt "1" ]; then
+			## 改变至按网段分流规则匹配出口
 			## 取消第一WAN口作为固定流量出口
 			if [ -n "$( echo "$local_openvpn_event_interface_scripts" | grep "/ip rule add from & table $WAN0 prio $IP_RULE_PRIO_OPENVPN/g" )" ]; then
 				llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
@@ -3934,42 +3871,29 @@ EOF_A
 			fi
 
 			if [ "$usage_mode" != "0" ]; then
-				## 阻止由系统通过负载均衡为VPN客户端分配访问外网的出口
+				## 静态模式时，需要阻止系统负载均衡为VPN客户端分配访问外网出口
 				if [ -z "$( echo "$local_openvpn_event_interface_scripts" | grep "ipset -q -n list $BALANCE_IP_SET" )" ]; then
 					llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
 					break
 				fi
 			else
-				## 需要由系统通过负载均衡为VPN客户端其余流量分配访问外网的出口
+				## 动态模式时，VPN客户端按网段分配访问外网出口
 				if [ -n "$( echo "$local_openvpn_event_interface_scripts" | grep "ipset -q -n list $BALANCE_IP_SET" )" ]; then
 					llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
 					break
 				fi
 			fi
 		else
-			## 取消由系统自动分配流量出口
-			if [ -n "$( echo "$local_openvpn_event_interface_scripts" | grep "/ip rule add from & fwmark 0x80000000/0xf0000000 table $WAN0 prio $IP_RULE_PRIO_OPENVPN/g" )" ]; then
-				llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
-				break
-			fi
-			if [ -n "$( echo "$local_openvpn_event_interface_scripts" | grep "/ip rule add from & fwmark 0x90000000/0xf0000000 table $WAN1 prio $IP_RULE_PRIO_OPENVPN/g" )" ]; then
-				llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
-				break
-			fi
-			if [ -n "$( echo "$local_openvpn_event_interface_scripts" | grep "/ip rule add from & table main prio $IP_RULE_PRIO_OPENVPN/g" )" ]; then
-				llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
-				break
-			fi
-
+			## 由按网段分流改变至固定流量出口，或者是固定流量出口之间切换
+			## 指定WAN口改变
 			local local_ovs_client_wan=$WAN0
 			[ "$ovs_client_wan_port" = "1" ] && local_ovs_client_wan=$WAN1
-			## 指定WAN口改变
 			if [ -z "$( echo "$local_openvpn_event_interface_scripts" | grep "/ip rule add from & table $local_ovs_client_wan prio $IP_RULE_PRIO_OPENVPN/g" )" ]; then
 				llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
 				break
 			fi
 
-			## 阻止由系统通过负载均衡为VPN客户端分配访问外网的出口
+			## 阻止系统负载均衡为VPN客户端分配访问外网的出口
 			if [ -z "$( echo "$local_openvpn_event_interface_scripts" | grep "ipset -q -n list $BALANCE_IP_SET" )" ]; then
 				llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
 				break
@@ -3981,7 +3905,7 @@ EOF_A
 			llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
 			break
 		else
-			if [ "$ovs_client_wan_port" = "2" ]; then
+			if [ "$ovs_client_wan_port" != "0" -a "$ovs_client_wan_port" != "1" ]; then
 				if [ -z "$( echo "$local_openvpn_event_interface_scripts" | grep "\-! add $LOCAL_IP_SET &/g'" )" ]; then
 					llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
 					break
@@ -4004,7 +3928,7 @@ EOF_A
 			fi
 		fi
 
-		## 阻止系统通过负载均衡为访问VPN客户端的流量分配出口
+		## 阻止系统负载均衡对访问VPN客户端的流量分配出口
 		if [ -z "$( echo "$local_openvpn_event_interface_scripts" | grep "ipset -q -n list $BALANCE_GUARD_IP_SET" )" ]; then
 			llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
 		fi
@@ -4015,9 +3939,9 @@ EOF_A
 	## 创建openvpn-event事件触发文件
 	[ ! -d ${PATH_BOOTLOADER} ] && mkdir -p ${PATH_BOOTLOADER} > /dev/null 2>&1
 	if [ ! -f ${PATH_BOOTLOADER}/${OPENVPN_EVENT_NAME} ]; then
-		cat > ${PATH_BOOTLOADER}/${OPENVPN_EVENT_NAME} <<EOF_B
+		cat > ${PATH_BOOTLOADER}/${OPENVPN_EVENT_NAME} <<EOF_OVPN_SCRIPTS_B
 #!/bin/sh
-EOF_B
+EOF_OVPN_SCRIPTS_B
 	else
 		sed -i '/By LZ/d' ${PATH_BOOTLOADER}/${OPENVPN_EVENT_NAME} > /dev/null 2>&1
 		sed -i '/!!!/d' ${PATH_BOOTLOADER}/${OPENVPN_EVENT_NAME} > /dev/null 2>&1
@@ -4058,10 +3982,6 @@ lz_openvpn_support() {
 
 	## 在出口路由表中添加TUN接口路由规则及策略优先级为IP_RULE_PRIO_OPENVPN的出口规则
 	local local_ov_no=0
-	local local_ovs_client_wan=main
-	[ "$ovs_client_wan_port" = "0" ] && local_ovs_client_wan=$WAN0
-	[ "$ovs_client_wan_port" = "1" ] && local_ovs_client_wan=$WAN1
-
 	local local_route_list=$( ip route | grep -Ev 'default|nexthop' )
 	if [ -n "$local_route_list" ]; then
 		echo "$local_route_list" | sed "s/^.*$/ip route add & table "$WAN0"/g" | \
@@ -4069,18 +3989,20 @@ lz_openvpn_support() {
 		echo "$local_route_list" | sed "s/^.*$/ip route add & table "$WAN1"/g" | \
 			awk '{system($0 " > \/dev\/null 2>\&1")}'
 		local local_tun_list=$( echo "$local_route_list" | grep -E "tap|tun" | awk '{print $1}' )
-		if [ "$ovs_client_wan_port" = "0" -o "$ovs_client_wan_port" = "1" ]; then
-			echo "$local_tun_list" | \
-				sed "s/^.*$/ip rule add from & table "$local_ovs_client_wan" prio "$IP_RULE_PRIO_OPENVPN"/g" | \
-				awk '{system($0 " > \/dev\/null 2>\&1")}'
-			[ -n "$( ipset -q -n list $BALANCE_IP_SET )" ] && {
-				echo "$local_tun_list" | sed "s/^.*$/-! del "$BALANCE_IP_SET" &/g" | \
-					awk '{print $0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
-				echo "$local_tun_list" | sed "s/^.*$/-! add "$BALANCE_IP_SET" &/g" | \
-					awk '{print $0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
-			}
-		elif [ "$ovs_client_wan_port" = "2" ]; then
-			if [ "$usage_mode" != "0" ]; then
+		if [ -n "$local_tun_list" ]; then
+			if [ "$ovs_client_wan_port" = "0" -o "$ovs_client_wan_port" = "1" ]; then
+				local local_ovs_client_wan=$WAN0
+				[ "$ovs_client_wan_port" = "1" ] && local_ovs_client_wan=$WAN1
+				echo "$local_tun_list" | \
+					sed "s/^.*$/ip rule add from & table "$local_ovs_client_wan" prio "$IP_RULE_PRIO_OPENVPN"/g" | \
+					awk '{system($0 " > \/dev\/null 2>\&1")}'
+				[ -n "$( ipset -q -n list $BALANCE_IP_SET )" ] && {
+					echo "$local_tun_list" | sed "s/^.*$/-! del "$BALANCE_IP_SET" &/g" | \
+						awk '{print $0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
+					echo "$local_tun_list" | sed "s/^.*$/-! add "$BALANCE_IP_SET" &/g" | \
+						awk '{print $0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
+				}
+			elif [ "$usage_mode" != "0" ]; then
 				[ -n "$( ipset -q -n list $BALANCE_IP_SET )" ] && {
 					echo "$local_tun_list" | sed "s/^.*$/-! del "$BALANCE_IP_SET" &/g" | \
 						awk '{print $0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
@@ -4088,54 +4010,44 @@ lz_openvpn_support() {
 						awk '{print $0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
 				}
 			fi
-		else
-			## 负载均衡方式
-			if [ "$balance_chain_existing" = "1" ]; then
-				echo "$local_tun_list" | \
-					sed "s/^.*$/ip rule add from & fwmark 0x80000000\/0xf0000000 table "$WAN0" prio "$IP_RULE_PRIO_OPENVPN"/g" | \
-					awk '{system($0 " > \/dev\/null 2>\&1")}'
-				echo "$local_tun_list" | \
-					sed "s/^.*$/ip rule add from & fwmark 0x90000000\/0xf0000000 table "$WAN1" prio "$IP_RULE_PRIO_OPENVPN"/g" | \
-					awk '{system($0 " > \/dev\/null 2>\&1")}'
-			else
-				echo "$local_tun_list" | \
-					sed "s/^.*$/ip rule add from & table "$local_ovs_client_wan" prio "$IP_RULE_PRIO_OPENVPN"/g" | \
-					awk '{system($0 " > \/dev\/null 2>\&1")}'
-			fi
+			[ -n "$( ipset -q -n list $LOCAL_IP_SET )" ] && {
+				echo "$local_tun_list" | sed "s/^.*$/-! del "$LOCAL_IP_SET" &/g" | \
+					awk '{print $0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
+				if [ "$ovs_client_wan_port" != "0" -a "$ovs_client_wan_port" != "1" ]; then
+					echo "$local_tun_list" | sed "s/^.*$/-! add "$LOCAL_IP_SET" &/g" | \
+						awk '{print $0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
+				else
+					echo "$local_tun_list" | sed "s/^.*$/-! add "$LOCAL_IP_SET" & nomatch/g" | \
+						awk '{print $0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
+				fi
+			}
+			[ -n "$( ipset -q -n list $BALANCE_GUARD_IP_SET )" ] && {
+				echo "$local_tun_list" | sed "s/^.*$/-! del "$BALANCE_GUARD_IP_SET" &/g" | \
+					awk '{print $0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
+				echo "$local_tun_list" | sed "s/^.*$/-! add "$BALANCE_GUARD_IP_SET" &/g" | \
+					awk '{print $0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
+			}
+
+			## 创建OpenVPN子网网段地址列表文件
+			echo "$local_tun_list" > ${PATH_TMP}/${OPENVPN_SUBNET_LIST}
+
+			## 输出显示OpenVPNServer客户端设备本地网段信息
+			for local_tun_list in $( echo "$local_route_list" | grep -E "tap|tun" | grep "link" | awk '{print $1":"$3}' )
+			do
+				let local_ov_no++
+				local local_openvpn_subnet=$( echo $local_tun_list | awk -F ":" '{print $1}' )
+				local local_tun_number=$( echo $local_tun_list | awk -F ":" '{print $2}' )
+				echo $(date) [$$]: LZ openvpn_server_$local_ov_no = $echo $local_tun_number $local_openvpn_subnet >> /tmp/syslog.log
+				[ $local_ov_no = 1 ] && echo $(date) [$$]: ----------------------------------------
+				echo $(date) [$$]: "   OpenVPN Server $local_ov_no: $local_tun_number $local_openvpn_subnet"
+			done
 		fi
-		[ -n "$( ipset -q -n list $LOCAL_IP_SET )" ] && {
-			echo "$local_tun_list" | sed "s/^.*$/-! del "$LOCAL_IP_SET" &/g" | \
-				awk '{print $0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
-			if [ "$ovs_client_wan_port" = "2" ]; then
-				echo "$local_tun_list" | sed "s/^.*$/-! add "$LOCAL_IP_SET" &/g" | \
-					awk '{print $0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
-			else
-				echo "$local_tun_list" | sed "s/^.*$/-! add "$LOCAL_IP_SET" & nomatch/g" | \
-					awk '{print $0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
-			fi
-		}
-		[ -n "$( ipset -q -n list $BALANCE_GUARD_IP_SET )" ] && {
-			echo "$local_tun_list" | sed "s/^.*$/-! del "$BALANCE_GUARD_IP_SET" &/g" | \
-				awk '{print $0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
-			echo "$local_tun_list" | sed "s/^.*$/-! add "$BALANCE_GUARD_IP_SET" &/g" | \
-				awk '{print $0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
-		}
-		for local_tun_list in $( echo "$local_route_list" | grep -E "tap|tun" | grep "link" | awk '{print $1":"$3}' )
-		do
-			let local_ov_no++
-			local local_openvpn_subnet=$( echo $local_tun_list | awk -F ":" '{print $1}' )
-			local local_tun_number=$( echo $local_tun_list | awk -F ":" '{print $2}' )
-			echo $(date) [$$]: LZ openvpn_server_$local_ov_no = $echo $local_tun_number $local_openvpn_subnet >> /tmp/syslog.log
-			[ $local_ov_no = 1 ] && echo $(date) [$$]: ----------------------------------------
-			echo $(date) [$$]: "   OpenVPN Server $local_ov_no: $local_tun_number $local_openvpn_subnet"
-		done
 	fi
 
 	if [ $local_ov_no -gt 0 ]; then
-		local local_ovs_client_wan_port="Load Balancing"
+		local local_ovs_client_wan_port="by Policy"
 		[ "$ovs_client_wan_port" = "0" ] && local_ovs_client_wan_port="Primary WAN"
 		[ "$ovs_client_wan_port" = "1" ] && local_ovs_client_wan_port="Secondary WAN"
-		[ "$ovs_client_wan_port" = "2" ] && local_ovs_client_wan_port="by Policy"
 		echo $(date) [$$]: "   OVS Client Export: $local_ovs_client_wan_port"
 		echo $(date) [$$]: "LZ Route OVS Client Export: $local_ovs_client_wan_port" >> /tmp/syslog.log
 		echo $(date) [$$]: -------- LZ $LZ_VERSION OpenVPN Server running! ---- >> /tmp/syslog.log

@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_config.sh v3.6.3
+# lz_rule_config.sh v3.6.4
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # 本版本采用CIDR（无类别域间路由，Classless Inter-Domain Routing）技术
@@ -354,7 +354,7 @@ wan1_dest_udplite_port=
 wan1_dest_sctp_port=
 
 ## OpenVPNServer客户端访问外网路由器出口
-## （0--第一WAN口；1--第二WAN口；2--按网段分流规则匹配出口；>2--由系统自动分配出口）
+## （0--第一WAN口；1--第二WAN口；>1--按网段分流规则匹配出口）
 ## 缺省为第一WAN口（0）。
 ovs_client_wan_port=0
 

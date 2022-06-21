@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule.sh v3.6.3
+# lz_rule.sh v3.6.4
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # 本版本采用CIDR（无类别域间路由，Classless Inter-Domain Routing）技术
@@ -77,7 +77,7 @@
 ## -------------全局数据定义及初始化-------------------
 
 ## 版本号
-LZ_VERSION=v3.6.3
+LZ_VERSION=v3.6.4
 
 ## 运行状态查询命令
 SHOW_STATUS="status"
@@ -99,6 +99,7 @@ PATH_CONFIGS=${PATH_LZ}/configs
 PATH_FUNC=${PATH_LZ}/func
 PATH_DATA=${PATH_LZ}/data
 PATH_INTERFACE=${PATH_LZ}/interface
+PATH_TMP=${PATH_LZ}/tmp
 
 ## 调用自定义配置子例程宏定义
 CALL_CONFIG_SUBROUTINE="source ${PATH_CONFIGS}"
@@ -174,10 +175,13 @@ lz_project_file_management() {
 	chmod 775 ${PATH_DATA} > /dev/null 2>&1
 	[ ! -d ${PATH_INTERFACE} ] && mkdir -p ${PATH_INTERFACE} > /dev/null 2>&1
 	chmod 775 ${PATH_INTERFACE} > /dev/null 2>&1
+	[ ! -d ${PATH_TMP} ] && mkdir -p ${PATH_TMP} > /dev/null 2>&1
+	chmod 775 ${PATH_TMP} > /dev/null 2>&1
 	cd ${PATH_CONFIGS}/ > /dev/null 2>&1 && chmod -R 775 * > /dev/null 2>&1
 	cd ${PATH_FUNC}/ > /dev/null 2>&1 && chmod -R 775 * > /dev/null 2>&1
 	cd ${PATH_DATA}/ > /dev/null 2>&1 && chmod -R 775 * > /dev/null 2>&1
 	cd ${PATH_INTERFACE}/ > /dev/null 2>&1 && chmod -R 775 * > /dev/null 2>&1
+	cd ${PATH_TMP}/ > /dev/null 2>&1 && chmod -R 775 * > /dev/null 2>&1
 	cd ${PATH_LZ}/ > /dev/null 2>&1 && chmod -R 775 * > /dev/null 2>&1
 
 	## 检查脚本关键文件是否存在，若有不存在项则退出运行。
