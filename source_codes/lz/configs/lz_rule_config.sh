@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_config.sh v3.6.4
+# lz_rule_config.sh v3.6.5
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # 本版本采用CIDR（无类别域间路由，Classless Inter-Domain Routing）技术
@@ -356,6 +356,8 @@ wan1_dest_sctp_port=
 ## OpenVPNServer客户端访问外网路由器出口
 ## （0--第一WAN口；1--第二WAN口；>1--按网段分流规则匹配出口）
 ## 缺省为第一WAN口（0）。
+## 仅支持网络层的TUN虚拟设备接口类型，可收发第三层数据报文包；无法对采用链路层TAP接口类型的第二层数据
+## 报文包进行路由控制。
 ovs_client_wan_port=0
 
 ## 外网访问路由器主机WAN入口（0--第一WAN口；1--第二WAN口）
