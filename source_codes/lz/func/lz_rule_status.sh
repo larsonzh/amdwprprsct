@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_status.sh v3.6.5
+# lz_rule_status.sh v3.6.6
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 显示脚本运行状态脚本
@@ -34,8 +34,11 @@ lz_define_status_constant() {
 	STATUS_UPDATE_ISPIP_DATA_TIMEER_ID=lz_update_ispip_data
 	STATUS_IGMP_PROXY_CONF_NAME="igmpproxy.conf"
 	STATUS_PATH_TMP=${PATH_LZ}/tmp
+	STATUS_IP_RULE_PRIO=25000
+	STATUS_IP_RULE_PRIO_TOPEST=24960
 	STATUS_LZ_IPTV=888
 	STATUS_IP_RULE_PRIO_IPTV=888
+	STATUS_VPN_CLIENT_DAEMON=lz_vpn_daemon.sh
 
 	STATUS_FOREIGN_FWMARK=0xabab
 	STATUS_HOST_FOREIGN_FWMARK=0xa1a1
@@ -78,8 +81,11 @@ lz_uninstall_status_constant() {
 	unset STATUS_HIGH_CLIENT_SRC_FWMARK_0
 	unset STATUS_HIGH_CLIENT_SRC_FWMARK_1
 
+	unset STATUS_VPN_CLIENT_DAEMON
 	unset STATUS_IP_RULE_PRIO_IPTV
 	unset STATUS_LZ_IPTV
+	unset STATUS_IP_RULE_PRIO_TOPEST
+	unset STATUS_IP_RULE_PRIO
 	unset STATUS_PATH_TMP
 	unset STATUS_IGMP_PROXY_CONF_NAME
 	unset STATUS_UPDATE_ISPIP_DATA_TIMEER_ID
@@ -279,6 +285,7 @@ lz_set_parameter_status_variable() {
 	status_route_os_name=
 	status_route_local_ip=
 	status_route_local_ip_mask=
+	status_ip_rule_exist=0
 }
 
 ## 卸载脚本基本运行状态参数变量函数
@@ -362,6 +369,7 @@ lz_unset_parameter_status_variable() {
 	unset status_route_os_name
 	unset status_route_local_ip
 	unset status_route_local_ip_mask
+	unset status_ip_rule_exist
 }
 
 ## 读取文件缓冲区数据项状态函数
@@ -1089,25 +1097,20 @@ lz_ss_support_status() {
 ##     全局常量及变量
 ## 返回值：无
 lz_show_openvpn_support_status() {
-	local local_ov_no=0
+	local local_vpn_client_wan_port="by Policy"
+	[ "$status_ovs_client_wan_port" = "0" ] && local_vpn_client_wan_port="Primary WAN"
+	[ "$status_ovs_client_wan_port" = "1" ] && local_vpn_client_wan_port="Secondary WAN"
 	local local_route_list=$( ip route | grep -Ev 'default|nexthop' )
-	if [ -n "$local_route_list" ]; then
-		local local_tun_list=
-		for local_tun_list in $( echo "$local_route_list" | grep -E "tap|tun" | grep "link" | awk '{print $1":"$3}' )
-		do
-			let local_ov_no++
-			local local_openvpn_subnet=$( echo $local_tun_list | awk -F ":" '{print $1}' )
-			local local_tun_number=$( echo $local_tun_list | awk -F ":" '{print $2}' )
-			[ $local_ov_no = 1 ] && echo $(date) [$$]: ----------------------------------------
-			echo $(date) [$$]: "   OpenVPN Server $local_ov_no: $local_tun_number $local_openvpn_subnet"
-		done
+	if [ -n "$( echo "$local_route_list" | grep -E 'tap|tun' | awk '{print $1}' )" ]; then
+		echo $(date) [$$]: ----------------------------------------
+		echo "$local_route_list" | grep -E 'tap|tun' | awk '{print "'"$(date) [$$]:    OpenVPN Server "'"NR": "$3" "$1}'
+		echo $(date) [$$]: "   OVS Client Export: $local_vpn_client_wan_port"
 	fi
 
-	if [ $local_ov_no -gt 0 ]; then
-		local local_ovs_client_wan_port="by Policy"
-		[ "$status_ovs_client_wan_port" = "0" ] && local_ovs_client_wan_port="Primary WAN"
-		[ "$status_ovs_client_wan_port" = "1" ] && local_ovs_client_wan_port="Secondary WAN"
-		echo $(date) [$$]: "   OVS Client Export: $local_ovs_client_wan_port"
+	if [ -n "$( echo "$local_route_list" | grep pptp | awk '{print $1}' )" ]; then
+		echo $(date) [$$]: ----------------------------------------
+		echo "$local_route_list" | grep pptp | awk '{print "'"$(date) [$$]:    PPTP VPN Server "'"NR": "$3" "$1}'
+		echo $(date) [$$]: "   PPTP Client Export: $local_vpn_client_wan_port"
 	fi
 }
 
@@ -1973,14 +1976,14 @@ lz_show_iptv_function_status() {
 			echo $(date) [$$]: Start UDPXY service in Secondary WAN \( "$status_route_local_ip:$status_wan2_udpxy_port" "$local_udpxy_wan2_dev" \) failure.
 		fi
 	}
-	[ "$iptv_igmp_switch" = "0" ] && {
+	[ "$status_iptv_igmp_switch" = "0" ] && {
 		if [ -n "$( ip route show table $STATUS_LZ_IPTV | grep default )" ]; then
 			echo $(date) [$$]: IPTV STB can be connected to "$local_udpxy_wan1_dev" interface for use.
 		else
 			echo $(date) [$$]: Connection "$local_udpxy_wan1_dev" IPTV interface failure !!!
 		fi
 	}
-	[ "$iptv_igmp_switch" = "1" ] && {
+	[ "$status_iptv_igmp_switch" = "1" ] && {
 		if [ -n "$( ip route show table $STATUS_LZ_IPTV | grep default )" ]; then
 			echo $(date) [$$]: IPTV STB can be connected to "$local_udpxy_wan2_dev" interface for use.
 		else
@@ -2066,6 +2069,14 @@ lz_deployment_routing_policy_status() {
 	##     全局常量及变量
 	## 返回值：无
 	lz_show_iptv_function_status
+
+	## 显示VPN Server本地客户端路由刷新处理后台守护进程启动状态
+	if [ -n "$( which nohup 2> /dev/null )" ]; then
+		[ -n "$( ps | grep ${STATUS_VPN_CLIENT_DAEMON} | grep -v grep )" ] && { 
+			echo $(date) [$$]: ----------------------------------------
+			echo $(date) [$$]: The VPN local client route daemon has been started.
+		}
+	fi
 
 	unset local_wan0_isp
 	unset local_wan0_pub_ip
@@ -2178,12 +2189,49 @@ lz_show_single_net_iptv_status() {
 			echo $(date) [$$]: Connection "$iptv_wan1_ifname" IPTV interface failure !!!
 		fi
 	}
+}
 
-	if [ "$( ip rule show | grep -c "$STATUS_IP_RULE_PRIO_IPTV:" )" -gt "0" ]; then
-		echo $(date) [$$]: Only IPTV rules is running.
-	else
-		echo $(date) [$$]: The policy routing service isn\'t running.
-	fi
+## 输出显示当前单项分流规则的条目数函数
+## 输入项：
+##     $1--规则优先级
+## 返回值：
+##     status_ip_rule_exist--条目总数数，全局变量
+lz_single_ip_rule_output_syslog_status() {
+	## 读取所有符合本方案所用优先级数值的规则条目数并输出至系统记录
+	status_ip_rule_exist=0
+	local local_ip_rule_prio_no=$1
+	status_ip_rule_exist=$( ip rule show | grep -c "$local_ip_rule_prio_no:" )
+	[ $status_ip_rule_exist -gt 0 ] && {
+		echo $(date) [$$]: ----------------------------------------
+		echo $(date) [$$]: "   ip_rule_iptv_$local_ip_rule_prio_no = $status_ip_rule_exist"
+	}
+}
+
+## 输出显示当前分流规则每个优先级的条目数函数
+## 输入项：
+##     $1--STATUS_IP_RULE_PRIO_TOPEST--分流规则条目优先级上限数值（例如：STATUS_IP_RULE_PRIO-40=24960）
+##     $2--STATUS_IP_RULE_PRIO--既有分流规则条目优先级下限数值（例如：STATUS_IP_RULE_PRIO=25000）
+##     全局变量（status_ip_rule_exist）
+## 返回值：无
+lz_ip_rule_output_syslog_status() {
+	## 读取所有符合本方案所用优先级数值的规则条目数并输出显示
+	local local_ip_rule_exist=0
+	local local_statistics_show=0
+	local local_ip_rule_prio_no=$1
+	[ $status_ip_rule_exist -le 0 ] && echo $(date) [$$]: ----------------------------------------
+	until [ $local_ip_rule_prio_no -gt $2 ]
+	do
+		local_ip_rule_exist=$( ip rule show | grep -c "$local_ip_rule_prio_no:" )
+		[ $local_ip_rule_exist -gt 0 ] && {
+			echo $(date) [$$]: "   ip_rule_prio_$local_ip_rule_prio_no = $local_ip_rule_exist"
+			local_statistics_show=1
+		}
+		let local_ip_rule_prio_no++
+	done
+	[ $local_statistics_show = 0 -a $status_ip_rule_exist = 0 ] && {
+		echo $(date) [$$]: "   No policy rules in use."
+	}
+	echo $(date) [$$]: ----------------------------------------
 }
 
 ## 运行状态查询主函数
@@ -2239,11 +2287,27 @@ __status_main() {
 		## 返回值：无
 		lz_show_openvpn_support_status
 
-		## 部署流量路由策略状态函数
+		## 部署流量路由策略状态
 		## 输入项：
 		##     全局常量及变量
 		## 返回值：无
 		lz_deployment_routing_policy_status
+
+		## 输出显示IPTV规则条目数
+		## 输出显示当前单项分流规则的条目数
+		## 输入项：
+		##     $1--规则优先级
+		## 返回值：
+		##     status_ip_rule_exist--条目总数数，全局变量
+		lz_single_ip_rule_output_syslog_status "$STATUS_IP_RULE_PRIO_IPTV"
+
+		## 输出显示当前分流规则每个优先级的条目数
+		## 输入项：
+		##     $1--STATUS_IP_RULE_PRIO_TOPEST--分流规则条目优先级上限数值（例如：STATUS_IP_RULE_PRIO-40=24960）
+		##     $2--STATUS_IP_RULE_PRIO--既有分流规则条目优先级下限数值（例如：STATUS_IP_RULE_PRIO=25000）
+		##     全局变量（status_ip_rule_exist）
+		## 返回值：无
+		lz_ip_rule_output_syslog_status "$STATUS_IP_RULE_PRIO_TOPEST" "$STATUS_IP_RULE_PRIO"
 
 		echo $(date) [$$]: Policy routing service has been started successfully.
 
@@ -2263,6 +2327,28 @@ __status_main() {
 		##     全局变量及常量
 		## 返回值：无
 		lz_show_single_net_iptv_status
+
+		## 输出显示IPTV规则条目数
+		## 输出显示当前单项分流规则的条目数
+		## 输入项：
+		##     $1--规则优先级
+		## 返回值：
+		##     status_ip_rule_exist--条目总数数，全局变量
+		lz_single_ip_rule_output_syslog_status "$STATUS_IP_RULE_PRIO_IPTV"
+
+		## 输出显示当前分流规则每个优先级的条目数
+		## 输入项：
+		##     $1--STATUS_IP_RULE_PRIO_TOPEST--分流规则条目优先级上限数值（例如：STATUS_IP_RULE_PRIO-40=24960）
+		##     $2--STATUS_IP_RULE_PRIO--既有分流规则条目优先级下限数值（例如：STATUS_IP_RULE_PRIO=25000）
+		##     全局变量（status_ip_rule_exist）
+		## 返回值：无
+		lz_ip_rule_output_syslog_status "$STATUS_IP_RULE_PRIO_TOPEST" "$STATUS_IP_RULE_PRIO"
+
+		if [ "$( ip rule show | grep -c "$STATUS_IP_RULE_PRIO_IPTV:" )" -gt "0" ]; then
+			echo $(date) [$$]: Only IPTV rules is running.
+		else
+			echo $(date) [$$]: The policy routing service isn\'t running.
+		fi
 
 		## 显示SS服务支持状态
 		## 输入项：

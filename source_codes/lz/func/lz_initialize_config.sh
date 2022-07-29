@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_initialize_config.sh v3.6.5
+# lz_initialize_config.sh v3.6.6
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 初始化脚本配置
@@ -51,6 +51,7 @@ local_wan1_dest_udp_port=
 local_wan1_dest_udplite_port=
 local_wan1_dest_sctp_port=
 local_ovs_client_wan_port=
+local_vpn_client_polling_time=
 local_wan_access_port=
 local_list_mode_threshold=
 local_route_cache=
@@ -128,6 +129,7 @@ local_ini_wan1_dest_udp_port=
 local_ini_wan1_dest_udplite_port=
 local_ini_wan1_dest_sctp_port=
 local_ini_ovs_client_wan_port=
+local_ini_vpn_client_polling_time=
 local_ini_wan_access_port=
 local_ini_list_mode_threshold=
 local_ini_route_cache=
@@ -204,6 +206,7 @@ local_wan1_dest_udp_port_changed=0
 local_wan1_dest_udplite_port_changed=0
 local_wan1_dest_sctp_port_changed=0
 local_ovs_client_wan_port_changed=0
+local_vpn_client_polling_time_changed=0
 local_wan_access_port_changed=0
 local_list_mode_threshold_changed=0
 local_route_cache_changed=0
@@ -331,8 +334,9 @@ lz_restore_default_config() {
 ##                主要采用动态路由技术，按基于连接跟踪的报文数据包地址匹配标记导流出口方式输出流量。
 ##     4.未启用定时更新ISP网络运营商CIDR网段数据。
 ##     5.OpenVPNServer客户端通过第一WAN口访问外网。
-##     6.外网访问路由器使用第一WAN口。
-##     7.未启用IPTV功能。
+##     6.禁用VPN Server客户端路由检测更新。
+##     7.外网访问路由器使用第一WAN口。
+##     8.未启用IPTV功能。
 ##     如有不同需求，请在自定义区修改下面的参数配置。
 
 ## 策略规则优先级执行顺序：由高到低排列，系统抢先执行高优先级策略。
@@ -602,12 +606,23 @@ wan1_dest_udp_port=
 wan1_dest_udplite_port=
 wan1_dest_sctp_port=
 
-## OpenVPNServer客户端访问外网路由器出口
+## VPN客户端访问外网路由器出口
 ## （0--第一WAN口；1--第二WAN口；>1--按网段分流规则匹配出口）
 ## 缺省为第一WAN口（0）。
-## 仅支持网络层的TUN虚拟设备接口类型，可收发第三层数据报文包；无法对采用链路层TAP接口类型的第二层数据
-## 报文包进行路由控制。
+## 用于路由器主机内置的OpenVPN Server和PPTP VPN Server。
+## 对于OpenVPN Server，仅支持网络层的TUN虚拟设备接口类型，可收发第三层数据报文包；无法对采用链路层TAP
+## 接口类型的第二层数据报文包进行路由控制。
 ovs_client_wan_port=0
+
+## VPN客户端路由检测更新（0--禁用；1~20--时间间隔，以秒为单位）
+## 缺省为禁用（0）。
+## 用于路由器主机内置的PPTP VPN Server。OpenVPN Server不需要此功能。
+## 能够在设定的时间间隔内通过VPN客户端路由后台守护进程，轮询检测PPTP客户端的远程接入，实现PPTP客户端
+## 双线路模式路由的自动更新和维护。
+## 时间间隔越短，VPN客户端路由可尽早建立，接入越快。但过短的时间间隔有可能早造成路由器负荷增加，CPU资
+## 源占用增大。像GT-AX6000类硬件水准的路由器，可设置为1~3秒。对于性能较低，或固件老旧的路由器，可根据
+## 测试结果酌情调整或加大时间间隔。
+vpn_client_polling_time=0
 
 ## 外网访问路由器主机WAN入口（0--第一WAN口；1--第二WAN口）
 ## 缺省为第一WAN口（0）。
@@ -868,8 +883,9 @@ lz_restore_cfg_file() {
 ##                主要采用动态路由技术，按基于连接跟踪的报文数据包地址匹配标记导流出口方式输出流量。
 ##     4.未启用定时更新ISP网络运营商CIDR网段数据。
 ##     5.OpenVPNServer客户端通过第一WAN口访问外网。
-##     6.外网访问路由器使用第一WAN口。
-##     7.未启用IPTV功能。
+##     6.禁用VPN Server客户端路由检测更新。
+##     7.外网访问路由器使用第一WAN口。
+##     8.未启用IPTV功能。
 ##     如有不同需求，请在自定义区修改下面的参数配置。
 
 ## 策略规则优先级执行顺序：由高到低排列，系统抢先执行高优先级策略。
@@ -1139,12 +1155,23 @@ wan1_dest_udp_port=$local_wan1_dest_udp_port
 wan1_dest_udplite_port=$local_wan1_dest_udplite_port
 wan1_dest_sctp_port=$local_wan1_dest_sctp_port
 
-## OpenVPNServer客户端访问外网路由器出口
+## VPN客户端访问外网路由器出口
 ## （0--第一WAN口；1--第二WAN口；>1--按网段分流规则匹配出口）
 ## 缺省为第一WAN口（0）。
-## 仅支持网络层的TUN虚拟设备接口类型，可收发第三层数据报文包；无法对采用链路层TAP接口类型的第二层数据
-## 报文包进行路由控制。
+## 用于路由器主机内置的OpenVPN Server和PPTP VPN Server。
+## 对于OpenVPN Server，仅支持网络层的TUN虚拟设备接口类型，可收发第三层数据报文包；无法对采用链路层TAP
+## 接口类型的第二层数据报文包进行路由控制。
 ovs_client_wan_port=$local_ovs_client_wan_port
+
+## VPN客户端路由检测更新（0--禁用；1~20--时间间隔，以秒为单位）
+## 缺省为禁用（0）。
+## 用于路由器主机内置的PPTP VPN Server。OpenVPN Server不需要此功能。
+## 能够在设定的时间间隔内通过VPN客户端路由后台守护进程，轮询检测PPTP客户端的远程接入，实现PPTP客户端
+## 双线路模式路由的自动更新和维护。
+## 时间间隔越短，VPN客户端路由可尽早建立，接入越快。但过短的时间间隔有可能早造成路由器负荷增加，CPU资
+## 源占用增大。像GT-AX6000类硬件水准的路由器，可设置为1~3秒。对于性能较低，或固件老旧的路由器，可根据
+## 测试结果酌情调整或加大时间间隔。
+vpn_client_polling_time=$local_vpn_client_polling_time
 
 ## 外网访问路由器主机WAN入口（0--第一WAN口；1--第二WAN口）
 ## 缺省为第一WAN口（0）。
@@ -1544,6 +1571,10 @@ lz_read_config_param() {
 	local_ovs_client_wan_port="$( lz_get_file_cache_data "ovs_client_wan_port" "0" )"
 	[ "$?" = "0" ] && local_exist=0
 
+	local_vpn_client_polling_time="$( lz_get_file_cache_data "vpn_client_polling_time" "0" )"
+	[ "$?" = "0" ] && local_exist=0
+	[ "$local_vpn_client_polling_time" -lt "0" -o "$local_vpn_client_polling_time" -gt "20" ] && local_vpn_client_polling_time=0 && local_exist=0
+
 	local_wan_access_port="$( lz_get_file_cache_data "wan_access_port" "0" )"
 	[ "$?" = "0" ] && local_exist=0
 	## wan_access_port现在只能为0或1
@@ -1726,6 +1757,7 @@ lz_cfg_is_default() {
 	[ "$local_wan1_dest_udplite_port" != "" ] && return 0
 	[ "$local_wan1_dest_sctp_port" != "" ] && return 0
 	[ "$local_ovs_client_wan_port" != "0" ] && return 0
+	[ "$local_vpn_client_polling_time" != "0" ] && return 0
 	[ "$local_wan_access_port" != "0" ] && return 0
 	[ "$local_list_mode_threshold" != "512" ] && return 0
 	[ "$local_route_cache" != "0" ] && return 0
@@ -1811,6 +1843,7 @@ lz_config_wan1_dest_udp_port=$local_wan1_dest_udp_port
 lz_config_wan1_dest_udplite_port=$local_wan1_dest_udplite_port
 lz_config_wan1_dest_sctp_port=$local_wan1_dest_sctp_port
 lz_config_ovs_client_wan_port=$local_ovs_client_wan_port
+lz_config_vpn_client_polling_time=$local_vpn_client_polling_time
 lz_config_wan_access_port=$local_wan_access_port
 lz_config_list_mode_threshold=$local_list_mode_threshold
 lz_config_route_cache=$local_route_cache
@@ -1897,6 +1930,7 @@ lz_config_wan1_dest_udp_port=$local_ini_wan1_dest_udp_port
 lz_config_wan1_dest_udplite_port=$local_ini_wan1_dest_udplite_port
 lz_config_wan1_dest_sctp_port=$local_ini_wan1_dest_sctp_port
 lz_config_ovs_client_wan_port=$local_ini_ovs_client_wan_port
+lz_config_vpn_client_polling_time=$local_ini_vpn_client_polling_time
 lz_config_wan_access_port=$local_ini_wan_access_port
 lz_config_list_mode_threshold=$local_ini_list_mode_threshold
 lz_config_route_cache=$local_ini_route_cache
@@ -2152,6 +2186,10 @@ lz_read_box_data() {
 	local_ini_ovs_client_wan_port="$( lz_get_file_cache_data "lz_config_ovs_client_wan_port" "0" )"
 	[ "$?" = "0" ] && local_exist=0
 
+	local_ini_vpn_client_polling_time="$( lz_get_file_cache_data "lz_config_vpn_client_polling_time" "0" )"
+	[ "$?" = "0" ] && local_exist=0
+	[ "$local_ini_vpn_client_polling_time" -lt "0" -o "$local_ini_vpn_client_polling_time" -gt "20" ] && local_ini_vpn_client_polling_time=0 && local_exist=0
+
 	local_ini_wan_access_port="$( lz_get_file_cache_data "lz_config_wan_access_port" "0" )"
 	[ "$?" = "0" ] && local_exist=0
 	## wan_access_port现在只能为0或1
@@ -2320,6 +2358,7 @@ lz_cfg_is_changed() {
 	[ "$local_ini_wan1_dest_udplite_port" != "$local_wan1_dest_udplite_port" ] && local_wan1_dest_udplite_port_changed=1 && local_cfg_changed=1
 	[ "$local_ini_wan1_dest_sctp_port" != "$local_wan1_dest_sctp_port" ] && local_wan1_dest_sctp_port_changed=1 && local_cfg_changed=1
 	[ "$local_ini_ovs_client_wan_port" != "$local_ovs_client_wan_port" ] && local_ovs_client_wan_port_changed=1 && local_cfg_changed=1
+	[ "$local_ini_vpn_client_polling_time" != "$local_vpn_client_polling_time" ] && local_vpn_client_polling_time_changed=1 && local_cfg_changed=1
 	[ "$local_ini_wan_access_port" != "$local_wan_access_port" ] && local_wan_access_port_changed=1 && local_cfg_changed=1
 	[ "$local_ini_list_mode_threshold" != "$local_list_mode_threshold" ] && local_list_mode_threshold_changed=1 && local_cfg_changed=1
 	[ "$local_ini_route_cache" != "$local_route_cache" ] && local_route_cache_changed=1 && local_cfg_changed=1
@@ -2411,6 +2450,7 @@ lz_restore_config() {
 	[ $local_wan1_dest_sctp_port_changed = 1 ] && sed -i "s|^wan1_dest_sctp_port="$local_wan1_dest_sctp_port"|wan1_dest_sctp_port="$local_ini_wan1_dest_sctp_port"|" ${PATH_CONFIGS}/lz_rule_config.sh > /dev/null 2>&1
 
 	[ $local_ovs_client_wan_port_changed = 1 ] && sed -i "s:^ovs_client_wan_port="$local_ovs_client_wan_port":ovs_client_wan_port="$local_ini_ovs_client_wan_port":" ${PATH_CONFIGS}/lz_rule_config.sh > /dev/null 2>&1
+	[ $local_vpn_client_polling_time_changed = 1 ] && sed -i "s:^vpn_client_polling_time="$local_vpn_client_polling_time":vpn_client_polling_time="$local_ini_vpn_client_polling_time":" ${PATH_CONFIGS}/lz_rule_config.sh > /dev/null 2>&1
 	[ $local_wan_access_port_changed = 1 ] && sed -i "s:^wan_access_port="$local_wan_access_port":wan_access_port="$local_ini_wan_access_port":" ${PATH_CONFIGS}/lz_rule_config.sh > /dev/null 2>&1
 	[ $local_list_mode_threshold_changed = 1 ] && sed -i "s:^list_mode_threshold="$local_list_mode_threshold":list_mode_threshold="$local_ini_list_mode_threshold":" ${PATH_CONFIGS}/lz_rule_config.sh > /dev/null 2>&1
 	[ $local_route_cache_changed = 1 ] && sed -i "s:^route_cache="$local_route_cache":route_cache="$local_ini_route_cache":" ${PATH_CONFIGS}/lz_rule_config.sh > /dev/null 2>&1
@@ -2854,6 +2894,7 @@ unset local_ini_wan1_dest_udp_port
 unset local_ini_wan1_dest_udplite_port
 unset local_ini_wan1_dest_sctp_port
 unset local_ini_ovs_client_wan_port
+unset local_ini_vpn_client_polling_time
 unset local_ini_wan_access_port
 unset local_ini_list_mode_threshold
 unset local_ini_route_cache
@@ -2931,6 +2972,7 @@ unset local_wan1_dest_ucp_port
 unset local_wan1_dest_udplite_port
 unset local_wan1_dest_sctp_port
 unset local_ovs_client_wan_port
+unset local_vpn_client_polling_time
 unset local_wan_access_port
 unset local_list_mode_threshold
 unset local_route_cache
@@ -3007,6 +3049,7 @@ unset local_wan1_dest_udp_port_changed
 unset local_wan1_dest_udplite_port_changed
 unset local_wan1_dest_sctp_port_changed
 unset local_ovs_client_wan_port_changed
+unset local_vpn_client_polling_time_changed
 unset local_wan_access_port_changed
 unset local_list_mode_threshold_changed
 unset local_route_cache_changed

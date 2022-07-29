@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule.sh v3.6.5
+# lz_rule.sh v3.6.6
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # 本版本采用CIDR（无类别域间路由，Classless Inter-Domain Routing）技术
@@ -77,7 +77,7 @@
 ## -------------全局数据定义及初始化-------------------
 
 ## 版本号
-LZ_VERSION=v3.6.5
+LZ_VERSION=v3.6.6
 
 ## 运行状态查询命令
 SHOW_STATUS="status"
@@ -214,6 +214,11 @@ lz_project_file_management() {
 	[ ! -f ${PATH_FUNC}/lz_rule_address_query.sh ] && {
 		echo $(date) [$$]: The file ${PATH_FUNC}/lz_rule_address_query.sh does not exist.
 		echo $(date) [$$]: LZ ${PATH_FUNC}/lz_rule_address_query.sh does not exist. >> /tmp/syslog.log
+		local_scripts_file_exist=0
+	}
+	[ ! -f ${PATH_FUNC}/lz_vpn_daemon.sh ] && {
+		echo $(date) [$$]: The file ${PATH_FUNC}/lz_vpn_daemon.sh does not exist.
+		echo $(date) [$$]: LZ ${PATH_FUNC}/lz_vpn_daemon.sh does not exist. >> /tmp/syslog.log
 		local_scripts_file_exist=0
 	}
 	if [ "$local_scripts_file_exist" = "0" ]; then

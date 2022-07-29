@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_define_global_variables.sh v3.6.5
+# lz_define_global_variables.sh v3.6.6
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 # QnkgTFog5aaZ5aaZ5ZGc77yI6Juk6J+G5aKp5YS/77yJ（首次运行标识，切勿修改）
 
@@ -131,8 +131,17 @@ OPENVPN_EVENT_NAME=openvpn-event
 ## OpenVPN事件触发接口文件名
 OPENVPN_EVENT_INTERFACE_NAME=lz_openvpn_event.sh
 
+## VPN Server客户端路由刷新处理后台守护进程脚本文件名
+VPN_CLIENT_DAEMON=lz_vpn_daemon.sh
+
+## VPN Server客户端路由刷新处理后台守护进程锁文件
+VPN_CLIENT_DAEMON_LOCK=lz_vpn_daemon.lock
+
 ## OpenVPN子网网段地址列表文件
 OPENVPN_SUBNET_LIST=lz_openvpn_subnet.lst
+
+## VPN Server客户端本地地址列表文件
+VPN_CLIENT_LIST=lz_vpn_client.lst
 
 ## SS启动文件路径
 PATH_SS=/koolshare/ss

@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v3.6.5
+# lz_rule_func.sh v3.6.6
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 函数功能定义
@@ -1158,12 +1158,12 @@ lz_clear_openvpn_support() {
 	## 清理OpenVPN服务支持（TAP及TUN接口类型）中出口路由表添加项
 	local local_tun_number=
 	local local_ip_route=
-	for local_tun_number in $( ip route list table $WAN0 | grep -E "tap|tun" | awk '{print $3}' )
+	for local_tun_number in $( ip route list table $WAN0 | grep -E 'pptp|tap|tun' | awk '{print $3}' )
 	do
 		local_ip_route=$( ip route list table $WAN0 | grep $local_tun_number )
 		ip route del $local_ip_route table $WAN0 > /dev/null 2>&1
 	done
-	for local_tun_number in $( ip route list table $WAN1 | grep -E "tap|tun" | awk '{print $3}' )
+	for local_tun_number in $( ip route list table $WAN1 | grep -E 'pptp|tap|tun' | awk '{print $3}' )
 	do
 		local_ip_route=$( ip route list table $WAN1 | grep $local_tun_number )
 		ip route del $local_ip_route table $WAN1 > /dev/null 2>&1
@@ -1172,6 +1172,10 @@ lz_clear_openvpn_support() {
 	## 清除OpenVPN子网网段地址列表文件
 	[ -f ${PATH_TMP}/${OPENVPN_SUBNET_LIST} ] && \
 		rm ${PATH_TMP}/${OPENVPN_SUBNET_LIST} > /dev/null 2>&1
+
+	## 清除VPN Server客户端本地地址列表文件
+	[ -f ${PATH_TMP}/${VPN_CLIENT_LIST} ] && \
+		rm ${PATH_TMP}/${VPN_CLIENT_LIST} > /dev/null 2>&1
 }
 
 ## 设置udpxy_used参数函数
@@ -1301,6 +1305,21 @@ lz_data_cleaning() {
 	## 返回值：无
 	lz_destroy_ipset
 
+	## 清除VPN Server客户端路由刷新处理后台守护进程
+	rm ${PATH_TMP}/${VPN_CLIENT_DAEMON_LOCK} > /dev/null 2>&1
+	local local_counter=0
+	while [ -n "$( ps | grep ${VPN_CLIENT_DAEMON} | grep -v grep )" ]
+	do
+		sleep 1s
+		let local_counter++
+		if [ $local_counter -gt 20 ]; then
+			ps | grep ${VPN_CLIENT_DAEMON} | grep -v grep | \
+				awk '{print $1}' | sed 's/\(^.*$\)/kill -9 \1/g' | \
+				awk '{system($0 " > \/dev\/null 2>\&1")}'
+			break
+		fi
+	done
+
 	## 清除OpenVPN服务支持（TAP及TUN接口类型）
 	## 输入项：
 	##     全局常量
@@ -1419,6 +1438,8 @@ lz_single_ip_rule_output_syslog() {
 	local local_ip_rule_prio_no=$1
 	ip_rule_exist=$( ip rule show | grep -c "$local_ip_rule_prio_no:" )
 	[ $ip_rule_exist -gt 0 ] && {
+		echo $(date) [$$]: ----------------------------------------
+		echo $(date) [$$]: "   ip_rule_iptv_$local_ip_rule_prio_no = $ip_rule_exist"
 		echo $(date) [$$]: LZ ip_rule_iptv_$local_ip_rule_prio_no = $ip_rule_exist >> /tmp/syslog.log
 	}
 }
@@ -1434,17 +1455,22 @@ lz_ip_rule_output_syslog() {
 	local local_ip_rule_exist=0
 	local local_statistics_show=0
 	local local_ip_rule_prio_no=$1
+	[ $ip_rule_exist -le 0 ] && echo $(date) [$$]: ----------------------------------------
 	until [ $local_ip_rule_prio_no -gt $2 ]
 	do
 		local_ip_rule_exist=$( ip rule show | grep -c "$local_ip_rule_prio_no:" )
 		[ $local_ip_rule_exist -gt 0 ] && {
+			echo $(date) [$$]: "   ip_rule_prio_$local_ip_rule_prio_no = $local_ip_rule_exist"
 			echo $(date) [$$]: LZ ip_rule_prio_$local_ip_rule_prio_no = $local_ip_rule_exist >> /tmp/syslog.log
 			local_statistics_show=1
 		}
 		let local_ip_rule_prio_no++
 	done
-	[ $local_statistics_show = 0 -a $ip_rule_exist = 0 ] && \
+	[ $local_statistics_show = 0 -a $ip_rule_exist = 0 ] && {
+		echo $(date) [$$]: "   No policy rules in use."
 		echo $(date) [$$]: LZ No policy rules in use. >> /tmp/syslog.log
+	}
+	echo $(date) [$$]: ----------------------------------------
 }
 
 ## 清除openvpn-event中命令行函数
@@ -2782,46 +2808,57 @@ EOF
 		ipset -! add $LOCAL_IP_SET "$( ip -o -4 addr list | grep "$( nvram get wan1_ifname | sed 's/ /\n/g' | sed -n 1p )" | awk -F ' ' '{print $4}' )" > /dev/null 2>&1
 		[ "$wan_access_port" != "2" ] && ipset -! add $LOCAL_IP_SET "$route_local_ip" nomatch > /dev/null 2>&1
 		## 加载不受目标网址/网段匹配访问控制的本地客户端网址
-		[ "$usage_mode" = "0" ] && [ "$( lz_get_ipv4_data_file_item_total "$local_ipsets_file" )" -gt "0" ] && {
-			lz_add_net_address_sets "$local_ipsets_file" "$LOCAL_IP_SET" "1" "1"
+		[ "$( lz_get_ipv4_data_file_item_total "$local_ipsets_file" )" -gt "0" ] && {
+			if [ "$usage_mode" = "0" ]; then
+				lz_add_net_address_sets "$local_ipsets_file" "$LOCAL_IP_SET" "1" "1"
+				if [ "$balance_chain_existing" = "1" ]; then
+					lz_add_net_address_sets "$local_ipsets_file" "$BALANCE_GUARD_IP_SET" "1" "0"
+				fi
+			else
+				lz_add_net_address_sets "$local_ipsets_file" "$LOCAL_IP_SET" "1" "0"
+				if [ "$balance_chain_existing" = "1" ]; then
+					lz_add_net_address_sets "$local_ipsets_file" "$BALANCE_IP_SET" "1" "0"
+					lz_add_net_address_sets "$local_ipsets_file" "$BALANCE_GUARD_IP_SET" "1" "0"
+				fi
+			fi
 		}
 		## 加载排除绑定第一WAN口的客户端及源网址/网段列表数据
-		if [ "$wan_1_client_src_addr" = "0" -a  "$policy_mode" != "1" ]; then
-			[ "$( lz_get_ipv4_data_file_item_total "$wan_1_client_src_addr_file" )" -gt "0" ] && {
+		if [ "$wan_1_client_src_addr" = "0" ]; then
+			[ "$( lz_get_ipv4_data_file_item_total "$wan_1_client_src_addr_file" )" -gt "0" ] && { 
 				lz_add_net_address_sets "$wan_1_client_src_addr_file" "$LOCAL_IP_SET" "1" "1"
-				## 模式3时
-				if [ "$balance_chain_existing" = "1" -a "$usage_mode" = "0" ]; then
+				if [ "$balance_chain_existing" = "1" ]; then
 					lz_add_net_address_sets "$wan_1_client_src_addr_file" "$BALANCE_IP_SET" "1" "0"
+					lz_add_net_address_sets "$wan_1_client_src_addr_file" "$BALANCE_GUARD_IP_SET" "1" "0"
 				fi
 			}
 		fi
 		## 加载排除绑定第二WAN口的客户端及源网址/网段列表数据
-		if [ "$wan_2_client_src_addr" = "0" -a "$policy_mode" != "0" ]; then
+		if [ "$wan_2_client_src_addr" = "0" ]; then
 			[ "$( lz_get_ipv4_data_file_item_total "$wan_2_client_src_addr_file" )" -gt "0" ] && {
 				lz_add_net_address_sets "$wan_2_client_src_addr_file" "$LOCAL_IP_SET" "1" "1"
-				## 模式3时
-				if [ "$balance_chain_existing" = "1" -a "$usage_mode" = "0" ]; then
+				if [ "$balance_chain_existing" = "1" ]; then
 					lz_add_net_address_sets "$wan_2_client_src_addr_file" "$BALANCE_IP_SET" "1" "0"
+					lz_add_net_address_sets "$wan_2_client_src_addr_file" "$BALANCE_GUARD_IP_SET" "1" "0"
 				fi
 			}
 		fi
 		## 加载排除高优先级绑定第一WAN口的客户端及源网址/网段列表数据
-		if [ "$high_wan_1_client_src_addr" = "0" -a "$policy_mode" != "1" ]; then
+		if [ "$high_wan_1_client_src_addr" = "0" ]; then
 			[ "$( lz_get_ipv4_data_file_item_total "$high_wan_1_client_src_addr_file" )" -gt "0" ] && {
 				lz_add_net_address_sets "$high_wan_1_client_src_addr_file" "$LOCAL_IP_SET" "1" "1"
-				## 模式3时
-				if [ "$balance_chain_existing" = "1" -a "$usage_mode" = "0" ]; then
+				if [ "$balance_chain_existing" = "1" ]; then
 					lz_add_net_address_sets "$high_wan_1_client_src_addr_file" "$BALANCE_IP_SET" "1" "0"
+					lz_add_net_address_sets "$high_wan_1_client_src_addr_file" "$BALANCE_GUARD_IP_SET" "1" "0"
 				fi
 			}
 		fi
 		## 加载排除高优先级绑定第二WAN口的客户端及源网址/网段列表数据
-		if [ "$high_wan_2_client_src_addr" = "0" -a "$policy_mode" != "0" ]; then
+		if [ "$high_wan_2_client_src_addr" = "0" ]; then
 			[ "$( lz_get_ipv4_data_file_item_total "$high_wan_2_client_src_addr_file" )" -gt "0" ] && {
 				lz_add_net_address_sets "$high_wan_2_client_src_addr_file" "$LOCAL_IP_SET" "1" "1"
-				## 模式3时
-				if [ "$balance_chain_existing" = "1" -a "$usage_mode" = "0" ]; then
+				if [ "$balance_chain_existing" = "1" ]; then
 					lz_add_net_address_sets "$high_wan_2_client_src_addr_file" "$BALANCE_IP_SET" "1" "0"
+					lz_add_net_address_sets "$high_wan_2_client_src_addr_file" "$BALANCE_GUARD_IP_SET" "1" "0"
 				fi
 			}
 		fi
@@ -2837,9 +2874,9 @@ EOF
 				## 返回值：
 				##     网址/网段数据集--全局变量
 				lz_add_src_net_address_sets "$wan_1_src_to_dst_addr_file" "$LOCAL_IP_SET" "1" "1"
-				## 模式3时
-				if [ "$balance_chain_existing" = "1" -a "$usage_mode" = "0" ]; then
+				if [ "$balance_chain_existing" = "1" ]; then
 					lz_add_src_net_address_sets "$wan_1_src_to_dst_addr_file" "$BALANCE_IP_SET" "1" "0"
+					lz_add_src_net_address_sets "$wan_1_src_to_dst_addr_file" "$BALANCE_GUARD_IP_SET" "1" "0"
 				fi
 			}
 		fi
@@ -2847,9 +2884,9 @@ EOF
 		if [ "$wan_2_src_to_dst_addr" = "0" ]; then
 			[ "$( lz_get_ipv4_src_to_dst_data_file_item_total "$wan_2_src_to_dst_addr_file" )" -gt "0" ] && {
 				lz_add_src_net_address_sets "$wan_2_src_to_dst_addr_file" "$LOCAL_IP_SET" "1" "1"
-				## 模式3时
-				if [ "$balance_chain_existing" = "1" -a "$usage_mode" = "0" ]; then
+				if [ "$balance_chain_existing" = "1" ]; then
 					lz_add_src_net_address_sets "$wan_2_src_to_dst_addr_file" "$BALANCE_IP_SET" "1" "0"
+					lz_add_src_net_address_sets "$wan_2_src_to_dst_addr_file" "$BALANCE_GUARD_IP_SET" "1" "0"
 				fi
 			}
 		fi
@@ -2857,9 +2894,9 @@ EOF
 		if [ "$high_wan_1_src_to_dst_addr" = "0" ]; then
 			[ "$( lz_get_ipv4_src_to_dst_data_file_item_total "$high_wan_1_src_to_dst_addr_file" )" -gt "0" ] && {
 				lz_add_src_net_address_sets "$high_wan_1_src_to_dst_addr_file" "$LOCAL_IP_SET" "1" "1"
-				## 模式3时
-				if [ "$balance_chain_existing" = "1" -a "$usage_mode" = "0" ]; then
+				if [ "$balance_chain_existing" = "1" ]; then
 					lz_add_src_net_address_sets "$high_wan_1_src_to_dst_addr_file" "$BALANCE_IP_SET" "1" "0"
+					lz_add_src_net_address_sets "$high_wan_1_src_to_dst_addr_file" "$BALANCE_GUARD_IP_SET" "1" "0"
 				fi
 			}
 		fi
@@ -3718,35 +3755,38 @@ exec $LOCK_FILE_ID<>${LOCK_FILE}; flock -x $LOCK_FILE_ID > /dev/null 2>&1;
 echo \$(date) [\$\$]: Running LZ openvpn-event $LZ_VERSION >> /tmp/syslog.log
 
 lz_ovpn_subnet_list="\$( grep -Eo '^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}' ${PATH_TMP}/${OPENVPN_SUBNET_LIST} 2> /dev/null )"
+lz_vpn_client_list="\$( grep -Eo '^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}' ${PATH_TMP}/${VPN_CLIENT_LIST} 2> /dev/null )"
 ip rule show | grep $IP_RULE_PRIO_OPENVPN: | sed 's/^\($IP_RULE_PRIO_OPENVPN\):.*\$/ip rule del prio \1/g' | awk '{system(\$0 " > /dev/null 2>&1")}'
-if [ -n "\$( ip route | grep nexthop | sed -n 1p )" ]; then
-	lz_route_list=\$( ip route | grep -Ev 'default|nexthop' )
+if [ -n "\$( ip route list | grep nexthop | sed -n 1p )" ]; then
+	lz_route_list=\$( ip route list | grep -Ev 'default|nexthop' )
 	if [ -n "\$lz_route_list" ]; then
 		echo "\$lz_route_list" | sed 's/^.*\$/ip route add & table $WAN0/g' | awk '{system(\$0 " > /dev/null 2>&1")}'
 		echo "\$lz_route_list" | sed 's/^.*\$/ip route add & table $WAN1/g' | awk '{system(\$0 " > /dev/null 2>&1")}'
 		if [ -n "\$( ip route show table $LZ_IPTV | grep default )" ]; then
 			echo "\$lz_route_list" | sed 's/^.*\$/ip route add & table $LZ_IPTV/g' | awk '{system(\$0 " > /dev/null 2>&1")}'
 		fi
-		lz_route_list=\$( echo "\$lz_route_list" | grep -E 'tap|tun' | awk '{print \$1}' )
+		lz_route_vpn_list=\$( echo "\$lz_route_list" | grep -E 'pptp|tap|tun' | awk '{print \$1}' )
 EOF_OVPN_A
 
 	if [ "$ovs_client_wan_port" = "0" -o "$ovs_client_wan_port" = "1" ]; then
 		local local_ovs_client_wan=$WAN0
 		[ "$ovs_client_wan_port" = "1" ] && local_ovs_client_wan=$WAN1
 		cat >> ${1}/${2} <<EOF_OVPN_B
-		echo "\$lz_route_list" | sed 's/^.*\$/ip rule add from & table $local_ovs_client_wan prio $IP_RULE_PRIO_OPENVPN/g' | awk '{system(\$0 " > /dev/null 2>&1")}'
+		echo "\$lz_route_vpn_list" | sed 's/^.*\$/ip rule add from & table $local_ovs_client_wan prio $IP_RULE_PRIO_OPENVPN/g' | awk '{system(\$0 " > /dev/null 2>&1")}'
 		if [ -n "\$( ipset -q -n list $BALANCE_IP_SET )" ]; then
 			echo "\$lz_ovpn_subnet_list" | sed 's/^.*\$/-! del $BALANCE_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
-			echo "\$lz_route_list" | sed 's/^.*\$/-! del $BALANCE_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
-			echo "\$lz_route_list" | sed 's/^.*\$/-! add $BALANCE_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
+			echo "\$lz_vpn_client_list" | sed 's/^.*\$/-! del $BALANCE_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
+			echo "\$lz_route_vpn_list" | sed 's/^.*\$/-! del $BALANCE_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
+			echo "\$lz_route_vpn_list" | sed 's/^.*\$/-! add $BALANCE_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
 		fi
 EOF_OVPN_B
 	elif [ "$usage_mode" != "0" ]; then
 		cat >> ${1}/${2} <<EOF_OVPN_C
 		if [ -n "\$( ipset -q -n list $BALANCE_IP_SET )" ]; then
 			echo "\$lz_ovpn_subnet_list" | sed 's/^.*\$/-! del $BALANCE_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
-			echo "\$lz_route_list" | sed 's/^.*\$/-! del $BALANCE_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
-			echo "\$lz_route_list" | sed 's/^.*\$/-! add $BALANCE_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
+			echo "\$lz_vpn_client_list" | sed 's/^.*\$/-! del $BALANCE_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
+			echo "\$lz_route_vpn_list" | sed 's/^.*\$/-! del $BALANCE_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
+			echo "\$lz_route_vpn_list" | sed 's/^.*\$/-! add $BALANCE_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
 		fi
 EOF_OVPN_C
 	fi
@@ -3754,16 +3794,17 @@ EOF_OVPN_C
 	cat >> ${1}/${2} <<EOF_OVPN_D
 		if [ -n "\$( ipset -q -n list $LOCAL_IP_SET )" ]; then
 			echo "\$lz_ovpn_subnet_list" | sed 's/^.*\$/-! del $LOCAL_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
-			echo "\$lz_route_list" | sed 's/^.*\$/-! del $LOCAL_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
+			echo "\$lz_vpn_client_list" | sed 's/^.*\$/-! del $LOCAL_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
+			echo "\$lz_route_vpn_list" | sed 's/^.*\$/-! del $LOCAL_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
 EOF_OVPN_D
 
 	if [ "$ovs_client_wan_port" != "0" -a "$ovs_client_wan_port" != "1" ]; then
 		cat >> ${1}/${2} <<EOF_OVPN_E
-			echo "\$lz_route_list" | sed 's/^.*\$/-! add $LOCAL_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
+			echo "\$lz_route_vpn_list" | sed 's/^.*\$/-! add $LOCAL_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
 EOF_OVPN_E
 	else
 		cat >> ${1}/${2} <<EOF_OVPN_F
-			echo "\$lz_route_list" | sed 's/^.*\$/-! add $LOCAL_IP_SET & nomatch/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
+			echo "\$lz_route_vpn_list" | sed 's/^.*\$/-! add $LOCAL_IP_SET & nomatch/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
 EOF_OVPN_F
 	fi
 
@@ -3771,15 +3812,20 @@ EOF_OVPN_F
 		fi
 		if [ -n "\$( ipset -q -n list $BALANCE_GUARD_IP_SET )" ]; then
 			echo "\$lz_ovpn_subnet_list" | sed 's/^.*\$/-! del $BALANCE_GUARD_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
-			echo "\$lz_route_list" | sed 's/^.*\$/-! del $BALANCE_GUARD_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
-			echo "\$lz_route_list" | sed 's/^.*\$/-! add $BALANCE_GUARD_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
+			echo "\$lz_vpn_client_list" | sed 's/^.*\$/-! del $BALANCE_GUARD_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
+			echo "\$lz_route_vpn_list" | sed 's/^.*\$/-! del $BALANCE_GUARD_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
+			echo "\$lz_route_vpn_list" | sed 's/^.*\$/-! add $BALANCE_GUARD_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
 		fi
-		echo "\$lz_route_list" > ${PATH_TMP}/${OPENVPN_SUBNET_LIST}
+		echo "\$lz_route_list" | grep -E 'tap|tun' | awk '{print \$1}' > ${PATH_TMP}/${OPENVPN_SUBNET_LIST}
+		echo "\$lz_route_list" | grep pptp | awk '{print \$1}' > ${PATH_TMP}/${VPN_CLIENT_LIST}
 	fi
-	if [ -n "\$lz_route_list" ]; then
-		ip route | grep -E 'tap|tun' | awk '{print "'"\$(date) [\$\$]: LZ OpenVPN Subnet"'",NR":",\$1,\$3}' >> /tmp/syslog.log
+	if [ -n "\$( echo "\$lz_route_list" | grep -E 'tap|tun' | awk '{print \$1}' )" ]; then
+		echo "\$lz_route_list" | grep -E 'tap|tun' | awk '{print "'"\$(date) [\$\$]: LZ OpenVPN Subnet"'",NR":",\$1,\$3}' >> /tmp/syslog.log
 	else
 		echo \$(date) [\$\$]: LZ OpenVPN Subnet: None >> /tmp/syslog.log
+	fi
+	if [ -n "\$( echo "\$lz_route_list" | grep pptp | awk '{print \$1}' )" ]; then
+		echo "\$lz_route_list" | grep pptp | awk '{print "'"\$(date) [\$\$]: LZ VPN Client"'",NR":",\$1,\$3}' >> /tmp/syslog.log
 	fi
 else
 	echo \$(date) [\$\$]: Non dual network operation mode >> /tmp/syslog.log
@@ -3982,13 +4028,13 @@ lz_openvpn_support() {
 
 	## 在出口路由表中添加TUN接口路由规则及策略优先级为IP_RULE_PRIO_OPENVPN的出口规则
 	local local_ov_no=0
-	local local_route_list=$( ip route | grep -Ev 'default|nexthop' )
+	local local_route_list=$( ip route list | grep -Ev 'default|nexthop' )
 	if [ -n "$local_route_list" ]; then
 		echo "$local_route_list" | sed "s/^.*$/ip route add & table "$WAN0"/g" | \
 			awk '{system($0 " > \/dev\/null 2>\&1")}'
 		echo "$local_route_list" | sed "s/^.*$/ip route add & table "$WAN1"/g" | \
 			awk '{system($0 " > \/dev\/null 2>\&1")}'
-		local local_tun_list=$( echo "$local_route_list" | grep -E "tap|tun" | awk '{print $1}' )
+		local local_tun_list=$( echo "$local_route_list" | grep -E 'pptp|tap|tun' | awk '{print $1}' )
 		if [ -n "$local_tun_list" ]; then
 			if [ "$ovs_client_wan_port" = "0" -o "$ovs_client_wan_port" = "1" ]; then
 				local local_ovs_client_wan=$WAN0
@@ -4029,28 +4075,41 @@ lz_openvpn_support() {
 			}
 
 			## 创建OpenVPN子网网段地址列表文件
-			echo "$local_tun_list" > ${PATH_TMP}/${OPENVPN_SUBNET_LIST}
+			echo "$local_route_list" | grep -E 'tap|tun' | awk '{print $1}' > ${PATH_TMP}/${OPENVPN_SUBNET_LIST}
+
+			## 创建VPN Server客户端本地地址列表文件
+			echo "$local_route_list" | grep pptp | awk '{print $1}' > ${PATH_TMP}/${VPN_CLIENT_LIST}
 
 			## 输出显示OpenVPNServer客户端设备本地网段信息
-			for local_tun_list in $( echo "$local_route_list" | grep -E "tap|tun" | grep "link" | awk '{print $1":"$3}' )
+			for local_tun_list in $( echo "$local_route_list" | grep -E 'tap|tun' | grep link | awk '{print $1":"$3}' )
 			do
 				let local_ov_no++
-				local local_openvpn_subnet=$( echo $local_tun_list | awk -F ":" '{print $1}' )
-				local local_tun_number=$( echo $local_tun_list | awk -F ":" '{print $2}' )
-				echo $(date) [$$]: LZ openvpn_server_$local_ov_no = $echo $local_tun_number $local_openvpn_subnet >> /tmp/syslog.log
+				local local_openvpn_subnet=$( echo "$local_tun_list" | awk -F ":" '{print $1}' )
+				local local_tun_number=$( echo "$local_tun_list" | awk -F ":" '{print $2}' )
+				echo $(date) [$$]: LZ openvpn_server_$local_ov_no = $local_tun_number $local_openvpn_subnet >> /tmp/syslog.log
 				[ $local_ov_no = 1 ] && echo $(date) [$$]: ----------------------------------------
 				echo $(date) [$$]: "   OpenVPN Server $local_ov_no: $local_tun_number $local_openvpn_subnet"
 			done
 		fi
 	fi
 
+	local local_vpn_client_wan_port="by Policy"
+	[ "$ovs_client_wan_port" = "0" ] && local_vpn_client_wan_port="Primary WAN"
+	[ "$ovs_client_wan_port" = "1" ] && local_vpn_client_wan_port="Secondary WAN"
+
 	if [ $local_ov_no -gt 0 ]; then
-		local local_ovs_client_wan_port="by Policy"
-		[ "$ovs_client_wan_port" = "0" ] && local_ovs_client_wan_port="Primary WAN"
-		[ "$ovs_client_wan_port" = "1" ] && local_ovs_client_wan_port="Secondary WAN"
-		echo $(date) [$$]: "   OVS Client Export: $local_ovs_client_wan_port"
-		echo $(date) [$$]: "LZ Route OVS Client Export: $local_ovs_client_wan_port" >> /tmp/syslog.log
+		echo $(date) [$$]: "   OVS Client Export: $local_vpn_client_wan_port"
+		echo $(date) [$$]: "LZ OVS Client Export: $local_vpn_client_wan_port" >> /tmp/syslog.log
 		echo $(date) [$$]: -------- LZ $LZ_VERSION OpenVPN Server running! ---- >> /tmp/syslog.log
+	fi
+
+	if [ -n "$( echo "$local_route_list" | grep pptp | awk '{print $1}' )" ]; then
+		echo "$local_route_list" | grep pptp | awk '{print "'"$(date) [$$]: LZ pptp_client_"'"NR" = "$3" "$1}' >> /tmp/syslog.log
+		echo $(date) [$$]: ----------------------------------------
+		echo "$local_route_list" | grep pptp | awk '{print "'"$(date) [$$]:    PPTP VPN Server "'"NR": "$3" "$1}'
+		echo $(date) [$$]: "   PPTP Client Export: $local_vpn_client_wan_port"
+		echo $(date) [$$]: "LZ PPTP Client Export: $local_vpn_client_wan_port" >> /tmp/syslog.log
+		echo $(date) [$$]: -------- LZ $LZ_VERSION PPTP VPN Server running! ---- >> /tmp/syslog.log
 	fi
 
 	## 创建openvpn-event事件触发文件并添加路由规则项
@@ -4299,28 +4358,34 @@ lz_get_ispip_info() {
 lz_output_ispip_info_to_system_records() {
 	## 输出WAN出口接入的ISP运营商信息
 	echo $(date) [$$]: LZ "Primary WAN   ""$2" >> /tmp/syslog.log
-	echo $(date) [$$]: LZ "Secondary WAN ""$3" >> /tmp/syslog.log
-	echo $(date) [$$]: -------- LZ $LZ_VERSION WAN ISP -------------------- >> /tmp/syslog.log
 	echo $(date) [$$]: ----------------------------------------
 	echo $(date) [$$]: "   Primary WAN     ""$2"
 	[ "$2" != "Unknown" ] && {
 		if [ "$local_wan0_pub_ip" = "$local_wan0_local_ip" ]; then
 			echo $(date) [$$]: "                         "$local_wan0_pub_ip""
+			echo $(date) [$$]: "                       "$local_wan0_pub_ip"" >> /tmp/syslog.log
 		else
 			echo $(date) [$$]: "                         "$local_wan0_local_ip""
 			echo $(date) [$$]: "                   Pub   "$local_wan0_pub_ip""
+			echo $(date) [$$]: "                       "$local_wan0_local_ip"" >> /tmp/syslog.log
+			echo $(date) [$$]: "                 Pub   "$local_wan0_pub_ip"" >> /tmp/syslog.log
 		fi
 	}
+	echo $(date) [$$]: LZ "Secondary WAN ""$3" >> /tmp/syslog.log
 	echo $(date) [$$]: ----------------------------------------
 	echo $(date) [$$]: "   Secondary WAN   ""$3"
 	[ "$3" != "Unknown" ] && {
 		if [ "$local_wan1_pub_ip" = "$local_wan1_local_ip" ]; then
 			echo $(date) [$$]: "                         "$local_wan1_pub_ip""
+			echo $(date) [$$]: "                       "$local_wan1_pub_ip"" >> /tmp/syslog.log
 		else
 			echo $(date) [$$]: "                         "$local_wan1_local_ip""
 			echo $(date) [$$]: "                   Pub   "$local_wan1_pub_ip""
+			echo $(date) [$$]: "                       "$local_wan1_local_ip"" >> /tmp/syslog.log
+			echo $(date) [$$]: "                 Pub   "$local_wan1_pub_ip"" >> /tmp/syslog.log
 		fi
 	}
+	echo $(date) [$$]: -------- LZ $LZ_VERSION WAN ISP -------------------- >> /tmp/syslog.log
 	echo $(date) [$$]: ----------------------------------------
 
 	local local_hd=""
@@ -5729,6 +5794,21 @@ EOF_BALANCE_BLCLST
 	## 启动自动清理路由表缓存定时任务
 	if [ "$clear_route_cache_time_interval" -gt "0" -a "$clear_route_cache_time_interval" -le "24" ]; then
 		cru a ${CLEAR_ROUTE_CACHE_TIMEER_ID} "8 */"${clear_route_cache_time_interval}" * * * ip route flush cache" > /dev/null 2>&1
+	fi
+
+	## 启动VPN Server客户端路由刷新处理后台守护进程
+	## VPN Server客户端路由刷新处理后台守护进程
+	## 输入项：
+	##     $1--轮巡时间（1~20秒）
+	## 返回值：无
+	if [ -n "$( which nohup 2> /dev/null )" ] && [ $vpn_client_polling_time -gt 0 -a $vpn_client_polling_time -le 20 ]; then
+		nohup sh ${PATH_FUNC}/${VPN_CLIENT_DAEMON} "$vpn_client_polling_time" > /dev/null 2>&1 &
+		[ -n "$( ps | grep ${VPN_CLIENT_DAEMON} | grep -v grep )" ] && { 
+			echo $(date) [$$]: ----------------------------------------
+			echo $(date) [$$]: The VPN local client route daemon has been started.
+			echo $(date) [$$]: The VPN local client route daemon has been started. >> /tmp/syslog.log
+			echo $(date) [$$]: -------- LZ $LZ_VERSION VPN Client Daemon ---------- >> /tmp/syslog.log
+		}
 	fi
 
 	unset local_wan0_isp
