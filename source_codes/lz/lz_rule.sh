@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule.sh v3.6.6
+# lz_rule.sh v3.6.7
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # 本版本采用CIDR（无类别域间路由，Classless Inter-Domain Routing）技术
@@ -77,7 +77,7 @@
 ## -------------全局数据定义及初始化-------------------
 
 ## 版本号
-LZ_VERSION=v3.6.6
+LZ_VERSION=v3.6.7
 
 ## 运行状态查询命令
 SHOW_STATUS="status"
@@ -302,6 +302,12 @@ __lz_main() {
 	if [ -n "$( cru l | grep "#${CLEAR_ROUTE_CACHE_TIMEER_ID}#" )" ]; then
 		cru d ${CLEAR_ROUTE_CACHE_TIMEER_ID} > /dev/null 2>&1
 	fi
+
+	## 删除启动后台守护进程定时任务
+	if [ -n "$( cru l | grep "#${START_DAEMON_TIMEER_ID}#" )" ]; then
+		cru d ${START_DAEMON_TIMEER_ID} > /dev/null 2>&1
+	fi
+	rm ${PATH_TMP}/${START_DAEMON_SCRIPT} > /dev/null 2>&1
 
 	## 获取策略分流运行模式
 	## 输入项：

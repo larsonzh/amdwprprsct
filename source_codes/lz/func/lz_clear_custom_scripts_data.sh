@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_clear_custom_scripts_data.sh v3.6.6
+# lz_clear_custom_scripts_data.sh v3.6.7
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 清除用户自定义脚本数据
@@ -34,7 +34,7 @@ week     周几（0-6，0为周日；或单词缩写Sun、Mon等）
 cru a Timer_ID1 "0 5 * * 3 /sbin/reboot"
 例2：每隔5天的凌晨3点重启
 cru a Timer_ID2 "0 3 */5 * * /sbin/reboot"
-例2：每隔5分钟重启
+例3：每隔5分钟重启
 cru a Timer_ID3 "*/5 * * * * /sbin/reboot" 
 例4：删除定时器Timer_ID3
 cru d Timer_ID3

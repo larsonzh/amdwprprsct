@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v3.6.6
+# lz_rule_func.sh v3.6.7
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 函数功能定义
@@ -1150,12 +1150,12 @@ lz_destroy_ipset() {
 	ipset -q flush $IPTV_ISP_IP_SET && ipset -q destroy $IPTV_ISP_IP_SET
 }
 
-## 清除OpenVPN服务支持（TAP及TUN接口类型）函数
+## 清除Open虚拟专网服务支持（TAP及TUN接口类型）函数
 ## 输入项：
 ##     全局常量
 ## 返回值：无
 lz_clear_openvpn_support() {
-	## 清理OpenVPN服务支持（TAP及TUN接口类型）中出口路由表添加项
+	## 清理Open虚拟专网服务支持（TAP及TUN接口类型）中出口路由表添加项
 	local local_tun_number=
 	local local_ip_route=
 	for local_tun_number in $( ip route list table $WAN0 | grep -E 'pptp|tap|tun' | awk '{print $3}' )
@@ -1169,11 +1169,11 @@ lz_clear_openvpn_support() {
 		ip route del $local_ip_route table $WAN1 > /dev/null 2>&1
 	done
 
-	## 清除OpenVPN子网网段地址列表文件
+	## 清除Open虚拟专网子网网段地址列表文件
 	[ -f ${PATH_TMP}/${OPENVPN_SUBNET_LIST} ] && \
 		rm ${PATH_TMP}/${OPENVPN_SUBNET_LIST} > /dev/null 2>&1
 
-	## 清除VPN Server客户端本地地址列表文件
+	## 清除虚拟专网客户端本地地址列表文件
 	[ -f ${PATH_TMP}/${VPN_CLIENT_LIST} ] && \
 		rm ${PATH_TMP}/${VPN_CLIENT_LIST} > /dev/null 2>&1
 }
@@ -1305,22 +1305,11 @@ lz_data_cleaning() {
 	## 返回值：无
 	lz_destroy_ipset
 
-	## 清除VPN Server客户端路由刷新处理后台守护进程
+	## 清除虚拟专网客户端路由刷新处理后台守护进程
 	rm ${PATH_TMP}/${VPN_CLIENT_DAEMON_LOCK} > /dev/null 2>&1
-	local local_counter=0
-	while [ -n "$( ps | grep ${VPN_CLIENT_DAEMON} | grep -v grep )" ]
-	do
-		sleep 1s
-		let local_counter++
-		if [ $local_counter -gt 20 ]; then
-			ps | grep ${VPN_CLIENT_DAEMON} | grep -v grep | \
-				awk '{print $1}' | sed 's/\(^.*$\)/kill -9 \1/g' | \
-				awk '{system($0 " > \/dev\/null 2>\&1")}'
-			break
-		fi
-	done
+	ps | grep ${VPN_CLIENT_DAEMON} | grep -v grep | awk '{print $1}' | xargs kill -9 > /dev/null 2>&1
 
-	## 清除OpenVPN服务支持（TAP及TUN接口类型）
+	## 清除Open虚拟专网服务支持（TAP及TUN接口类型）
 	## 输入项：
 	##     全局常量
 	## 返回值：无
@@ -1484,7 +1473,7 @@ lz_clear_openvpn_event_command() {
 		rm ${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME} > /dev/null 2>&1
 }
 
-## 清理OpenVPN服务子网出口规则函数
+## 清理Open虚拟专网服务子网出口规则函数
 ## 输入项：
 ##     全局常量
 ## 返回值：无
@@ -1530,13 +1519,13 @@ lz_clear_interface_scripts() {
 	## 返回值：无
 	lz_clear_openvpn_event_command
 
-	## 清理OpenVPN服务子网出口规则
+	## 清理Open虚拟专网服务子网出口规则
 	## 输入项：
 	##     全局常量
 	## 返回值：无
 	lz_clear_openvpn_rule
 
-	## 清除OpenVPN服务支持（TAP及TUN接口类型）
+	## 清除Open虚拟专网服务支持（TAP及TUN接口类型）
 	## 输入项：
 	##     全局常量
 	## 返回值：无
@@ -3743,7 +3732,7 @@ lz_ss_support() {
 ##     全局常量及变量
 ## 返回值：无
 lz_add_openvpn_event_scripts() {
-	cat >> ${1}/${2} <<EOF_OVPN_A
+	cat > ${1}/${2} <<EOF_OVPN_A
 # ${2} $LZ_VERSION
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 # Do not manually modify!!!
@@ -3901,7 +3890,7 @@ EOF_OVPN_SCRIPTS_A
 			break
 		fi
 
-		## OpenVPN Server出口发生改变
+		## Open虚拟专网服务器出口发生改变
 		if [ "$ovs_client_wan_port" -lt "0" -o "$ovs_client_wan_port" -gt "1" ]; then
 			## 改变至按网段分流规则匹配出口
 			## 取消第一WAN口作为固定流量出口
@@ -3917,13 +3906,13 @@ EOF_OVPN_SCRIPTS_A
 			fi
 
 			if [ "$usage_mode" != "0" ]; then
-				## 静态模式时，需要阻止系统负载均衡为VPN客户端分配访问外网出口
+				## 静态模式时，需要阻止系统负载均衡为虚拟专网客户端分配访问外网出口
 				if [ -z "$( echo "$local_openvpn_event_interface_scripts" | grep "ipset -q -n list $BALANCE_IP_SET" )" ]; then
 					llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
 					break
 				fi
 			else
-				## 动态模式时，VPN客户端按网段分配访问外网出口
+				## 动态模式时，虚拟专网客户端按网段分配访问外网出口
 				if [ -n "$( echo "$local_openvpn_event_interface_scripts" | grep "ipset -q -n list $BALANCE_IP_SET" )" ]; then
 					llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
 					break
@@ -3939,14 +3928,14 @@ EOF_OVPN_SCRIPTS_A
 				break
 			fi
 
-			## 阻止系统负载均衡为VPN客户端分配访问外网的出口
+			## 阻止系统负载均衡为虚拟专网客户端分配访问外网的出口
 			if [ -z "$( echo "$local_openvpn_event_interface_scripts" | grep "ipset -q -n list $BALANCE_IP_SET" )" ]; then
 				llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
 				break
 			fi
 		fi
 
-		## 动态分流模式时，需要阻止由系统通过负载均衡为VPN客户端分配访问外网的出口
+		## 动态分流模式时，需要阻止由系统通过负载均衡为虚拟专网客户端分配访问外网的出口
 		if [ -z "$( echo "$local_openvpn_event_interface_scripts" | grep "ipset -q -n list $LOCAL_IP_SET" )" ]; then
 			llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
 			break
@@ -3974,7 +3963,7 @@ EOF_OVPN_SCRIPTS_A
 			fi
 		fi
 
-		## 阻止系统负载均衡对访问VPN客户端的流量分配出口
+		## 阻止系统负载均衡对访问虚拟专网客户端的流量分配出口
 		if [ -z "$( echo "$local_openvpn_event_interface_scripts" | grep "ipset -q -n list $BALANCE_GUARD_IP_SET" )" ]; then
 			llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
 		fi
@@ -4014,13 +4003,13 @@ EOF_OVPN_SCRIPTS_B
 	chmod +x ${PATH_BOOTLOADER}/${OPENVPN_EVENT_NAME} > /dev/null 2>&1
 }
 
-## OpenVPN服务支持（TAP及TUN接口类型）函数
+## Open虚拟专网服务支持（TAP及TUN接口类型）函数
 ## 输入项：
 ##     $1--主执行脚本运行输入参数
 ##     全局常量及变量
 ## 返回值：无
 lz_openvpn_support() {
-	## 清理OpenVPN服务子网出口规则
+	## 清理Open虚拟专网服务子网出口规则
 	## 输入项：
 	##     全局常量
 	## 返回值：无
@@ -4074,13 +4063,13 @@ lz_openvpn_support() {
 					awk '{print $0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
 			}
 
-			## 创建OpenVPN子网网段地址列表文件
+			## 创建Open虚拟专网子网网段地址列表文件
 			echo "$local_route_list" | grep -E 'tap|tun' | awk '{print $1}' > ${PATH_TMP}/${OPENVPN_SUBNET_LIST}
 
-			## 创建VPN Server客户端本地地址列表文件
+			## 创建虚拟专网客户端本地地址列表文件
 			echo "$local_route_list" | grep pptp | awk '{print $1}' > ${PATH_TMP}/${VPN_CLIENT_LIST}
 
-			## 输出显示OpenVPNServer客户端设备本地网段信息
+			## 输出显示Open虚拟专网客户端设备本地网段信息
 			for local_tun_list in $( echo "$local_route_list" | grep -E 'tap|tun' | grep link | awk '{print $1":"$3}' )
 			do
 				let local_ov_no++
@@ -5333,7 +5322,7 @@ lz_deployment_routing_policy() {
 	## 返回值：无
 	lz_src_to_dst_addr_list_binding_wan
 
-	## OpenVPN服务支持（TAP及TUN接口类型）
+	## Open虚拟专网服务支持（TAP及TUN接口类型）
 	## 输入项：
 	##     $1--主执行脚本运行输入参数
 	##     全局常量及变量
@@ -5796,19 +5785,59 @@ EOF_BALANCE_BLCLST
 		cru a ${CLEAR_ROUTE_CACHE_TIMEER_ID} "8 */"${clear_route_cache_time_interval}" * * * ip route flush cache" > /dev/null 2>&1
 	fi
 
-	## 启动VPN Server客户端路由刷新处理后台守护进程
-	## VPN Server客户端路由刷新处理后台守护进程
+	## 启动虚拟专网客户端路由刷新处理后台守护进程
+	## 虚拟专网客户端路由刷新处理后台守护进程
 	## 输入项：
-	##     $1--轮巡时间（1~20秒）
+	##     $1--轮询时间（1~20秒）
 	## 返回值：无
 	if [ -n "$( which nohup 2> /dev/null )" ] && [ $vpn_client_polling_time -gt 0 -a $vpn_client_polling_time -le 20 ]; then
-		nohup sh ${PATH_FUNC}/${VPN_CLIENT_DAEMON} "$vpn_client_polling_time" > /dev/null 2>&1 &
-		[ -n "$( ps | grep ${VPN_CLIENT_DAEMON} | grep -v grep )" ] && { 
+
+		## 创建启动后台守护进程脚本文件名
+		cat > ${PATH_TMP}/${START_DAEMON_SCRIPT} <<EOF_START_DAEMON_SCRIPT
+# ${START_DAEMON_SCRIPT} $LZ_VERSION
+# By LZ 妙妙呜 (larsonzhang@gmail.com)
+# Do not manually modify!!!
+# 内容自动生成，请勿编辑修改或删除!!!
+
+[ ! -d ${PATH_LOCK} ] && { mkdir -p ${PATH_LOCK} > /dev/null 2>&1; chmod 777 ${PATH_LOCK} > /dev/null 2>&1; }
+exec $LOCK_FILE_ID<>${LOCK_FILE}; flock -x $LOCK_FILE_ID > /dev/null 2>&1;
+
+rm ${PATH_TMP}/${VPN_CLIENT_DAEMON_LOCK} > /dev/null 2>&1
+ps | grep ${VPN_CLIENT_DAEMON} | grep -v grep | awk '{print \$1}' | xargs kill -9 > /dev/null 2>&1
+nohup sh ${PATH_FUNC}/${VPN_CLIENT_DAEMON} "$vpn_client_polling_time" > /dev/null 2>&1 &
+sleep 1s
+[ -n "\$( ps | grep ${VPN_CLIENT_DAEMON} | grep -v grep )" ] && { 
+	cru d ${START_DAEMON_TIMEER_ID} > /dev/null 2>&1
+	sleep 1s
+	rm ${PATH_TMP}/${START_DAEMON_SCRIPT} > /dev/null 2>&1
+	echo $(date) [$$]: >> /tmp/syslog.log
+	echo $(date) [$$]: ----------------------------------------------- >> /tmp/syslog.log
+	echo $(date) [$$]: The VPN local client route daemon has been started. >> /tmp/syslog.log
+	echo $(date) [$$]: -------- LZ $LZ_VERSION VPN Client Daemon ---------- >> /tmp/syslog.log
+	echo $(date) [$$]: >> /tmp/syslog.log
+}
+
+flock -u $LOCK_FILE_ID > /dev/null 2>&1
+
+EOF_START_DAEMON_SCRIPT
+		chmod +x ${PATH_TMP}/${START_DAEMON_SCRIPT} > /dev/null 2>&1
+
+		## 启动后台守护进程定时任务（每隔1分钟运行一次，直到后台守护进程启动成功，定时任务自动关闭）
+		if [ -f "${PATH_TMP}/${START_DAEMON_SCRIPT}" ]; then
+			cru a ${START_DAEMON_TIMEER_ID} "*/1 * * * * /bin/sh ${PATH_TMP}/${START_DAEMON_SCRIPT}" > /dev/null 2>&1
+		fi
+
+		if [ -n "$( ps | grep ${VPN_CLIENT_DAEMON} | grep -v grep )" ]; then
 			echo $(date) [$$]: ----------------------------------------
 			echo $(date) [$$]: The VPN local client route daemon has been started.
 			echo $(date) [$$]: The VPN local client route daemon has been started. >> /tmp/syslog.log
 			echo $(date) [$$]: -------- LZ $LZ_VERSION VPN Client Daemon ---------- >> /tmp/syslog.log
-		}
+		elif [ -n "$( cru l | grep "#${START_DAEMON_TIMEER_ID}#" )" ]; then
+			echo $(date) [$$]: ----------------------------------------
+			echo $(date) [$$]: The VPN local client route daemon is starting...
+			echo $(date) [$$]: The VPN local client route daemon is starting... >> /tmp/syslog.log
+			echo $(date) [$$]: -------- LZ $LZ_VERSION VPN Client Daemon ---------- >> /tmp/syslog.log
+		fi
 	fi
 
 	unset local_wan0_isp

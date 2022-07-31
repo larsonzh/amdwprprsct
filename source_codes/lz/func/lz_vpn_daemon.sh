@@ -1,15 +1,16 @@
 #!/bin/sh
-# lz_vpn_daemon.sh v3.6.6
+# lz_vpn_daemon.sh v3.6.7
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
-## VPN Server客户端路由刷新处理后台守护进程脚本
+## 虚拟专网客户端路由刷新处理后台守护进程脚本
 ## 输入项：
-##     $1--轮巡时间（1~20秒）
+##     $1--轮询时间（1~20秒）
 ## 返回值：无
 
-lz_polling_time=3
-[ "$1" -gt 0 -a "$1" -le 60 ] && lz_polling_time="$1"
-lz_polling_time=$( echo $lz_polling_time | sed 's/\(^.*$\)/\1s/g' )
+#BEIGIN
+
+## 版本号
+LZ_VERSION=v3.6.7
 
 ## 项目文件部署路径
 PATH_BASE=/jffs/scripts
@@ -17,17 +18,22 @@ PATH_LZ=${PATH_BASE}/lz
 PATH_INTERFACE=${PATH_LZ}/interface
 PATH_TMP=${PATH_LZ}/tmp
 
-## OpenVPN事件触发接口文件名
+## Open虚拟专网事件触发接口文件名
 OPENVPN_EVENT_INTERFACE_NAME=lz_openvpn_event.sh
 
-## VPN Server客户端本地地址列表文件
+## 虚拟专网客户端本地地址列表文件
 VPN_CLIENT_LIST=lz_vpn_client.lst
 
-## VPN Server客户端路由刷新处理后台守护进程锁文件
+## 虚拟专网客户端路由刷新处理后台守护进程锁文件
 VPN_CLIENT_DAEMON_LOCK=lz_vpn_daemon.lock
+
+lz_polling_time=5
+[ "$1" -gt 0 -a "$1" -le 60 ] && lz_polling_time="$1"
+lz_polling_time=$( echo $lz_polling_time | sed 's/\(^.*$\)/\1s/g' )
 
 cat > ${PATH_TMP}/${VPN_CLIENT_DAEMON_LOCK} <<EOF_VPN_CLIENT_DAEMON_LOCK
 VPN CLIENT DAEMON LOCK
+VERSION: $LZ_VERSION
 NAME: $0
 PID: $$
 POLLING TIME: $lz_polling_time
@@ -80,4 +86,4 @@ do
 	eval sleep $lz_polling_time
 done
 
-rm ${PATH_TMP}/${VPN_CLIENT_DAEMON_LOCK} > /dev/null 2>&1
+#END

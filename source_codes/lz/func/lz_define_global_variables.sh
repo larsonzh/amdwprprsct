@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_define_global_variables.sh v3.6.6
+# lz_define_global_variables.sh v3.6.7
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 # QnkgTFog5aaZ5aaZ5ZGc77yI6Juk6J+G5aKp5YS/77yJ（首次运行标识，切勿修改）
 
@@ -125,23 +125,29 @@ IPTV_ISP_IP_SET="lz_iptv_isp_ipsets"
 ## 本地内网源网址/网段数据集iptables操作符宏变量
 LOCAL_IPSETS_SRC=""
 
-## 系统中的OpenVPN事件触发文件名
+## 系统中的Open虚拟专网事件触发文件名
 OPENVPN_EVENT_NAME=openvpn-event
 
-## OpenVPN事件触发接口文件名
+## Open虚拟专网事件触发接口文件名
 OPENVPN_EVENT_INTERFACE_NAME=lz_openvpn_event.sh
 
-## VPN Server客户端路由刷新处理后台守护进程脚本文件名
+## 虚拟专网客户端路由刷新处理后台守护进程脚本文件名
 VPN_CLIENT_DAEMON=lz_vpn_daemon.sh
 
-## VPN Server客户端路由刷新处理后台守护进程锁文件
+## 虚拟专网客户端路由刷新处理后台守护进程锁文件
 VPN_CLIENT_DAEMON_LOCK=lz_vpn_daemon.lock
 
-## OpenVPN子网网段地址列表文件
+## Open虚拟专网子网网段地址列表文件名
 OPENVPN_SUBNET_LIST=lz_openvpn_subnet.lst
 
-## VPN Server客户端本地地址列表文件
+## 虚拟专网客户端本地地址列表文件名
 VPN_CLIENT_LIST=lz_vpn_client.lst
+
+## 启动后台守护进程脚本文件名
+START_DAEMON_SCRIPT=lz_start_daemon.sh
+
+## 启动后台守护进程定时任务时间ID
+START_DAEMON_TIMEER_ID=lz_start_daemon
 
 ## SS启动文件路径
 PATH_SS=/koolshare/ss
@@ -327,7 +333,7 @@ IP_RULE_PRIO_WAN_2_SRC_TO_DST_ADDR=$(( $IP_RULE_PRIO_WAN_1_SRC_TO_DST_ADDR - 1 )
 ## 第一WAN口用户自定义源网址/网段至目标网址/网段高优先级流量出口绑定列表分流出口规则策略规则优先级--24963（IP_RULE_PRIO-37）
 IP_RULE_PRIO_HIGH_WAN_1_SRC_TO_DST_ADDR=$(( $IP_RULE_PRIO_WAN_2_SRC_TO_DST_ADDR - 1 ))
 
-## OpenVPNServer客户端访问互联网分流出口规则策略规则优先级--24962（IP_RULE_PRIO-38）
+## Open虚拟专网客户端访问互联网分流出口规则策略规则优先级--24962（IP_RULE_PRIO-38）
 IP_RULE_PRIO_OPENVPN=$(( $IP_RULE_PRIO_HIGH_WAN_1_SRC_TO_DST_ADDR - 1 ))
 
 ## 本地客户端网址/网段分流黑名单列表负载均衡出口规则策略规则优先级--24961（IP_RULE_PRIO-39）

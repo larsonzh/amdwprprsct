@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func_config.sh v3.6.6
+# lz_rule_func_config.sh v3.6.7
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # 本版本采用CIDR（无类别域间路由，Classless Inter-Domain Routing）技术
@@ -79,7 +79,7 @@
 ## 策略规则优先级执行顺序：由高到低排列，系统抢先执行高优先级策略。
 ##     IPTV机顶盒线路流量出口静态路由方式分流出口规则（iptv_box_ip_lst_file）
 ##     本地客户端网址/网段分流黑名单列表负载均衡静态路由方式出口规则（local_ipsets_file）
-##     OpenVPNServer客户端访问互联网流量出口静态路由方式分流出口规则
+##     Open虚拟专网客户端访问互联网流量出口静态路由方式分流出口规则
 ##     第一WAN口用户自定义源网址/网段至目标网址/网段高优先级流量出口列表静态路由方式绑定出口规则（high_wan_1_src_to_dst_addr_file）
 ##     第二WAN口用户自定义源网址/网段至目标网址/网段流量出口列表静态路由方式绑定出口规则（wan_2_src_to_dst_addr_file）
 ##     第一WAN口用户自定义源网址/网段至目标网址/网段流量出口列表静态路由方式绑定出口规则（wan_1_src_to_dst_addr_file）

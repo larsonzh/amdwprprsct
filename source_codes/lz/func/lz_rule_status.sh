@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_status.sh v3.6.6
+# lz_rule_status.sh v3.6.7
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 显示脚本运行状态脚本
@@ -39,6 +39,7 @@ lz_define_status_constant() {
 	STATUS_LZ_IPTV=888
 	STATUS_IP_RULE_PRIO_IPTV=888
 	STATUS_VPN_CLIENT_DAEMON=lz_vpn_daemon.sh
+	STATUS_START_DAEMON_TIMEER_ID=lz_start_daemon
 
 	STATUS_FOREIGN_FWMARK=0xabab
 	STATUS_HOST_FOREIGN_FWMARK=0xa1a1
@@ -81,6 +82,7 @@ lz_uninstall_status_constant() {
 	unset STATUS_HIGH_CLIENT_SRC_FWMARK_0
 	unset STATUS_HIGH_CLIENT_SRC_FWMARK_1
 
+	unset STATUS_START_DAEMON_TIMEER_ID
 	unset STATUS_VPN_CLIENT_DAEMON
 	unset STATUS_IP_RULE_PRIO_IPTV
 	unset STATUS_LZ_IPTV
@@ -532,7 +534,7 @@ lz_read_box_data_status() {
 
 	status_ovs_client_wan_port="$( lz_get_file_cache_data_status "lz_config_ovs_client_wan_port" "0" )"
 
-	## 动态分流模式时，OpenVPNServer客户端访问外网路由器出口采用"按网段分流规则匹配出口"与"由系统自动分配出
+	## 动态分流模式时，Open虚拟专网客户端访问外网路由器出口采用"按网段分流规则匹配出口"与"由系统自动分配出
 	## 口"等效
 	[ "$status_usage_mode" = "0" -a "$status_ovs_client_wan_port" = "2" ] && status_ovs_client_wan_port=5
 
@@ -1092,7 +1094,7 @@ lz_ss_support_status() {
 	echo $(date) [$$]: Fancyss is running.
 }
 
-## 显示OpenVPN服务支持状态信息函数
+## 显示Open虚拟专网服务支持状态信息函数
 ## 输入项：
 ##     全局常量及变量
 ## 返回值：无
@@ -2070,12 +2072,15 @@ lz_deployment_routing_policy_status() {
 	## 返回值：无
 	lz_show_iptv_function_status
 
-	## 显示VPN Server本地客户端路由刷新处理后台守护进程启动状态
+	## 显示虚拟专网本地客户端路由刷新处理后台守护进程启动状态
 	if [ -n "$( which nohup 2> /dev/null )" ]; then
-		[ -n "$( ps | grep ${STATUS_VPN_CLIENT_DAEMON} | grep -v grep )" ] && { 
+		if [ -n "$( ps | grep ${STATUS_VPN_CLIENT_DAEMON} | grep -v grep )" ]; then
 			echo $(date) [$$]: ----------------------------------------
 			echo $(date) [$$]: The VPN local client route daemon has been started.
-		}
+		elif [ -n "$( cru l | grep "#${STATUS_START_DAEMON_TIMEER_ID}#" )" ]; then
+			echo $(date) [$$]: ----------------------------------------
+			echo $(date) [$$]: The VPN local client route daemon is starting...
+		fi
 	fi
 
 	unset local_wan0_isp
@@ -2281,7 +2286,7 @@ __status_main() {
 		echo $(date) [$$]: The router has successfully joined into two WANs.
 		echo $(date) [$$]: Policy routing service has been started.
 
-		## 显示OpenVPN服务支持状态信息
+		## 显示Open虚拟专网服务支持状态信息
 		## 输入项：
 		##     全局常量及变量
 		## 返回值：无
