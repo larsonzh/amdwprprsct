@@ -5792,7 +5792,7 @@ EOF_BALANCE_BLCLST
 	## 返回值：无
 	if [ -n "$( which nohup 2> /dev/null )" ] && [ $vpn_client_polling_time -gt 0 -a $vpn_client_polling_time -le 20 ]; then
 
-		## 创建启动后台守护进程脚本文件名
+		## 创建启动后台守护进程脚本文件
 		cat > ${PATH_TMP}/${START_DAEMON_SCRIPT} <<EOF_START_DAEMON_SCRIPT
 # ${START_DAEMON_SCRIPT} $LZ_VERSION
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
