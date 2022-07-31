@@ -5791,8 +5791,10 @@ EOF_BALANCE_BLCLST
 	##     $1--轮询时间（1~20秒）
 	## 返回值：无
 	if [ -n "$( which nohup 2> /dev/null )" ] && [ $vpn_client_polling_time -gt 0 -a $vpn_client_polling_time -le 20 ]; then
+		## 启动后台守护进程（第一次在主进程中启动）
+		nohup sh ${PATH_FUNC}/${VPN_CLIENT_DAEMON} "$vpn_client_polling_time" > /dev/null 2>&1 &
 
-		## 创建启动后台守护进程脚本文件
+		## 创建第二次启动后台守护进程的脚本文件
 		cat > ${PATH_TMP}/${START_DAEMON_SCRIPT} <<EOF_START_DAEMON_SCRIPT
 # ${START_DAEMON_SCRIPT} $LZ_VERSION
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
@@ -5812,7 +5814,7 @@ sleep 1s
 	rm ${PATH_TMP}/${START_DAEMON_SCRIPT} > /dev/null 2>&1
 	echo $(date) [$$]: >> /tmp/syslog.log
 	echo $(date) [$$]: ----------------------------------------------- >> /tmp/syslog.log
-	echo $(date) [$$]: The VPN local client route daemon has been started. >> /tmp/syslog.log
+	echo $(date) [$$]: The VPN local client route daemon has been started again. >> /tmp/syslog.log
 	echo $(date) [$$]: -------- LZ $LZ_VERSION VPN Client Daemon ---------- >> /tmp/syslog.log
 	echo $(date) [$$]: >> /tmp/syslog.log
 }
@@ -5822,7 +5824,8 @@ flock -u $LOCK_FILE_ID > /dev/null 2>&1
 EOF_START_DAEMON_SCRIPT
 		chmod +x ${PATH_TMP}/${START_DAEMON_SCRIPT} > /dev/null 2>&1
 
-		## 启动后台守护进程定时任务（每隔1分钟运行一次，直到后台守护进程启动成功，定时任务自动关闭）
+		## 启动后台守护进程定时任务（防止SSH窗口会话结束导致后台守护进程意外关闭）
+		## 第二次在定时任务中启动，每隔1分钟运行一次，直至后台守护进程启动成功，定时任务自动关闭
 		if [ -f "${PATH_TMP}/${START_DAEMON_SCRIPT}" ]; then
 			cru a ${START_DAEMON_TIMEER_ID} "*/1 * * * * /bin/sh ${PATH_TMP}/${START_DAEMON_SCRIPT}" > /dev/null 2>&1
 		fi
