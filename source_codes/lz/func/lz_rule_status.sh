@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_status.sh v3.6.7
+# lz_rule_status.sh v3.6.8
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 显示脚本运行状态脚本
@@ -245,6 +245,7 @@ lz_set_parameter_status_variable() {
 	status_wan1_dest_udp_port=
 	status_wan1_dest_udplite_port=
 	status_wan1_dest_sctp_port=
+	status_vpn_client_polling_time=
 	status_ovs_client_wan_port=
 	status_wan_access_port=
 	status_list_mode_threshold=
@@ -330,6 +331,7 @@ lz_unset_parameter_status_variable() {
 	unset status_wan1_dest_udplite_port
 	unset status_wan1_dest_sctp_port
 	unset status_ovs_client_wan_port
+	unset status_vpn_client_polling_time
 	unset status_wan_access_port
 	unset status_list_mode_threshold
 	unset status_route_cache
@@ -537,6 +539,8 @@ lz_read_box_data_status() {
 	## 动态分流模式时，Open虚拟专网客户端访问外网路由器出口采用"按网段分流规则匹配出口"与"由系统自动分配出
 	## 口"等效
 	[ "$status_usage_mode" = "0" -a "$status_ovs_client_wan_port" = "2" ] && status_ovs_client_wan_port=5
+
+	status_vpn_client_polling_time="$( lz_get_file_cache_data_status "lz_config_vpn_client_polling_time" "5" )"
 
 	status_wan_access_port="$( lz_get_file_cache_data_status "lz_config_wan_access_port" "0" )"
 
@@ -1094,25 +1098,46 @@ lz_ss_support_status() {
 	echo $(date) [$$]: Fancyss is running.
 }
 
-## 显示Open虚拟专网服务支持状态信息函数
+## 显示虚拟专网服务支持状态信息函数
 ## 输入项：
 ##     全局常量及变量
 ## 返回值：无
-lz_show_openvpn_support_status() {
+lz_show_vpn_support_status() {
 	local local_vpn_client_wan_port="by Policy"
 	[ "$status_ovs_client_wan_port" = "0" ] && local_vpn_client_wan_port="Primary WAN"
 	[ "$status_ovs_client_wan_port" = "1" ] && local_vpn_client_wan_port="Secondary WAN"
 	local local_route_list=$( ip route | grep -Ev 'default|nexthop' )
-	if [ -n "$( echo "$local_route_list" | grep -E 'tap|tun' | awk '{print $1}' )" ]; then
+	local local_vpn_item=
+	local local_index=0
+	for local_vpn_item in $( echo "$local_route_list" | grep -E 'tap|tun' | awk '{print $3":"$1}' )
+	do
+		let local_index++
+		[ $local_index = 1 ] && echo $(date) [$$]: ----------------------------------------
+		local_vpn_item=$( echo "$local_vpn_item" | sed 's/:/ /g' )
+		echo $(date) [$$]: "   OpenVPN Server-$local_index: $local_vpn_item"
+	done
+	[ $local_index -gt 0 ] && echo $(date) [$$]: "   OpenVPN Client Export: $local_vpn_client_wan_port"
+	if [ "$( nvram get pptpd_enable )" = "1" ]; then
 		echo $(date) [$$]: ----------------------------------------
-		echo "$local_route_list" | grep -E 'tap|tun' | awk '{print "'"$(date) [$$]:    OpenVPN Server "'"NR": "$3" "$1}'
-		echo $(date) [$$]: "   OVS Client Export: $local_vpn_client_wan_port"
-	fi
-
-	if [ -n "$( echo "$local_route_list" | grep pptp | awk '{print $1}' )" ]; then
-		echo $(date) [$$]: ----------------------------------------
-		echo "$local_route_list" | grep pptp | awk '{print "'"$(date) [$$]:    PPTP VPN Server "'"NR": "$3" "$1}'
+		echo $(date) [$$]: "   PPTP Client IP Detect Time: $status_vpn_client_polling_time"s
+		local_vpn_item=$( nvram get pptpd_clients | sed -n 1p )
+		[ -n "$local_vpn_item" ] && echo $(date) [$$]: "   PPTP Client IP Pool: $local_vpn_item"
+		local_index=0
+		for local_vpn_item in $( echo "$local_route_list" | grep pptp | awk '{print $1}' )
+		do
+			let local_index++
+			echo $(date) [$$]: "   PPTP VPN Client-$local_index: $local_vpn_item"
+		done
 		echo $(date) [$$]: "   PPTP Client Export: $local_vpn_client_wan_port"
+	fi
+	if [ "$( nvram get ipsec_server_enable )" = "1" ]; then
+		local_vpn_item=$( nvram get ipsec_profile_1 | sed 's/>/\n/g' | sed -n 15p | grep -Eo '([0-9]{1,3}[\.]){2}[0-9]{1,3}' | sed 's/^.*$/&\.0\/24/' )
+		[ -z "$local_vpn_item" ] && local_vpn_item=$( nvram get ipsec_profile_2 | sed 's/>/\n/g' | sed -n 15p | grep -Eo '([0-9]{1,3}[\.]){2}[0-9]{1,3}' | sed 's/^.*$/&\.0\/24/' )
+		if [ -n "$local_vpn_item" ]; then
+			echo $(date) [$$]: ----------------------------------------
+			echo $(date) [$$]: "   IPSec Server Subnet: $local_vpn_item"
+			echo $(date) [$$]: "   IPSec Client Export: $local_vpn_client_wan_port"
+		fi
 	fi
 }
 
@@ -2073,14 +2098,12 @@ lz_deployment_routing_policy_status() {
 	lz_show_iptv_function_status
 
 	## 显示虚拟专网本地客户端路由刷新处理后台守护进程启动状态
-	if [ -n "$( which nohup 2> /dev/null )" ]; then
-		if [ -n "$( ps | grep ${STATUS_VPN_CLIENT_DAEMON} | grep -v grep )" ]; then
-			echo $(date) [$$]: ----------------------------------------
-			echo $(date) [$$]: The VPN local client route daemon has been started.
-		elif [ -n "$( cru l | grep "#${STATUS_START_DAEMON_TIMEER_ID}#" )" ]; then
-			echo $(date) [$$]: ----------------------------------------
-			echo $(date) [$$]: The VPN local client route daemon is starting...
-		fi
+	if [ -n "$( ps | grep ${STATUS_VPN_CLIENT_DAEMON} | grep -v grep )" ]; then
+		echo $(date) [$$]: ----------------------------------------
+		echo $(date) [$$]: The VPN client route daemon has been started.
+	elif [ -n "$( cru l | grep "#${STATUS_START_DAEMON_TIMEER_ID}#" )" ]; then
+		echo $(date) [$$]: ----------------------------------------
+		echo $(date) [$$]: The VPN client route daemon is starting...
 	fi
 
 	unset local_wan0_isp
@@ -2286,11 +2309,11 @@ __status_main() {
 		echo $(date) [$$]: The router has successfully joined into two WANs.
 		echo $(date) [$$]: Policy routing service has been started.
 
-		## 显示Open虚拟专网服务支持状态信息
+		## 显示虚拟专网服务支持状态信息
 		## 输入项：
 		##     全局常量及变量
 		## 返回值：无
-		lz_show_openvpn_support_status
+		lz_show_vpn_support_status
 
 		## 部署流量路由策略状态
 		## 输入项：

@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_initialize_config.sh v3.6.7
+# lz_initialize_config.sh v3.6.8
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 初始化脚本配置
@@ -609,30 +609,20 @@ wan1_dest_sctp_port=
 ## 虚拟专网客户端访问外网路由器出口
 ## （0--第一WAN口；1--第二WAN口；>1--按网段分流规则匹配出口）
 ## 缺省为第一WAN口（0）。
-## 用于双线路负载均衡模式下使用路由器主机内置的Open和PPTP虚拟专网服务器。
+## 用于双线路负载均衡模式下使用路由器主机内置的Open、PPTP和IPSec虚拟专网服务器。
 ## 对于Open虚拟专网服务器，仅支持网络层的TUN虚拟设备接口类型，可收发第三层数据报文包，无法对采用链路层
 ## TAP接口类型的第二层数据报文包进行路由控制。
-## 对于IPSec虚拟专网服务器，实现双线路负载均衡模式下对该虚拟专用网的接入支持，有如下两个方式：
-## 方式1：
-##        将其客户端在路由器本地的“IP地址/网段（可在其高级设置中查到）”填入某一个“WAN口客户端及源网址/
-##        网段流量出口列表绑定数据文件”中，然后“启用”其“WAN口客户端及源网址/网段流量出口列表绑定”功能。
-##        动态分流模式下，该WAN口即为其客户端接入后访问外网的路由器出口。
-##        静态分流模式下，将按网段分流规则匹配出口。
-## 方式2：
-##        动态分流模式下该方式无效，请采用“方式1”。
-##        静态分流模式下，将其客户端在路由器本地的“IP地址/网段”填入“本地客户端网址/网段分流黑名单列表
-##        数据文件”中，即可实现按网段分流规则匹配出口。
-ovs_client_wan_port=0
+ovs_client_wan_port=5
 
-## 虚拟专网客户端路由检测更新（0--禁用；1~20--时间间隔，以秒为单位）
-## 缺省为禁用（0），此时双线路负载均衡模式下无法正常接入PPTP客户端。
-## 用于双线路负载均衡模式下使用路由器主机内置的PPTP虚拟专网服务器。Open虚拟专网服务器不需要此功能。
+## 虚拟专网客户端路由检测时间（1~20--时间间隔，以秒为单位）
+## 缺省为5秒。
+## 用于双线路负载均衡模式下使用路由器主机内置的PPTP虚拟专网服务器，对Open及IPSec虚拟专网服务器无效。
 ## 能够在设定的时间间隔内通过虚拟专网客户端路由后台守护进程，轮询检测PPTP客户端的远程接入，实现PPTP客
 ## 户端双线路模式路由的自动更新和维护。
 ## 时间间隔越短，虚拟专网客户端路由可尽早建立，接入越快。但过短的时间间隔有可能早造成路由器负荷增加，
 ## CPU资源占用增大。像GT-AX6000类硬件水准的路由器，可设置为1~3秒。对于性能较低，或固件老旧的路由器，
 ## 用户可根据自己的实际测试结果调整该时间间隔。
-vpn_client_polling_time=0
+vpn_client_polling_time=5
 
 ## 外网访问路由器主机WAN入口（0--第一WAN口；1--第二WAN口）
 ## 缺省为第一WAN口（0）。
@@ -1168,24 +1158,14 @@ wan1_dest_sctp_port=$local_wan1_dest_sctp_port
 ## 虚拟专网客户端访问外网路由器出口
 ## （0--第一WAN口；1--第二WAN口；>1--按网段分流规则匹配出口）
 ## 缺省为第一WAN口（0）。
-## 用于双线路负载均衡模式下使用路由器主机内置的Open和PPTP虚拟专网服务器。
+## 用于双线路负载均衡模式下使用路由器主机内置的Open、PPTP和IPSec虚拟专网服务器。
 ## 对于Open虚拟专网服务器，仅支持网络层的TUN虚拟设备接口类型，可收发第三层数据报文包，无法对采用链路层
 ## TAP接口类型的第二层数据报文包进行路由控制。
-## 对于IPSec虚拟专网服务器，实现双线路负载均衡模式下对该虚拟专用网的接入支持，有如下两个方式：
-## 方式1：
-##        将其客户端在路由器本地的“IP地址/网段（可在其高级设置中查到）”填入某一个“WAN口客户端及源网址/
-##        网段流量出口列表绑定数据文件”中，然后“启用”其“WAN口客户端及源网址/网段流量出口列表绑定”功能。
-##        动态分流模式下，该WAN口即为其客户端接入后访问外网的路由器出口。
-##        静态分流模式下，将按网段分流规则匹配出口。
-## 方式2：
-##        动态分流模式下该方式无效，请采用“方式1”。
-##        静态分流模式下，将其客户端在路由器本地的“IP地址/网段”填入“本地客户端网址/网段分流黑名单列表
-##        数据文件”中，即可实现按网段分流规则匹配出口。
 ovs_client_wan_port=$local_ovs_client_wan_port
 
-## 虚拟专网客户端路由检测更新（0--禁用；1~20--时间间隔，以秒为单位）
-## 缺省为禁用（0），此时双线路负载均衡模式下无法正常接入PPTP客户端。
-## 用于双线路负载均衡模式下使用路由器主机内置的PPTP虚拟专网服务器。Open虚拟专网服务器不需要此功能。
+## 虚拟专网客户端路由检测时间（1~20--时间间隔，以秒为单位）
+## 缺省为5秒。
+## 用于双线路负载均衡模式下使用路由器主机内置的PPTP虚拟专网服务器，对Open及IPSec虚拟专网服务器无效。
 ## 能够在设定的时间间隔内通过虚拟专网客户端路由后台守护进程，轮询检测PPTP客户端的远程接入，实现PPTP客
 ## 户端双线路模式路由的自动更新和维护。
 ## 时间间隔越短，虚拟专网客户端路由可尽早建立，接入越快。但过短的时间间隔有可能早造成路由器负荷增加，
@@ -1588,12 +1568,12 @@ lz_read_config_param() {
 		[ -n "$( grep "^wan1_dest_sctp_port=" "${PATH_CONFIGS}/lz_rule_config.sh" )" ] && local_wan1_dest_sctp_port="" || local_exist=0
 	}
 
-	local_ovs_client_wan_port="$( lz_get_file_cache_data "ovs_client_wan_port" "0" )"
+	local_ovs_client_wan_port="$( lz_get_file_cache_data "ovs_client_wan_port" "5" )"
 	[ "$?" = "0" ] && local_exist=0
 
-	local_vpn_client_polling_time="$( lz_get_file_cache_data "vpn_client_polling_time" "0" )"
+	local_vpn_client_polling_time="$( lz_get_file_cache_data "vpn_client_polling_time" "5" )"
 	[ "$?" = "0" ] && local_exist=0
-	[ "$local_vpn_client_polling_time" -lt "0" -o "$local_vpn_client_polling_time" -gt "20" ] && local_vpn_client_polling_time=0 && local_exist=0
+	[ "$local_vpn_client_polling_time" -lt "0" -o "$local_vpn_client_polling_time" -gt "20" ] && local_vpn_client_polling_time=5 && local_exist=0
 
 	local_wan_access_port="$( lz_get_file_cache_data "wan_access_port" "0" )"
 	[ "$?" = "0" ] && local_exist=0
@@ -1777,7 +1757,7 @@ lz_cfg_is_default() {
 	[ "$local_wan1_dest_udplite_port" != "" ] && return 0
 	[ "$local_wan1_dest_sctp_port" != "" ] && return 0
 	[ "$local_ovs_client_wan_port" != "0" ] && return 0
-	[ "$local_vpn_client_polling_time" != "0" ] && return 0
+	[ "$local_vpn_client_polling_time" != "5" ] && return 0
 	[ "$local_wan_access_port" != "0" ] && return 0
 	[ "$local_list_mode_threshold" != "512" ] && return 0
 	[ "$local_route_cache" != "0" ] && return 0
@@ -2203,12 +2183,12 @@ lz_read_box_data() {
 		[ -n "$( grep "^lz_config_wan1_dest_sctp_port=" "${PATH_CONFIGS}/lz_rule_config.box" )" ] && local_ini_wan1_dest_sctp_port="" || local_exist=0
 	}
 
-	local_ini_ovs_client_wan_port="$( lz_get_file_cache_data "lz_config_ovs_client_wan_port" "0" )"
+	local_ini_ovs_client_wan_port="$( lz_get_file_cache_data "lz_config_ovs_client_wan_port" "5" )"
 	[ "$?" = "0" ] && local_exist=0
 
 	local_ini_vpn_client_polling_time="$( lz_get_file_cache_data "lz_config_vpn_client_polling_time" "0" )"
 	[ "$?" = "0" ] && local_exist=0
-	[ "$local_ini_vpn_client_polling_time" -lt "0" -o "$local_ini_vpn_client_polling_time" -gt "20" ] && local_ini_vpn_client_polling_time=0 && local_exist=0
+	[ "$local_ini_vpn_client_polling_time" -lt "0" -o "$local_ini_vpn_client_polling_time" -gt "20" ] && local_ini_vpn_client_polling_time=5 && local_exist=0
 
 	local_ini_wan_access_port="$( lz_get_file_cache_data "lz_config_wan_access_port" "0" )"
 	[ "$?" = "0" ] && local_exist=0

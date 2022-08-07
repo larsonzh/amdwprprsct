@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_define_global_variables.sh v3.6.7
+# lz_define_global_variables.sh v3.6.8
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 # QnkgTFog5aaZ5aaZ5ZGc77yI6Juk6J+G5aKp5YS/77yJ（首次运行标识，切勿修改）
 
@@ -333,11 +333,11 @@ IP_RULE_PRIO_WAN_2_SRC_TO_DST_ADDR=$(( $IP_RULE_PRIO_WAN_1_SRC_TO_DST_ADDR - 1 )
 ## 第一WAN口用户自定义源网址/网段至目标网址/网段高优先级流量出口绑定列表分流出口规则策略规则优先级--24963（IP_RULE_PRIO-37）
 IP_RULE_PRIO_HIGH_WAN_1_SRC_TO_DST_ADDR=$(( $IP_RULE_PRIO_WAN_2_SRC_TO_DST_ADDR - 1 ))
 
-## Open虚拟专网客户端访问互联网分流出口规则策略规则优先级--24962（IP_RULE_PRIO-38）
-IP_RULE_PRIO_OPENVPN=$(( $IP_RULE_PRIO_HIGH_WAN_1_SRC_TO_DST_ADDR - 1 ))
+## 虚拟专网客户端访问互联网分流出口规则策略规则优先级--24962（IP_RULE_PRIO-38）
+IP_RULE_PRIO_VPN=$(( $IP_RULE_PRIO_HIGH_WAN_1_SRC_TO_DST_ADDR - 1 ))
 
 ## 本地客户端网址/网段分流黑名单列表负载均衡出口规则策略规则优先级--24961（IP_RULE_PRIO-39）
-IP_RULE_PRIO_BLCLST_LB=$(( $IP_RULE_PRIO_OPENVPN - 1 ))
+IP_RULE_PRIO_BLCLST_LB=$(( $IP_RULE_PRIO_VPN - 1 ))
 
 ## 最高策略规则优先级--24960（IP_RULE_PRIO-40）
 IP_RULE_PRIO_TOPEST=$(( $IP_RULE_PRIO_BLCLST_LB - 1 ))
