@@ -1819,6 +1819,11 @@ lz_show_iptv_function_status() {
 	[ "$status_iptv_igmp_switch" = "0" ] && {
 		if [ -n "$( ip route show table $STATUS_LZ_IPTV | grep default )" ]; then
 			echo $(date) [$$]: IPTV STB can be connected to "$local_udpxy_wan1_dev" interface for use.
+			if [ "$status_iptv_access_mode" = "1" ]; then
+				echo $(date) [$$]: "IPTV Access Mode: Direct"
+			else
+				echo $(date) [$$]: "IPTV Access Mode: Service Address"
+			fi
 		else
 			echo $(date) [$$]: Connection "$local_udpxy_wan1_dev" IPTV interface failure !!!
 		fi
@@ -1826,6 +1831,11 @@ lz_show_iptv_function_status() {
 	[ "$status_iptv_igmp_switch" = "1" ] && {
 		if [ -n "$( ip route show table $STATUS_LZ_IPTV | grep default )" ]; then
 			echo $(date) [$$]: IPTV STB can be connected to "$local_udpxy_wan2_dev" interface for use.
+			if [ "$status_iptv_access_mode" = "1" ]; then
+				echo $(date) [$$]: "IPTV Access Mode: Direct"
+			else
+				echo $(date) [$$]: "IPTV Access Mode: Service Address"
+			fi
 		else
 			echo $(date) [$$]: Connection "$local_udpxy_wan2_dev" IPTV interface failure !!!
 		fi
