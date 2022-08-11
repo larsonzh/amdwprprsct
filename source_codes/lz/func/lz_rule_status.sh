@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_status.sh v3.6.8
+# lz_rule_status.sh v3.6.9
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 显示脚本运行状态脚本
@@ -42,45 +42,23 @@ lz_define_status_constant() {
 	STATUS_START_DAEMON_TIMEER_ID=lz_start_daemon
 
 	STATUS_FOREIGN_FWMARK=0xabab
-	STATUS_HOST_FOREIGN_FWMARK=0xa1a1
 	STATUS_FWMARK0=0x9999
-	STATUS_HOST_FWMARK0=0x9191
 	STATUS_FWMARK1=0x8888
-	STATUS_HOST_FWMARK1=0x8181
-	STATUS_CLIENT_SRC_FWMARK_0=0x7777
-	STATUS_CLIENT_SRC_FWMARK_1=0x6666
 	STATUS_PROTOCOLS_FWMARK_0=0x5555
-	STATUS_HOST_PROTOCOLS_FWMARK_0=0x5151
 	STATUS_PROTOCOLS_FWMARK_1=0x4444
-	STATUS_HOST_PROTOCOLS_FWMARK_1=0x4141
 	STATUS_DEST_PORT_FWMARK_0=0x3333
-	STATUS_HOST_DEST_PORT_FWMARK_0=0x3131
 	STATUS_DEST_PORT_FWMARK_1=0x2222
-	STATUS_HOST_DEST_PORT_FWMARK_1=0x2121
-	STATUS_HIGH_CLIENT_SRC_FWMARK_0=0x1717
-	STATUS_HIGH_CLIENT_SRC_FWMARK_1=0x1616
 }
 
 ## 卸载基本运行状态常量函数
 lz_uninstall_status_constant() {
 	unset STATUS_FOREIGN_FWMARK
-	unset STATUS_HOST_FOREIGN_FWMARK
 	unset STATUS_FWMARK0
-	unset STATUS_HOST_FWMARK0
 	unset STATUS_FWMARK1
-	unset STATUS_HOST_FWMARK1
-	unset STATUS_CLIENT_SRC_FWMARK_0
-	unset STATUS_CLIENT_SRC_FWMARK_1
 	unset STATUS_PROTOCOLS_FWMARK_0
-	unset STATUS_HOST_PROTOCOLS_FWMARK_0
 	unset STATUS_PROTOCOLS_FWMARK_1
-	unset STATUS_HOST_PROTOCOLS_FWMARK_1
 	unset STATUS_DEST_PORT_FWMARK_0
-	unset STATUS_HOST_DEST_PORT_FWMARK_0
 	unset STATUS_DEST_PORT_FWMARK_1
-	unset STATUS_HOST_DEST_PORT_FWMARK_1
-	unset STATUS_HIGH_CLIENT_SRC_FWMARK_0
-	unset STATUS_HIGH_CLIENT_SRC_FWMARK_1
 
 	unset STATUS_START_DAEMON_TIMEER_ID
 	unset STATUS_VPN_CLIENT_DAEMON
@@ -1005,47 +983,11 @@ lz_get_route_status_info() {
 		else
 			echo $(date) [$$]: "   Route Policy Mode: Mode 3"
 		fi
-<<EOF_STATUS_DDNS
-		if [ "$status_usage_mode" = "0" ]; then
-			if [ "$status_wan_access_port" = "0" ]; then
-				echo $(date) [$$]: "   Route Host DDNS Export: Primary WAN"
-			elif [ "$status_wan_access_port" = "1" ]; then
-				echo $(date) [$$]: "   Route Host DDNS Export: Secondary WAN"
-			else
-				echo $(date) [$$]: "   Route Host DDNS Export: Load Balancing"
-			fi
-		else
-			if [ "$status_wan_access_port" = "0" ]; then
-				echo $(date) [$$]: "   Route Host DDNS Export: Primary WAN"
-			elif [ "$status_wan_access_port" = "1" ]; then
-				echo $(date) [$$]: "   Route Host DDNS Export: Secondary WAN"
-			elif [ "$status_wan_access_port" = "2" ]; then
-				echo $(date) [$$]: "   Route Host DDNS Export: by Policy"
-			else
-				echo $(date) [$$]: "   Route Host DDNS Export: Load Balancing"
-			fi
-		fi
-EOF_STATUS_DDNS
 		if [ "$status_wan_access_port" = "1" ]; then
 			echo $(date) [$$]: "   Route Host Access Port: Secondary WAN"
 		else
 			echo $(date) [$$]: "   Route Host Access Port: Primary WAN"
 		fi
-<<EOF_STATUS_ACCESS
-		if [ "$status_usage_mode" = "0" ]; then
-			echo $(date) [$$]: "   Route Host App Export: Load Balancing"
-		else
-			if [ "$status_wan_access_port" = "0" ]; then
-				echo $(date) [$$]: "   Route Host App Export: Primary WAN"
-			elif [ "$status_wan_access_port" = "1" ]; then
-				echo $(date) [$$]: "   Route Host App Export: Secondary WAN"
-			elif [ "$status_wan_access_port" = "2" ]; then
-				echo $(date) [$$]: "   Route Host App Export: by Policy"
-			else
-				echo $(date) [$$]: "   Route Host App Export: Load Balancing"
-			fi
-		fi
-EOF_STATUS_ACCESS
 		if [ "$status_route_cache" = "0" ]; then
 			echo $(date) [$$]: "   Route Cache: Enable"
 		else
@@ -1703,154 +1645,25 @@ lz_get_iptables_fwmark_item_total_number_status() {
 	echo "$( iptables -t mangle -L "$2" 2> /dev/null | grep CONNMARK | grep -ci "$1" )"
 }
 
-## 检测第一WAN口是否启用NetFilter网络防火墙地址过滤匹配标记功能状态函数
-## 输入项：
-##     全局常量及变量
-## 返回值：
-##     0--已启用
-##     1--未启用
-lz_get_wan0_netfilter_addr_mark_used_status() {
-	## 获取指定数据包标记的防火墙过滤规则条目数量
-	## 输入项：
-	##     $1--报文数据包标记
-	##     $2--防火墙规则链名称
-	## 返回值：
-	##     条目数
-	if [ -n "$( iptables -t mangle -L PREROUTING 2> /dev/null | grep "$STATUS_CUSTOM_PREROUTING_CHAIN" | sed -n 1p )" ]; then
-		if [ -n "$( iptables -t mangle -L $STATUS_CUSTOM_PREROUTING_CHAIN 2> /dev/null | grep "$STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN" | sed -n 1p )" ]; then
-			if [ "$status_isp_wan_port_0" = "0" ]; then
-				[ "$( lz_get_iptables_fwmark_item_total_number_status "$STATUS_FOREIGN_FWMARK" "$STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN" )" -gt "0" ] && return 0
-			fi
-			[ "$( lz_get_iptables_fwmark_item_total_number_status "$STATUS_FWMARK0" "$STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN" )" -gt "0" ] && return 0
-			[ "$( lz_get_iptables_fwmark_item_total_number_status "$STATUS_CLIENT_SRC_FWMARK_0" "$STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN" )" -gt "0" ] && return 0
-			[ "$( lz_get_iptables_fwmark_item_total_number_status "$STATUS_PROTOCOLS_FWMARK_0" "$STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN" )" -gt "0" ] && return 0
-			[ "$( lz_get_iptables_fwmark_item_total_number_status "$STATUS_DEST_PORT_FWMARK_0" "$STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN" )" -gt "0" ] && return 0
-			[ "$( lz_get_iptables_fwmark_item_total_number_status "$STATUS_HIGH_CLIENT_SRC_FWMARK_0" "$STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN" )" -gt "0" ] && return 0
-		fi
-	fi
-
-	if [ -n "$( iptables -t mangle -L OUTPUT 2> /dev/null | grep "$STATUS_CUSTOM_OUTPUT_CHAIN" | sed -n 1p )" ]; then
-		if [ -n "$( iptables -t mangle -L $STATUS_CUSTOM_OUTPUT_CHAIN 2> /dev/null | grep "$STATUS_CUSTOM_OUTPUT_CONNMARK_CHAIN" | sed -n 1p )" ]; then
-			if [ "$status_isp_wan_port_0" = "0" ]; then
-				[ "$( lz_get_iptables_fwmark_item_total_number_status "$HOST_FOREIGN_FWMARK" "$STATUS_CUSTOM_OUTPUT_CONNMARK_CHAIN" )" -gt "0" ] && return 0
-			fi
-			[ "$( lz_get_iptables_fwmark_item_total_number_status "$STATUS_HOST_FWMARK0" "$STATUS_CUSTOM_OUTPUT_CONNMARK_CHAIN" )" -gt "0" ] && return 0
-			[ "$( lz_get_iptables_fwmark_item_total_number_status "$STATUS_HOST_PROTOCOLS_FWMARK_0" "$STATUS_CUSTOM_OUTPUT_CONNMARK_CHAIN" )" -gt "0" ] && return 0
-			[ "$( lz_get_iptables_fwmark_item_total_number_status "$STATUS_HOST_DEST_PORT_FWMARK_0" "$STATUS_CUSTOM_OUTPUT_CONNMARK_CHAIN" )" -gt "0" ] && return 0
-		fi
-	fi
-
-	return 1
-}
-
-## 检测第二WAN口是否启用NetFilter网络防火墙地址过滤匹配标记功能状态函数
-## 输入项：
-##     全局常量及变量
-## 返回值：
-##     0--已启用
-##     1--未启用
-lz_get_wan1_netfilter_addr_mark_used_status() {
-	## 获取指定数据包标记的防火墙过滤规则条目数量
-	## 输入项：
-	##     $1--报文数据包标记
-	##     $2--防火墙规则链名称
-	## 返回值：
-	##     条目数
-	if [ -n "$( iptables -t mangle -L PREROUTING 2> /dev/null | grep "$STATUS_CUSTOM_PREROUTING_CHAIN" | sed -n 1p )" ]; then
-		if [ -n "$( iptables -t mangle -L $STATUS_CUSTOM_PREROUTING_CHAIN 2> /dev/null | grep "$STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN" | sed -n 1p )" ]; then
-			if [ "$status_isp_wan_port_0" = "1" ]; then
-				[ "$( lz_get_iptables_fwmark_item_total_number_status "$STATUS_FOREIGN_FWMARK" "$STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN" )" -gt "0" ] && return 0
-			fi
-			[ "$( lz_get_iptables_fwmark_item_total_number_status "$STATUS_FWMARK1" "$STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN" )" -gt "0" ] && return 0
-			[ "$( lz_get_iptables_fwmark_item_total_number_status "$STATUS_CLIENT_SRC_FWMARK_1" "$STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN" )" -gt "0" ] && return 0
-			[ "$( lz_get_iptables_fwmark_item_total_number_status "$STATUS_PROTOCOLS_FWMARK_1" "$STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN" )" -gt "0" ] && return 0
-			[ "$( lz_get_iptables_fwmark_item_total_number_status "$STATUS_DEST_PORT_FWMARK_1" "$STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN" )" -gt "0" ] && return 0
-			[ "$( lz_get_iptables_fwmark_item_total_number_status "$STATUS_HIGH_CLIENT_SRC_FWMARK_1" "$STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN" )" -gt "0" ] && return 0
-		fi
-	fi
-
-	if [ -n "$( iptables -t mangle -L OUTPUT 2> /dev/null | grep "$STATUS_CUSTOM_OUTPUT_CHAIN" | sed -n 1p )" ]; then
-		if [ -n "$( iptables -t mangle -L $STATUS_CUSTOM_OUTPUT_CHAIN 2> /dev/null | grep "$STATUS_CUSTOM_OUTPUT_CONNMARK_CHAIN" | sed -n 1p )" ]; then 
-			if [ "$status_isp_wan_port_0" = "1" ]; then
-				[ "$( lz_get_iptables_fwmark_item_total_number_status "$STATUS_HOST_FOREIGN_FWMARK" "$STATUS_CUSTOM_OUTPUT_CONNMARK_CHAIN" )" -gt "0" ] && return 0
-			fi
-			[ "$( lz_get_iptables_fwmark_item_total_number_status "$STATUS_HOST_FWMARK1" "$STATUS_CUSTOM_OUTPUT_CONNMARK_CHAIN" )" -gt "0" ] && return 0
-			[ "$( lz_get_iptables_fwmark_item_total_number_status "$STATUS_HOST_PROTOCOLS_FWMARK_1" "$STATUS_CUSTOM_OUTPUT_CONNMARK_CHAIN" )" -gt "0" ] && return 0
-			[ "$( lz_get_iptables_fwmark_item_total_number_status "$STATUS_HOST_DEST_PORT_FWMARK_1" "$STATUS_CUSTOM_OUTPUT_CONNMARK_CHAIN" )" -gt "0" ] && return 0
-		fi
-	fi
-
-	return 1
-}
-
 ## 检测是否启用NetFilter网络防火墙地址过滤匹配标记功能状态函数
 ## 输入项：
 ##     全局常量及变量
 ## 返回值：
 ##     0--已启用
 ##     1--未启用
-lz_get_netfilter_addr_mark_used_status() {
-	## 检测第一WAN口是否启用NetFilter网络防火墙地址过滤匹配标记功能状态
-	## 输入项：
-	##     全局常量及变量
-	## 返回值：
-	##     0--已启用
-	##     1--未启用
-	lz_get_wan0_netfilter_addr_mark_used_status && return 0
-
-	## 检测第二WAN口是否启用NetFilter网络防火墙地址过滤匹配标记功能状态
-	## 输入项：
-	##     全局常量及变量
-	## 返回值：
-	##     0--已启用
-	##     1--未启用
-	lz_get_wan1_netfilter_addr_mark_used_status && return 0
-
-	## 检测国外运营商网段出口由系统负载均衡控制时是否启用NetFilter网络防火墙地址过滤匹配标记功能
-	## 获取指定数据包标记的防火墙过滤规则条目数量状态
-	## 输入项：
-	##     $1--报文数据包标记
-	##     $2--防火墙规则链名称
-	## 返回值：
-	##     条目数
-	if [ "$status_isp_wan_port_0" != "0" -a "$status_isp_wan_port_0" != "1" ]; then
-		if [ -n "$( iptables -t mangle -L PREROUTING 2> /dev/null | grep "$STATUS_CUSTOM_PREROUTING_CHAIN" | sed -n 1p )" ]; then
-			if [ -n "$( iptables -t mangle -L $STATUS_CUSTOM_PREROUTING_CHAIN 2> /dev/null | grep "$STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN" | sed -n 1p )" ]; then
-				[ "$( lz_get_iptables_fwmark_item_total_number_status "$STATUS_FOREIGN_FWMARK" "$STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN" )" -gt "0" ] && \
-					return 0
-			fi
-		fi
-	fi
-
-	return 1
-}
-
-## 检测是否启用NetFilter网络防火墙过滤功能状态函数
-## 输入项：
-##     全局常量及变量
-## 返回值：
-##     0--已启用
-##     1--未启用
 lz_get_netfilter_used_status() {
-	## 检测是否启用NetFilter网络防火墙地址过滤匹配标记功能状态
-	## 输入项：
-	##     全局常量及变量
-	## 返回值：
-	##     0--已启用
-	##     1--未启用
-	lz_get_netfilter_addr_mark_used_status && return 0
 
 	if [ -n "$( iptables -t mangle -L PREROUTING 2> /dev/null | grep "$STATUS_CUSTOM_PREROUTING_CHAIN" | sed -n 1p )" ]; then
-		[ -n "$( iptables -t mangle -L $STATUS_CUSTOM_PREROUTING_CHAIN 2> /dev/null | grep "$STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN" | sed -n 1p )" ] && \
-			return 0
+		if [ -n "$( iptables -t mangle -L $STATUS_CUSTOM_PREROUTING_CHAIN 2> /dev/null | grep "$STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN" | sed -n 1p )" ]; then
+			[ "$( lz_get_iptables_fwmark_item_total_number_status "$STATUS_FOREIGN_FWMARK" "$STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN" )" -gt "0" ] && return 0
+			[ "$( lz_get_iptables_fwmark_item_total_number_status "$STATUS_FWMARK0" "$STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN" )" -gt "0" ] && return 0
+			[ "$( lz_get_iptables_fwmark_item_total_number_status "$STATUS_PROTOCOLS_FWMARK_0" "$STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN" )" -gt "0" ] && return 0
+			[ "$( lz_get_iptables_fwmark_item_total_number_status "$STATUS_DEST_PORT_FWMARK_0" "$STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN" )" -gt "0" ] && return 0
+			[ "$( lz_get_iptables_fwmark_item_total_number_status "$STATUS_FWMARK1" "$STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN" )" -gt "0" ] && return 0
+			[ "$( lz_get_iptables_fwmark_item_total_number_status "$STATUS_PROTOCOLS_FWMARK_1" "$STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN" )" -gt "0" ] && return 0
+			[ "$( lz_get_iptables_fwmark_item_total_number_status "$STATUS_DEST_PORT_FWMARK_1" "$STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN" )" -gt "0" ] && return 0
+		fi
 	fi
-
-	if [ -n "$( iptables -t mangle -L OUTPUT 2> /dev/null | grep "$STATUS_CUSTOM_OUTPUT_CHAIN" | sed -n 1p )" ]; then
-		[ -n "$( iptables -t mangle -L $STATUS_CUSTOM_OUTPUT_CHAIN 2> /dev/null | grep "$STATUS_CUSTOM_OUTPUT_CONNMARK_CHAIN" | sed -n 1p )" ] && \
-			return 0
-	fi
-
-	[ -n "$( iptables -L FORWARD 2> /dev/null | grep "$STATUS_CUSTOM_FORWARD_CHAIN" | sed -n 1p )" ] && return 0
 
 	return 1
 }
@@ -2043,7 +1856,7 @@ lz_deployment_routing_policy_status() {
 	lz_get_wan_isp_info_staus
 
 	local local_netfilter_used=0
-	## 检测是否启用NetFilter网络防火墙过滤功能状态
+	## 检测是否启用NetFilter网络防火墙地址过滤匹配标记功能状态
 	## 输入项：
 	##     全局常量及变量
 	## 返回值：

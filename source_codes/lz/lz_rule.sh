@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule.sh v3.6.8
+# lz_rule.sh v3.6.9
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # 本版本采用CIDR（无类别域间路由，Classless Inter-Domain Routing）技术
@@ -77,7 +77,7 @@
 ## -------------全局数据定义及初始化-------------------
 
 ## 版本号
-LZ_VERSION=v3.6.8
+LZ_VERSION=v3.6.9
 
 ## 运行状态查询命令
 SHOW_STATUS="status"
@@ -227,6 +227,17 @@ lz_project_file_management() {
 		echo $(date) [$$]: >> /tmp/syslog.log
 		return 1
 	fi
+
+	## 清除已作废的脚本代码及资源文件
+	if [ -f ${PATH_CONFIGS}/lz_rule_func_config.sh ]; then
+		[ -z "$( grep "$LZ_VERSION" ${PATH_CONFIGS}/lz_rule_func_config.sh )" ] && \
+			rm ${PATH_CONFIGS}/lz_rule_func_config.sh > /dev/null 2>&1
+	fi
+	if [ -f ${PATH_CONFIGS}/lz_protocols.txt ]; then
+		[ -n "$( grep -Eo '[l][z][\_]' ${PATH_CONFIGS}/lz_protocols.txt )" ] && \
+		rm ${PATH_CONFIGS}/lz_protocols.txt > /dev/null 2>&1
+	fi
+
 	return 0
 }
 
@@ -439,18 +450,6 @@ __lz_main() {
 	fi
 
 	lz_check_instance "$1" && return
-
-	## 流量路由策略部署
-	## 脚本中先add的rule优先级低
-	## 脚本使用 IP_RULE_PRIO+1 ~ IP_RULE_PRIO_TOPEST、IP_RULE_PRIO_IPTV 42个优先级，数值越小，优先级越高，网络访问
-	## 数据包优先匹配高优先级规则
-	## 部署条件：双线接入成功，系统内成功自建wan0、wan1路由表，案中规则尚未部署
-	## 重要说明：WAN0口指路由器接入宽带的第一WAN口，路由表为wan0；WAN1口指第二WAN口，路由表为wan1
-	## 案例背景：第一WAN口接联通宽带，300M，响应快，公网出口IP，稳定，上行带宽小
-	##           第二WAN口接移动宽带，300M，时延大，内网出口IP，承诺话费送的
-	##           尽可能选品质好的宽带接第一WAN口
-	##           若与本案例应用背景不同，可在/jffs/scripts/lz/configs/目录下的lz_rule_config.sh和
-	##           lz_rule_func_config.sh文件中“用户运行策略自定义区”修改路由器策略路由配置
 
 	## 双线路
 	if [ -n "$( ip route | grep nexthop | sed -n 1p )" -a $ip_rule_exist = 0 ]; then

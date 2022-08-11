@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_define_global_variables.sh v3.6.8
+# lz_define_global_variables.sh v3.6.9
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 # QnkgTFog5aaZ5aaZ5ZGc77yI6Juk6J+G5aKp5YS/77yJ（首次运行标识，切勿修改）
 
@@ -83,22 +83,16 @@ ISPIP_SET_0="lz_ispip_0"
 ## 第二WAN口国内网段数据集名称
 ISPIP_SET_1="lz_ispip_1"
 
-## 用户自定义网址/网段数据集1名称（保留，用于兼容v2.8.4及之前老版本，该网段分流已动态合并至ISP网段分流中）
-ISPIP_CUSTOM_SET_1="lz_custom_data_1"
-
-## 用户自定义网址/网段数据集2名称（保留，用于兼容v2.8.4及之前老版本，该网段分流已动态合并至ISP网段分流中）
-ISPIP_CUSTOM_SET_2="lz_custom_data_2"
-
-## 第一WAN口客户端及源网址/网段绑定列表数据集名称
+## 第一WAN口客户端及源网址/网段绑定列表数据集名称（保留，用于兼容v3.6.8及之前版本）
 CLIENT_SRC_SET_0="lz_client_src_addr_0"
 
-## 第二WAN口客户端及源网址/网段绑定列表数据集名称
+## 第二WAN口客户端及源网址/网段绑定列表数据集名称（保留，用于兼容v3.6.8及之前版本）
 CLIENT_SRC_SET_1="lz_client_src_addr_1"
 
-## 第一WAN口客户端及源网址/网段高优先级绑定列表数据集名称
+## 第一WAN口客户端及源网址/网段高优先级绑定列表数据集名称（保留，用于兼容v3.6.8及之前版本）
 HIGH_CLIENT_SRC_SET_0="lz_high_client_src_addr_0"
 
-## 第二WAN口客户端及源网址/网段高优先级绑定列表数据集名称
+## 第二WAN口客户端及源网址/网段高优先级绑定列表数据集名称（保留，用于兼容v3.6.8及之前版本）
 HIGH_CLIENT_SRC_SET_1="lz_high_client_src_addr_1"
 
 ## 本地内网设备源网址/网段数据集名称
@@ -121,9 +115,6 @@ IPTV_BOX_IP_SET="lz_iptv_box_ipsets"
 
 ## IPTV网络服务IP网址/网段数据集名称
 IPTV_ISP_IP_SET="lz_iptv_isp_ipsets"
-
-## 本地内网源网址/网段数据集iptables操作符宏变量
-LOCAL_IPSETS_SRC=""
 
 ## 系统中的Open虚拟专网事件触发文件名
 OPENVPN_EVENT_NAME=openvpn-event
@@ -182,10 +173,10 @@ FWMARK1=0x8888
 ## 第二WAN口主机报文数据包标记
 HOST_FWMARK1=0x8181
 
-## 第一WAN口客户端及源网址/网段绑定列表分流报文数据包标记
+## 第一WAN口客户端及源网址/网段绑定列表分流报文数据包标记（保留，用于兼容v3.6.8及之前版本）
 CLIENT_SRC_FWMARK_0=0x7777
 
-## 第二WAN口客户端及源网址/网段绑定列表分流报文数据包标记
+## 第二WAN口客户端及源网址/网段绑定列表分流报文数据包标记（保留，用于兼容v3.6.8及之前版本）
 CLIENT_SRC_FWMARK_1=0x6666
 
 ## 第一WAN口目标访问协议分流报文数据包标记
@@ -212,11 +203,14 @@ DEST_PORT_FWMARK_1=0x2222
 ## 第二WAN口目标访问端口分流主机报文数据包标记
 HOST_DEST_PORT_FWMARK_1=0x2121
 
-## 第一WAN口客户端及源网址/网段高优先级绑定列表分流报文数据包标记
+## 第一WAN口客户端及源网址/网段高优先级绑定列表分流报文数据包标记（保留，用于兼容v3.6.8及之前版本）
 HIGH_CLIENT_SRC_FWMARK_0=0x1717
 
-## 第二WAN口客户端及源网址/网段高优先级绑定列表分流报文数据包标记
+## 第二WAN口客户端及源网址/网段高优先级绑定列表分流报文数据包标记（保留，用于兼容v3.6.8及之前版本）
 HIGH_CLIENT_SRC_FWMARK_1=0x1616
+
+## 用户自定义源网址/网段至目标网址/网段列表中指明源网址/网段和目标网址/网段条目报文数据包标记
+SRC_DST_FWMARK=0x3738
 
 ## 负载均衡流程控制用报文数据包标记
 BALANCE_JUMP_FWMARK=0xcdcd
@@ -357,11 +351,18 @@ LZ_IPTV=888
 ## iptables --match-set针对不同硬件类型选项设置的操作符宏变量
 MATCH_SET='--match-set'
 
-## iptables -m state针对网络数据包状态匹配设置的操作符宏变量
-MATCH_STATE=''
+## 协议分流（0--启用；非0--禁用）
+## 缺省为禁用（5）。
+## 该功能需要系统中有用于OSI模型第七层应用层控制的layer7模块，否则需重新编译和配置Linux内核，打netfilter
+## 补丁和安装l7-protocals协议包。
+## 仅能在动态分流模式下使用。
+l7_protocols=5
 
-## 动态分流模式时，路由器主机内部应用访问外网WAN口采用"按网段分流规则匹配出口"与"由系统自动分配出口"等效
-[ "$usage_mode" = "0" -a "$wan_access_port" = "2" ] && wan_access_port=5
+## 协议分流流量出口网络应用层协议绑定列表文件（文件路径、名称可自定义和修改）
+## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
+## 文件中协议项取值：0--第一WAN口；1--第二WAN口；>1--禁用。
+## 缺省为禁用（5）。
+l7_protocols_file="/jffs/scripts/lz/configs/lz_protocols.txt"
 
 ## 运行模式（双线路接通时）
 ## 脚本提供三种运行模式（模式1、模式2、模式3），针对路由器WAN口通道按需设置相应的"动态路由"、"静态路由"
@@ -386,15 +387,6 @@ policy_mode=5
 ## 由于应用配置的复杂性，不建议普通用户手工直接调整脚本配置中的"运行模式"参数。建议用户通过脚本的"动态
 ## 分流模式配置"命令、"静态分流模式配置"命令、"IPTV模式配置"命令让脚本自动配置和调整"运行模式"参数。
 
-## 动态分流模式下是否启用路由器主机内部应用访问外网按网段分流规则匹配出口（0--启用；非0--禁用）
-## 缺省为禁用（5）。
-localhost_nf_policy=5
-
-## 阻止网段分流时分流无效网络数据包（0--启用；非0--禁用）
-## 缺省为禁用（5）；一些网络应用会产生非正常状态网络数据包，若由此导致网络访问故障，请禁用此项。
-prevent_invalid_network_packets=5
-[ "$prevent_invalid_network_packets" = "0" ] && MATCH_STATE='-m state ! --state INVALID'
-
 ## 路由器硬件类型
 route_hardware_type=$( uname -m )
 
@@ -408,12 +400,12 @@ route_local_ip=
 route_local_ip_mask=
 
 ## 线路1接口设备标识
-route_wan0_ifname="$( nvram get wan0_pppoe_ifname | grep -Eo 'ppp[0-9]*' )"
-[ -z "$route_wan0_ifname" ] && route_wan0_ifname="$( nvram get wan0_ifname | grep -Eo 'eth[0-9]*|vlan[0-9]*' )"
+route_wan0_ifname="$( nvram get wan0_pppoe_ifname | grep -Eo 'ppp[0-9]*' | awk 'NR==1 {print $1}' )"
+[ -z "$route_wan0_ifname" ] && route_wan0_ifname="$( nvram get wan0_ifname | grep -Eo 'eth[0-9]*|vlan[0-9]*' | awk 'NR==1 {print $1}' )"
 
 ## 线路2接口设备标识
-route_wan1_ifname="$( nvram get wan1_pppoe_ifname | grep -Eo 'ppp[0-9]*' )"
-[ -z "$route_wan1_ifname" ] && route_wan1_ifname="$( nvram get wan1_ifname | grep -Eo 'eth[0-9]*|vlan[0-9]*' )"
+route_wan1_ifname="$( nvram get wan1_pppoe_ifname | grep -Eo 'ppp[0-9]*' | awk 'NR==1 {print $1}' )"
+[ -z "$route_wan1_ifname" ] && route_wan1_ifname="$( nvram get wan1_ifname | grep -Eo 'eth[0-9]*|vlan[0-9]*' | awk 'NR==1 {print $1}' )"
 
 ## 系统负载均衡防火墙过滤规则链是否存在（384固件使用）
 balance_chain_existing=0

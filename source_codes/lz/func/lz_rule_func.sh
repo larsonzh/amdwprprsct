@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v3.6.8
+# lz_rule_func.sh v3.6.9
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 函数功能定义
@@ -523,34 +523,6 @@ lz_get_route_info() {
 			echo $(date) [$$]: LZ Route Policy Mode: Mode 3 >> /tmp/syslog.log
 			echo $(date) [$$]: "   Route Policy Mode: Mode 3"
 		fi
-<<EOF_DDNS
-		if [ "$usage_mode" = "0" ]; then
-			if [ "$wan_access_port" = "0" ]; then
-				echo $(date) [$$]: LZ Route Host DDNS Export: Primary WAN >> /tmp/syslog.log
-				echo $(date) [$$]: "   Route Host DDNS Export: Primary WAN"
-			elif [ "$wan_access_port" = "1" ]; then
-				echo $(date) [$$]: LZ Route Host DDNS Export: Secondary WAN >> /tmp/syslog.log
-				echo $(date) [$$]: "   Route Host DDNS Export: Secondary WAN"
-			else
-				echo $(date) [$$]: LZ Route Host DDNS Export: Load Balancing >> /tmp/syslog.log
-				echo $(date) [$$]: "   Route Host DDNS Export: Load Balancing"
-			fi
-		else
-			if [ "$wan_access_port" = "0" ]; then
-				echo $(date) [$$]: LZ Route Host DDNS Export: Primary WAN >> /tmp/syslog.log
-				echo $(date) [$$]: "   Route Host DDNS Export: Primary WAN"
-			elif [ "$wan_access_port" = "1" ]; then
-				echo $(date) [$$]: LZ Route Host DDNS Export: Secondary WAN >> /tmp/syslog.log
-				echo $(date) [$$]: "   Route Host DDNS Export: Secondary WAN"
-			elif [ "$wan_access_port" = "2" ]; then
-				echo $(date) [$$]: LZ Route Host DDNS Export: by Policy >> /tmp/syslog.log
-				echo $(date) [$$]: "   Route Host DDNS Export: by Policy"
-			else
-				echo $(date) [$$]: LZ Route Host DDNS Export: Load Balancing >> /tmp/syslog.log
-				echo $(date) [$$]: "   Route Host DDNS Export: Load Balancing"
-			fi
-		fi
-EOF_DDNS
 		if [ "$wan_access_port" = "1" ]; then
 			echo $(date) [$$]: LZ Route Host Access Port: Secondary WAN >> /tmp/syslog.log
 			echo $(date) [$$]: "   Route Host Access Port: Secondary WAN"
@@ -558,21 +530,6 @@ EOF_DDNS
 			echo $(date) [$$]: LZ Route Host Access Port: Primary WAN >> /tmp/syslog.log
 			echo $(date) [$$]: "   Route Host Access Port: Primary WAN"
 		fi
-<<EOF_ACCESS
-		if [ "$usage_mode" = "0" ]; then
-			echo $(date) [$$]: "   Route Host App Export: Load Balancing"
-		else
-			if [ "$wan_access_port" = "0" ]; then
-				echo $(date) [$$]: "   Route Host App Export: Primary WAN"
-			elif [ "$wan_access_port" = "1" ]; then
-				echo $(date) [$$]: "   Route Host App Export: Secondary WAN"
-			elif [ "$wan_access_port" = "2" ]; then
-				echo $(date) [$$]: "   Route Host App Export: by Policy"
-			else
-				echo $(date) [$$]: "   Route Host App Export: Load Balancing"
-			fi
-		fi
-EOF_ACCESS
 		if [ "$route_cache" = "0" ]; then
 			echo $(date) [$$]: LZ Route Cache: Enable >> /tmp/syslog.log
 			echo $(date) [$$]: "   Route Cache: Enable"
@@ -615,32 +572,8 @@ lz_sys_load_balance_control() {
 	if [ -n "$( iptables -t mangle -L PREROUTING 2> /dev/null | grep balance | sed -n 1p )" ]; then
 		balance_chain_existing=1
 		## 删除路由前mangle表balance负载均衡规则链中脚本曾经插入的规则（避免系统原生负载均衡影响分流）
-		## 模式3
-		#iptables -t mangle -I balance -m set $MATCH_SET $LOCAL_IP_SET src -m set $MATCH_SET $NO_BALANCE_DST_IP_SET dst -j RETURN > /dev/null 2>&1
-# 新增	iptables -t mangle -I balance -m connmark --mark $DEST_PORT_FWMARK_1/$DEST_PORT_FWMARK_1 -j RETURN > /dev/null 2>&1
-# 新增	iptables -t mangle -I balance -m connmark --mark $HOST_DEST_PORT_FWMARK_1/$HOST_DEST_PORT_FWMARK_1 -j RETURN > /dev/null 2>&1
-# 新增	iptables -t mangle -I balance -m connmark --mark $DEST_PORT_FWMARK_0/$DEST_PORT_FWMARK_0 -j RETURN > /dev/null 2>&1
-# 新增	iptables -t mangle -I balance -m connmark --mark $HOST_DEST_PORT_FWMARK_0/$HOST_DEST_PORT_FWMARK_0 -j RETURN > /dev/null 2>&1
-# 新增	iptables -t mangle -I balance -m connmark --mark $PROTOCOLS_FWMARK_1/$PROTOCOLS_FWMARK_1 -j RETURN > /dev/null 2>&1
-# 新增	iptables -t mangle -I balance -m connmark --mark $HOST_PROTOCOLS_FWMARK_1/$HOST_PROTOCOLS_FWMARK_1 -j RETURN > /dev/null 2>&1
-# 新增	iptables -t mangle -I balance -m connmark --mark $PROTOCOLS_FWMARK_0/$PROTOCOLS_FWMARK_0 -j RETURN > /dev/null 2>&1
-# 新增	iptables -t mangle -I balance -m connmark --mark $HOST_PROTOCOLS_FWMARK_0/$HOST_PROTOCOLS_FWMARK_0 -j RETURN > /dev/null 2>&1
-# 已删	#iptables -t mangle -I balance -m set $MATCH_SET $LOCAL_IP_SET src -m set $MATCH_SET $ISPIP_SET_1 dst -j RETURN > /dev/null 2>&1
-# 新增	#iptables -t mangle -I balance -m connmark --mark $FWMARK1/$FWMARK1 -j RETURN > /dev/null 2>&1
-# 新增	#iptables -t mangle -I balance -m connmark --mark $HOST_FWMARK1/$HOST_FWMARK1 -j RETURN > /dev/null 2>&1
-# 已删	#iptables -t mangle -I balance -m set $MATCH_SET $LOCAL_IP_SET src -m set $MATCH_SET $ISPIP_SET_0 dst -j RETURN > /dev/null 2>&1
-# 新增	#iptables -t mangle -I balance -m connmark --mark $FWMARK0/$FWMARK0 -j RETURN > /dev/null 2>&1
-# 新增	#iptables -t mangle -I balance -m connmark --mark $HOST_FWMARK0/$HOST_FWMARK0 -j RETURN > /dev/null 2>&1
-# 已删	#iptables -t mangle -I balance -m set $MATCH_SET $LOCAL_IP_SET src -m set ! $MATCH_SET $ISPIP_ALL_CN_SET dst -j RETURN > /dev/null 2>&1
-# 新增	#iptables -t mangle -I balance -m connmark --mark $FOREIGN_FWMARK/$FOREIGN_FWMARK -j RETURN > /dev/null 2>&1
-# 新增	#iptables -t mangle -I balance -m connmark --mark $HOST_FOREIGN_FWMARK/$HOST_FOREIGN_FWMARK -j RETURN > /dev/null 2>&1
-		#iptables -t mangle -I balance -m set $MATCH_SET $BALANCE_IP_SET src -j RETURN > /dev/null 2>&1
-		## 模式1、模式2
-		#iptables -t mangle -I balance -m set $MATCH_SET $LOCAL_IP_SET src -m set $MATCH_SET $BALANCE_DST_IP_SET dst -j MARK --set-xmark $BALANCE_JUMP_FWMARK/$FWMARK_MASK > /dev/null 2>&1
-		#iptables -t mangle -I balance -m set $MATCH_SET $LOCAL_IP_SET src -m set ! $MATCH_SET $ISPIP_ALL_CN_SET dst -j MARK --set-xmark $BALANCE_JUMP_FWMARK/$FWMARK_MASK > /dev/null 2>&1
-		#iptables -t mangle -I balance -m mark ! --mark $BALANCE_JUMP_FWMARK/$BALANCE_JUMP_FWMARK -m set $MATCH_SET $BALANCE_IP_SET src -j RETURN > /dev/null 2>&1
 		local local_number="$( iptables -t mangle -L balance -v -n --line-numbers 2> /dev/null \
-		| grep -E "$BALANCE_GUARD_IP_SET|$BALANCE_IP_SET|$LOCAL_IP_SET|$BALANCE_DST_IP_SET|$ISPIP_ALL_CN_SET|$NO_BALANCE_DST_IP_SET|$ISPIP_SET_0|$ISPIP_SET_1|lz_balace_ipsets|$FOREIGN_FWMARK/$FOREIGN_FWMARK|$HOST_FOREIGN_FWMARK/$HOST_FOREIGN_FWMARK|$FWMARK0/$FWMARK0|$HOST_FWMARK0/$HOST_FWMARK0|$FWMARK1/$FWMARK1|$HOST_FWMARK1/$HOST_FWMARK1|$BALANCE_JUMP_FWMARK/$BALANCE_JUMP_FWMARK|$BALANCE_JUMP_FWMARK/$FWMARK_MASK|$HOST_PROTOCOLS_FWMARK_0/$HOST_PROTOCOLS_FWMARK_0|$PROTOCOLS_FWMARK_0/$PROTOCOLS_FWMARK_0|$HOST_PROTOCOLS_FWMARK_1/$HOST_PROTOCOLS_FWMARK_1|$PROTOCOLS_FWMARK_1/$PROTOCOLS_FWMARK_1|$HOST_DEST_PORT_FWMARK_0/$HOST_DEST_PORT_FWMARK_0|$DEST_PORT_FWMARK_0/$DEST_PORT_FWMARK_0|$HOST_DEST_PORT_FWMARK_1/$HOST_DEST_PORT_FWMARK_1|$DEST_PORT_FWMARK_1/$DEST_PORT_FWMARK_1" \
+		| grep -E "$BALANCE_GUARD_IP_SET|$BALANCE_IP_SET|$LOCAL_IP_SET|$BALANCE_DST_IP_SET|$ISPIP_ALL_CN_SET|$NO_BALANCE_DST_IP_SET|$ISPIP_SET_0|$ISPIP_SET_1|lz_balace_ipsets|$FOREIGN_FWMARK/$FOREIGN_FWMARK|$HOST_FOREIGN_FWMARK/$HOST_FOREIGN_FWMARK|$FWMARK0/$FWMARK0|$HOST_FWMARK0/$HOST_FWMARK0|$FWMARK1/$FWMARK1|$HOST_FWMARK1/$HOST_FWMARK1|$BALANCE_JUMP_FWMARK/$BALANCE_JUMP_FWMARK|$BALANCE_JUMP_FWMARK/$FWMARK_MASK|$HOST_PROTOCOLS_FWMARK_0/$HOST_PROTOCOLS_FWMARK_0|$PROTOCOLS_FWMARK_0/$PROTOCOLS_FWMARK_0|$HOST_PROTOCOLS_FWMARK_1/$HOST_PROTOCOLS_FWMARK_1|$PROTOCOLS_FWMARK_1/$PROTOCOLS_FWMARK_1|$HOST_DEST_PORT_FWMARK_0/$HOST_DEST_PORT_FWMARK_0|$DEST_PORT_FWMARK_0/$DEST_PORT_FWMARK_0|$HOST_DEST_PORT_FWMARK_1/$HOST_DEST_PORT_FWMARK_1|$DEST_PORT_FWMARK_1/$DEST_PORT_FWMARK_1|$SRC_DST_FWMARK" \
 		| cut -d " " -f 1 | sort -nr )"
 		local local_item_no=
 		for local_item_no in $local_number
@@ -652,17 +585,17 @@ lz_sys_load_balance_control() {
 	## 调整策略规则路由数据库中负载均衡策略规则条目的优先级
 	## 仅对位于IP_RULE_PRIO_TOPEST--IP_RULE_PRIO范围之外的负载均衡策略规则条目进行优先级调整
 	## a.对固件系统中第一WAN口的负载均衡分流策略采取主动控制措施
-	local local_sys_load_balance_wan0_exist=$( ip rule show | grep -c "from all fwmark 0x80000000\/0xf0000000" )
+	local local_sys_load_balance_wan0_exist=$( ip rule show | grep -ci "from all fwmark 0x80000000\/0xf0000000" )
 	if [ $local_sys_load_balance_wan0_exist -gt 0 -o $balance_chain_existing = 1 ]; then
 		until [ $local_sys_load_balance_wan0_exist = 0 ]
 		do
-		#	ip rule show | grep "from all fwmark 0x80000000\/0xf0000000" | sed "s/^\(.*\)\:.*$/ip rule del prio \1/g" | \
+		#	ip rule show | grep -i "from all fwmark 0x80000000\/0xf0000000" | sed "s/^\(.*\)\:.*$/ip rule del prio \1/g" | \
 		#		awk '{system($0 " > \/dev\/null 2>\&1")}'
-		#	local_sys_load_balance_wan0_exist=$( ip rule show | grep -c "from all fwmark 0x80000000\/0xf0000000" )
-			ip rule show | grep "from all fwmark 0x80000000\/0xf0000000" | \
-				awk -F: '$1<"'"$IP_RULE_PRIO_TOPEST"'" || $1>"'"IP_RULE_PRIO"'" {print "ip rule del prio",$1}' | \
+		#	local_sys_load_balance_wan0_exist=$( ip rule show | grep -ci "from all fwmark 0x80000000\/0xf0000000" )
+			ip rule show | grep -i "from all fwmark 0x80000000\/0xf0000000" | \
+				awk -F: '$1<"'"$IP_RULE_PRIO_TOPEST"'" || $1>"'"$IP_RULE_PRIO"'" {print "ip rule del prio",$1}' | \
 				awk '{system($0 " > \/dev\/null 2>\&1")}'
-			local_sys_load_balance_wan0_exist=$( ip rule show | grep "from all fwmark 0x80000000\/0xf0000000" | awk -F: '$1<"'"$IP_RULE_PRIO_TOPEST"'" || $1>"'"IP_RULE_PRIO"'" {print $1}' | grep -c '^.*$' )
+			local_sys_load_balance_wan0_exist=$( ip rule show | grep -i "from all fwmark 0x80000000\/0xf0000000" | awk -F: '$1<"'"$IP_RULE_PRIO_TOPEST"'" || $1>"'"$IP_RULE_PRIO"'" {print $1}' | grep -c '^.*$' )
 		done
 		ip route flush cache > /dev/null 2>&1
 		## 不清除系统负载均衡策略中的分流功能，但降低其执行优先级，防止先于自定义分流规则执行
@@ -671,17 +604,17 @@ lz_sys_load_balance_control() {
 	fi
 
 	## b.对固件系统中第二WAN口的负载均衡分流策略采取主动控制措施
-	local local_sys_load_balance_wan1_exist=$( ip rule show | grep -c "from all fwmark 0x90000000\/0xf0000000" )
+	local local_sys_load_balance_wan1_exist=$( ip rule show | grep -ci "from all fwmark 0x90000000\/0xf0000000" )
 	if [ $local_sys_load_balance_wan1_exist -gt 0 -o $balance_chain_existing = 1 ]; then
 		until [ $local_sys_load_balance_wan1_exist = 0 ]
 		do
-		#	ip rule show | grep "from all fwmark 0x90000000\/0xf0000000" | sed "s/^\(.*\)\:.*$/ip rule del prio \1/g" | \
+		#	ip rule show | grep -i "from all fwmark 0x90000000\/0xf0000000" | sed "s/^\(.*\)\:.*$/ip rule del prio \1/g" | \
 		#		awk '{system($0 " > \/dev\/null 2>\&1")}'
-		#	local_sys_load_balance_wan1_exist=$( ip rule show | grep -c "from all fwmark 0x90000000\/0xf0000000" )
-			ip rule show | grep "from all fwmark 0x90000000\/0xf0000000" | \
-				awk -F: '$1<"'"$IP_RULE_PRIO_TOPEST"'" || $1>"'"IP_RULE_PRIO"'" {print "ip rule del prio",$1}' | \
+		#	local_sys_load_balance_wan1_exist=$( ip rule show | grep -ci "from all fwmark 0x90000000\/0xf0000000" )
+			ip rule show | grep -i "from all fwmark 0x90000000\/0xf0000000" | \
+				awk -F: '$1<"'"$IP_RULE_PRIO_TOPEST"'" || $1>"'"$IP_RULE_PRIO"'" {print "ip rule del prio",$1}' | \
 				awk '{system($0 " > \/dev\/null 2>\&1")}'
-			local_sys_load_balance_wan1_exist=$( ip rule show | grep "from all fwmark 0x90000000\/0xf0000000" | awk -F: '$1<"'"$IP_RULE_PRIO_TOPEST"'" || $1>"'"IP_RULE_PRIO"'" {print $1}' | grep -c '^.*$' )
+			local_sys_load_balance_wan1_exist=$( ip rule show | grep -i "from all fwmark 0x90000000\/0xf0000000" | awk -F: '$1<"'"$IP_RULE_PRIO_TOPEST"'" || $1>"'"$IP_RULE_PRIO"'" {print $1}' | grep -c '^.*$' )
 		done
 		ip route flush cache > /dev/null 2>&1
 		## 不清除系统负载均衡策略中的分流功能，但降低其执行优先级，防止先于自定义分流规则执行
@@ -696,16 +629,6 @@ lz_sys_load_balance_control() {
 ## 返回值：无
 lz_load_ipset_module() {
 	[ "$1" = "stop" -o "$1" = "STOP" ] && return
-<<EOF
-	## S大的GT-AC5300_384_21140官改固件提供了自己的支持，不需要加载。
-	## 如有老版本出现兼容性问题，需要加载，可去掉注释符使用
-	modprobe xt_set > /dev/null 2>&1
-	lsmod | grep "xt_set" > /dev/null 2>&1 || \
-	for module in ip_set ip_set_hash_net ip_set_hash_ip xt_set
-	do
-		insmod $module > /dev/null 2>&1
-	done
-EOF
 	local xt=$( lsmod | grep xt_set ) > /dev/null 2>&1
 	local OS=$( uname -r )
 	if [ -f /lib/modules/${OS}/kernel/net/netfilter/xt_set.ko ] && [ -z "$xt" ]; then
@@ -847,6 +770,25 @@ lz_delete_iptables_custom_forward_chain() {
 	iptables -X "$1" > /dev/null 2>&1
 }
 
+## 删除路由前mangle表自定义规则子链函数
+## 输入项：
+##     $1--自定义规则链名称
+##     $2--自定义规则子链名称
+## 返回值：无
+lz_delete_iptables_custom_prerouting_sub_chain() {
+	[ -z "$1" ] && return
+	local local_custom_number="$( iptables -t mangle -L PREROUTING -v -n --line-numbers 2> /dev/null | grep "$1" | cut -d " " -f 1 | sort -nr )"
+	local local_number=
+	if [ -n "$local_custom_number" -a -n "$2" ]; then
+		for local_number in $( iptables -t mangle -L "$1" -v -n --line-numbers 2> /dev/null | grep "$2" | cut -d " " -f 1 | sort -nr )
+		do
+			iptables -t mangle -D "$1" $local_number > /dev/null 2>&1
+		done
+		iptables -t mangle -F "$2" > /dev/null 2>&1
+		iptables -t mangle -X "$2" > /dev/null 2>&1
+	fi
+}
+
 ## 删除路由前mangle表自定义规则链函数
 ## 输入项：
 ##     $1--自定义规则链名称
@@ -915,10 +857,10 @@ lz_clear_iptables_fwmark() {
 	## 清理标记 FWMARK1 数据包的防火墙过滤规则
 	lz_delete_iptables_fwmark "$FWMARK1"
 
-	## 清理标记 CLIENT_SRC_FWMARK_0 数据包的防火墙过滤规则
+	## 清理标记 CLIENT_SRC_FWMARK_0 数据包的防火墙过滤规则（保留，用于兼容v3.6.8及之前版本）
 	lz_delete_iptables_fwmark "$CLIENT_SRC_FWMARK_0"
 
-	## 清理标记 CLIENT_SRC_FWMARK_1 数据包的防火墙过滤规则
+	## 清理标记 CLIENT_SRC_FWMARK_1 数据包的防火墙过滤规则（保留，用于兼容v3.6.8及之前版本）
 	lz_delete_iptables_fwmark "$CLIENT_SRC_FWMARK_1"
 
 	## 清理标记 PROTOCOLS_FWMARK_0 数据包的防火墙过滤规则
@@ -933,91 +875,11 @@ lz_clear_iptables_fwmark() {
 	## 清理标记 DEST_PORT_FWMARK_1 数据包的防火墙过滤规则
 	lz_delete_iptables_fwmark "$DEST_PORT_FWMARK_1"
 
-	## 清理标记 HIGH_CLIENT_SRC_FWMARK_0 数据包的防火墙过滤规则
+	## 清理标记 HIGH_CLIENT_SRC_FWMARK_0 数据包的防火墙过滤规则（保留，用于兼容v3.6.8及之前版本）
 	lz_delete_iptables_fwmark "$HIGH_CLIENT_SRC_FWMARK_0"
 
-	## 清理标记 HIGH_CLIENT_SRC_FWMARK_1 数据包的防火墙过滤规则
+	## 清理标记 HIGH_CLIENT_SRC_FWMARK_1 数据包的防火墙过滤规则（保留，用于兼容v3.6.8及之前版本）
 	lz_delete_iptables_fwmark "$HIGH_CLIENT_SRC_FWMARK_1"
-}
-
-## 检测第一WAN口是否启用NetFilter网络防火墙地址过滤匹配标记功能函数
-## 输入项：
-##     全局常量及变量
-## 返回值：
-##     0--已启用
-##     1--未启用
-lz_get_wan0_netfilter_addr_mark_used() {
-	## 获取指定数据包标记的防火墙过滤规则条目数量
-	## 输入项：
-	##     $1--报文数据包标记
-	##     $2--防火墙规则链名称
-	## 返回值：
-	##     条目数
-	if [ -n "$( iptables -t mangle -L PREROUTING 2> /dev/null | grep "$CUSTOM_PREROUTING_CHAIN" | sed -n 1p )" ]; then
-		if [ -n "$( iptables -t mangle -L $CUSTOM_PREROUTING_CHAIN 2> /dev/null | grep "$CUSTOM_PREROUTING_CONNMARK_CHAIN" | sed -n 1p )" ]; then
-			if [ "$isp_wan_port_0" = "0" ]; then
-				[ "$( lz_get_iptables_fwmark_item_total_number "$FOREIGN_FWMARK" "$CUSTOM_PREROUTING_CONNMARK_CHAIN" )" -gt "0" ] && return 0
-			fi
-			[ "$( lz_get_iptables_fwmark_item_total_number "$FWMARK0" "$CUSTOM_PREROUTING_CONNMARK_CHAIN" )" -gt "0" ] && return 0
-			[ "$( lz_get_iptables_fwmark_item_total_number "$CLIENT_SRC_FWMARK_0" "$CUSTOM_PREROUTING_CONNMARK_CHAIN" )" -gt "0" ] && return 0
-			[ "$( lz_get_iptables_fwmark_item_total_number "$PROTOCOLS_FWMARK_0" "$CUSTOM_PREROUTING_CONNMARK_CHAIN" )" -gt "0" ] && return 0
-			[ "$( lz_get_iptables_fwmark_item_total_number "$DEST_PORT_FWMARK_0" "$CUSTOM_PREROUTING_CONNMARK_CHAIN" )" -gt "0" ] && return 0
-			[ "$( lz_get_iptables_fwmark_item_total_number "$HIGH_CLIENT_SRC_FWMARK_0" "$CUSTOM_PREROUTING_CONNMARK_CHAIN" )" -gt "0" ] && return 0
-		fi
-	fi
-
-	if [ -n "$( iptables -t mangle -L OUTPUT 2> /dev/null | grep "$CUSTOM_OUTPUT_CHAIN" | sed -n 1p )" ]; then
-		if [ -n "$( iptables -t mangle -L $CUSTOM_OUTPUT_CHAIN 2> /dev/null | grep "$CUSTOM_OUTPUT_CONNMARK_CHAIN" | sed -n 1p )" ]; then
-			if [ "$isp_wan_port_0" = "0" ]; then
-				[ "$( lz_get_iptables_fwmark_item_total_number "$HOST_FOREIGN_FWMARK" "$CUSTOM_OUTPUT_CONNMARK_CHAIN" )" -gt "0" ] && return 0
-			fi
-			[ "$( lz_get_iptables_fwmark_item_total_number "$HOST_FWMARK0" "$CUSTOM_OUTPUT_CONNMARK_CHAIN" )" -gt "0" ] && return 0
-			[ "$( lz_get_iptables_fwmark_item_total_number "$HOST_PROTOCOLS_FWMARK_0" "$CUSTOM_OUTPUT_CONNMARK_CHAIN" )" -gt "0" ] && return 0
-			[ "$( lz_get_iptables_fwmark_item_total_number "$HOST_DEST_PORT_FWMARK_0" "$CUSTOM_OUTPUT_CONNMARK_CHAIN" )" -gt "0" ] && return 0
-		fi
-	fi
-
-	return 1
-}
-
-## 检测第二WAN口是否启用NetFilter网络防火墙地址过滤匹配标记功能函数
-## 输入项：
-##     全局常量及变量
-## 返回值：
-##     0--已启用
-##     1--未启用
-lz_get_wan1_netfilter_addr_mark_used() {
-	## 获取指定数据包标记的防火墙过滤规则条目数量
-	## 输入项：
-	##     $1--报文数据包标记
-	##     $2--防火墙规则链名称
-	## 返回值：
-	##     条目数
-	if [ -n "$( iptables -t mangle -L PREROUTING 2> /dev/null | grep "$CUSTOM_PREROUTING_CHAIN" | sed -n 1p )" ]; then
-		if [ -n "$( iptables -t mangle -L $CUSTOM_PREROUTING_CHAIN 2> /dev/null | grep "$CUSTOM_PREROUTING_CONNMARK_CHAIN" | sed -n 1p )" ]; then
-			if [ "$isp_wan_port_0" = "1" ]; then
-				[ "$( lz_get_iptables_fwmark_item_total_number "$FOREIGN_FWMARK" "$CUSTOM_PREROUTING_CONNMARK_CHAIN" )" -gt "0" ] && return 0
-			fi
-			[ "$( lz_get_iptables_fwmark_item_total_number "$FWMARK1" "$CUSTOM_PREROUTING_CONNMARK_CHAIN" )" -gt "0" ] && return 0
-			[ "$( lz_get_iptables_fwmark_item_total_number "$CLIENT_SRC_FWMARK_1" "$CUSTOM_PREROUTING_CONNMARK_CHAIN" )" -gt "0" ] && return 0
-			[ "$( lz_get_iptables_fwmark_item_total_number "$PROTOCOLS_FWMARK_1" "$CUSTOM_PREROUTING_CONNMARK_CHAIN" )" -gt "0" ] && return 0
-			[ "$( lz_get_iptables_fwmark_item_total_number "$DEST_PORT_FWMARK_1" "$CUSTOM_PREROUTING_CONNMARK_CHAIN" )" -gt "0" ] && return 0
-			[ "$( lz_get_iptables_fwmark_item_total_number "$HIGH_CLIENT_SRC_FWMARK_1" "$CUSTOM_PREROUTING_CONNMARK_CHAIN" )" -gt "0" ] && return 0
-		fi
-	fi
-
-	if [ -n "$( iptables -t mangle -L OUTPUT 2> /dev/null | grep "$CUSTOM_OUTPUT_CHAIN" | sed -n 1p )" ]; then
-		if [ -n "$( iptables -t mangle -L $CUSTOM_OUTPUT_CHAIN 2> /dev/null | grep "$CUSTOM_OUTPUT_CONNMARK_CHAIN" | sed -n 1p )" ]; then 
-			if [ "$isp_wan_port_0" = "1" ]; then
-				[ "$( lz_get_iptables_fwmark_item_total_number "$HOST_FOREIGN_FWMARK" "$CUSTOM_OUTPUT_CONNMARK_CHAIN" )" -gt "0" ] && return 0
-			fi
-			[ "$( lz_get_iptables_fwmark_item_total_number "$HOST_FWMARK1" "$CUSTOM_OUTPUT_CONNMARK_CHAIN" )" -gt "0" ] && return 0
-			[ "$( lz_get_iptables_fwmark_item_total_number "$HOST_PROTOCOLS_FWMARK_1" "$CUSTOM_OUTPUT_CONNMARK_CHAIN" )" -gt "0" ] && return 0
-			[ "$( lz_get_iptables_fwmark_item_total_number "$HOST_DEST_PORT_FWMARK_1" "$CUSTOM_OUTPUT_CONNMARK_CHAIN" )" -gt "0" ] && return 0
-		fi
-	fi
-
-	return 1
 }
 
 ## 检测是否启用NetFilter网络防火墙地址过滤匹配标记功能函数
@@ -1026,68 +888,18 @@ lz_get_wan1_netfilter_addr_mark_used() {
 ## 返回值：
 ##     0--已启用
 ##     1--未启用
-lz_get_netfilter_addr_mark_used() {
-	## 检测第一WAN口是否启用NetFilter网络防火墙地址过滤匹配标记功能
-	## 输入项：
-	##     全局常量及变量
-	## 返回值：
-	##     0--已启用
-	##     1--未启用
-	lz_get_wan0_netfilter_addr_mark_used && return 0
-
-	## 检测第二WAN口是否启用NetFilter网络防火墙地址过滤匹配标记功能
-	## 输入项：
-	##     全局常量及变量
-	## 返回值：
-	##     0--已启用
-	##     1--未启用
-	lz_get_wan1_netfilter_addr_mark_used && return 0
-
-	## 检测国外运营商网段出口由系统负载均衡控制时是否启用NetFilter网络防火墙地址过滤匹配标记功能
-	## 获取指定数据包标记的防火墙过滤规则条目数量
-	## 输入项：
-	##     $1--报文数据包标记
-	##     $2--防火墙规则链名称
-	## 返回值：
-	##     条目数
-	if [ "$isp_wan_port_0" != "0" -a "$isp_wan_port_0" != "1" ]; then
-		if [ -n "$( iptables -t mangle -L PREROUTING 2> /dev/null | grep "$CUSTOM_PREROUTING_CHAIN" | sed -n 1p )" ]; then
-			if [ -n "$( iptables -t mangle -L $CUSTOM_PREROUTING_CHAIN 2> /dev/null | grep "$CUSTOM_PREROUTING_CONNMARK_CHAIN" | sed -n 1p )" ]; then
-				[ "$( lz_get_iptables_fwmark_item_total_number "$FOREIGN_FWMARK" "$CUSTOM_PREROUTING_CONNMARK_CHAIN" )" -gt "0" ] && \
-					return 0
-			fi
+lz_get_netfilter_used() {
+	if [ -n "$( iptables -t mangle -L PREROUTING 2> /dev/null | grep "$CUSTOM_PREROUTING_CHAIN" )" ]; then
+		if [ -n "$( iptables -t mangle -L $CUSTOM_PREROUTING_CHAIN 2> /dev/null | grep "$CUSTOM_PREROUTING_CONNMARK_CHAIN" )" ]; then
+			[ "$( lz_get_iptables_fwmark_item_total_number "$FOREIGN_FWMARK" "$CUSTOM_PREROUTING_CONNMARK_CHAIN" )" -gt "0" ] && return 0
+			[ "$( lz_get_iptables_fwmark_item_total_number "$FWMARK0" "$CUSTOM_PREROUTING_CONNMARK_CHAIN" )" -gt "0" ] && return 0
+			[ "$( lz_get_iptables_fwmark_item_total_number "$PROTOCOLS_FWMARK_0" "$CUSTOM_PREROUTING_CONNMARK_CHAIN" )" -gt "0" ] && return 0
+			[ "$( lz_get_iptables_fwmark_item_total_number "$DEST_PORT_FWMARK_0" "$CUSTOM_PREROUTING_CONNMARK_CHAIN" )" -gt "0" ] && return 0
+			[ "$( lz_get_iptables_fwmark_item_total_number "$FWMARK1" "$CUSTOM_PREROUTING_CONNMARK_CHAIN" )" -gt "0" ] && return 0
+			[ "$( lz_get_iptables_fwmark_item_total_number "$PROTOCOLS_FWMARK_1" "$CUSTOM_PREROUTING_CONNMARK_CHAIN" )" -gt "0" ] && return 0
+			[ "$( lz_get_iptables_fwmark_item_total_number "$DEST_PORT_FWMARK_1" "$CUSTOM_PREROUTING_CONNMARK_CHAIN" )" -gt "0" ] && return 0
 		fi
 	fi
-
-	return 1
-}
-
-## 检测是否启用NetFilter网络防火墙过滤功能函数
-## 输入项：
-##     全局常量及变量
-## 返回值：
-##     0--已启用
-##     1--未启用
-lz_get_netfilter_used() {
-	## 检测是否启用NetFilter网络防火墙地址过滤匹配标记功能
-	## 输入项：
-	##     全局常量及变量
-	## 返回值：
-	##     0--已启用
-	##     1--未启用
-	lz_get_netfilter_addr_mark_used && return 0
-
-	if [ -n "$( iptables -t mangle -L PREROUTING 2> /dev/null | grep "$CUSTOM_PREROUTING_CHAIN" | sed -n 1p )" ]; then
-		[ -n "$( iptables -t mangle -L $CUSTOM_PREROUTING_CHAIN 2> /dev/null | grep "$CUSTOM_PREROUTING_CONNMARK_CHAIN" | sed -n 1p )" ] && \
-			return 0
-	fi
-
-	if [ -n "$( iptables -t mangle -L OUTPUT 2> /dev/null | grep "$CUSTOM_OUTPUT_CHAIN" | sed -n 1p )" ]; then
-		[ -n "$( iptables -t mangle -L $CUSTOM_OUTPUT_CHAIN 2> /dev/null | grep "$CUSTOM_OUTPUT_CONNMARK_CHAIN" | sed -n 1p )" ] && \
-			return 0
-	fi
-
-	[ -n "$( iptables -L FORWARD 2> /dev/null | grep "$CUSTOM_FORWARD_CHAIN" | sed -n 1p )" ] && return 0
 
 	return 1
 }
@@ -1106,24 +918,16 @@ lz_destroy_ipset() {
 	## 第二WAN口国内网段数据集
 	ipset -q flush $ISPIP_SET_1 && ipset -q destroy $ISPIP_SET_1
 
-	## 用户自定义网址/网段数据集-1
-	## 保留，用于兼容v2.8.4及之前老版本，该网段分流已动态合并至ISP网段分流中
-	ipset -q flush $ISPIP_CUSTOM_SET_1 && ipset -q destroy $ISPIP_CUSTOM_SET_1
-
-	## 用户自定义网址/网段数据集-2
-	## 保留，用于兼容v2.8.4及之前老版本，该网段分流已动态合并至ISP网段分流中
-	ipset -q flush $ISPIP_CUSTOM_SET_2 && ipset -q destroy $ISPIP_CUSTOM_SET_2
-
-	## 第一WAN口客户端及源网址/网段绑定列表数据集
+	## 第一WAN口客户端及源网址/网段绑定列表数据集（保留，用于兼容v3.6.8及之前版本）
 	ipset -q flush $CLIENT_SRC_SET_0 && ipset -q destroy $CLIENT_SRC_SET_0
 
-	## 第二WAN口客户端及源网址/网段绑定列表数据集
+	## 第二WAN口客户端及源网址/网段绑定列表数据集（保留，用于兼容v3.6.8及之前版本）
 	ipset -q flush $CLIENT_SRC_SET_1 && ipset -q destroy $CLIENT_SRC_SET_1
 
-	## 第一WAN口客户端及源网址/网段高优先级绑定列表数据集
+	## 第一WAN口客户端及源网址/网段高优先级绑定列表数据集（保留，用于兼容v3.6.8及之前版本）
 	ipset -q flush $HIGH_CLIENT_SRC_SET_0 && ipset -q destroy $HIGH_CLIENT_SRC_SET_0
 
-	## 第二WAN口客户端及源网址/网段高优先级绑定列表数据集
+	## 第二WAN口客户端及源网址/网段高优先级绑定列表数据集（保留，用于兼容v3.6.8及之前版本）
 	ipset -q flush $HIGH_CLIENT_SRC_SET_1 && ipset -q destroy $HIGH_CLIENT_SRC_SET_1
 
 	## 本地内网网址/网段数据集
@@ -1236,8 +1040,7 @@ lz_set_hnd_bcmmcast_if() {
 ##     全局常量
 ## 返回值：无
 lz_clear_ss_start_command() {
-	[ -f ${PATH_SS_PS}/${SS_INTERFACE_FILENAME} ] && \
-		rm ${PATH_SS_PS}/${SS_INTERFACE_FILENAME} > /dev/null 2>&1
+	rm ${PATH_SS_PS}/${SS_INTERFACE_FILENAME} > /dev/null 2>&1
 }
 
 ## 数据清理函数
@@ -1561,12 +1364,12 @@ lz_create_firewall_start_command() {
 EOF
 	fi
 
-	local local_write_scripts=$( cat ${PATH_BOOTLOADER}/${BOOTLOADER_NAME} | grep -m 1 '.' | sed -e 's/^[ ]*//g' -e 's/[ ]*$//g' | grep "^#!/bin/sh$" )
+	local local_write_scripts=$( grep -m 1 '.' ${PATH_BOOTLOADER}/${BOOTLOADER_NAME} | sed -e 's/^[ ]*//g' -e 's/[ ]*$//g' | grep "^#!/bin/sh$" )
 	if [ -z "$local_write_scripts" ]; then
 		sed -i '1i #!/bin/sh' ${PATH_BOOTLOADER}/${BOOTLOADER_NAME} > /dev/null 2>&1
 	fi
 
-	local_write_scripts=$( cat ${PATH_BOOTLOADER}/${BOOTLOADER_NAME} | grep "${PATH_LZ}/${PROJECT_FILENAME}" )
+	local_write_scripts=$( grep "${PATH_LZ}/${PROJECT_FILENAME}" ${PATH_BOOTLOADER}/${BOOTLOADER_NAME} )
 	if [ -z "$local_write_scripts" ]; then
 		sed -i "/"${PROJECT_FILENAME}"/d" ${PATH_BOOTLOADER}/${BOOTLOADER_NAME} > /dev/null 2>&1
 		sed -i "\$a "${PATH_LZ}/${PROJECT_FILENAME}"" ${PATH_BOOTLOADER}/${BOOTLOADER_NAME} > /dev/null 2>&1
@@ -2357,32 +2160,46 @@ lz_get_ipv4_defined_src_to_dst_data_file_item_total() {
 	} || echo "0"
 }
 
-## 加载已明确定义源网址/网段至目标网址/网段列表条目数据至禁止数据标记的防火墙规则函数
+## 加载已明确定义源网址/网段至目标网址/网段列表条目数据至路由前mangle表自定义链防火墙规则数据标记函数
 ## 输入项：
 ##     $1--全路径网段数据文件名
 ##     $2--路由前mangle表自定义链名称
-##     $3--0:不效验文件格式，非0：效验文件格式
+##     $3--报文数据包标记
+##     全局常量
 ## 返回值：
-##     网址/网段数据集--全局变量
-lz_add_src_to_dst_unmark_netfilter() {
-	[ ! -f "$1" -o -z "$2" ] && return
-	if [ "$3" = "0" ]; then
-		sed -e '/^$/d' \
-		-e "s/\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}\)[^\.^0-9].*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}\)/iptables -t mangle -I "$2" -s \1 -d \4 -j RETURN/g" "$1" | \
-		awk '{system($0 " > \/dev\/null 2>\&1")}'
-	else
-		sed -e 's/\(^[^#]*\)[#].*$/\1/g' -e '/^$/d' -e 's/LZ/  /g' -e 's/ip/  /g' \
-		-e 's/\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}\)/LZ\1LZ/g' \
-		-e 's/^.*\(LZ.*LZ\).*\(LZ.*LZ\).*$/\1\2/' \
-		-e '/^[^L][^Z]/d' -e '/[^L][^Z]$/d' -e '/^.\{0,21\}$/d' \
-		-e '/^LZ\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}LZ$/d' \
-		-e '/[3-9][0-9][0-9]/d' -e '/[2][6-9][0-9]/d' -e '/[2][5][6-9]/d' -e '/[\/][4-9][0-9]LZ/d' \
-		-e '/[\/][3][3-9]LZ/d' -e '/[0][\.][0][\.][0][\.][0][\/][0]/d' \
-		-e "s/^LZ\(.*\)LZLZ\(.*\)LZ$/iptables -t mangle -I "$2" -s \1 -d \2 -j RETURN/g" \
-		-e '/^[^i]/d' \
-		-e '/^[i][^p]/d' "$1" | \
-		awk '{system($0 " > \/dev\/null 2>\&1")}'
-	fi
+##     路由前mangle表自定义链防火墙规则
+lz_add_src_to_dst_prerouting_mark() {
+	[ ! -f "$1" -o -z "$2" -o -z "$3" ] && return
+	sed -e 's/\(^[^#]*\)[#].*$/\1/g' -e '/^$/d' -e 's/LZ/  /g' -e 's/ip/  /g' \
+	-e 's/\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}\)/LZ\1LZ/g' \
+	-e 's/^.*\(LZ.*LZ\).*\(LZ.*LZ\).*$/\1\2/' \
+	-e '/^[^L][^Z]/d' -e '/[^L][^Z]$/d' -e '/^.\{0,21\}$/d' \
+	-e '/^LZ\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}LZ$/d' \
+	-e '/[3-9][0-9][0-9]/d' -e '/[2][6-9][0-9]/d' -e '/[2][5][6-9]/d' -e '/[\/][4-9][0-9]LZ/d' \
+	-e '/[\/][3][3-9]LZ/d' -e '/[0][\.][0][\.][0][\.][0][\/][0]/d' \
+	-e "s/^LZ\(.*\)LZLZ\(.*\)LZ$/iptables -t mangle -I "$2" -m state --state NEW -s \1 -d \2 -j CONNMARK --set-xmark "$3"\/"$FWMARK_MASK"/g" \
+	-e '/^[^i]/d' \
+	-e '/^[i][^p]/d' "$1" | \
+	awk '{system($0 " > \/dev\/null 2>\&1")}'
+}
+
+## 加载已明确定义源网址/网段至目标网址/网段列表条目数据至路由内输出mangle表自定义链防火墙规则数据标记函数
+## 输入项：
+##     $1--内输出mangle表自定义链名称
+##     $2--报文数据包标记
+##     全局常量
+## 返回值：
+##     路由内输出mangle表自定义链防火墙规则
+lz_add_src_to_dst_output_mark() {
+	[ -z "$1" -o -z "$2" ] && return
+	local local_ifname="$( nvram get wan1_ifname | grep -Eo 'eth[0-9]*|vlan[0-9]*' | awk 'NR==1 {print $1}' )"
+	[ -n "$local_ifname" ] && iptables -t mangle -I $1 -o $local_ifname -m connmark --mark $2/$2 -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
+	local_ifname="$( nvram get wan1_pppoe_ifname | grep -Eo 'ppp[0-9]*' | awk 'NR==1 {print $1}' )"
+	[ -n "$local_ifname" ] && iptables -t mangle -I $1 -o $local_ifname -m connmark --mark $2/$2 -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
+	local_ifname="$( nvram get wan0_ifname | grep -Eo 'eth[0-9]*|vlan[0-9]*' | awk 'NR==1 {print $1}' )"
+	[ -n "$local_ifname" ] && iptables -t mangle -I $1 -o $local_ifname -m connmark --mark $2/$2 -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
+	local_ifname="$( nvram get wan0_pppoe_ifname | grep -Eo 'ppp[0-9]*' | awk 'NR==1 {print $1}' )"
+	[ -n "$local_ifname" ] && iptables -t mangle -I $1 -o $local_ifname -m connmark --mark $2/$2 -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
 }
 
 ## 哈希转发速率控制函数
@@ -2408,15 +2225,12 @@ lz_hash_speed_limited() {
 ##     $1--客户端报文数据包标记
 ##     $2--WAN口路由表ID号
 ##     $3--客户端分流出口规则策略规则优先级
-##     $4--主机本地地址
-##     $5--主机报文数据包标记（空：不含同属性主机报文数据包流量）
-##     $6--主机分流出口规则策略规则优先级（空：不含同属性主机报文数据包流量）
 ##     全局变量及常量
 ## 返回值：无
 lz_define_fwmark_flow_export() {
 	[ -z "$1" -o -z "$2" -o -z "$3" ] && return
-	[ "$( iptables -t mangle -L PREROUTING 2> /dev/null | grep -c "$CUSTOM_PREROUTING_CHAIN" )" -le "0" ] && return
-	[ "$( iptables -t mangle -L $CUSTOM_PREROUTING_CHAIN 2> /dev/null | grep -c "$CUSTOM_PREROUTING_CONNMARK_CHAIN" )" -le "0" ] && return
+	[ -z "$( iptables -t mangle -L PREROUTING 2> /dev/null | grep "$CUSTOM_PREROUTING_CHAIN" )" ] && return
+	[ -z "$( iptables -t mangle -L $CUSTOM_PREROUTING_CHAIN 2> /dev/null | grep "$CUSTOM_PREROUTING_CONNMARK_CHAIN" )" ] && return
 	## 获取指定数据包标记的防火墙过滤规则条目数量
 	## 输入项：
 	##     $1--报文数据包标记
@@ -2425,17 +2239,6 @@ lz_define_fwmark_flow_export() {
 	##     条目数
 	[ "$( lz_get_iptables_fwmark_item_total_number "$1" "$CUSTOM_PREROUTING_CONNMARK_CHAIN" )" -le "0" ] && return
 	ip rule add from all fwmark $1/$FWMARK_MASK table $2 prio $3 > /dev/null 2>&1
-	[ -z "$4" -o -z "$5" -o -z "$6" -o "$wan_access_port" != "2" ] && return
-	[ "$( iptables -t mangle -L OUTPUT 2> /dev/null | grep -c "$CUSTOM_OUTPUT_CHAIN" )" -le "0" ] && return
-	[ "$( iptables -t mangle -L $CUSTOM_OUTPUT_CHAIN 2> /dev/null | grep -c "$CUSTOM_OUTPUT_CONNMARK_CHAIN" )" -le "0" ] && return
-	## 获取指定数据包标记的防火墙过滤规则条目数量
-	## 输入项：
-	##     $1--报文数据包标记
-	##     $2--防火墙规则链名称
-	## 返回值：
-	##     条目数
-	[ "$( lz_get_iptables_fwmark_item_total_number "$5" "$CUSTOM_OUTPUT_CONNMARK_CHAIN" )" -le "0" ] && return
-	ip rule add from $4 fwmark $5/$FWMARK_MASK table $2 prio $6 > /dev/null 2>&1
 }
 
 ## 获取IPSET数据集条目数函数
@@ -2452,41 +2255,10 @@ lz_get_ipset_total_number() {
 ##     全局变量及常量
 ## 返回值：无
 lz_high_client_src_addr_binding_wan() {
-	local local_item_num=0
 	## 第一WAN口客户端及源网址/网段高优先级绑定列表
-	## 模式1时，静态路由
-	## 模式2时，静态路由
-	## 模式3时，大于条目阈值数的动态路由，小于的静态路由
-	## 动态和静态路由均在balance链中通过识别客户端地址，阻止负载均衡为其分配网络出口
-	if [ "$high_wan_1_client_src_addr" = "0" -a "$policy_mode" != "1" ]; then
-		local_item_num=$( lz_get_ipv4_data_file_item_total "$high_wan_1_client_src_addr_file" )
-		if [ "$usage_mode" = "0" -a "$local_item_num" -gt "$list_mode_threshold" ]; then
-			## 创建或加载网段出口数据集
-			## 输入项：
-			##     $1--全路径网段数据文件名
-			##     $2--网段数据集名称
-			##     $3--0:不效验文件格式，非0：效验文件格式
-			##     $4--0:正匹配数据，非0：反匹配（nomatch）数据
-			## 返回值：
-			##     网址/网段数据集--全局变量
-			lz_add_net_address_sets "$high_wan_1_client_src_addr_file" "$HIGH_CLIENT_SRC_SET_0" "1" "0"
-			iptables -t mangle -A $CUSTOM_PREROUTING_CONNMARK_CHAIN -m connmark ! --mark $HIGH_CLIENT_SRC_FWMARK_0/$HIGH_CLIENT_SRC_FWMARK_0 -m set $MATCH_SET $HIGH_CLIENT_SRC_SET_0 src -j CONNMARK --set-xmark $HIGH_CLIENT_SRC_FWMARK_0/$FWMARK_MASK > /dev/null 2>&1
-			iptables -t mangle -A $CUSTOM_PREROUTING_CONNMARK_CHAIN -m connmark --mark $HIGH_CLIENT_SRC_FWMARK_0/$HIGH_CLIENT_SRC_FWMARK_0 -j RETURN > /dev/null 2>&1
-			iptables -t mangle -A $CUSTOM_PREROUTING_CHAIN -m connmark --mark $HIGH_CLIENT_SRC_FWMARK_0/$HIGH_CLIENT_SRC_FWMARK_0 -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
-			iptables -t mangle -I $CUSTOM_OUTPUT_CHAIN -m connmark --mark $HIGH_CLIENT_SRC_FWMARK_0/$HIGH_CLIENT_SRC_FWMARK_0 -j RETURN > /dev/null 2>&1
-			iptables -t mangle -I $CUSTOM_OUTPUT_CHAIN -m connmark --mark $HIGH_CLIENT_SRC_FWMARK_0/$HIGH_CLIENT_SRC_FWMARK_0 -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
-			## 定义报文数据包标记流量出口
-			## 输入项：
-			##     $1--客户端报文数据包标记
-			##     $2--WAN口路由表ID号
-			##     $3--客户端分流出口规则策略规则优先级
-			##     $4--主机本地地址
-			##     $5--主机报文数据包标记（空：不含同属性主机报文数据包流量）
-			##     $6--主机分流出口规则策略规则优先级（空：不含同属性主机报文数据包流量）
-			##     全局变量及常量
-			## 返回值：无
-			lz_define_fwmark_flow_export "$HIGH_CLIENT_SRC_FWMARK_0" "$WAN0" "$IP_RULE_PRIO_HIGH_WAN_1_CLIENT_SRC_DATA"
-		elif [ "$local_item_num" -ge "1" ]; then
+	## 动静模式时均在balance链中通过识别客户端地址，阻止负载均衡为其分配网络出口
+	if [ "$high_wan_1_client_src_addr" = "0" ]; then
+		if [ "$( lz_get_ipv4_data_file_item_total "$high_wan_1_client_src_addr_file" )" -gt "0" ]; then
 			## 转为命令绑定方式
 			## IPv4源网址/网段列表数据命令绑定路由器外网出口
 			## 输入项：
@@ -2499,21 +2271,9 @@ lz_high_client_src_addr_binding_wan() {
 		fi
 	fi
 	## 第二WAN口客户端及源网址/网段高优先级绑定列表
-	## 模式1时，静态路由
-	## 模式2时，静态路由
-	## 模式3时，大于条目阈值数的动态路由，小于的静态路由
-	## 动态和静态路由均在balance链中通过识别客户端地址，阻止负载均衡为其分配网络出口
-	if [ "$high_wan_2_client_src_addr" = "0" -a "$policy_mode" != "0" ]; then
-		local_item_num=$( lz_get_ipv4_data_file_item_total "$high_wan_2_client_src_addr_file" )
-		if [ "$usage_mode" = "0" -a "$local_item_num" -gt "$list_mode_threshold" ]; then
-			lz_add_net_address_sets "$high_wan_2_client_src_addr_file" "$HIGH_CLIENT_SRC_SET_1" "1" "0"
-			iptables -t mangle -A $CUSTOM_PREROUTING_CONNMARK_CHAIN -m connmark ! --mark $HIGH_CLIENT_SRC_FWMARK_1/$HIGH_CLIENT_SRC_FWMARK_1 -m set $MATCH_SET $HIGH_CLIENT_SRC_SET_1 src -j CONNMARK --set-xmark $HIGH_CLIENT_SRC_FWMARK_1/$FWMARK_MASK > /dev/null 2>&1
-			iptables -t mangle -A $CUSTOM_PREROUTING_CONNMARK_CHAIN -m connmark --mark $HIGH_CLIENT_SRC_FWMARK_1/$HIGH_CLIENT_SRC_FWMARK_1 -j RETURN > /dev/null 2>&1
-			iptables -t mangle -A $CUSTOM_PREROUTING_CHAIN -m connmark --mark $HIGH_CLIENT_SRC_FWMARK_1/$HIGH_CLIENT_SRC_FWMARK_1 -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
-			iptables -t mangle -I $CUSTOM_OUTPUT_CHAIN -m connmark --mark $HIGH_CLIENT_SRC_FWMARK_1/$HIGH_CLIENT_SRC_FWMARK_1 -j RETURN > /dev/null 2>&1
-			iptables -t mangle -I $CUSTOM_OUTPUT_CHAIN -m connmark --mark $HIGH_CLIENT_SRC_FWMARK_1/$HIGH_CLIENT_SRC_FWMARK_1 -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
-			lz_define_fwmark_flow_export "$HIGH_CLIENT_SRC_FWMARK_1" "$WAN1" "$IP_RULE_PRIO_HIGH_WAN_2_CLIENT_SRC_DATA"
-		elif [ "$local_item_num" -ge "1" ]; then
+	## 动静模式时均在balance链中通过识别客户端地址，阻止负载均衡为其分配网络出口
+	if [ "$high_wan_2_client_src_addr" = "0" ]; then
+		if [ "$( lz_get_ipv4_data_file_item_total "$high_wan_2_client_src_addr_file" )" -gt "0" ]; then
 			lz_add_ipv4_src_addr_list_binding_wan "$high_wan_2_client_src_addr_file" "$WAN1" "$IP_RULE_PRIO_HIGH_WAN_2_CLIENT_SRC_ADDR" "1"
 		fi
 	fi
@@ -2532,89 +2292,40 @@ lz_high_client_src_addr_binding_wan() {
 ## 返回值：无
 lz_dest_port_policy() {
 	[ -z "$1" -a -z "$2" -a -z "$3" -a -z "$4" ] && return
-	local local_host_fwmark=$HOST_DEST_PORT_FWMARK_0
-	local local_host_prio=$IP_RULE_PRIO_HOST_WAN_1_PORT
-	local local_route_wan_ifname="$route_wan0_ifname"
-	[ "$6" = "$WAN1" ] && {
-		local_host_fwmark=$HOST_DEST_PORT_FWMARK_1
-		local_host_prio=$IP_RULE_PRIO_HOST_WAN_2_PORT
-		local_route_wan_ifname="$route_wan1_ifname"
-	}
-	local local_dest_port_used=0
-	if [ -n "$( echo "$1" | grep "[0-9]" | awk -F " " '{print $1}' )" ]; then
-		iptables -t mangle -A $CUSTOM_PREROUTING_CONNMARK_CHAIN -m connmark ! --mark $5/$5 -p tcp -m multiport --dport "$1" -j CONNMARK --set-xmark $5/$FWMARK_MASK > /dev/null 2>&1
-		iptables -t mangle -A $CUSTOM_PREROUTING_CONNMARK_CHAIN -m connmark --mark $5/$5 -j RETURN > /dev/null 2>&1
-		iptables -t mangle -A $CUSTOM_PREROUTING_CHAIN -m connmark --mark $5/$5 -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
-		iptables -t mangle -I $CUSTOM_OUTPUT_CHAIN -m connmark --mark $5/$5 -j RETURN > /dev/null 2>&1
-		iptables -t mangle -I $CUSTOM_OUTPUT_CHAIN -m connmark --mark $5/$5 -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
-		[ "$localhost_nf_policy" = "0" -a "$wan_access_port" = "2" ] && {
-			iptables -t mangle -A $CUSTOM_OUTPUT_CONNMARK_CHAIN ! -o $local_route_wan_ifname -m connmark ! --mark $local_host_fwmark/$local_host_fwmark -p tcp -m multiport --dport "$1" -j CONNMARK --set-xmark $local_host_fwmark/$FWMARK_MASK > /dev/null 2>&1
-			iptables -t mangle -A $CUSTOM_OUTPUT_CONNMARK_CHAIN -m connmark --mark $local_host_fwmark/$local_host_fwmark -j RETURN > /dev/null 2>&1
-			iptables -t mangle -A $CUSTOM_OUTPUT_CHAIN -m connmark --mark $local_host_fwmark/$local_host_fwmark -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
-			iptables -t mangle -I $CUSTOM_PREROUTING_CHAIN -m connmark --mark $local_host_fwmark/$local_host_fwmark -j RETURN > /dev/null 2>&1
-			iptables -t mangle -I $CUSTOM_PREROUTING_CHAIN -m connmark --mark $local_host_fwmark/$local_host_fwmark -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
-		}
-		local_dest_port_used=1
+	## 获取出口网卡设备标识
+	local local_pppoe_ifname="$( nvram get wan0_pppoe_ifname | grep -Eo 'ppp[0-9]*' | awk 'NR==1 {print $1}' )"
+	local local_ifname="$( nvram get wan0_ifname | grep -Eo 'eth[0-9]*|vlan[0-9]*' | awk 'NR==1 {print $1}' )"
+	if [ "$6" = "$WAN1" ]; then
+		local_pppoe_ifname="$( nvram get wan1_pppoe_ifname | grep -Eo 'ppp[0-9]*' | awk 'NR==1 {print $1}' )"
+		local_ifname="$( nvram get wan1_ifname | grep -Eo 'eth[0-9]*|vlan[0-9]*' | awk 'NR==1 {print $1}' )"
 	fi
-	if [ -n "$( echo "$2" | grep "[0-9]" | awk -F " " '{print $1}' )" ]; then
-		iptables -t mangle -A $CUSTOM_PREROUTING_CONNMARK_CHAIN -m connmark ! --mark $5/$5 -p udp -m multiport --dport "$2" -j CONNMARK --set-xmark $5/$FWMARK_MASK > /dev/null 2>&1
-		iptables -t mangle -A $CUSTOM_PREROUTING_CONNMARK_CHAIN -m connmark --mark $5/$5 -j RETURN > /dev/null 2>&1
-		iptables -t mangle -A $CUSTOM_PREROUTING_CHAIN -m connmark --mark $5/$5 -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
-		iptables -t mangle -I $CUSTOM_OUTPUT_CHAIN -m connmark --mark $5/$5 -j RETURN > /dev/null 2>&1
-		iptables -t mangle -I $CUSTOM_OUTPUT_CHAIN -m connmark --mark $5/$5 -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
-		[ "$localhost_nf_policy" = "0" -a "$wan_access_port" = "2" ] && {
-			iptables -t mangle -A $CUSTOM_OUTPUT_CONNMARK_CHAIN ! -o $local_route_wan_ifname -m connmark ! --mark $local_host_fwmark/$local_host_fwmark -p udp -m multiport --dport "$2" -j CONNMARK --set-xmark $local_host_fwmark/$FWMARK_MASK > /dev/null 2>&1
-			iptables -t mangle -A $CUSTOM_OUTPUT_CONNMARK_CHAIN -m connmark --mark $local_host_fwmark/$local_host_fwmark -j RETURN > /dev/null 2>&1
-			iptables -t mangle -A $CUSTOM_OUTPUT_CHAIN -m connmark --mark $local_host_fwmark/$local_host_fwmark -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
-			iptables -t mangle -I $CUSTOM_PREROUTING_CHAIN -m connmark --mark $local_host_fwmark/$local_host_fwmark -j RETURN > /dev/null 2>&1
-			iptables -t mangle -I $CUSTOM_PREROUTING_CHAIN -m connmark --mark $local_host_fwmark/$local_host_fwmark -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
-		}
-		local_dest_port_used=1
-	fi
-	if [ -n "$( echo "$3" | grep "[0-9]" | awk -F " " '{print $1}' )" ]; then
-		iptables -t mangle -A $CUSTOM_PREROUTING_CONNMARK_CHAIN -m connmark ! --mark $5/$5 -p udplite -m multiport --dport "$3" -j CONNMARK --set-xmark $5/$FWMARK_MASK > /dev/null 2>&1
-		iptables -t mangle -A $CUSTOM_PREROUTING_CONNMARK_CHAIN -m connmark --mark $5/$5 -j RETURN > /dev/null 2>&1
-		iptables -t mangle -A $CUSTOM_PREROUTING_CHAIN -m connmark --mark $5/$5 -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
-		iptables -t mangle -I $CUSTOM_OUTPUT_CHAIN -m connmark --mark $5/$5 -j RETURN > /dev/null 2>&1
-		iptables -t mangle -I $CUSTOM_OUTPUT_CHAIN -m connmark --mark $5/$5 -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
-		[ "$localhost_nf_policy" = "0" -a "$wan_access_port" = "2" ] && {
-			iptables -t mangle -A $CUSTOM_OUTPUT_CONNMARK_CHAIN ! -o $local_route_wan_ifname -m connmark ! --mark $local_host_fwmark/$local_host_fwmark -p udplite -m multiport --dport "$3" -j CONNMARK --set-xmark $local_host_fwmark/$FWMARK_MASK > /dev/null 2>&1
-			iptables -t mangle -A $CUSTOM_OUTPUT_CONNMARK_CHAIN -m connmark --mark $local_host_fwmark/$local_host_fwmark -j RETURN > /dev/null 2>&1
-			iptables -t mangle -A $CUSTOM_OUTPUT_CHAIN -m connmark --mark $local_host_fwmark/$local_host_fwmark -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
-			iptables -t mangle -I $CUSTOM_PREROUTING_CHAIN -m connmark --mark $local_host_fwmark/$local_host_fwmark -j RETURN > /dev/null 2>&1
-			iptables -t mangle -I $CUSTOM_PREROUTING_CHAIN -m connmark --mark $local_host_fwmark/$local_host_fwmark -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
-		}
-		local_dest_port_used=1
-	fi
-	if [ -n "$( echo "$4" | grep "[0-9]" | awk -F " " '{print $1}' )" ]; then
-		iptables -t mangle -A $CUSTOM_PREROUTING_CONNMARK_CHAIN -m connmark ! --mark $5/$5 -p sctp -m multiport --dport "$4" -j CONNMARK --set-xmark $5/$FWMARK_MASK > /dev/null 2>&1
-		iptables -t mangle -A $CUSTOM_PREROUTING_CONNMARK_CHAIN -m connmark --mark $5/$5 -j RETURN > /dev/null 2>&1
-		iptables -t mangle -A $CUSTOM_PREROUTING_CHAIN -m connmark --mark $5/$5 -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
-		iptables -t mangle -I $CUSTOM_OUTPUT_CHAIN -m connmark --mark $5/$5 -j RETURN > /dev/null 2>&1
-		iptables -t mangle -I $CUSTOM_OUTPUT_CHAIN -m connmark --mark $5/$5 -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
-		[ "$localhost_nf_policy" = "0" -a "$wan_access_port" = "2" ] && {
-			iptables -t mangle -A $CUSTOM_OUTPUT_CONNMARK_CHAIN ! -o $local_route_wan_ifname -m connmark ! --mark $local_host_fwmark/$local_host_fwmark -p sctp -m multiport --dport "$5" -j CONNMARK --set-xmark $local_host_fwmark/$FWMARK_MASK > /dev/null 2>&1
-			iptables -t mangle -A $CUSTOM_OUTPUT_CONNMARK_CHAIN -m connmark --mark $local_host_fwmark/$local_host_fwmark -j RETURN > /dev/null 2>&1
-			iptables -t mangle -A $CUSTOM_OUTPUT_CHAIN -m connmark --mark $local_host_fwmark/$local_host_fwmark -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
-			iptables -t mangle -I $CUSTOM_PREROUTING_CHAIN -m connmark --mark $local_host_fwmark/$local_host_fwmark -j RETURN > /dev/null 2>&1
-			iptables -t mangle -I $CUSTOM_PREROUTING_CHAIN -m connmark --mark $local_host_fwmark/$local_host_fwmark -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
-		}
-		local_dest_port_used=1
-	fi
+	[ -n "$( echo "$1" | grep "[0-9]" | awk '{print $1}' )" ] && \
+		iptables -t mangle -A $CUSTOM_PREROUTING_CONNMARK_CHAIN -p tcp -m multiport --dport "$1" -j CONNMARK --set-xmark $5/$FWMARK_MASK > /dev/null 2>&1
 
-	## 定义端口策略分流报文数据包标记流量出口
-	if [ "$local_dest_port_used" = "1" ]; then
+	[ -n "$( echo "$2" | grep "[0-9]" | awk '{print $1}' )" ] && \
+		iptables -t mangle -A $CUSTOM_PREROUTING_CONNMARK_CHAIN -p udp -m multiport --dport "$2" -j CONNMARK --set-xmark $5/$FWMARK_MASK > /dev/null 2>&1
+
+	[ -n "$( echo "$3" | grep "[0-9]" | awk '{print $1}' )" ] && \
+		iptables -t mangle -A $CUSTOM_PREROUTING_CONNMARK_CHAIN -p udplite -m multiport --dport "$3" -j CONNMARK --set-xmark $5/$FWMARK_MASK > /dev/null 2>&1
+
+	[ -n "$( echo "$4" | grep "[0-9]" | awk '{print $1}' )" ] && \
+		iptables -t mangle -A $CUSTOM_PREROUTING_CONNMARK_CHAIN -p sctp -m multiport --dport "$4" -j CONNMARK --set-xmark $5/$FWMARK_MASK > /dev/null 2>&1
+
+	if [ -n "$( iptables -t mangle -L $CUSTOM_PREROUTING_CONNMARK_CHAIN 2> /dev/null | grep "$5" )" ]; then
+		iptables -t mangle -A $CUSTOM_PREROUTING_CONNMARK_CHAIN -m connmark --mark $5/$5 -j RETURN > /dev/null 2>&1
+		iptables -t mangle -A $CUSTOM_PREROUTING_CHAIN -m connmark --mark $5/$5 -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
+		[ -n "$local_ifname" ] && iptables -t mangle -I $CUSTOM_OUTPUT_CHAIN -o $local_ifname -m connmark --mark $5/$5 -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
+		[ -n "$local_pppoe_ifname" ] && iptables -t mangle -I $CUSTOM_OUTPUT_CHAIN -o $local_pppoe_ifname -m connmark --mark $5/$5 -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
+
+		## 定义端口策略分流报文数据包标记流量出口
 		## 定义报文数据包标记流量出口
 		## 输入项：
 		##     $1--客户端报文数据包标记
 		##     $2--WAN口路由表ID号
 		##     $3--客户端分流出口规则策略规则优先级
-		##     $4--主机本地地址
-		##     $5--主机报文数据包标记（空：不含同属性主机报文数据包流量）
-		##     $6--主机分流出口规则策略规则优先级（空：不含同属性主机报文数据包流量）
 		##     全局变量及常量
 		## 返回值：无
-		lz_define_fwmark_flow_export "$5" "$6" "$7" "$route_local_ip" "$local_host_fwmark" "$local_host_prio"
+		lz_define_fwmark_flow_export "$5" "$6" "$7"
 	fi
 }
 
@@ -2627,50 +2338,37 @@ lz_dest_port_policy() {
 ##     全局常量及变量
 ## 返回值：无
 lz_protocols_wan_policy() {
+	## 获取出口网卡设备标识
 	local local_id=0
-	[ "$3" = "$WAN1" ] && local_id=1
-	local local_host_fwmark=$HOST_PROTOCOLS_FWMARK_0
-	local local_host_prio=$IP_RULE_PRIO_HOST_WAN_1_PROTOCOLS
-	local local_route_wan_ifname="$route_wan0_ifname"
-	[ "$local_id" = "1" ] && {
-		local_host_fwmark=$HOST_PROTOCOLS_FWMARK_1
-		local_host_prio=$IP_RULE_PRIO_HOST_WAN_2_PROTOCOLS
-		local_route_wan_ifname="$route_wan1_ifname"
-	}
-	local local_protocols_used=0
+	local local_pppoe_ifname="$( nvram get wan0_pppoe_ifname | grep -Eo 'ppp[0-9]*' | awk 'NR==1 {print $1}' )"
+	local local_ifname="$( nvram get wan0_ifname | grep -Eo 'eth[0-9]*|vlan[0-9]*' | awk 'NR==1 {print $1}' )"
+	if [ "$3" = "$WAN1" ]; then
+		local_id=1
+		local_pppoe_ifname="$( nvram get wan1_pppoe_ifname | grep -Eo 'ppp[0-9]*' | awk 'NR==1 {print $1}' )"
+		local_ifname="$( nvram get wan1_ifname | grep -Eo 'eth[0-9]*|vlan[0-9]*' | awk 'NR==1 {print $1}' )"
+	fi
+	local local_buf="$( grep "lz_.*=$local_id" "$1" | awk -F "_" '{print $2}' | awk -F "=" '{print $1}' )"
 	local local_proto_item=
-	for local_proto_item in $( grep "lz_.*=$local_id" "$1" | awk -F "_" '{print $2}' | awk -F "=" '{print $1}')
+	for local_proto_item in $local_buf
 	do
-		[ -f "$1" ] && {
-			iptables -t mangle -A $CUSTOM_PREROUTING_CONNMARK_CHAIN -m connmark ! --mark $2/$2 -m layer7 --l7proto "$local_proto_item" -j CONNMARK --set-xmark $2/$FWMARK_MASK > /dev/null 2>&1
-			iptables -t mangle -A $CUSTOM_PREROUTING_CONNMARK_CHAIN -m connmark --mark $2/$2 -j RETURN > /dev/null 2>&1
-			iptables -t mangle -A $CUSTOM_PREROUTING_CHAIN -m connmark --mark $2/$2 -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
-			iptables -t mangle -I $CUSTOM_OUTPUT_CHAIN -m connmark --mark $2/$2 -j RETURN > /dev/null 2>&1
-			iptables -t mangle -I $CUSTOM_OUTPUT_CHAIN -m connmark --mark $2/$2 -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
-			[ "$localhost_nf_policy" = "0" -a "$wan_access_port" = "2" ] && {
-				iptables -t mangle -A $CUSTOM_OUTPUT_CONNMARK_CHAIN ! -o $local_route_wan_ifname -m connmark ! --mark $local_host_fwmark/$local_host_fwmark -m layer7 --l7proto "$local_proto_item" -j CONNMARK --set-xmark $local_host_fwmark/$FWMARK_MASK > /dev/null 2>&1
-				iptables -t mangle -A $CUSTOM_OUTPUT_CONNMARK_CHAIN -m connmark --mark $local_host_fwmark/$local_host_fwmark -j RETURN > /dev/null 2>&1
-				iptables -t mangle -A $CUSTOM_OUTPUT_CHAIN -m connmark --mark $local_host_fwmark/$local_host_fwmark -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
-				iptables -t mangle -I $CUSTOM_PREROUTING_CHAIN -m connmark --mark $local_host_fwmark/$local_host_fwmark -j RETURN > /dev/null 2>&1
-				iptables -t mangle -I $CUSTOM_PREROUTING_CHAIN -m connmark --mark $local_host_fwmark/$local_host_fwmark -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
-			}
-			local_protocols_used=1
-		}
+		iptables -t mangle -A $CUSTOM_PREROUTING_CONNMARK_CHAIN -m layer7 --l7proto "$local_proto_item" -j CONNMARK --set-xmark $2/$FWMARK_MASK > /dev/null 2>&1
 	done
 
-	## 定义协议策略出口分流报文数据包标记流量出口
-	if [ "$local_protocols_used" = "1" ]; then
+	if [ -n "$( iptables -t mangle -L $CUSTOM_PREROUTING_CONNMARK_CHAIN 2> /dev/null | grep "$2" )" ]; then
+		iptables -t mangle -A $CUSTOM_PREROUTING_CONNMARK_CHAIN -m connmark --mark $2/$2 -j RETURN > /dev/null 2>&1
+		iptables -t mangle -A $CUSTOM_PREROUTING_CHAIN -m connmark --mark $2/$2 -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
+		[ -n "$local_ifname" ] && iptables -t mangle -I $CUSTOM_OUTPUT_CHAIN -o $local_ifname -m connmark --mark $2/$2 -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
+		[ -n "$local_pppoe_ifname" ] && iptables -t mangle -I $CUSTOM_OUTPUT_CHAIN -o $local_pppoe_ifname -m connmark --mark $2/$2 -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
+
+		## 定义协议策略出口分流报文数据包标记流量出口
 		## 定义报文数据包标记流量出口
 		## 输入项：
 		##     $1--客户端报文数据包标记
 		##     $2--WAN口路由表ID号
 		##     $3--客户端分流出口规则策略规则优先级
-		##     $4--主机本地地址
-		##     $5--主机报文数据包标记（空：不含同属性主机报文数据包流量）
-		##     $6--主机分流出口规则策略规则优先级（空：不含同属性主机报文数据包流量）
 		##     全局变量及常量
 		## 返回值：无
-		lz_define_fwmark_flow_export "$2" "$3" "$4" "$route_local_ip" "$local_host_fwmark" "$local_host_prio"
+		lz_define_fwmark_flow_export "$2" "$3" "$4"
 	fi
 }
 
@@ -2680,7 +2378,10 @@ lz_protocols_wan_policy() {
 ##     全局常量及变量
 ## 返回值：无
 lz_protocols_policy() {
+	## 简单校验协议文件
 	[ ! -f "$1" ] && return
+	[ -z "$( grep -Eo '[l][z][\_]' "$1" )" ] && return
+
 	## 启用nf_conntrack_acct
 	[ -f "/proc/sys/net/netfilter/nf_conntrack_acct" ] && {
 		local local_ca_item=$( cat "/proc/sys/net/netfilter/nf_conntrack_acct" )
@@ -2688,8 +2389,7 @@ lz_protocols_policy() {
 	}
 
 	## 第一WAN口
-	## 模式1、模式2、模式3时，均为动态路由
-	## 模式1、模式2时，在balance链中通过识别客户端地址，阻止负载均衡为其分配网络出口
+	## 模式1、模式2时，协议策略分流无效，端口分流仅作用于动态分流模式（模式3）
 	## 模式3时，在balance链中通过识别报文数据包标记，阻止负载均衡为其分配网络出口
 	## 协议策略出口分流
 	## 输入项：
@@ -2702,18 +2402,54 @@ lz_protocols_policy() {
 	lz_protocols_wan_policy "$1" "$PROTOCOLS_FWMARK_0" "$WAN0" "$IP_RULE_PRIO_WAN_1_PROTOCOLS"
 
 	## 第二WAN口
-	## 模式1、模式2、模式3时，均为动态路由
-	## 模式1、模式2时，在balance链中通过识别客户端地址，阻止负载均衡为其分配网络出口
+	## 模式1、模式2时，协议策略分流无效，端口分流仅作用于动态分流模式（模式3）
 	## 模式3时，在balance链中通过识别报文数据包标记，阻止负载均衡为其分配网络出口
-	## 协议策略出口分流
-	## 输入项：
-	##     $1--协议分流网络应用层协议列表文件全路径文件名
-	##     $2--协议分流报文数据包标记
-	##     $3--WAN口路由表ID号
-	##     $4--协议分流出口规则策略规则优先级
-	##     全局常量及变量
-	## 返回值：无
 	lz_protocols_wan_policy "$1" "$PROTOCOLS_FWMARK_1" "$WAN1" "$IP_RULE_PRIO_WAN_2_PROTOCOLS"
+}
+
+## 加载已明确定义源网址/网段至目标网址/网段列表条目至NetFilter防火墙规则进行数据标记函数
+## 输入项：
+##     全局变量及常量
+## 返回值：无
+lz_add_src_to_dst_netfilter_mark() {
+	## 加载排除标记绑定第一WAN口的用户自定义源网址/网段至目标网址/网段列表中指明源网址/网段和目标网址/网段条目
+	if [ "$wan_1_src_to_dst_addr" = "0" ]; then
+		[ "$( lz_get_ipv4_defined_src_to_dst_data_file_item_total "$wan_1_src_to_dst_addr_file" )" -gt "0" ] && {
+			## 加载已明确定义源网址/网段至目标网址/网段列表条目数据至路由前mangle表自定义链防火墙规则数据标记
+			## 输入项：
+			##     $1--全路径网段数据文件名
+			##     $2--路由前mangle表自定义链名称
+			##     $3--报文数据包标记
+			##     全局常量
+			## 返回值：
+			##     路由前mangle表自定义链防火墙规则
+			lz_add_src_to_dst_prerouting_mark "$wan_1_src_to_dst_addr_file" "$CUSTOM_PREROUTING_CHAIN" "$SRC_DST_FWMARK"
+		}
+	fi
+	## 加载排除标记绑定第二WAN口的用户自定义源网址/网段至目标网址/网段列表中指明源网址/网段和目标网址/网段条目
+	if [ "$wan_2_src_to_dst_addr" = "0" ]; then
+		[ "$( lz_get_ipv4_defined_src_to_dst_data_file_item_total "$wan_2_src_to_dst_addr_file" )" -gt "0" ] && {
+			lz_add_src_to_dst_prerouting_mark "$wan_2_src_to_dst_addr_file" "$CUSTOM_PREROUTING_CHAIN" "$SRC_DST_FWMARK"
+		}
+	fi
+	## 加载排除标记高优先级绑定第一WAN口的用户自定义源网址/网段至目标网址/网段列表中指明源网址/网段和目标网址/网段条目
+	if [ "$high_wan_1_src_to_dst_addr" = "0" ]; then
+		[ "$( lz_get_ipv4_defined_src_to_dst_data_file_item_total "$high_wan_1_src_to_dst_addr_file" )" -gt "0" ] && {
+			lz_add_src_to_dst_prerouting_mark "$high_wan_1_src_to_dst_addr_file" "$CUSTOM_PREROUTING_CHAIN" "$SRC_DST_FWMARK"
+		}
+	fi
+	if [ -n "$( iptables -t mangle -L $CUSTOM_PREROUTING_CHAIN 2> /dev/null | grep "$SRC_DST_FWMARK" )" ]; then
+		iptables -t mangle -A $CUSTOM_PREROUTING_CHAIN -m connmark --mark $SRC_DST_FWMARK/$SRC_DST_FWMARK -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
+		[ "$usage_mode" = "0" ] && iptables -t mangle -A $CUSTOM_PREROUTING_CHAIN -m connmark --mark $SRC_DST_FWMARK/$SRC_DST_FWMARK -j RETURN > /dev/null 2>&1
+		## 加载已明确定义源网址/网段至目标网址/网段列表条目数据至路由内输出mangle表自定义链防火墙规则数据标记
+		## 输入项：
+		##     $1--内输出mangle表自定义链名称
+		##     $2--报文数据包标记
+		##     全局常量
+		## 返回值：
+		##     路由内输出mangle表自定义链防火墙规则
+		lz_add_src_to_dst_output_mark "$CUSTOM_OUTPUT_CHAIN" "$SRC_DST_FWMARK"
+	fi
 }
 
 ## 初始化各目标网址/网段数据访问路由策略函数
@@ -2756,65 +2492,52 @@ EOF
 		lz_hash_speed_limited "$CUSTOM_FORWARD_CHAIN" "$HASH_FORWARD_NAME" "$route_local_ip/$local_ipv4_cidr_mask" 10000
 	fi
 
-	LOCAL_IPSETS_SRC=""
 	if [ -n "$local_route_local_ip_mask" -a "$local_ipv4_cidr_mask" != "0" -a "$local_ipv4_cidr_mask" != "32" ]; then
 		if [ "$balance_chain_existing" = "1" ]; then
-			## 创建负载均衡门卫网址/网段数据集
+			## 创建负载均衡门卫目标网址/网段数据集--阻止对访问该地址的网络流量进行负载均衡
 			ipset -! create $BALANCE_GUARD_IP_SET nethash #--hashsize 65535
 			ipset -q flush $BALANCE_GUARD_IP_SET
 			ipset -! add $BALANCE_GUARD_IP_SET "$route_local_ip/$local_ipv4_cidr_mask" > /dev/null 2>&1
-			ipset -! add $BALANCE_GUARD_IP_SET "$( ip -o -4 addr list | grep "$( nvram get wan0_ifname | sed 's/ /\n/g' | sed -n 1p )" | awk -F ' ' '{print $4}' )" > /dev/null 2>&1
-			ipset -! add $BALANCE_GUARD_IP_SET "$( ip -o -4 addr list | grep "$( nvram get wan1_ifname | sed 's/ /\n/g' | sed -n 1p )" | awk -F ' ' '{print $4}' )" > /dev/null 2>&1
-			## 创建负载均衡本地内网设备源网址/网段数据集
+			ipset -! add $BALANCE_GUARD_IP_SET "$( ip -o -4 addr list | grep "$( nvram get wan0_ifname | sed 's/ /\n/g' | sed -n 1p )" | awk '{print $4}' )" > /dev/null 2>&1
+			ipset -! add $BALANCE_GUARD_IP_SET "$( ip -o -4 addr list | grep "$( nvram get wan1_ifname | sed 's/ /\n/g' | sed -n 1p )" | awk '{print $4}' )" > /dev/null 2>&1
+			## 创建不需要负载均衡的本地内网设备源网址/网段数据集
 			ipset -! create $BALANCE_IP_SET nethash #--hashsize 65535
 			ipset -q flush $BALANCE_IP_SET
-			## 模式1、模式2时
 			if [ "$usage_mode" != "0" ]; then
+				## 静态分流模式：模式1、模式2
 				ipset -! add $BALANCE_IP_SET "$route_local_ip/$local_ipv4_cidr_mask" > /dev/null 2>&1
-				ipset -! add $BALANCE_IP_SET "$( ip -o -4 addr list | grep "$( nvram get wan0_ifname | sed 's/ /\n/g' | sed -n 1p )" | awk -F ' ' '{print $4}' )" > /dev/null 2>&1
-				ipset -! add $BALANCE_IP_SET "$( ip -o -4 addr list | grep "$( nvram get wan1_ifname | sed 's/ /\n/g' | sed -n 1p )" | awk -F ' ' '{print $4}' )" > /dev/null 2>&1
-				## 加载本地客户端网址/网段分流黑名单列表数据文件
-			#	[ "$( lz_get_ipv4_data_file_item_total "$local_ipsets_file" )" -gt "0" ] && {
-					## 创建或加载网段出口数据集
-					## 输入项：
-					##     $1--全路径网段数据文件名
-					##     $2--网段数据集名称
-					##     $3--0:不效验文件格式，非0：效验文件格式
-					##     $4--0:正匹配数据，非0：反匹配（nomatch）数据
-					## 返回值：
-					##     网址/网段数据集--全局变量
-			#		lz_add_net_address_sets "$local_ipsets_file" "$BALANCE_IP_SET" "1" "1"
-			#	}
-			elif [ "$wan_access_port" != "2" ]; then
+				ipset -! add $BALANCE_IP_SET "$( ip -o -4 addr list | grep "$( nvram get wan0_ifname | sed 's/ /\n/g' | sed -n 1p )" | awk '{print $4}' )" > /dev/null 2>&1
+				ipset -! add $BALANCE_IP_SET "$( ip -o -4 addr list | grep "$( nvram get wan1_ifname | sed 's/ /\n/g' | sed -n 1p )" | awk '{print $4}' )" > /dev/null 2>&1
+			else
+				## 动态分流模式：模式3
 				ipset -! add $BALANCE_IP_SET "$route_local_ip" > /dev/null 2>&1
 			fi
 		fi
-		## 创建本地内网网址/网段数据集
+		## 创建本地内网网址/网段数据集（仅用于动态分流模式，加入所有不进行netfilter目标访问网址/网段过滤的客户端源地址）
 		ipset -! create $LOCAL_IP_SET nethash #--hashsize 65535
 		ipset -q flush $LOCAL_IP_SET
-		ipset -! add $LOCAL_IP_SET "$route_local_ip/$local_ipv4_cidr_mask" > /dev/null 2>&1
-		ipset -! add $LOCAL_IP_SET "$( ip -o -4 addr list | grep "$( nvram get wan0_ifname | sed 's/ /\n/g' | sed -n 1p )" | awk -F ' ' '{print $4}' )" > /dev/null 2>&1
-		ipset -! add $LOCAL_IP_SET "$( ip -o -4 addr list | grep "$( nvram get wan1_ifname | sed 's/ /\n/g' | sed -n 1p )" | awk -F ' ' '{print $4}' )" > /dev/null 2>&1
-		[ "$wan_access_port" != "2" ] && ipset -! add $LOCAL_IP_SET "$route_local_ip" nomatch > /dev/null 2>&1
+		ipset -! add $LOCAL_IP_SET "$route_local_ip" > /dev/null 2>&1
 		## 加载不受目标网址/网段匹配访问控制的本地客户端网址
-		[ "$( lz_get_ipv4_data_file_item_total "$local_ipsets_file" )" -gt "0" ] && {
+		if [ "$( lz_get_ipv4_data_file_item_total "$local_ipsets_file" )" -gt "0" ]; then
 			if [ "$usage_mode" = "0" ]; then
-				lz_add_net_address_sets "$local_ipsets_file" "$LOCAL_IP_SET" "1" "1"
-				if [ "$balance_chain_existing" = "1" ]; then
-					lz_add_net_address_sets "$local_ipsets_file" "$BALANCE_GUARD_IP_SET" "1" "0"
-				fi
-			else
+				## 创建或加载网段出口数据集
+				## 输入项：
+				##     $1--全路径网段数据文件名
+				##     $2--网段数据集名称
+				##     $3--0:不效验文件格式，非0：效验文件格式
+				##     $4--0:正匹配数据，非0：反匹配（nomatch）数据
+				## 返回值：
+				##     网址/网段数据集--全局变量
 				lz_add_net_address_sets "$local_ipsets_file" "$LOCAL_IP_SET" "1" "0"
-				if [ "$balance_chain_existing" = "1" ]; then
-					lz_add_net_address_sets "$local_ipsets_file" "$BALANCE_IP_SET" "1" "0"
-					lz_add_net_address_sets "$local_ipsets_file" "$BALANCE_GUARD_IP_SET" "1" "0"
-				fi
+			else
+				[ "$balance_chain_existing" = "1" ] && lz_add_net_address_sets "$local_ipsets_file" "$BALANCE_IP_SET" "1" "0"
 			fi
-		}
+			[ "$balance_chain_existing" = "1" ] && lz_add_net_address_sets "$local_ipsets_file" "$BALANCE_GUARD_IP_SET" "1" "0"
+		fi
 		## 加载排除绑定第一WAN口的客户端及源网址/网段列表数据
 		if [ "$wan_1_client_src_addr" = "0" ]; then
 			[ "$( lz_get_ipv4_data_file_item_total "$wan_1_client_src_addr_file" )" -gt "0" ] && {
-				lz_add_net_address_sets "$wan_1_client_src_addr_file" "$LOCAL_IP_SET" "1" "1"
+				[ "$usage_mode" = "0" ] && lz_add_net_address_sets "$wan_1_client_src_addr_file" "$LOCAL_IP_SET" "1" "0"
 				if [ "$balance_chain_existing" = "1" ]; then
 					lz_add_net_address_sets "$wan_1_client_src_addr_file" "$BALANCE_IP_SET" "1" "0"
 					lz_add_net_address_sets "$wan_1_client_src_addr_file" "$BALANCE_GUARD_IP_SET" "1" "0"
@@ -2824,7 +2547,7 @@ EOF
 		## 加载排除绑定第二WAN口的客户端及源网址/网段列表数据
 		if [ "$wan_2_client_src_addr" = "0" ]; then
 			[ "$( lz_get_ipv4_data_file_item_total "$wan_2_client_src_addr_file" )" -gt "0" ] && {
-				lz_add_net_address_sets "$wan_2_client_src_addr_file" "$LOCAL_IP_SET" "1" "1"
+				lz_add_net_address_sets "$wan_2_client_src_addr_file" "$LOCAL_IP_SET" "1" "0"
 				if [ "$balance_chain_existing" = "1" ]; then
 					lz_add_net_address_sets "$wan_2_client_src_addr_file" "$BALANCE_IP_SET" "1" "0"
 					lz_add_net_address_sets "$wan_2_client_src_addr_file" "$BALANCE_GUARD_IP_SET" "1" "0"
@@ -2834,7 +2557,7 @@ EOF
 		## 加载排除高优先级绑定第一WAN口的客户端及源网址/网段列表数据
 		if [ "$high_wan_1_client_src_addr" = "0" ]; then
 			[ "$( lz_get_ipv4_data_file_item_total "$high_wan_1_client_src_addr_file" )" -gt "0" ] && {
-				lz_add_net_address_sets "$high_wan_1_client_src_addr_file" "$LOCAL_IP_SET" "1" "1"
+				[ "$usage_mode" = "0" ] && lz_add_net_address_sets "$high_wan_1_client_src_addr_file" "$LOCAL_IP_SET" "1" "0"
 				if [ "$balance_chain_existing" = "1" ]; then
 					lz_add_net_address_sets "$high_wan_1_client_src_addr_file" "$BALANCE_IP_SET" "1" "0"
 					lz_add_net_address_sets "$high_wan_1_client_src_addr_file" "$BALANCE_GUARD_IP_SET" "1" "0"
@@ -2844,7 +2567,7 @@ EOF
 		## 加载排除高优先级绑定第二WAN口的客户端及源网址/网段列表数据
 		if [ "$high_wan_2_client_src_addr" = "0" ]; then
 			[ "$( lz_get_ipv4_data_file_item_total "$high_wan_2_client_src_addr_file" )" -gt "0" ] && {
-				lz_add_net_address_sets "$high_wan_2_client_src_addr_file" "$LOCAL_IP_SET" "1" "1"
+				[ "$usage_mode" = "0" ] && lz_add_net_address_sets "$high_wan_2_client_src_addr_file" "$LOCAL_IP_SET" "1" "0"
 				if [ "$balance_chain_existing" = "1" ]; then
 					lz_add_net_address_sets "$high_wan_2_client_src_addr_file" "$BALANCE_IP_SET" "1" "0"
 					lz_add_net_address_sets "$high_wan_2_client_src_addr_file" "$BALANCE_GUARD_IP_SET" "1" "0"
@@ -2862,7 +2585,7 @@ EOF
 				##     $4--0:正匹配数据，非0：反匹配（nomatch）数据
 				## 返回值：
 				##     网址/网段数据集--全局变量
-				lz_add_src_net_address_sets "$wan_1_src_to_dst_addr_file" "$LOCAL_IP_SET" "1" "1"
+				[ "$usage_mode" = "0" ] && lz_add_src_net_address_sets "$wan_1_src_to_dst_addr_file" "$LOCAL_IP_SET" "1" "0"
 				if [ "$balance_chain_existing" = "1" ]; then
 					lz_add_src_net_address_sets "$wan_1_src_to_dst_addr_file" "$BALANCE_IP_SET" "1" "0"
 					lz_add_src_net_address_sets "$wan_1_src_to_dst_addr_file" "$BALANCE_GUARD_IP_SET" "1" "0"
@@ -2872,7 +2595,7 @@ EOF
 		## 加载排除绑定第二WAN口的用户自定义源网址/网段至目标网址/网段列表中未指明目标网址/网段的源网址/网段数据
 		if [ "$wan_2_src_to_dst_addr" = "0" ]; then
 			[ "$( lz_get_ipv4_src_to_dst_data_file_item_total "$wan_2_src_to_dst_addr_file" )" -gt "0" ] && {
-				lz_add_src_net_address_sets "$wan_2_src_to_dst_addr_file" "$LOCAL_IP_SET" "1" "1"
+				[ "$usage_mode" = "0" ] && lz_add_src_net_address_sets "$wan_2_src_to_dst_addr_file" "$LOCAL_IP_SET" "1" "0"
 				if [ "$balance_chain_existing" = "1" ]; then
 					lz_add_src_net_address_sets "$wan_2_src_to_dst_addr_file" "$BALANCE_IP_SET" "1" "0"
 					lz_add_src_net_address_sets "$wan_2_src_to_dst_addr_file" "$BALANCE_GUARD_IP_SET" "1" "0"
@@ -2882,37 +2605,35 @@ EOF
 		## 加载排除高优先级绑定第一WAN口的用户自定义源网址/网段至目标网址/网段列表中未指明目标网址/网段的源网址/网段数据
 		if [ "$high_wan_1_src_to_dst_addr" = "0" ]; then
 			[ "$( lz_get_ipv4_src_to_dst_data_file_item_total "$high_wan_1_src_to_dst_addr_file" )" -gt "0" ] && {
-				lz_add_src_net_address_sets "$high_wan_1_src_to_dst_addr_file" "$LOCAL_IP_SET" "1" "1"
+				[ "$usage_mode" = "0" ] && lz_add_src_net_address_sets "$high_wan_1_src_to_dst_addr_file" "$LOCAL_IP_SET" "1" "0"
 				if [ "$balance_chain_existing" = "1" ]; then
 					lz_add_src_net_address_sets "$high_wan_1_src_to_dst_addr_file" "$BALANCE_IP_SET" "1" "0"
 					lz_add_src_net_address_sets "$high_wan_1_src_to_dst_addr_file" "$BALANCE_GUARD_IP_SET" "1" "0"
 				fi
 			}
 		fi
-
-		## 获取IPSET数据集条目数
-		## 输入项：
-		##     $1--数据集名称
-		## 返回值：
-		##     条目数
-		if [ "$( lz_get_ipset_total_number "$LOCAL_IP_SET" )" -gt "0" ]; then
-			LOCAL_IPSETS_SRC="-m set $MATCH_SET $LOCAL_IP_SET src"
-		fi
 	fi
+
+
+	## 创建内输出mangle表自定义规则链
+	iptables -t mangle -N $CUSTOM_OUTPUT_CHAIN > /dev/null 2>&1
+	iptables -t mangle -A OUTPUT -j $CUSTOM_OUTPUT_CHAIN > /dev/null 2>&1
 
 	## 创建路由前mangle表自定义规则链
 	iptables -t mangle -N $CUSTOM_PREROUTING_CONNMARK_CHAIN > /dev/null 2>&1
 	iptables -t mangle -N $CUSTOM_PREROUTING_CHAIN > /dev/null 2>&1
-	iptables -t mangle -A $CUSTOM_PREROUTING_CHAIN -m state --state NEW -j $CUSTOM_PREROUTING_CONNMARK_CHAIN > /dev/null 2>&1
-	eval "iptables -t mangle -I PREROUTING $LOCAL_IPSETS_SRC -j $CUSTOM_PREROUTING_CHAIN > /dev/null 2>&1"
 
-	## 创建内输出mangle表自定义规则链
-	iptables -t mangle -N $CUSTOM_OUTPUT_CHAIN > /dev/null 2>&1
-	[ "$localhost_nf_policy" = "0" -a "$wan_access_port" = "2" ] && {
-		iptables -t mangle -N $CUSTOM_OUTPUT_CONNMARK_CHAIN > /dev/null 2>&1
-		iptables -t mangle -A $CUSTOM_OUTPUT_CHAIN -m state --state NEW -j $CUSTOM_OUTPUT_CONNMARK_CHAIN > /dev/null 2>&1
-	}
-	iptables -t mangle -A OUTPUT -j $CUSTOM_OUTPUT_CHAIN > /dev/null 2>&1
+	## 加载已明确定义源网址/网段至目标网址/网段列表条目至NetFilter防火墙规则进行数据标记
+	## 输入项：
+	##     全局变量及常量
+	## 返回值：无
+	lz_add_src_to_dst_netfilter_mark
+
+	## 获取入口网卡设备标识
+	local local_lan_ifname="$( nvram get lan_ifname | awk 'NR==1 {print $1}' )"
+	[ -z "$local_lan_ifname" ] && local_lan_ifname=br0
+	iptables -t mangle -A $CUSTOM_PREROUTING_CHAIN -m state --state NEW -m set ! $MATCH_SET $LOCAL_IP_SET src -j $CUSTOM_PREROUTING_CONNMARK_CHAIN > /dev/null 2>&1
+	eval "iptables -t mangle -I PREROUTING -i $local_lan_ifname -j $CUSTOM_PREROUTING_CHAIN > /dev/null 2>&1"
 
 	## 高优先级客户端及源网址/网段列表绑定WAN出口
 	## 输入项：
@@ -2922,8 +2643,7 @@ EOF
 
 	## 端口分流
 	## 第一WAN口目标访问端口分流
-	## 模式1、模式2、模式3时，均为动态路由
-	## 模式1、模式2时，在balance链中通过识别客户端地址，阻止负载均衡为其分配网络出口
+	## 模式1、模式2时，端口分流无效，端口分流仅作用于动态分流模式（模式3）
 	## 模式3时，在balance链中通过识别报文数据包标记，阻止负载均衡为其分配网络出口
 	## 端口策略分流
 	## 输入项：
@@ -2939,8 +2659,7 @@ EOF
 	[ "$usage_mode" = "0" ] && lz_dest_port_policy "$wan0_dest_tcp_port" "$wan0_dest_udp_port" "$wan0_dest_udplite_port" "$wan0_dest_sctp_port" "$DEST_PORT_FWMARK_0" "$WAN0" "$IP_RULE_PRIO_WAN_1_PORT"
 
 	## 第二WAN口目标访问端口分流
-	## 模式1、模式2、模式3时，均为动态路由
-	## 模式1、模式2时，在balance链中通过识别客户端地址，阻止负载均衡为其分配网络出口
+	## 模式1、模式2时，端口分流无效，端口分流仅作用于动态分流模式（模式3）
 	## 模式3时，在balance链中通过识别报文数据包标记，阻止负载均衡为其分配网络出口
 	[ "$usage_mode" = "0" ] && lz_dest_port_policy "$wan1_dest_tcp_port" "$wan1_dest_udp_port" "$wan1_dest_udplite_port" "$wan1_dest_sctp_port" "$DEST_PORT_FWMARK_1" "$WAN1" "$IP_RULE_PRIO_WAN_2_PORT"
 
@@ -2952,31 +2671,10 @@ EOF
 	## 返回值：无
 	[ "$usage_mode" = "0" -a "$l7_protocols" = "0" ] && lz_protocols_policy "$l7_protocols_file"
 
-	local local_item_num=0
-
 	## 第一WAN口客户端及源网址/网段绑定列表
-	## 模式1时，静态路由
-	## 模式2时，静态路由
-	## 模式3时，大于条目阈值数的动态路由，小于的静态路由
-	## 动态和静态路由均在balance链中通过识别客户端地址，阻止负载均衡为其分配网络出口
-	if [ "$wan_1_client_src_addr" = "0" -a "$policy_mode" != "1" ]; then
-		local_item_num=$( lz_get_ipv4_data_file_item_total "$wan_1_client_src_addr_file" )
-		if [ "$usage_mode" = "0" -a "$local_item_num" -gt "$list_mode_threshold" ]; then
-			## 创建或加载网段出口数据集
-			## 输入项：
-			##     $1--全路径网段数据文件名
-			##     $2--网段数据集名称
-			##     $3--0:不效验文件格式，非0：效验文件格式
-			##     $4--0:正匹配数据，非0：反匹配（nomatch）数据
-			## 返回值：
-			##     网址/网段数据集--全局变量
-			lz_add_net_address_sets "$wan_1_client_src_addr_file" "$CLIENT_SRC_SET_0" "1" "0"
-			iptables -t mangle -A $CUSTOM_PREROUTING_CONNMARK_CHAIN -m connmark ! --mark $CLIENT_SRC_FWMARK_0/$CLIENT_SRC_FWMARK_0 -m set $MATCH_SET $CLIENT_SRC_SET_0 src -j CONNMARK --set-xmark $CLIENT_SRC_FWMARK_0/$FWMARK_MASK > /dev/null 2>&1
-			iptables -t mangle -A $CUSTOM_PREROUTING_CONNMARK_CHAIN -m connmark --mark $CLIENT_SRC_FWMARK_0/$CLIENT_SRC_FWMARK_0 -j RETURN > /dev/null 2>&1
-			iptables -t mangle -A $CUSTOM_PREROUTING_CHAIN -m connmark --mark $CLIENT_SRC_FWMARK_0/$CLIENT_SRC_FWMARK_0 -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
-			iptables -t mangle -I $CUSTOM_OUTPUT_CHAIN -m connmark --mark $CLIENT_SRC_FWMARK_0/$CLIENT_SRC_FWMARK_0 -j RETURN > /dev/null 2>&1
-			iptables -t mangle -I $CUSTOM_OUTPUT_CHAIN -m connmark --mark $CLIENT_SRC_FWMARK_0/$CLIENT_SRC_FWMARK_0 -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
-		elif [ "$local_item_num" -ge "1" ]; then
+	## 动静模式时均在balance链中通过识别客户端地址，阻止负载均衡为其分配网络出口
+	if [ "$wan_1_client_src_addr" = "0" ]; then
+		if [ "$( lz_get_ipv4_data_file_item_total "$wan_1_client_src_addr_file" )" -gt "0" ]; then
 			## 转为命令绑定方式
 			## IPv4源网址/网段列表数据命令绑定路由器外网出口
 			## 输入项：
@@ -2990,20 +2688,9 @@ EOF
 	fi
 
 	## 第二WAN口客户端及源网址/网段绑定列表
-	## 模式1时，静态路由
-	## 模式2时，静态路由
-	## 模式3时，大于条目阈值数的动态路由，小于的静态路由
-	## 动态和静态路由均在balance链中通过识别客户端地址，阻止负载均衡为其分配网络出口
-	if [ "$wan_2_client_src_addr" = "0" -a "$policy_mode" != "0" ]; then
-		local_item_num=$( lz_get_ipv4_data_file_item_total "$wan_2_client_src_addr_file" )
-		if [ "$usage_mode" = "0" -a "$local_item_num" -gt "$list_mode_threshold" ]; then
-			lz_add_net_address_sets "$wan_2_client_src_addr_file" "$CLIENT_SRC_SET_1" "1" "0"
-			iptables -t mangle -A $CUSTOM_PREROUTING_CONNMARK_CHAIN -m connmark ! --mark $CLIENT_SRC_FWMARK_1/$CLIENT_SRC_FWMARK_1 -m set $MATCH_SET $CLIENT_SRC_SET_1 src -j CONNMARK --set-xmark $CLIENT_SRC_FWMARK_1/$FWMARK_MASK > /dev/null 2>&1
-			iptables -t mangle -A $CUSTOM_PREROUTING_CONNMARK_CHAIN -m connmark --mark $CLIENT_SRC_FWMARK_1/$CLIENT_SRC_FWMARK_1 -j RETURN > /dev/null 2>&1
-			iptables -t mangle -A $CUSTOM_PREROUTING_CHAIN -m connmark --mark $CLIENT_SRC_FWMARK_1/$CLIENT_SRC_FWMARK_1 -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
-			iptables -t mangle -I $CUSTOM_OUTPUT_CHAIN -m connmark --mark $CLIENT_SRC_FWMARK_1/$CLIENT_SRC_FWMARK_1 -j RETURN > /dev/null 2>&1
-			iptables -t mangle -I $CUSTOM_OUTPUT_CHAIN -m connmark --mark $CLIENT_SRC_FWMARK_1/$CLIENT_SRC_FWMARK_1 -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
-		elif [ "$local_item_num" -ge "1" ]; then
+	## 动静模式时均在balance链中通过识别客户端地址，阻止负载均衡为其分配网络出口
+	if [ "$wan_2_client_src_addr" = "0" ]; then
+		if [ "$( lz_get_ipv4_data_file_item_total "$wan_2_client_src_addr_file" )" -gt "0" ]; then
 			lz_add_ipv4_src_addr_list_binding_wan "$wan_2_client_src_addr_file" "$WAN1" "$IP_RULE_PRIO_WAN_2_CLIENT_SRC_ADDR" "1"
 		fi
 	fi
@@ -3023,8 +2710,8 @@ EOF
 		local LOCAL_IP_RULE_PRIO=0
 		[ "$3" -gt "0" ] && {
 			## 第一WAN口，模式1时，对已定义目标网段流量出口数据实施静态路由
-			## 第一WAN口，模式2时，客户端直接通过本通道的整体静态路由推送访问外网，无须单独设置路由
-			## 第二WAN口，模式1时，客户端直接通过本通道的整体静态路由推送访问外网，无须单独设置路由
+			## 第一WAN口，模式2时，对已定义目标网段流量出口数据直接通过本通道的整体静态路由推送访问外网，无须单独设置路由
+			## 第二WAN口，模式1时，对已定义目标网段流量出口数据直接通过本通道的整体静态路由推送访问外网，无须单独设置路由
 			## 第二WAN口，模式2时，对已定义目标网段流量出口数据实施静态路由
 			## 第一WAN口、第二WAN口，模式3时，对已定义目标网段流量出口数据实施动态路由
 			## 均分出口，模式1时，前半部分目标网段流量出口数据匹配第一WAN口实施静态路由
@@ -3039,8 +2726,8 @@ EOF
 			## 反向均分出口，模式2时，后半部分目标网段流量出口数据匹配第一WAN口，客户端直接通过本通道的整体静态路由推送访问外网，无须单独设置路由
 			## 反向均分出口，模式3时，前半部分目标网段流量出口数据匹配第二WAN口实施动态路由
 			## 反向均分出口，模式3时，后半部分目标网段流量出口数据匹配第一WAN口实施动态路由
-			## 模式1、模式2时，未定义目标网段流量出口数据，由系统负载均衡分配出口
-			## 模式1、模式2时，定义为系统自动分配流量出口的目标网段数据将被添加进BALANCE_DST_IP_SET数据集中，balance链会据此允许系统负载均衡为其网络连接分配出口
+			## 模式1时，未定义目标网段流量出口数据，直接通过本通道的整体静态路由推送访问外网，无须单独设置路由
+			## 模式2时，未定义目标网段流量出口数据，直接通过本通道的整体静态路由推送访问外网，无须单独设置路由
 			## 模式3时，定义为系统自动分配流量出口或未定义的目标网段流量出口数据，由系统负载均衡分配出口
 			## 模式1、模式2时，对已定义目标网段流量出口数据，balance链通过识别客户端地址，阻止负载均衡为其网络连接分配出口
 			## 模式3时，balance链会根据目标网段的在网络连接过程中的报文标记阻止负载均衡为其分配出口
@@ -3134,6 +2821,12 @@ EOF
 		let local_index++
 	done
 
+	## 获取出口网卡设备标识
+	local local_wan0_pppoe_ifname="$( nvram get wan0_pppoe_ifname | grep -Eo 'ppp[0-9]*' | awk 'NR==1 {print $1}' )"
+	local local_wan0_ifname="$( nvram get wan0_ifname | grep -Eo 'eth[0-9]*|vlan[0-9]*' | awk 'NR==1 {print $1}' )"
+	local local_wan1_pppoe_ifname="$( nvram get wan1_pppoe_ifname | grep -Eo 'ppp[0-9]*' | awk 'NR==1 {print $1}' )"
+	local local_wan1_ifname="$( nvram get wan1_ifname | grep -Eo 'eth[0-9]*|vlan[0-9]*' | awk 'NR==1 {print $1}' )"
+
 	## 设置第一WAN口国内网段数据集防火墙标记访问报文数据包过滤规则
 	## 获取IPSET数据集条目数
 	## 输入项：
@@ -3141,18 +2834,11 @@ EOF
 	## 返回值：
 	##     条目数
 	if [ "$( lz_get_ipset_total_number "$ISPIP_SET_0" )" -gt "0" ]; then
-		iptables -t mangle -A $CUSTOM_PREROUTING_CONNMARK_CHAIN -m connmark ! --mark $FWMARK0/$FWMARK0 -m set $MATCH_SET $ISPIP_SET_0 dst -j CONNMARK --set-xmark $FWMARK0/$FWMARK_MASK > /dev/null 2>&1
+		iptables -t mangle -A $CUSTOM_PREROUTING_CONNMARK_CHAIN -m set $MATCH_SET $ISPIP_SET_0 dst -j CONNMARK --set-xmark $FWMARK0/$FWMARK_MASK > /dev/null 2>&1
 		iptables -t mangle -A $CUSTOM_PREROUTING_CONNMARK_CHAIN -m connmark --mark $FWMARK0/$FWMARK0 -j RETURN > /dev/null 2>&1
 		iptables -t mangle -A $CUSTOM_PREROUTING_CHAIN -m connmark --mark $FWMARK0/$FWMARK0 -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
-		iptables -t mangle -I $CUSTOM_OUTPUT_CHAIN -m connmark --mark $FWMARK0/$FWMARK0 -j RETURN > /dev/null 2>&1
-		iptables -t mangle -I $CUSTOM_OUTPUT_CHAIN -m connmark --mark $FWMARK0/$FWMARK0 -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
-		if [ "$localhost_nf_policy" = "0" -a "$wan_access_port" = "2" ]; then
-			iptables -t mangle -A $CUSTOM_OUTPUT_CONNMARK_CHAIN ! -o $route_wan0_ifname -m connmark ! --mark $HOST_FWMARK0/$HOST_FWMARK0 -m set $MATCH_SET $ISPIP_SET_0 dst -j CONNMARK --set-xmark $HOST_FWMARK0/$FWMARK_MASK > /dev/null 2>&1
-			iptables -t mangle -A $CUSTOM_OUTPUT_CONNMARK_CHAIN -m connmark --mark $HOST_FWMARK0/$HOST_FWMARK0 -j RETURN > /dev/null 2>&1
-			iptables -t mangle -A $CUSTOM_OUTPUT_CHAIN -m connmark --mark $HOST_FWMARK0/$HOST_FWMARK0 -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
-			iptables -t mangle -I $CUSTOM_PREROUTING_CHAIN -m connmark --mark $HOST_FWMARK0/$HOST_FWMARK0 -j RETURN > /dev/null 2>&1
-			iptables -t mangle -I $CUSTOM_PREROUTING_CHAIN -m connmark --mark $HOST_FWMARK0/$HOST_FWMARK0 -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
-		fi
+		[ -n "$local_wan0_ifname" ] && iptables -t mangle -I $CUSTOM_OUTPUT_CHAIN -o $local_wan0_ifname -m connmark --mark $FWMARK0/$FWMARK0 -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
+		[ -n "$local_wan0_pppoe_ifname" ] && iptables -t mangle -I $CUSTOM_OUTPUT_CHAIN -o $local_wan0_pppoe_ifname -m connmark --mark $FWMARK0/$FWMARK0 -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
 	fi
 
 	## 设置第二WAN口国内网段数据集防火墙标记访问报文数据包过滤规则
@@ -3162,29 +2848,23 @@ EOF
 	## 返回值：
 	##     条目数
 	if [ "$( lz_get_ipset_total_number "$ISPIP_SET_1" )" -gt "0" ]; then
-		iptables -t mangle -A $CUSTOM_PREROUTING_CONNMARK_CHAIN -m connmark ! --mark $FWMARK1/$FWMARK1 -m set $MATCH_SET $ISPIP_SET_1 dst -j CONNMARK --set-xmark $FWMARK1/$FWMARK_MASK > /dev/null 2>&1
+		iptables -t mangle -A $CUSTOM_PREROUTING_CONNMARK_CHAIN -m set $MATCH_SET $ISPIP_SET_1 dst -j CONNMARK --set-xmark $FWMARK1/$FWMARK_MASK > /dev/null 2>&1
 		iptables -t mangle -A $CUSTOM_PREROUTING_CONNMARK_CHAIN -m connmark --mark $FWMARK1/$FWMARK1 -j RETURN > /dev/null 2>&1
 		iptables -t mangle -A $CUSTOM_PREROUTING_CHAIN -m connmark --mark $FWMARK1/$FWMARK1 -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
-		iptables -t mangle -I $CUSTOM_OUTPUT_CHAIN -m connmark --mark $FWMARK1/$FWMARK1 -j RETURN > /dev/null 2>&1
-		iptables -t mangle -I $CUSTOM_OUTPUT_CHAIN -m connmark --mark $FWMARK1/$FWMARK1 -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
-		if [ "$localhost_nf_policy" = "0" -a "$wan_access_port" = "2" ]; then
-			iptables -t mangle -A $CUSTOM_OUTPUT_CONNMARK_CHAIN ! -o $route_wan1_ifname -m connmark ! --mark $HOST_FWMARK1/$HOST_FWMARK1 -m set $MATCH_SET $ISPIP_SET_1 dst -j CONNMARK --set-xmark $HOST_FWMARK1/$FWMARK_MASK > /dev/null 2>&1
-			iptables -t mangle -A $CUSTOM_OUTPUT_CONNMARK_CHAIN -m connmark --mark $HOST_FWMARK1/$HOST_FWMARK1 -j RETURN > /dev/null 2>&1
-			iptables -t mangle -A $CUSTOM_OUTPUT_CHAIN -m connmark --mark $HOST_FWMARK1/$HOST_FWMARK1 -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
-			iptables -t mangle -I $CUSTOM_PREROUTING_CHAIN -m connmark --mark $HOST_FWMARK1/$HOST_FWMARK1 -j RETURN > /dev/null 2>&1
-			iptables -t mangle -I $CUSTOM_PREROUTING_CHAIN -m connmark --mark $HOST_FWMARK1/$HOST_FWMARK1 -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
-		fi
+		[ -n "$local_wan1_ifname" ] && iptables -t mangle -I $CUSTOM_OUTPUT_CHAIN -o $local_wan1_ifname -m connmark --mark $FWMARK1/$FWMARK1 -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
+		[ -n "$local_wan1_pppoe_ifname" ] && iptables -t mangle -I $CUSTOM_OUTPUT_CHAIN -o $local_wan1_pppoe_ifname -m connmark --mark $FWMARK1/$FWMARK1 -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
 	fi
 
 	## 中国之外所有IP地址
-	## 第一WAN口，模式1时，对已定义目标网段流量出口数据实施动态路由
-	## 第一WAN口，模式2时，客户端直接通过本通道的整体静态路由推送访问外网，无须单独设置路由
-	## 第二WAN口，模式1时，客户端直接通过本通道的整体静态路由推送访问外网，无须单独设置路由
-	## 第二WAN口，模式2时，对已定义目标网段流量出口数据实施动态路由
+	## 第一WAN口，模式1时，将被自动调整为模式2
+	## 第一WAN口，模式2时，对已定义目标网段流量出口数据直接通过本通道的整体静态路由推送访问外网，无须单独设置路由
+	## 第二WAN口，模式1时，对已定义目标网段流量出口数据直接通过本通道的整体静态路由推送访问外网，无须单独设置路由
+	## 第二WAN口，模式2时，将被自动调整为模式1
 	## 第一WAN口、第二WAN口，模式3时，对已定义目标网段流量出口数据实施动态路由
-	## 模式1、模式2时，定义为系统自动分配流量出口的网络连接，balance链中会允许系统负载均衡对访问ALL_CN_DATA数据集中地址的网络连接分配出口
+	## 模式1时，未定义目标网段流量出口数据，直接通过第二WAN口通道的整体静态路由推送访问外网，无须单独设置路由
+	## 模式2时，未定义目标网段流量出口数据，直接通过第一WAN口通道的整体静态路由推送访问外网，无须单独设置路由
 	## 模式3时，定义为系统自动分配流量出口或未定义的目标网段流量出口数据，由系统负载均衡分配出口
-	## 模式1、模式2时，对已定义目标网段流量出口数据，balance链通过识别客户端地址，阻止负载均衡为其网络连接分配出口
+	## 模式1、模式2时，对所有流量出口数据，balance链通过识别客户端地址，阻止负载均衡为其网络连接分配出口
 	## 模式3时，balance链会根据目标网段的在网络连接过程中的报文标记阻止负载均衡为其分配出口
 	if [ "$isp_wan_port_0" = "0" -a "$policy_mode" = "0" ] || \
 		[ "$isp_wan_port_0" = "1" -a "$policy_mode" = "1" ] || \
@@ -3234,25 +2914,24 @@ EOF
 		## 返回值：
 		##     条目数
 		if [ "$( lz_get_ipset_total_number "$ISPIP_ALL_CN_SET" )" -gt "0" ]; then
-			## 网段数据出口为第一WAN口，模式1时，对已定义目标网段流量出口数据实施动态路由
-			## 网段数据出口为第二WAN口，模式2时，对已定义目标网段流量出口数据实施动态路由
-			## 网段数据出口为第一WAN口、第二WAN口，模式3时，对已定义目标网段流量出口数据实施动态路由
-			iptables -t mangle -A $CUSTOM_PREROUTING_CONNMARK_CHAIN -m connmark ! --mark $FOREIGN_FWMARK/$FOREIGN_FWMARK -m set ! $MATCH_SET $ISPIP_ALL_CN_SET dst -j CONNMARK --set-xmark $FOREIGN_FWMARK/$FWMARK_MASK > /dev/null 2>&1
+			## 第一WAN口，模式1时，将被自动调整为模式2
+			## 第一WAN口，模式2时，对已定义目标网段流量出口数据直接通过本通道的整体静态路由推送访问外网，无须单独设置路由
+			## 第二WAN口，模式1时，对已定义目标网段流量出口数据直接通过本通道的整体静态路由推送访问外网，无须单独设置路由
+			## 第二WAN口，模式2时，将被自动调整为模式1
+			## 第一WAN口、第二WAN口，模式3时，对已定义目标网段流量出口数据实施动态路由
+			iptables -t mangle -A $CUSTOM_PREROUTING_CONNMARK_CHAIN -m set ! $MATCH_SET $ISPIP_ALL_CN_SET dst -j CONNMARK --set-xmark $FOREIGN_FWMARK/$FWMARK_MASK > /dev/null 2>&1
 			iptables -t mangle -A $CUSTOM_PREROUTING_CHAIN -m connmark --mark $FOREIGN_FWMARK/$FOREIGN_FWMARK -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
-			iptables -t mangle -I $CUSTOM_OUTPUT_CHAIN -m connmark --mark $FOREIGN_FWMARK/$FOREIGN_FWMARK -j RETURN > /dev/null 2>&1
-			iptables -t mangle -I $CUSTOM_OUTPUT_CHAIN -m connmark --mark $FOREIGN_FWMARK/$FOREIGN_FWMARK -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
-			if [ "$localhost_nf_policy" = "0" -a "$wan_access_port" = "2" ]; then
-				local local_ioctl_string=""
-				[ "$isp_wan_port_0" = "0" ] && local_ioctl_string="! -o $route_wan0_ifname"
-				[ "$isp_wan_port_0" = "1" ] && local_ioctl_string="! -o $route_wan1_ifname"
-				eval "iptables -t mangle -A $CUSTOM_OUTPUT_CONNMARK_CHAIN $local_ioctl_string -m connmark ! --mark $HOST_FOREIGN_FWMARK/$HOST_FOREIGN_FWMARK -m set ! $MATCH_SET $ISPIP_ALL_CN_SET dst -j CONNMARK --set-xmark $HOST_FOREIGN_FWMARK/$FWMARK_MASK > /dev/null 2>&1"
-				iptables -t mangle -A $CUSTOM_OUTPUT_CHAIN -m connmark --mark $HOST_FOREIGN_FWMARK/$HOST_FOREIGN_FWMARK -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
-				iptables -t mangle -I $CUSTOM_PREROUTING_CHAIN -m connmark --mark $HOST_FOREIGN_FWMARK/$HOST_FOREIGN_FWMARK -j RETURN > /dev/null 2>&1
-				iptables -t mangle -I $CUSTOM_PREROUTING_CHAIN -m connmark --mark $HOST_FOREIGN_FWMARK/$HOST_FOREIGN_FWMARK -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
+			if [ "$isp_wan_port_0" = "0" ]; then
+				[ -n "$local_wan0_ifname" ] && iptables -t mangle -I $CUSTOM_OUTPUT_CHAIN -o $local_wan0_ifname -m connmark --mark $FOREIGN_FWMARK/$FOREIGN_FWMARK -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
+				[ -n "$local_wan0_pppoe_ifname" ] && iptables -t mangle -I $CUSTOM_OUTPUT_CHAIN -o $local_wan0_pppoe_ifname -m connmark --mark $FOREIGN_FWMARK/$FOREIGN_FWMARK -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
+			elif [ "$isp_wan_port_0" = "1" ]; then
+				[ -n "$local_wan1_ifname" ] && iptables -t mangle -I $CUSTOM_OUTPUT_CHAIN -o $local_wan1_ifname -m connmark --mark $FOREIGN_FWMARK/$FOREIGN_FWMARK -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
+				[ -n "$local_wan1_pppoe_ifname" ] && iptables -t mangle -I $CUSTOM_OUTPUT_CHAIN -o $local_wan1_pppoe_ifname -m connmark --mark $FOREIGN_FWMARK/$FOREIGN_FWMARK -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
 			fi
 		fi
 	fi
 
+	local local_item_num=0
 	local local_set_name=
 	local LOCAL_WAN_ID=0
 
@@ -3445,7 +3124,7 @@ EOF
 	local local_wan_ip=
 
 	## 第一WAN口ISP国内网段数据集中排除WAN口的DNS解析服务器网址和外网网关地址，加入WAN口地址
-	if [ "$( lz_get_ipset_total_number "$ISPIP_SET_0" )" -gt "0" ]; then
+	if [ -n "$( ipset -q -n list $ISPIP_SET_0 )" ]; then
 		[ -n "$local_ifip_wan0_dns1" ] && {
 			ipset -! del $ISPIP_SET_0 $local_ifip_wan0_dns1 > /dev/null 2>&1
 			ipset -! add $ISPIP_SET_0 $local_ifip_wan0_dns1 nomatch > /dev/null 2>&1
@@ -3464,7 +3143,7 @@ EOF
 		}
 
 		## 排除第一WAN口外网IPv4网关地址
-		local_wan_ip_list=$( ip -o -4 addr list | grep "$( nvram get wan0_pppoe_ifname | sed 's/ /\n/g' | sed -n 1p )" | awk -F ' ' '{print $6}' )
+		local_wan_ip_list=$( ip -o -4 addr list | grep "$( nvram get wan0_pppoe_ifname | sed 's/ /\n/g' | sed -n 1p )" | awk '{print $6}' )
 		if [ -n "$local_wan_ip_list" ]; then
 			for local_wan_ip in $local_wan_ip_list
 			do
@@ -3474,7 +3153,7 @@ EOF
 		fi
 
 		## 加入第一WAN口外网IPv4网络地址
-		local_wan_ip_list=$( ip -o -4 addr list | grep "$( nvram get wan0_pppoe_ifname | sed 's/ /\n/g' | sed -n 1p )" | awk -F ' ' '{print $4}' )
+		local_wan_ip_list=$( ip -o -4 addr list | grep "$( nvram get wan0_pppoe_ifname | sed 's/ /\n/g' | sed -n 1p )" | awk '{print $4}' )
 		if [ -n "$local_wan_ip_list" ]; then
 			for local_wan_ip in $local_wan_ip_list
 			do
@@ -3484,7 +3163,7 @@ EOF
 		fi
 
 		## 加入第一WAN口内网地址
-		local_wan_ip=$( ip -o -4 addr list | grep "$( nvram get wan0_ifname | sed 's/ /\n/g' | sed -n 1p )" | awk -F ' ' '{print $4}'  )
+		local_wan_ip=$( ip -o -4 addr list | grep "$( nvram get wan0_ifname | sed 's/ /\n/g' | sed -n 1p )" | awk '{print $4}'  )
 		[ -n "$local_wan_ip" ] && {
 			ipset -! del $ISPIP_SET_0 $local_wan_ip > /dev/null 2>&1
 			ipset -! add $ISPIP_SET_0 $local_wan_ip > /dev/null 2>&1
@@ -3492,7 +3171,7 @@ EOF
 	fi
 
 	## 第二WAN口ISP国内网段数据集中排除WAN口的DNS解析服务器网址和外网网关地址，加入WAN口地址
-	if [ "$( lz_get_ipset_total_number "$ISPIP_SET_1" )" -gt "0" ]; then
+	if [ -n "$( ipset -q -n list $ISPIP_SET_1 )" ]; then
 		[ -n "$local_ifip_wan0_dns1" ] && {
 			ipset -! del $ISPIP_SET_1 $local_ifip_wan0_dns1 > /dev/null 2>&1
 			ipset -! add $ISPIP_SET_1 $local_ifip_wan0_dns1 nomatch > /dev/null 2>&1
@@ -3511,7 +3190,7 @@ EOF
 		}
 
 		## 排除第二WAN口外网IPv4网关地址
-		local_wan_ip_list=$( ip -o -4 addr list | grep "$( nvram get wan1_pppoe_ifname | sed 's/ /\n/g' | sed -n 1p )" | awk -F ' ' '{print $6}' )
+		local_wan_ip_list=$( ip -o -4 addr list | grep "$( nvram get wan1_pppoe_ifname | sed 's/ /\n/g' | sed -n 1p )" | awk '{print $6}' )
 		if [ -n "$local_wan_ip_list" ]; then
 			for local_wan_ip in $local_wan_ip_list
 			do
@@ -3521,7 +3200,7 @@ EOF
 		fi
 
 		## 加入第二WAN口外网IPv4网络地址
-		local_wan_ip_list=$( ip -o -4 addr list | grep "$( nvram get wan1_pppoe_ifname | sed 's/ /\n/g' | sed -n 1p )" | awk -F ' ' '{print $4}' )
+		local_wan_ip_list=$( ip -o -4 addr list | grep "$( nvram get wan1_pppoe_ifname | sed 's/ /\n/g' | sed -n 1p )" | awk '{print $4}' )
 		if [ -n "$local_wan_ip_list" ]; then
 			for local_wan_ip in $local_wan_ip_list
 			do
@@ -3531,7 +3210,7 @@ EOF
 		fi
 
 		## 加入第二WAN口内网地址
-		local_wan_ip=$( ip -o -4 addr list | grep "$( nvram get wan1_ifname | sed 's/ /\n/g' | sed -n 1p )" | awk -F ' ' '{print $4}'  )
+		local_wan_ip=$( ip -o -4 addr list | grep "$( nvram get wan1_ifname | sed 's/ /\n/g' | sed -n 1p )" | awk '{print $4}'  )
 		[ -n "$local_wan_ip" ] && {
 			ipset -! del $ISPIP_SET_1 $local_wan_ip > /dev/null 2>&1
 			ipset -! add $ISPIP_SET_1 $local_wan_ip > /dev/null 2>&1
@@ -3539,7 +3218,7 @@ EOF
 	fi
 
 	## 国外网段数据集中排除保留的内网网址/网段数据、WAN口外网IPv4网络、WAN口外网IPv4网关地址及WAN口的DNS解析服务器网址
-	if [ "$( lz_get_ipset_total_number "$ISPIP_ALL_CN_SET" )" -gt "0" ]; then
+	if [ -n "$( ipset -q -n list $ISPIP_ALL_CN_SET )" ]; then
 		## 排除保留的内网网址/网段数据
 		[ "$( lz_get_ipv4_data_file_item_total "$private_ipsets_file" )" -gt "0" ] && {
 			## 创建或加载网段出口数据集
@@ -3554,7 +3233,7 @@ EOF
 		}
 
 		## 排除WAN口外网IPv4网络地址
-		local_wan_ip_list=$( ip -o -4 addr list | grep ppp | awk -F ' ' '{print $4}' )
+		local_wan_ip_list=$( ip -o -4 addr list | grep ppp | awk '{print $4}' )
 		if [ -n "$local_wan_ip_list" ]; then
 			for local_wan_ip in $local_wan_ip_list
 			do
@@ -3566,7 +3245,7 @@ EOF
 		fi
 
 		## 排除WAN口外网IPv4网关地址
-		local_wan_ip_list=$( ip -o -4 addr list | grep ppp | awk -F ' ' '{print $6}' )
+		local_wan_ip_list=$( ip -o -4 addr list | grep ppp | awk '{print $6}' )
 		if [ -n "$local_wan_ip_list" ]; then
 			for local_wan_ip in $local_wan_ip_list
 			do
@@ -3604,21 +3283,21 @@ EOF
 		}
 
 		## 排除第一WAN口内网地址
-		local_wan_ip=$( ip -o -4 addr list | grep "$( nvram get wan0_ifname | sed 's/ /\n/g' | sed -n 1p )" | awk -F ' ' '{print $4}'  )
+		local_wan_ip=$( ip -o -4 addr list | grep "$( nvram get wan0_ifname | sed 's/ /\n/g' | sed -n 1p )" | awk '{print $4}'  )
 		[ -n "$local_wan_ip" ] && {
 			ipset -! del $ISPIP_ALL_CN_SET $local_wan_ip > /dev/null 2>&1
 			ipset -! add $ISPIP_ALL_CN_SET $local_wan_ip > /dev/null 2>&1
 		}
 
 		## 排除第二WAN口内网地址
-		local_wan_ip=$( ip -o -4 addr list | grep "$( nvram get wan1_ifname | sed 's/ /\n/g' | sed -n 1p )" | awk -F ' ' '{print $4}'  )
+		local_wan_ip=$( ip -o -4 addr list | grep "$( nvram get wan1_ifname | sed 's/ /\n/g' | sed -n 1p )" | awk '{print $4}'  )
 		[ -n "$local_wan_ip" ] && {
 			ipset -! del $ISPIP_ALL_CN_SET $local_wan_ip > /dev/null 2>&1
 			ipset -! add $ISPIP_ALL_CN_SET $local_wan_ip > /dev/null 2>&1
 		}
 	elif [ "$balance_chain_existing" = "1" ]; then
 		## 阻止访问WAN口外网IPv4网关地址负载均衡
-		local_wan_ip_list=$( ip -o -4 addr list | grep ppp | awk -F ' ' '{print $6}' )
+		local_wan_ip_list=$( ip -o -4 addr list | grep ppp | awk '{print $6}' )
 		if [ -n "$local_wan_ip_list" ]; then
 			for local_wan_ip in $local_wan_ip_list
 			do
@@ -3627,14 +3306,10 @@ EOF
 		fi
 
 		## 阻止访问DNS地址负载均衡
-		[ -n "$local_ifip_wan0_dns1" ] && \
-			ipset -! add $BALANCE_GUARD_IP_SET $local_ifip_wan0_dns1 > /dev/null 2>&1
-		[ -n "$local_ifip_wan0_dns2" ] && \
-			ipset -! add $BALANCE_GUARD_IP_SET $local_ifip_wan0_dns2 > /dev/null 2>&1
-		[ -n "$local_ifip_wan1_dns1" ] && \
-			ipset -! add $BALANCE_GUARD_IP_SET $local_ifip_wan1_dns1 > /dev/null 2>&1
-		[ -n "$local_ifip_wan1_dns2" ] && \
-			ipset -! add $BALANCE_GUARD_IP_SET $local_ifip_wan1_dns2 > /dev/null 2>&1
+		[ -n "$local_ifip_wan0_dns1" ] && ipset -! add $BALANCE_GUARD_IP_SET $local_ifip_wan0_dns1 > /dev/null 2>&1
+		[ -n "$local_ifip_wan0_dns2" ] && ipset -! add $BALANCE_GUARD_IP_SET $local_ifip_wan0_dns2 > /dev/null 2>&1
+		[ -n "$local_ifip_wan1_dns1" ] && ipset -! add $BALANCE_GUARD_IP_SET $local_ifip_wan1_dns1 > /dev/null 2>&1
+		[ -n "$local_ifip_wan1_dns2" ] && ipset -! add $BALANCE_GUARD_IP_SET $local_ifip_wan1_dns2 > /dev/null 2>&1
 	fi
 
 	## 检测是否启用NetFilter网络防火墙地址过滤匹配标记功能
@@ -3643,45 +3318,28 @@ EOF
 	## 返回值：
 	##     0--已启用
 	##     1--未启用
-	if ! lz_get_netfilter_addr_mark_used; then
-		## 删除路由前mangle表自定义规则链
-		## 输入项：
-		##     $1--自定义规则链名称
-		##     $2--自定义规则子链名称
-		## 返回值：无
-		lz_delete_iptables_custom_prerouting_chain "$CUSTOM_PREROUTING_CHAIN" "$CUSTOM_PREROUTING_CONNMARK_CHAIN"
+	if ! lz_get_netfilter_used; then
+		if [ -n "$( iptables -t mangle -L $CUSTOM_PREROUTING_CHAIN 2> /dev/null | grep "$SRC_DST_FWMARK" )" ]; then
+			## 删除路由前mangle表自定义规则子链
+			## 输入项：
+			##     $1--自定义规则链名称
+			##     $2--自定义规则子链名称
+			## 返回值：无
+			lz_delete_iptables_custom_prerouting_sub_chain "$CUSTOM_PREROUTING_CHAIN" "$CUSTOM_PREROUTING_CONNMARK_CHAIN"
+		else
+			## 删除路由前mangle表自定义规则链
+			## 输入项：
+			##     $1--自定义规则链名称
+			##     $2--自定义规则子链名称
+			## 返回值：无
+			lz_delete_iptables_custom_prerouting_chain "$CUSTOM_PREROUTING_CHAIN" "$CUSTOM_PREROUTING_CONNMARK_CHAIN"
 
-		## 删除内输出mangle表自定义规则链
-		## 输入项：
-		##     $1--自定义规则链名称
-		##     $2--自定义规则子链名称
-		## 返回值：无
-		lz_delete_iptables_custom_output_chain "$CUSTOM_OUTPUT_CHAIN" "$CUSTOM_OUTPUT_CONNMARK_CHAIN"
-	else
-		## 加载排除标记绑定第一WAN口的用户自定义源网址/网段至目标网址/网段列表中指明源网址/网段和目标网址/网段条目
-		if [ "$wan_1_src_to_dst_addr" = "0" ]; then
-			[ "$( lz_get_ipv4_defined_src_to_dst_data_file_item_total "$wan_1_src_to_dst_addr_file" )" -gt "0" ] && {
-				## 加载已明确定义源网址/网段至目标网址/网段列表条目数据至禁止数据标记的防火墙规则
-				## 输入项：
-				##     $1--全路径网段数据文件名
-				##     $2--路由前mangle表自定义链名称
-				##     $3--0:不效验文件格式，非0：效验文件格式
-				## 返回值：
-				##     网址/网段数据集--全局变量
-				lz_add_src_to_dst_unmark_netfilter "$wan_1_src_to_dst_addr_file" "$CUSTOM_PREROUTING_CHAIN" "1"
-			}
-		fi
-		## 加载排除标记绑定第二WAN口的用户自定义源网址/网段至目标网址/网段列表中指明源网址/网段和目标网址/网段条目
-		if [ "$wan_2_src_to_dst_addr" = "0" ]; then
-			[ "$( lz_get_ipv4_defined_src_to_dst_data_file_item_total "$wan_2_src_to_dst_addr_file" )" -gt "0" ] && {
-				lz_add_src_to_dst_unmark_netfilter "$wan_2_src_to_dst_addr_file" "$CUSTOM_PREROUTING_CHAIN" "1"
-			}
-		fi
-		## 加载排除标记高优先级绑定第一WAN口的用户自定义源网址/网段至目标网址/网段列表中指明源网址/网段和目标网址/网段条目
-		if [ "$high_wan_1_src_to_dst_addr" = "0" ]; then
-			[ "$( lz_get_ipv4_defined_src_to_dst_data_file_item_total "$high_wan_1_src_to_dst_addr_file" )" -gt "0" ] && {
-				lz_add_src_to_dst_unmark_netfilter "$high_wan_1_src_to_dst_addr_file" "$CUSTOM_PREROUTING_CHAIN" "1"
-			}
+			## 删除内输出mangle表自定义规则链
+			## 输入项：
+			##     $1--自定义规则链名称
+			##     $2--自定义规则子链名称
+			## 返回值：无
+			lz_delete_iptables_custom_output_chain "$CUSTOM_OUTPUT_CHAIN" "$CUSTOM_OUTPUT_CONNMARK_CHAIN"
 		fi
 	fi
 
@@ -3798,19 +3456,14 @@ EOF_OVPN_C
 			echo "\$lz_ipsec_vpn_subnet_list" | sed 's/^.*\$/-! del $LOCAL_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
 EOF_OVPN_D
 
-	if [ "$ovs_client_wan_port" != "0" -a "$ovs_client_wan_port" != "1" ]; then
+	if [ "$ovs_client_wan_port" = "0" -o "$ovs_client_wan_port" = "1" ]; then
 		cat >> ${1}/${2} <<EOF_OVPN_E
 			echo "\$lz_route_vpn_list" | sed 's/^.*\$/-! add $LOCAL_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
 			echo "\$lz_ipsec_vpn_subnet_list" | sed 's/^.*\$/-! add $LOCAL_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
 EOF_OVPN_E
-	else
-		cat >> ${1}/${2} <<EOF_OVPN_F
-			echo "\$lz_route_vpn_list" | sed 's/^.*\$/-! add $LOCAL_IP_SET & nomatch/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
-			echo "\$lz_ipsec_vpn_subnet_list" | sed 's/^.*\$/-! add $LOCAL_IP_SET & nomatch/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
-EOF_OVPN_F
 	fi
 
-	cat >> ${1}/${2} <<EOF_OVPN_G
+	cat >> ${1}/${2} <<EOF_OVPN_F
 		fi
 		if [ -n "\$( ipset -q -n list $BALANCE_GUARD_IP_SET )" ]; then
 			echo "\$lz_ovpn_subnet_list" | sed 's/^.*\$/-! del $BALANCE_GUARD_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
@@ -3867,7 +3520,7 @@ echo \$(date) [\$\$]: >> /tmp/syslog.log
 
 flock -u $LOCK_FILE_ID > /dev/null 2>&1
 
-EOF_OVPN_G
+EOF_OVPN_F
 
 	chmod +x ${1}/${2}
 }
@@ -3983,22 +3636,12 @@ EOF_OVPN_SCRIPTS_A
 			llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
 			break
 		else
-			if [ "$ovs_client_wan_port" != "0" -a "$ovs_client_wan_port" != "1" ]; then
+			if [ "$ovs_client_wan_port" = "0" -o "$ovs_client_wan_port" = "1" ]; then
 				if [ -z "$( echo "$local_openvpn_event_interface_scripts" | grep "\-! add $LOCAL_IP_SET &/g'" )" ]; then
 					llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
 					break
 				fi
-
-				if [ -n "$( echo "$local_openvpn_event_interface_scripts" | grep "\-! add $LOCAL_IP_SET & nomatch/g'" )" ]; then
-					llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
-					break
-				fi
 			else
-				if [ -z "$( echo "$local_openvpn_event_interface_scripts" | grep "\-! add $LOCAL_IP_SET & nomatch/g'" )" ]; then
-					llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
-					break
-				fi
-
 				if [ -n "$( echo "$local_openvpn_event_interface_scripts" | grep "\-! add $LOCAL_IP_SET &/g'" )" ]; then
 					llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
 					break
@@ -4104,11 +3747,8 @@ lz_vpn_support() {
 			[ -n "$( ipset -q -n list $LOCAL_IP_SET )" ] && {
 				echo "$1" | sed "s/^.*$/-! del "$LOCAL_IP_SET" &/g" | \
 					awk '{print $0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
-				if [ "$ovs_client_wan_port" != "0" -a "$ovs_client_wan_port" != "1" ]; then
+				if [ "$ovs_client_wan_port" = "0" -o "$ovs_client_wan_port" = "1" ]; then
 					echo "$1" | sed "s/^.*$/-! add "$LOCAL_IP_SET" &/g" | \
-						awk '{print $0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
-				else
-					echo "$1" | sed "s/^.*$/-! add "$LOCAL_IP_SET" & nomatch/g" | \
 						awk '{print $0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
 				fi
 			}
@@ -4221,7 +3861,7 @@ lz_get_wan_pub_ip() {
 	local local_public_ip_enable=0
 	local local_wan_dev="$( ip route show table "$1" | grep default | grep -Eo 'ppp[0-9]*' | sed -n 1p )"
 	if [ -z "$local_wan_dev" ]; then
-		local_wan_dev="$( ip route show table "$1" | grep default | awk -F ' ' '{print $5}' | sed -n 1p )"
+		local_wan_dev="$( ip route show table "$1" | grep default | awk '{print $5}' | sed -n 1p )"
 	else
 		local_public_ip_enable=1
 	fi
@@ -4229,7 +3869,7 @@ lz_get_wan_pub_ip() {
 	if [ -n "$local_wan_dev" ]; then
 		local_wan_ip="$( curl -s --connect-timeout 20 --interface "$local_wan_dev" whatismyip.akamai.com | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}' )"
 		if [ "$local_public_ip_enable" = "1" -a -n "$local_wan_ip" ]; then
-			local_local_wan_ip="$( ip -o -4 addr list | grep "$local_wan_dev" | awk -F ' ' '{print $4}' | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}' )"
+			local_local_wan_ip="$( ip -o -4 addr list | grep "$local_wan_dev" | awk '{print $4}' | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}' )"
 			[ "$local_wan_ip" != "$local_local_wan_ip" ] && local_public_ip_enable=0
 		else
 			local_public_ip_enable=0
@@ -4752,8 +4392,8 @@ lz_output_ispip_info_to_system_records() {
 ##     全局常量及变量
 ## 返回值：无
 lz_output_dport_policy_info_to_system_records() {
-	[ "$( iptables -t mangle -L PREROUTING | grep -c "$CUSTOM_PREROUTING_CHAIN" )" -le "0" ] && return
-	[ "$( iptables -t mangle -L "$CUSTOM_PREROUTING_CHAIN" | grep -c "$CUSTOM_PREROUTING_CONNMARK_CHAIN" )" -le "0" ] && return
+	[ -z "$( iptables -t mangle -L PREROUTING | grep "$CUSTOM_PREROUTING_CHAIN" )" ] && return
+	[ -z "$( iptables -t mangle -L "$CUSTOM_PREROUTING_CHAIN" | grep "$CUSTOM_PREROUTING_CONNMARK_CHAIN" )" ] && return
 	local local_item_exist=0
 	local local_dports=$( iptables -t mangle -L $CUSTOM_PREROUTING_CONNMARK_CHAIN -v -n --line-numbers | grep "MARK set $DEST_PORT_FWMARK_0" | grep tcp | awk -F "dports " '{print $2}' | awk -F " " '{print $1}' )
 	[ -n "$local_dports" ] && local_item_exist=1 && {
@@ -5003,9 +4643,7 @@ lz_start_iptv_box_services() {
 	## 刷新路由器路由表缓存
 	ip route flush cache > /dev/null 2>&1
 
-	if [ "$( ip rule show | grep -c "$IP_RULE_PRIO_IPTV:" )" -le "0" ]; then
-		return
-	fi
+	[ -z "$( ip rule show | grep "$IP_RULE_PRIO_IPTV:" )" ] && return
 
 	## 向IPTV路由表中添加路由项
 	ip route | grep -Ev 'default|nexthop' | \
@@ -5035,8 +4673,7 @@ lz_start_iptv_box_services() {
 		ip route flush cache > /dev/null 2>&1
 	else
 		if [ -f "$iptv_box_ip_lst_file" ]; then
-			## 模式3时需阻止系统对IPTV流量进行负载均衡
-			if [ "$balance_chain_existing" = "1" -a "$usage_mode" = "0" ]; then
+			if [ "$balance_chain_existing" = "1" ]; then
 				## 创建或加载网段出口数据集函数
 				## 输入项：
 				##     $1--全路径网段数据文件名
@@ -5046,32 +4683,51 @@ lz_start_iptv_box_services() {
 				## 返回值：
 				##     网址/网段数据集--全局变量
 				lz_add_net_address_sets "$iptv_box_ip_lst_file" "$BALANCE_IP_SET" "1" "0"
+				lz_add_net_address_sets "$iptv_box_ip_lst_file" "$BALANCE_GUARD_IP_SET" "1" "0"
 			fi
 
 			## 根据IPTV机顶盒访问IPTV线路方式阻止对IPTV流量进行动态分流
-			if [ "$iptv_access_mode" = "1" -a \
-				"$( lz_get_ipset_total_number "$LOCAL_IP_SET" )" -gt "0" ]; then
+			if [ "$iptv_access_mode" = "1" -a "$usage_mode" = "0" ]; then
 				## 直连IPTV线路时，机顶盒全部流量采用静态分流，须在动态分流中屏蔽其流量输出
-				lz_add_net_address_sets "$iptv_box_ip_lst_file" "$LOCAL_IP_SET" "1" "1"
-			elif [ "$iptv_access_mode" != "1" -a -f "$iptv_isp_ip_lst_file" \
-				-a "$( iptables -t mangle -L $CUSTOM_PREROUTING_CONNMARK_CHAIN 2> /dev/null \
-					| grep -Evc "$CUSTOM_PREROUTING_CONNMARK_CHAIN|destination" )" -gt "0" ]; then
+				lz_add_net_address_sets "$iptv_box_ip_lst_file" "$LOCAL_IP_SET" "1" "0"
+			elif [ "$iptv_access_mode" != "1" -a -f "$iptv_isp_ip_lst_file" ]; then
+				[ "$usage_mode" = "0" ] && lz_add_net_address_sets "$iptv_box_ip_lst_file" "$LOCAL_IP_SET" "1" "0"
 				lz_add_net_address_sets "$iptv_box_ip_lst_file" "$IPTV_BOX_IP_SET" "1" "0"
 				lz_add_net_address_sets "$iptv_isp_ip_lst_file" "$IPTV_ISP_IP_SET" "1" "0"
-
 				if [ "$( lz_get_ipset_total_number "$IPTV_BOX_IP_SET" )" -gt "0" \
 					-a "$( lz_get_ipset_total_number "$IPTV_ISP_IP_SET" )" -gt "0" ]; then
-					## 阻止对IPTV流量进行动态分流，但允许分流机顶盒的其他流量
-					iptables -t mangle -I $CUSTOM_PREROUTING_CONNMARK_CHAIN \
-						-m set $MATCH_SET $IPTV_BOX_IP_SET src \
-						-m set $MATCH_SET $IPTV_ISP_IP_SET dst \
-						-j RETURN > /dev/null 2>&1
-				else
-					## IPTV机顶盒网址/网段数据集名称
-					ipset -q flush $IPTV_BOX_IP_SET && ipset -q destroy $IPTV_BOX_IP_SET
+					## 获取入口网卡设备标识
+					local local_ifname="$( nvram get lan_ifname | awk 'NR==1 {print $1}' )"
+					[ -z "$local_ifname" ] && local_ifname=br0
+					local local_new=0
+					## 创建路由前mangle表自定义规则链
+					iptables -t mangle -N $CUSTOM_PREROUTING_CHAIN > /dev/null 2>&1
+					[ "$?" = "0" ] && {
+						iptables -t mangle -I PREROUTING -i $local_ifname -j $CUSTOM_PREROUTING_CHAIN > /dev/null 2>&1
+						local_new=1
+					}
+					## 创建内输出mangle表自定义规则链
+					iptables -t mangle -N $CUSTOM_OUTPUT_CHAIN > /dev/null 2>&1
+					[ "$?" = "0" ] && iptables -t mangle -A OUTPUT -j $CUSTOM_OUTPUT_CHAIN > /dev/null 2>&1
+					## 创建规则
+					if [ -z "$( iptables -t mangle -L $CUSTOM_PREROUTING_CHAIN 2> /dev/null | grep "$SRC_DST_FWMARK" )" ]; then
+						[ "$local_new" != "1" ] && iptables -t mangle -I $CUSTOM_PREROUTING_CHAIN -m connmark --mark $SRC_DST_FWMARK/$SRC_DST_FWMARK -j RETURN > /dev/null 2>&1
+						iptables -t mangle -I $CUSTOM_PREROUTING_CHAIN -m connmark --mark $SRC_DST_FWMARK/$SRC_DST_FWMARK -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
+						iptables -t mangle -I $CUSTOM_PREROUTING_CHAIN -m state --state NEW -m set $MATCH_SET $IPTV_BOX_IP_SET src -m set $MATCH_SET $IPTV_ISP_IP_SET dst -j CONNMARK --set-xmark $SRC_DST_FWMARK/$FWMARK_MASK > /dev/null 2>&1
+					else
+						iptables -t mangle -I $CUSTOM_PREROUTING_CHAIN -m state --state NEW -m set $MATCH_SET $IPTV_BOX_IP_SET src -m set $MATCH_SET $IPTV_ISP_IP_SET dst -j CONNMARK --set-xmark $SRC_DST_FWMARK/$FWMARK_MASK > /dev/null 2>&1
+					fi
+					if [ -z "$( iptables -t mangle -L $CUSTOM_OUTPUT_CHAIN 2> /dev/null | grep "$SRC_DST_FWMARK" )" ]; then
+						local_ifname="$( nvram get wan1_ifname | grep -Eo 'eth[0-9]*|vlan[0-9]*' | awk 'NR==1 {print $1}' )"
+						[ -n "$local_ifname" ] && iptables -t mangle -I $CUSTOM_OUTPUT_CHAIN -o $local_ifname -m connmark --mark $SRC_DST_FWMARK/$SRC_DST_FWMARK -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
+						local_ifname="$( nvram get wan1_pppoe_ifname | grep -Eo 'ppp[0-9]*' | awk 'NR==1 {print $1}' )"
+						[ -n "$local_ifname" ] && iptables -t mangle -I $CUSTOM_OUTPUT_CHAIN -o $local_ifname -m connmark --mark $SRC_DST_FWMARK/$SRC_DST_FWMARK -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
+						local_ifname="$( nvram get wan0_ifname | grep -Eo 'eth[0-9]*|vlan[0-9]*' | awk 'NR==1 {print $1}' )"
+						[ -n "$local_ifname" ] && iptables -t mangle -I $CUSTOM_OUTPUT_CHAIN -o $local_ifname -m connmark --mark $SRC_DST_FWMARK/$SRC_DST_FWMARK -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
+						local_ifname="$( nvram get wan0_pppoe_ifname | grep -Eo 'ppp[0-9]*' | awk 'NR==1 {print $1}' )"
+						[ -n "$local_ifname" ] && iptables -t mangle -I $CUSTOM_OUTPUT_CHAIN -o $local_ifname -m connmark --mark $SRC_DST_FWMARK/$SRC_DST_FWMARK -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
+					fi
 
-					## IPTV网络服务IP网址/网段数据集名称
-					ipset -q flush $IPTV_ISP_IP_SET && ipset -q destroy $IPTV_ISP_IP_SET
 				fi
 			fi
 		fi
@@ -5085,168 +4741,54 @@ lz_start_iptv_box_services() {
 lz_insert_custom_balance_rules() {
 	[ "$balance_chain_existing" != "1" ] && return
 	## 在路由前mangle表balance负载均衡规则链中插入避免系统原生负载均衡影响分流的规则
-	## 模式1、模式2时
-	if [ "$usage_mode" != "0" ]; then
-		local local_jump_1=0; local local_jump_2=0;
-		if [ "$( lz_get_ipset_total_number "$LOCAL_IP_SET" )" -gt "0" ]; then
-			if [ "$isp_wan_port_0" != "0" -a "$isp_wan_port_0" != "1" ]; then
-				[ "$( lz_get_ipset_total_number "$ISPIP_ALL_CN_SET" )" -gt "0" ] && local_jump_1=0 # 1 取消静态分流模式下国外运营商网段流量的负载均衡功能
-			fi
-			[ "$( lz_get_ipset_total_number "$BALANCE_DST_IP_SET" )" -gt "0" ] && local_jump_2=0 # 1 取消静态分流模式下国内运营商网段流量的负载均衡功能
-		fi
-		if [ "$( lz_get_ipset_total_number "$BALANCE_IP_SET" )" -gt "0" ]; then
-			## 只对客户端分流黑名单设备和含有指定标记的网络流量放行，去进行负载均衡
-			if [ "$local_jump_1" != "0" -o "$local_jump_2" != "0" ]; then
-				iptables -t mangle -I balance -m mark ! --mark $BALANCE_JUMP_FWMARK/$BALANCE_JUMP_FWMARK -m set $MATCH_SET $BALANCE_IP_SET src -j RETURN > /dev/null 2>&1
-			else
-				iptables -t mangle -I balance -m set $MATCH_SET $BALANCE_IP_SET src -j RETURN > /dev/null 2>&1
+	## 动态分流模式：模式3
+	if [ "$usage_mode" = "0" ]; then
+		if [ "$isp_wan_port_0" = "0" -o "$isp_wan_port_0" = "1" ]; then
+			if [ "$( lz_get_ipset_total_number "$ISPIP_ALL_CN_SET" )" -gt "0" ]; then
+				## 阻止对出口已指向国外运营商网络的包地址匹配路由流量进行负载均衡
+				iptables -t mangle -I balance -m connmark --mark $FOREIGN_FWMARK/$FOREIGN_FWMARK -j RETURN > /dev/null 2>&1
 			fi
 		fi
-		if [ "$local_jump_1" != "0" ]; then
-			## 国外运营商网段出口参数被设定为系统分配流量出口时，打上允许通过进行负载均衡的标记
-			eval "iptables -t mangle -I balance $LOCAL_IPSETS_SRC -m set ! $MATCH_SET $ISPIP_ALL_CN_SET dst -j MARK --set-xmark $BALANCE_JUMP_FWMARK/$FWMARK_MASK > /dev/null 2>&1"
+		if [ "$( lz_get_ipset_total_number "$ISPIP_SET_1" )" -gt "0" ]; then
+			## 阻止对第二WAN口包地址匹配路由的网络流量进行负载均衡
+			iptables -t mangle -I balance -m connmark --mark $FWMARK1/$FWMARK1 -j RETURN > /dev/null 2>&1
 		fi
-		if [ "$local_jump_2" != "0" ]; then
-			## 给被设定为允许进行负载均衡的国内网段流量打上允许通过的标记
-			eval "iptables -t mangle -I balance $LOCAL_IPSETS_SRC -m set $MATCH_SET $BALANCE_DST_IP_SET dst -j MARK --set-xmark $BALANCE_JUMP_FWMARK/$FWMARK_MASK > /dev/null 2>&1"
+		if [ "$( lz_get_ipset_total_number "$ISPIP_SET_0" )" -gt "0" ]; then
+			## 阻止对第一WAN口包地址匹配路由的网络流量进行负载均衡
+			iptables -t mangle -I balance -m connmark --mark $FWMARK0/$FWMARK0 -j RETURN > /dev/null 2>&1
 		fi
-	## 模式3时
-	else
-		if [ "$( lz_get_ipset_total_number "$BALANCE_IP_SET" )" -gt "0" ]; then
-			## 阻止对已定义出口的本地网络设备流量进行负载均衡
-			iptables -t mangle -I balance -m set $MATCH_SET $BALANCE_IP_SET src -j RETURN > /dev/null 2>&1
+		if [ -n "$( echo "$wan0_dest_tcp_port" | grep "[0-9]" | awk -F " " '{print $1}' )" ] || \
+			[ -n "$( echo "$wan0_dest_udp_port" | grep "[0-9]" | awk -F " " '{print $1}' )" ] || \
+			[ -n "$( echo "$wan0_dest_udplite_port" | grep "[0-9]" | awk -F " " '{print $1}' )" ] || \
+			[ -n "$( echo "$wan0_dest_sctp_port" | grep "[0-9]" | awk -F " " '{print $1}' )" ]; then
+			## 阻止对第一WAN口端口分流的网络流量进行负载均衡
+			iptables -t mangle -I balance -m connmark --mark $DEST_PORT_FWMARK_0/$DEST_PORT_FWMARK_0 -j RETURN > /dev/null 2>&1
 		fi
-		if [ "$( lz_get_ipset_total_number "$LOCAL_IP_SET" )" -gt "0" ]; then
-			if [ "$isp_wan_port_0" = "0" -o "$isp_wan_port_0" = "1" ]; then
-				if [ "$( lz_get_ipset_total_number "$ISPIP_ALL_CN_SET" )" -gt "0" ]; then
-					## 阻止对出口已指向国外运营商网络的包地址匹配路由流量进行负载均衡
-					iptables -t mangle -I balance -m connmark --mark $FOREIGN_FWMARK/$FOREIGN_FWMARK -j RETURN > /dev/null 2>&1
-					if [ "$localhost_nf_policy" = "0" -a "$wan_access_port" = "2" ]; then
-						iptables -t mangle -I balance -m connmark --mark $HOST_FOREIGN_FWMARK/$HOST_FOREIGN_FWMARK -j RETURN > /dev/null 2>&1
-					fi
-				fi
-			fi
-			if [ "$( lz_get_ipset_total_number "$ISPIP_SET_0" )" -gt "0" ]; then
-				## 阻止对第一WAN口包地址匹配路由的网络流量进行负载均衡
-				iptables -t mangle -I balance -m connmark --mark $FWMARK0/$FWMARK0 -j RETURN > /dev/null 2>&1
-				if [ "$localhost_nf_policy" = "0" -a "$wan_access_port" = "2" ]; then
-					iptables -t mangle -I balance -m connmark --mark $HOST_FWMARK0/$HOST_FWMARK0 -j RETURN > /dev/null 2>&1
-				fi
-			fi
-			if [ "$( lz_get_ipset_total_number "$ISPIP_SET_1" )" -gt "0" ]; then
-				## 阻止对第二WAN口包地址匹配路由的网络流量进行负载均衡
-				iptables -t mangle -I balance -m connmark --mark $FWMARK1/$FWMARK1 -j RETURN > /dev/null 2>&1
-				if [ "$localhost_nf_policy" = "0" -a "$wan_access_port" = "2" ]; then
-					iptables -t mangle -I balance -m connmark --mark $HOST_FWMARK1/$HOST_FWMARK1 -j RETURN > /dev/null 2>&1
-				fi
-			fi
-			if [ -n "$( echo "$wan0_dest_tcp_port" | grep "[0-9]" | awk -F " " '{print $1}' )" ] || \
-				[ -n "$( echo "$wan0_dest_udp_port" | grep "[0-9]" | awk -F " " '{print $1}' )" ] || \
-				[ -n "$( echo "$wan0_dest_udplite_port" | grep "[0-9]" | awk -F " " '{print $1}' )" ] || \
-				[ -n "$( echo "$wan0_dest_sctp_port" | grep "[0-9]" | awk -F " " '{print $1}' )" ]; then
-				## 阻止对第一WAN口端口分流的网络流量进行负载均衡
-				iptables -t mangle -I balance -m connmark --mark $DEST_PORT_FWMARK_0/$DEST_PORT_FWMARK_0 -j RETURN > /dev/null 2>&1
-				if [ "$localhost_nf_policy" = "0" -a "$wan_access_port" = "2" ]; then
-					iptables -t mangle -I balance -m connmark --mark $HOST_DEST_PORT_FWMARK_0/$HOST_DEST_PORT_FWMARK_0 -j RETURN > /dev/null 2>&1
-				fi
-			fi
-			if [ -n "$( echo "$wan1_dest_tcp_port" | grep "[0-9]" | awk -F " " '{print $1}' )" ] || \
-				[ -n "$( echo "$wan1_dest_udp_port" | grep "[0-9]" | awk -F " " '{print $1}' )" ] || \
-				[ -n "$( echo "$wan1_dest_udplite_port" | grep "[0-9]" | awk -F " " '{print $1}' )" ] || \
-				[ -n "$( echo "$wan1_dest_sctp_port" | grep "[0-9]" | awk -F " " '{print $1}' )" ]; then
-				## 阻止对第二WAN口端口分流的网络流量进行负载均衡
-				iptables -t mangle -I balance -m connmark --mark $DEST_PORT_FWMARK_1/$DEST_PORT_FWMARK_1 -j RETURN > /dev/null 2>&1
-				if [ "$localhost_nf_policy" = "0" -a "$wan_access_port" = "2" ]; then
-					iptables -t mangle -I balance -m connmark --mark $HOST_DEST_PORT_FWMARK_1/$HOST_DEST_PORT_FWMARK_1 -j RETURN > /dev/null 2>&1
-				fi
-			fi
-			if [ "$l7_protocols" = "0" ]; then
-				## 阻止对协议分流的网络流量进行负载均衡
-				iptables -t mangle -I balance -m connmark --mark $PROTOCOLS_FWMARK_0/$PROTOCOLS_FWMARK_0 -j RETURN > /dev/null 2>&1
-				if [ "$localhost_nf_policy" = "0" -a "$wan_access_port" = "2" ]; then
-					iptables -t mangle -I balance -m connmark --mark $HOST_PROTOCOLS_FWMARK_0/$HOST_PROTOCOLS_FWMARK_0 -j RETURN > /dev/null 2>&1
-				fi
-				iptables -t mangle -I balance -m connmark --mark $PROTOCOLS_FWMARK_1/$PROTOCOLS_FWMARK_1 -j RETURN > /dev/null 2>&1
-				if [ "$localhost_nf_policy" = "0" -a "$wan_access_port" = "2" ]; then
-					iptables -t mangle -I balance -m connmark --mark $HOST_PROTOCOLS_FWMARK_1/$HOST_PROTOCOLS_FWMARK_1 -j RETURN > /dev/null 2>&1
-				fi
-			fi
-			if [ "$( lz_get_ipset_total_number "$NO_BALANCE_DST_IP_SET" )" -gt "0" ]; then
-				## 阻止对直接映射路由网络出口的流量进行负载均衡
-				eval "iptables -t mangle -I balance $LOCAL_IPSETS_SRC -m set $MATCH_SET $NO_BALANCE_DST_IP_SET dst -j RETURN > /dev/null 2>&1"
-			fi
+		if [ -n "$( echo "$wan1_dest_tcp_port" | grep "[0-9]" | awk -F " " '{print $1}' )" ] || \
+			[ -n "$( echo "$wan1_dest_udp_port" | grep "[0-9]" | awk -F " " '{print $1}' )" ] || \
+			[ -n "$( echo "$wan1_dest_udplite_port" | grep "[0-9]" | awk -F " " '{print $1}' )" ] || \
+			[ -n "$( echo "$wan1_dest_sctp_port" | grep "[0-9]" | awk -F " " '{print $1}' )" ]; then
+			## 阻止对第二WAN口端口分流的网络流量进行负载均衡
+			iptables -t mangle -I balance -m connmark --mark $DEST_PORT_FWMARK_1/$DEST_PORT_FWMARK_1 -j RETURN > /dev/null 2>&1
+		fi
+		if [ "$l7_protocols" = "0" ]; then
+			## 阻止对协议分流的网络流量进行负载均衡
+			iptables -t mangle -I balance -m connmark --mark $PROTOCOLS_FWMARK_0/$PROTOCOLS_FWMARK_0 -j RETURN > /dev/null 2>&1
+			iptables -t mangle -I balance -m connmark --mark $PROTOCOLS_FWMARK_1/$PROTOCOLS_FWMARK_1 -j RETURN > /dev/null 2>&1
+		fi
+		if [ "$( lz_get_ipset_total_number "$NO_BALANCE_DST_IP_SET" )" -gt "0" ]; then
+			## 阻止对直接映射路由网络出口的流量进行负载均衡
+			eval "iptables -t mangle -I balance -m set ! $MATCH_SET $LOCAL_IP_SET src -m set $MATCH_SET $NO_BALANCE_DST_IP_SET dst -j RETURN > /dev/null 2>&1"
 		fi
 	fi
-	if [ "$( lz_get_ipset_total_number "$BALANCE_GUARD_IP_SET" )" -gt "0" ]; then
-		## 负载均衡门卫控制：阻止对目标是本地网络和网关出口的数据流量进行负载均衡
-		iptables -t mangle -I balance -m set $MATCH_SET $BALANCE_GUARD_IP_SET dst -j RETURN > /dev/null 2>&1
+	## 阻止对已定义出口的本地网络设备流量进行负载均衡
+	iptables -t mangle -I balance -m set $MATCH_SET $BALANCE_IP_SET src -j RETURN > /dev/null 2>&1
+	if [ -n "$( iptables -t mangle -L $CUSTOM_PREROUTING_CHAIN 2> /dev/null | grep "$SRC_DST_FWMARK" )" ]; then
+		## 阻止对用户自定义源网址/网段至目标网址/网段列表中指明源网址/网段和目标网址/网段的流量进行负载均衡
+		iptables -t mangle -I balance -m connmark --mark $SRC_DST_FWMARK/$SRC_DST_FWMARK -j RETURN > /dev/null 2>&1
 	fi
-<<EOF_0x90000000
-	## 固件中如没有对第二WAN口通道的0x90000000/0x90000000标记的数据包进行比对处理，在此修正
-	## balance链
-	iptables -t mangle -C balance -m connmark --mark 0x80000000/0x80000000 -j RETURN > /dev/null 2>&1
-	if [ "$?" = "0" ]; then
-		iptables -t mangle -C balance -m connmark --mark 0x90000000/0x90000000 -j RETURN > /dev/null 2>&1
-		if [ "$?" != "0" ]; then
-			local local_item_no=$( iptables -t mangle -L balance -v -n --line-numbers 2> /dev/null | grep "connmark match" | grep "0x80000000/0x80000000" | grep "RETURN" | sed -n 1p | cut -d " " -f 1 | sort -nr )
-			if [ -n "$local_item_no" ]; then
-				let local_item_no++
-				iptables -t mangle -I balance $local_item_no -m connmark --mark 0x90000000/0x90000000 -j RETURN > /dev/null 2>&1
-			fi
-		fi
-	fi
-EOF_0x90000000
-	## PREROUTING链
-	iptables -t mangle -C PREROUTING -i br0 -m connmark --mark 0x80000000/0x80000000 -j CONNMARK --restore-mark --nfmask 0xf0000000 --ctmask 0xf0000000 > /dev/null 2>&1
-	if [ "$?" = "0" ]; then
-		iptables -t mangle -C PREROUTING -i br0 -m connmark --mark 0x90000000/0x90000000 -j CONNMARK --restore-mark --nfmask 0xf0000000 --ctmask 0xf0000000 > /dev/null 2>&1
-		if [ "$?" != "0" ]; then
-			local local_item_no=$( iptables -t mangle -L PREROUTING -v -n --line-numbers 2> /dev/null | grep "restore mask 0xf0000000" | grep "0x80000000/0x80000000" | grep "CONNMARK" | sed -n 1p | cut -d " " -f 1 | sort -nr )
-			if [ -n "$local_item_no" ]; then
-				let local_item_no++
-				iptables -t mangle -I PREROUTING $local_item_no -i br0 -m connmark --mark 0x90000000/0x90000000 -j CONNMARK --restore-mark --nfmask 0xf0000000 --ctmask 0xf0000000 > /dev/null 2>&1
-			fi
-		fi
-	fi
-	## OUTPUT链
-	local local_wan0_pppoe_ifname="$( nvram get wan0_pppoe_ifname | grep -Eo 'ppp[0-9]*' )"
-	if [ -n "$local_wan0_pppoe_ifname" ]; then
-		iptables -t mangle -C OUTPUT -o $local_wan0_pppoe_ifname -m connmark --mark 0x80000000/0x80000000 -j CONNMARK --restore-mark --nfmask 0xf0000000 --ctmask 0xf0000000 > /dev/null 2>&1
-		if [ "$?" != "0" ]; then
-			iptables -t mangle -A OUTPUT -o $local_wan0_pppoe_ifname -m connmark --mark 0x80000000/0x80000000 -j CONNMARK --restore-mark --nfmask 0xf0000000 --ctmask 0xf0000000 > /dev/null 2>&1
-		fi
-	fi
-	local local_wan0_ifname="$( nvram get wan0_ifname | grep -Eo 'eth[0-9]*|vlan[0-9]*' )"
-	if [ -n "$local_wan0_ifname" ]; then
-		iptables -t mangle -C OUTPUT -o $local_wan0_ifname -m connmark --mark 0x80000000/0x80000000 -j CONNMARK --restore-mark --nfmask 0xf0000000 --ctmask 0xf0000000 > /dev/null 2>&1
-		if [ "$?" != "0" ]; then
-			iptables -t mangle -A OUTPUT -o $local_wan0_ifname -m connmark --mark 0x80000000/0x80000000 -j CONNMARK --restore-mark --nfmask 0xf0000000 --ctmask 0xf0000000 > /dev/null 2>&1
-		fi
-	fi
-	local local_wan1_pppoe_ifname="$( nvram get wan1_pppoe_ifname | grep -Eo 'ppp[0-9]*' )"
-	if [ -n "$local_wan1_pppoe_ifname" ]; then
-		iptables -t mangle -C OUTPUT -o $local_wan1_pppoe_ifname -m connmark --mark 0x80000000/0x80000000 -j CONNMARK --restore-mark --nfmask 0xf0000000 --ctmask 0xf0000000 > /dev/null 2>&1
-		if [ "$?" = "0" ]; then
-				local local_item_no=$( iptables -t mangle -L OUTPUT -v -n --line-numbers 2> /dev/null | grep "$local_wan1_pppoe_ifname" | grep "0x80000000/0x80000000" | grep "restore mask 0xf0000000" | grep "CONNMARK" | sed -n 1p | cut -d " " -f 1 | sort -nr )
-				[ -n "$local_item_no" ] && iptables -t mangle -R OUTPUT $local_item_no -o $local_wan1_pppoe_ifname -m connmark --mark 0x90000000/0x90000000 -j CONNMARK --restore-mark --nfmask 0xf0000000 --ctmask 0xf0000000 > /dev/null 2>&1
-		fi
-		iptables -t mangle -C OUTPUT -o $local_wan1_pppoe_ifname -m connmark --mark 0x90000000/0x90000000 -j CONNMARK --restore-mark --nfmask 0xf0000000 --ctmask 0xf0000000 > /dev/null 2>&1
-		if [ "$?" != "0" ]; then
-			iptables -t mangle -A OUTPUT -o $local_wan1_pppoe_ifname -m connmark --mark 0x90000000/0x90000000 -j CONNMARK --restore-mark --nfmask 0xf0000000 --ctmask 0xf0000000 > /dev/null 2>&1
-		fi
-	fi
-	local local_wan1_ifname="$( nvram get wan1_ifname | grep -Eo 'eth[0-9]*|vlan[0-9]*' )"
-	if [ -n "$local_wan1_ifname" ]; then
-		iptables -t mangle -C OUTPUT -o $local_wan1_ifname -m connmark --mark 0x80000000/0x80000000 -j CONNMARK --restore-mark --nfmask 0xf0000000 --ctmask 0xf0000000 > /dev/null 2>&1
-		if [ "$?" = "0" ]; then
-				local local_item_no=$( iptables -t mangle -L OUTPUT -v -n --line-numbers 2> /dev/null | grep "$local_wan1_ifname" | grep "0x80000000/0x80000000" | grep "restore mask 0xf0000000" | grep "CONNMARK" | sed -n 1p | cut -d " " -f 1 | sort -nr )
-				[ -n "$local_item_no" ] && iptables -t mangle -R OUTPUT $local_item_no -o $local_wan1_ifname -m connmark --mark 0x90000000/0x90000000 -j CONNMARK --restore-mark --nfmask 0xf0000000 --ctmask 0xf0000000 > /dev/null 2>&1
-		fi
-		iptables -t mangle -C OUTPUT -o $local_wan1_ifname -m connmark --mark 0x90000000/0x90000000 -j CONNMARK --restore-mark --nfmask 0xf0000000 --ctmask 0xf0000000 > /dev/null 2>&1
-		if [ "$?" != "0" ]; then
-			iptables -t mangle -A OUTPUT -o $local_wan1_ifname -m connmark --mark 0x90000000/0x90000000 -j CONNMARK --restore-mark --nfmask 0xf0000000 --ctmask 0xf0000000 > /dev/null 2>&1
-		fi
-	fi
+	## 负载均衡门卫控制：阻止对目标是本地网络和网关出口的数据流量进行负载均衡
+	iptables -t mangle -I balance -m set $MATCH_SET $BALANCE_GUARD_IP_SET dst -j RETURN > /dev/null 2>&1
 }
 
 ## 清理未被使用的数据集函数
@@ -5262,26 +4804,6 @@ lz_remove_unused_ipset() {
 	## 第二WAN口国内网段数据集
 	ipset -q destroy $ISPIP_SET_1
 
-	## 用户自定义网址/网段数据集-1
-	## 保留，用于兼容v2.8.4及之前老版本，该网段分流已动态合并至ISP网段分流中
-	ipset -q destroy $ISPIP_CUSTOM_SET_1
-
-	## 用户自定义网址/网段数据集-2
-	## 保留，用于兼容v2.8.4及之前老版本，该网段分流已动态合并至ISP网段分流中
-	ipset -q destroy $ISPIP_CUSTOM_SET_2
-
-	## 第一WAN口客户端及源网址/网段绑定列表数据集
-	ipset -q destroy $CLIENT_SRC_SET_0
-
-	## 第二WAN口客户端及源网址/网段绑定列表数据集
-	ipset -q destroy $CLIENT_SRC_SET_1
-
-	## 第一WAN口客户端及源网址/网段高优先级绑定列表数据集
-	ipset -q destroy $HIGH_CLIENT_SRC_SET_0
-
-	## 第二WAN口客户端及源网址/网段高优先级绑定列表数据集
-	ipset -q destroy $HIGH_CLIENT_SRC_SET_1
-
 	## 本地内网网址/网段数据集
 	ipset -q destroy $LOCAL_IP_SET
 
@@ -5290,9 +4812,6 @@ lz_remove_unused_ipset() {
 
 	## 负载均衡本地内网设备源网址/网段数据集
 	ipset -q destroy $BALANCE_IP_SET
-
-	## 出口目标网址/网段负载均衡数据集
-	ipset -q destroy $BALANCE_DST_IP_SET
 
 	## 出口目标网址/网段不做负载均衡的数据集
 	ipset -q destroy $NO_BALANCE_DST_IP_SET
@@ -5339,22 +4858,6 @@ lz_deployment_routing_policy() {
 	#	ip rule add to 103.10.4.108 table $local_access_wan prio $IP_RULE_PRIO_INNER_ACCESS > /dev/null 2>&1
 		ip rule add from all to $route_local_ip table $local_access_wan prio $IP_RULE_PRIO_INNER_ACCESS > /dev/null 2>&1
 		ip rule add from $route_local_ip table $local_access_wan prio $IP_RULE_PRIO_INNER_ACCESS > /dev/null 2>&1
-	elif [ "$wan_access_port" = "2" -a "$usage_mode" = "0" -a "$localhost_nf_policy" != "0" ]; then
-		## 负载均衡方式
-		if [ "$balance_chain_existing" = "1" ]; then
-			ip rule add from $route_local_ip fwmark 0x80000000/0xf0000000 table $WAN0 prio $IP_RULE_PRIO_TOPEST > /dev/null 2>&1
-			ip rule add from $route_local_ip fwmark 0x90000000/0xf0000000 table $WAN1 prio $IP_RULE_PRIO_TOPEST > /dev/null 2>&1
-		else
-			ip rule add from $route_local_ip table main prio $IP_RULE_PRIO_TOPEST > /dev/null 2>&1
-		fi
-	elif [ "$wan_access_port" != "0" -a "$wan_access_port" != "1" -a "$wan_access_port" != "2" ]; then
-		## 负载均衡方式
-		if [ "$balance_chain_existing" = "1" ]; then
-			ip rule add from $route_local_ip fwmark 0x80000000/0xf0000000 table $WAN0 prio $IP_RULE_PRIO_TOPEST > /dev/null 2>&1
-			ip rule add from $route_local_ip fwmark 0x90000000/0xf0000000 table $WAN1 prio $IP_RULE_PRIO_TOPEST > /dev/null 2>&1
-		else
-			ip rule add from $route_local_ip table main prio $IP_RULE_PRIO_TOPEST > /dev/null 2>&1
-		fi
 	fi
 
 	## 初始化各目标网址/网段数据访问路由策略
@@ -5378,43 +4881,25 @@ lz_deployment_routing_policy() {
 			##     $1--客户端报文数据包标记
 			##     $2--WAN口路由表ID号
 			##     $3--客户端分流出口规则策略规则优先级
-			##     $4--主机本地地址
-			##     $5--主机报文数据包标记（空：不含同属性主机报文数据包流量）
-			##     $6--主机分流出口规则策略规则优先级（空：不含同属性主机报文数据包流量）
 			##     全局变量及常量
 			## 返回值：无
-			lz_define_fwmark_flow_export "$FOREIGN_FWMARK" "$WAN1" "$IP_RULE_PRIO_FOREIGN_DATA" "$route_local_ip" "$HOST_FOREIGN_FWMARK" "$IP_RULE_PRIO_HOST_FOREIGN_DATA"
+			lz_define_fwmark_flow_export "$FOREIGN_FWMARK" "$WAN1" "$IP_RULE_PRIO_FOREIGN_DATA"
 		elif [ "$isp_wan_port_0" = "0" ]; then
 			## 定义第一WAN口国外运营商网段动态分流报文数据包标记流量出口
-			lz_define_fwmark_flow_export "$FOREIGN_FWMARK" "$WAN0" "$IP_RULE_PRIO_FOREIGN_DATA" "$route_local_ip" "$HOST_FOREIGN_FWMARK" "$IP_RULE_PRIO_HOST_FOREIGN_DATA"
+			lz_define_fwmark_flow_export "$FOREIGN_FWMARK" "$WAN0" "$IP_RULE_PRIO_FOREIGN_DATA"
 		fi
 	fi
 
 	## WAN0--100--第一WAN口：根据数据包标记，按目标网段分流
 	if [ "$( lz_get_ipset_total_number "$ISPIP_SET_0" )" -gt "0" ]; then
 		## 定义第一WAN口国内运营商网段动态分流报文数据包标记流量出口
-		lz_define_fwmark_flow_export "$FWMARK0" "$WAN0" "$IP_RULE_PRIO_PREFERRDE_WAN_DATA" "$route_local_ip" "$HOST_FWMARK0" "$IP_RULE_PRIO_HOST_PREFERRDE_WAN_DATA"
+		lz_define_fwmark_flow_export "$FWMARK0" "$WAN0" "$IP_RULE_PRIO_PREFERRDE_WAN_DATA"
 	fi
 
 	## WAN1--200--第二WAN口：根据数据包标记，按目标网段分流
 	if [ "$( lz_get_ipset_total_number "$ISPIP_SET_1" )" -gt "0" ]; then
 		## 定义第二WAN口国内运营商网段动态分流报文数据包标记流量出口
-		lz_define_fwmark_flow_export "$FWMARK1" "$WAN1" "$IP_RULE_PRIO_SECOND_WAN_DATA" "$route_local_ip" "$HOST_FWMARK1" "$IP_RULE_PRIO_HOST_SECOND_WAN_DATA"
-	fi
-
-	## 第一WAN口客户端及源网址/网段绑定列表
-	if [ "$( lz_get_ipset_total_number "$CLIENT_SRC_SET_0" )" -gt "0" ]; then
-		lz_define_fwmark_flow_export "$CLIENT_SRC_FWMARK_0" "$WAN0" "$IP_RULE_PRIO_WAN_1_CLIENT_SRC_DATA"
-	fi
-
-	## 第二WAN口客户端及源网址/网段绑定列表
-	if [ "$( lz_get_ipset_total_number "$CLIENT_SRC_SET_1" )" -gt "0" ]; then
-		lz_define_fwmark_flow_export "$CLIENT_SRC_FWMARK_1" "$WAN1" "$IP_RULE_PRIO_WAN_2_CLIENT_SRC_DATA"
-	fi
-
-	## 对采用命令方式自定义客户端或指定网址访问进行分流
-	if [ -f ${PATH_CONFIGS}/lz_rule_func_config.sh ]; then
-		${CALL_CONFIG_SUBROUTINE}/lz_rule_func_config.sh
+		lz_define_fwmark_flow_export "$FWMARK1" "$WAN1" "$IP_RULE_PRIO_SECOND_WAN_DATA"
 	fi
 
 	## 用户自定义源网址/网段至目标网址/网段列表绑定WAN出口
@@ -5431,7 +4916,7 @@ lz_deployment_routing_policy() {
 	lz_vpn_support "$1"
 
 	local local_netfilter_used=0
-	## 检测是否启用NetFilter网络防火墙过滤功能
+	## 检测是否启用NetFilter网络防火墙地址过滤匹配标记功能
 	## 输入项：
 	##     全局常量及变量
 	## 返回值：
@@ -5450,105 +4935,13 @@ lz_deployment_routing_policy() {
 
 	local local_show_hd=0
 
-	if [ "$balance_chain_existing" = "1" ]; then
-		## 创建出口目标网址/网段负载均衡数据集
-		ipset -! create $BALANCE_DST_IP_SET nethash #--hashsize 65535
-		ipset -q flush $BALANCE_DST_IP_SET
-	fi
-
 	if [ "$usage_mode" != "0" ]; then
 		## 静态分流模式
-<<EOF_BALANCE_ISP_IP_SETS
-		if [ "$local_auto_traffic" != "0" ]; then
-			## 存在需要系统负载均衡自动分配出口的运营商网段和用户自定义网址/网段时
-			## 国外地区
-			[ "$isp_wan_port_0" -lt "0" -o "$isp_wan_port_0" -gt "1" ] && \
-				[ "$balance_chain_existing" = "1" ] && \
-				[ "$isp_data_0_item_total" -gt "0" ] && {
-					## 创建或加载网段出口数据集
-					## 输入项：
-					##     $1--全路径网段数据文件名
-					##     $2--网段数据集名称
-					##     $3--0:不效验文件格式，非0：效验文件格式
-					##     $4--0:正匹配数据，非0：反匹配（nomatch）数据
-					## 返回值：
-					##     网址/网段数据集--全局变量
-					lz_add_net_address_sets "${PATH_DATA}/${ISP_DATA_0}" "$ISPIP_ALL_CN_SET" "1" "0"
-			}
-			## 国内运营商
-			local local_index=1
-			until [ $local_index -gt ${ISP_TOTAL} ]
-			do
-				[ "$( lz_get_isp_wan_port "$local_index" )" -lt "0" -o \
-					"$( lz_get_isp_wan_port "$local_index" )" -gt "3" ] && \
-					[ "$( lz_get_isp_data_item_total_variable "$local_index" )" -gt "0" ] && {
-					## 运营商网段分流出口负载均衡规则
-					if [ "$balance_chain_existing" != "1" ]; then
-						## IPv4目标网址/网段列表数据命令绑定路由器外网出口
-						## 输入项：
-						##     $1--全路径网段数据文件名
-						##     $2--WAN口路由表ID号
-						##     $3--策略规则优先级
-						##     $4--0:不效验文件格式，非0：效验文件格式
-						## 返回值：无
-						lz_add_ipv4_dst_addr_list_binding_wan "$( lz_get_isp_data_filename "$local_index" )" "main" "$IP_RULE_PRIO_ISP_DATA_LB" "1"
-					else
-						lz_add_net_address_sets "$( lz_get_isp_data_filename "$local_index" )" "$BALANCE_DST_IP_SET" "1" "0"
-					fi
-				}
-				let local_index++
-			done
-			## 用户自定义网址/网段-1
-			[ "$custom_data_wan_port_1" = "2" ] && \
-				[ "$( lz_get_ipv4_data_file_item_total "$custom_data_file_1" )" -gt "0" ] && {
-					if [ "$balance_chain_existing" != "1" ]; then
-						lz_add_ipv4_dst_addr_list_binding_wan "$custom_data_file_1" "main" "$IP_RULE_PRIO_ISP_DATA_LB" "1"
-					else
-						lz_add_net_address_sets "$custom_data_file_1" "$BALANCE_DST_IP_SET" "1" "0"
-					fi
-			}
-			## 用户自定义网址/网段-2
-			[ "$custom_data_wan_port_2" = "2" ] && \
-				[ "$( lz_get_ipv4_data_file_item_total "$custom_data_file_2" )" -gt "0" ] && {
-					if [ "$balance_chain_existing" != "1" ]; then
-						lz_add_ipv4_dst_addr_list_binding_wan "$custom_data_file_2" "main" "$IP_RULE_PRIO_ISP_DATA_LB" "1"
-					else
-						lz_add_net_address_sets "$custom_data_file_2" "$BALANCE_DST_IP_SET" "1" "0"
-					fi
-			}
-			[ "$balance_chain_existing" = "1" ] && {
-				if [ "$( lz_get_ipset_total_number "$BALANCE_DST_IP_SET" )" -gt "0" ] || \
-					[ "$isp_wan_port_0" != "0" -a "$isp_wan_port_0" != "1" -a \
-						"$( lz_get_ipset_total_number "$ISPIP_ALL_CN_SET" )" -gt "0" ]; then
-					ip rule add from all fwmark 0x80000000/0xf0000000 table $WAN0 prio $IP_RULE_PRIO_ISP_DATA_LB > /dev/null 2>&1
-					ip rule add from all fwmark 0x90000000/0xf0000000 table $WAN1 prio $IP_RULE_PRIO_ISP_DATA_LB > /dev/null 2>&1
-				fi
-			}
-		fi
-EOF_BALANCE_ISP_IP_SETS
 		[ "$policy_mode" = "0" ] && ip rule add from all table $WAN1 prio $IP_RULE_PRIO > /dev/null 2>&1
 		[ "$policy_mode" = "1" ] && ip rule add from all table $WAN0 prio $IP_RULE_PRIO > /dev/null 2>&1
 		[ "$local_netfilter_used" = "0" ] && local_show_hd=1
 	fi
-<<EOF_BALANCE_BLCLST
-	[ "$( lz_get_ipv4_data_file_item_total "$local_ipsets_file" )" -gt "0" ] && {
-		if [ "$balance_chain_existing" != "1" ]; then
-			## 本地客户端网址/网段流量出口列表绑定黑名单负载均衡规则
-			## IPv4源网址/网段列表数据命令绑定路由器外网出口
-			## 输入项：
-			##     $1--全路径网段数据文件名
-			##     $2--WAN口路由表ID号
-			##     $3--策略规则优先级
-			##     $4--0:不效验文件格式，非0：效验文件格式
-			## 返回值：无
-			lz_add_ipv4_src_addr_list_binding_wan "$local_ipsets_file" "main" "$IP_RULE_PRIO_BLCLST_LB" "1"
-		elif [ "$usage_mode" != "0" ]; then
-			## 静态分流模式
-			ip rule add from all fwmark 0x80000000/0xf0000000 table $WAN0 prio $IP_RULE_PRIO_BLCLST_LB > /dev/null 2>&1
-			ip rule add from all fwmark 0x90000000/0xf0000000 table $WAN1 prio $IP_RULE_PRIO_BLCLST_LB > /dev/null 2>&1
-		fi
-	}
-EOF_BALANCE_BLCLST
+
 	## 禁用路由缓存
 	[ "$route_cache" != "0" ] && {
 		[ -f "/proc/sys/net/ipv4/rt_cache_rebuild_count" ] && echo -1 > /proc/sys/net/ipv4/rt_cache_rebuild_count
@@ -5807,6 +5200,11 @@ EOF_BALANCE_BLCLST
 		[ "$iptv_igmp_switch" = "0" ] && {
 			if [ -n "$( ip route show table $LZ_IPTV | grep default )" ]; then
 				echo $(date) [$$]: IPTV STB can be connected to "$local_udpxy_wan1_dev" interface for use.
+				if [ "$iptv_access_mode" = "1" ]; then
+					echo $(date) [$$]: "IPTV Access Mode: Direct"
+				else
+					echo $(date) [$$]: "IPTV Access Mode: Service Address"
+				fi
 			else
 				echo $(date) [$$]: Connection "$local_udpxy_wan1_dev" IPTV interface failure !!!
 			fi
@@ -5814,6 +5212,11 @@ EOF_BALANCE_BLCLST
 		[ "$iptv_igmp_switch" = "1" ] && {
 			if [ -n "$( ip route show table $LZ_IPTV | grep default )" ]; then
 				echo $(date) [$$]: IPTV STB can be connected to "$local_udpxy_wan2_dev" interface for use.
+				if [ "$iptv_access_mode" = "1" ]; then
+					echo $(date) [$$]: "IPTV Access Mode: Direct"
+				else
+					echo $(date) [$$]: "IPTV Access Mode: Service Address"
+				fi
 			else
 				echo $(date) [$$]: Connection "$local_udpxy_wan2_dev" IPTV interface failure !!!
 			fi
@@ -5853,6 +5256,11 @@ EOF_BALANCE_BLCLST
 		[ "$iptv_igmp_switch" = "0" ] && {
 			if [ -n "$( ip route show table $LZ_IPTV | grep default )" ]; then
 				echo $(date) [$$]: IPTV STB can be connected to "$local_udpxy_wan1_dev" interface for use. >> /tmp/syslog.log
+				if [ "$iptv_access_mode" = "1" ]; then
+					echo $(date) [$$]: IPTV Access Mode: Direct >> /tmp/syslog.log
+				else
+					echo $(date) [$$]: IPTV Access Mode: Service Address >> /tmp/syslog.log
+				fi
 			else
 				echo $(date) [$$]: Connection "$local_udpxy_wan1_dev" IPTV interface failure !!! >> /tmp/syslog.log
 			fi
@@ -5860,6 +5268,11 @@ EOF_BALANCE_BLCLST
 		[ "$iptv_igmp_switch" = "1" ] && {
 			if [ -n "$( ip route show table $LZ_IPTV | grep default )" ]; then
 				echo $(date) [$$]: IPTV STB can be connected to "$local_udpxy_wan2_dev" interface for use. >> /tmp/syslog.log
+				if [ "$iptv_access_mode" = "1" ]; then
+					echo $(date) [$$]: IPTV Access Mode: Direct >> /tmp/syslog.log
+				else
+					echo $(date) [$$]: IPTV Access Mode: Service Address >> /tmp/syslog.log
+				fi
 			else
 				echo $(date) [$$]: Connection "$local_udpxy_wan2_dev" IPTV interface failure !!! >> /tmp/syslog.log
 			fi
@@ -6100,7 +5513,7 @@ lz_start_single_net_iptv_box_services() {
 		## 刷新路由器路由表缓存
 		ip route flush cache > /dev/null 2>&1
 
-		if [ "$( ip rule show | grep -c "$IP_RULE_PRIO_IPTV:" )" -gt "0" ]; then
+		if [ -z "$( ip rule show | grep "$IP_RULE_PRIO_IPTV:" )" ]; then
 
 			## 向IPTV路由表中添加路由项
 			ip route | grep -Ev 'default|nexthop' | \

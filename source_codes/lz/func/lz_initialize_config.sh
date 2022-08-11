@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_initialize_config.sh v3.6.8
+# lz_initialize_config.sh v3.6.9
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 初始化脚本配置
@@ -40,8 +40,6 @@ local_high_wan_1_src_to_dst_addr=
 local_high_wan_1_src_to_dst_addr_file=
 local_local_ipsets_file=
 local_private_ipsets_file=
-local_l7_protocols=
-local_l7_protocols_file=
 local_wan0_dest_tcp_port=
 local_wan0_dest_udp_port=
 local_wan0_dest_udplite_port=
@@ -118,8 +116,6 @@ local_ini_high_wan_1_src_to_dst_addr=
 local_ini_high_wan_1_src_to_dst_addr_file=
 local_ini_local_ipsets_file=
 local_ini_private_ipsets_file=
-local_ini_l7_protocols=
-local_ini_l7_protocols_file=
 local_ini_wan0_dest_tcp_port=
 local_ini_wan0_dest_udp_port=
 local_ini_wan0_dest_udplite_port=
@@ -195,8 +191,6 @@ local_high_wan_1_src_to_dst_addr_changed=0
 local_high_wan_1_src_to_dst_addr_file_changed=0
 local_local_ipsets_file_changed=0
 local_private_ipsets_file_changed=0
-local_l7_protocols_changed=0
-local_l7_protocols_file_changed=0
 local_wan0_dest_tcp_port_changed=0
 local_wan0_dest_udp_port_changed=0
 local_wan0_dest_udplite_port_changed=0
@@ -332,44 +326,33 @@ lz_restore_default_config() {
 ##     2.去往移动、铁通、教育网、长城宽带/鹏博士的网络访问流量走第二WAN口。
 ##     3.应用模式：动态分流模式
 ##                主要采用动态路由技术，按基于连接跟踪的报文数据包地址匹配标记导流出口方式输出流量。
-##     4.未启用定时更新ISP网络运营商CIDR网段数据。
-##     5.Open虚拟专网客户端通过第一WAN口访问外网。
-##     6.禁用虚拟专网客户端路由检测更新。
-##     7.外网访问路由器使用第一WAN口。
-##     8.未启用IPTV功能。
-##     如有不同需求，请在自定义区修改下面的参数配置。
+##     4.未启用定时更新ISP网络运营商CIDR网段数据（强烈建议启用）。
+##     5.虚拟专网客户端通过第一WAN口访问外网。
+##     6.外网访问路由器使用第一WAN口。
+##     7.未启用IPTV功能。
+###     8.未启用外置脚本功能。
+#     如有不同需求，请在自定义区修改下面的参数配置。
 
 ## 策略规则优先级执行顺序：由高到低排列，系统抢先执行高优先级策略。
 ##     IPTV机顶盒线路流量出口静态路由方式分流出口规则（iptv_box_ip_lst_file）
-##     本地客户端网址/网段分流黑名单列表负载均衡静态路由方式出口规则（local_ipsets_file）
-##     Open虚拟专网客户端访问互联网流量出口静态路由方式分流出口规则
+##     虚拟专网客户端访问互联网流量出口静态路由方式分流出口规则
 ##     第一WAN口用户自定义源网址/网段至目标网址/网段高优先级流量出口列表静态路由方式绑定出口规则（high_wan_1_src_to_dst_addr_file）
 ##     第二WAN口用户自定义源网址/网段至目标网址/网段流量出口列表静态路由方式绑定出口规则（wan_2_src_to_dst_addr_file）
 ##     第一WAN口用户自定义源网址/网段至目标网址/网段流量出口列表静态路由方式绑定出口规则（wan_1_src_to_dst_addr_file）
-##     最高高优先级用户自定义客户端或特定网址/网段流量出口静态路由方式命令绑定分流出口规则
-##     最高优先级用户自定义客户端或特定网址/网段流量出口静态路由方式命令绑定分流出口规则
-##     第二WAN口客户端及源网址/网段高优先级流量出口列表（总条目数≤list_mode_threshold阈值时）静态路由方式绑定出口规则（high_wan_2_client_src_addr_file）
-##     第一WAN口客户端及源网址/网段高优先级流量出口列表（总条目数≤list_mode_threshold阈值时）静态路由方式绑定出口规则（high_wan_1_client_src_addr_file）
-##     路由器主机内部应用访问外网及外网访问路由器静态路由方式出入口规则
-##     高优先级用户自定义客户端或特定网址/网段流量出口静态路由方式命令绑定分流出口规则
-##     用户自定义客户端或特定网址/网段流量出口静态路由方式命令绑定分流出口规则
-##     第二WAN口客户端及源网址/网段流量出口列表（总条目数≤list_mode_threshold阈值时）静态路由方式绑定出口规则（wan_2_client_src_addr_file）
-##     第一WAN口客户端及源网址/网段流量出口列表（总条目数≤list_mode_threshold阈值时）静态路由方式绑定出口规则（wan_1_client_src_addr_file）
+##     第二WAN口客户端及源网址/网段高优先级流量出口列表静态路由方式绑定出口规则（high_wan_2_client_src_addr_file）
+##     第一WAN口客户端及源网址/网段高优先级流量出口列表静态路由方式绑定出口规则（high_wan_1_client_src_addr_file）
+##     外网访问路由器静态路由方式出入口规则
+##     第二WAN口客户端及源网址/网段流量出口列表静态路由方式绑定出口规则（wan_2_client_src_addr_file）
+##     第一WAN口客户端及源网址/网段流量出口列表静态路由方式绑定出口规则（wan_1_client_src_addr_file）
 ##     用户自定义目标网址/网段(2)（总条目数≤list_mode_threshold阈值时）流量静态路由方式分流出口规则（custom_data_file_2）
 ##     用户自定义目标网址/网段(1)（总条目数≤list_mode_threshold阈值时）流量静态路由方式分流出口规则（custom_data_file_1）
 ##     国内运营商目标网址/网段静态路由方式分流第二WAN口流量出口规则
 ##     国内运营商目标网址/网段静态路由方式分流第一WAN口流量出口规则
-##     第二WAN口客户端及源网址/网段高优先级流量出口列表（总条目数>list_mode_threshold阈值时）动态路由方式绑定出口规则（high_wan_2_client_src_addr_file）
-##     第一WAN口客户端及源网址/网段高优先级流量出口列表（总条目数>list_mode_threshold阈值时）动态路由方式绑定出口规则（high_wan_1_client_src_addr_file）
 ##     端口流量动态路由方式分流出口规则
-##     协议流量动态路由方式分流出口规则
-##     第二WAN口客户端及源网址/网段流量出口列表（总条目数>list_mode_threshold阈值时）动态路由方式绑定出口规则（wan_2_client_src_addr_file）
-##     第一WAN口客户端及源网址/网段流量出口列表（总条目数>list_mode_threshold阈值时）动态路由方式绑定出口规则（wan_1_client_src_addr_file）
 ##     国内运营商及用户自定义目标网址/网段动态路由方式分流第二WAN口流量出口规则
 ##     国内运营商及用户自定义目标网址/网段动态路由方式分流第一WAN口流量出口规则
 ##     国外运营商目标网段流量动态路由方式分流出口规则
 ##     系统采用负载均衡技术自动分配流量出口规则
-##     未被规则和已定义网址/网段数据覆盖的流量分流出口规则
 
 ## 本脚本将全宇宙所有互联网IPv4地址网段划分为如下11个国内外网络运营商目标网段数据集合，使用中首先将所接
 ## 入网络运营商网段对应至相应的路由器出口，其他运营商网段可根据使用需求、所属运营商网络跨网段访问品质、
@@ -575,19 +558,6 @@ local_ipsets_file="/jffs/scripts/lz/data/local_ipsets_data.txt"
 ## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
 private_ipsets_file="/jffs/scripts/lz/data/private_ipsets_data.txt"
 
-## 协议分流（0--启用；非0--禁用）
-## 缺省为禁用（5）。
-## 该功能需要系统中有用于OSI模型第七层应用层控制的layer7模块，否则需重新编译和配置Linux内核，打netfilter
-## 补丁和安装l7-protocals协议包。
-## 仅能在动态分流模式下使用。
-l7_protocols=5
-
-## 协议分流流量出口网络应用层协议绑定列表文件（文件路径、名称可自定义和修改）
-## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
-## 文件中协议项取值：0--第一WAN口；1--第二WAN口；>1--禁用。
-## 缺省为禁用（5）。
-l7_protocols_file="/jffs/scripts/lz/configs/lz_protocols.txt"
-
 ## 第一WAN口目标访问端口分流
 ## （最多可设置15个不连续的端口号埠，仅针对TCP、UDP、UDPLITE、SCTP四类协议端口；不设置且为空时--禁用）
 ## 例如，TCP协议端口：wan0_dest_tcp_port=80,443,6881:6889,25671
@@ -659,14 +629,14 @@ wan_access_port=0
 usage_mode=0
 
 ## 网址/网段绑定流量出口列表数据处理模式转换条目数阈值（单位：条目数）
-## 缺省阈值为512条。
+## 缺省阈值为128条。
 ## 列表数据总条目数≤该阈值时，采用按地址映射直接路由出口方式将列表中的网址/网段绑定至指定路由器出口。
 ## 列表数据总条目数>该阈值时，采用基于连接跟踪的报文数据包地址匹配标记导流出口方式将列表中的网址/网段绑
 ## 定至指定路由器出口。
-## 本阈值仅在动态分流模式下共同作用于用户自定义目标网址/网段流量出口数据文件、WAN口客户端及源网址/网段流
-## 量出口列表绑定数据文件，对WAN口用户自定义源网址/网段至目标网址/网段流量出口列表绑定数据文件无影响。
+## 本阈值仅在动态分流模式下共同作用于用户自定义目标网址/网段流量出口数据文件，对WAN口客户端及源网址/网段
+## 流量出口列表绑定数据文件、WAN口用户自定义源网址/网段至目标网址/网段流量出口列表绑定数据文件无影响。
 ## 仅能在动态分流模式下使用。
-list_mode_threshold=512
+list_mode_threshold=128
 
 ## 路由表缓存（0--启用；非0--禁用）
 ## 缺省为启用（0）。
@@ -881,44 +851,33 @@ lz_restore_cfg_file() {
 ##     2.去往移动、铁通、教育网、长城宽带/鹏博士的网络访问流量走第二WAN口。
 ##     3.应用模式：动态分流模式
 ##                主要采用动态路由技术，按基于连接跟踪的报文数据包地址匹配标记导流出口方式输出流量。
-##     4.未启用定时更新ISP网络运营商CIDR网段数据。
-##     5.Open虚拟专网客户端通过第一WAN口访问外网。
-##     6.禁用虚拟专网客户端路由检测更新。
-##     7.外网访问路由器使用第一WAN口。
-##     8.未启用IPTV功能。
+##     4.未启用定时更新ISP网络运营商CIDR网段数据（强烈建议启用）。
+##     5.虚拟专网客户端通过第一WAN口访问外网。
+##     6.外网访问路由器使用第一WAN口。
+##     7.未启用IPTV功能。
+##     8.未启用外置脚本功能。
 ##     如有不同需求，请在自定义区修改下面的参数配置。
 
 ## 策略规则优先级执行顺序：由高到低排列，系统抢先执行高优先级策略。
 ##     IPTV机顶盒线路流量出口静态路由方式分流出口规则（iptv_box_ip_lst_file）
-##     本地客户端网址/网段分流黑名单列表负载均衡静态路由方式出口规则（local_ipsets_file）
-##     Open虚拟专网客户端访问互联网流量出口静态路由方式分流出口规则
+##     虚拟专网客户端访问互联网流量出口静态路由方式分流出口规则
 ##     第一WAN口用户自定义源网址/网段至目标网址/网段高优先级流量出口列表静态路由方式绑定出口规则（high_wan_1_src_to_dst_addr_file）
 ##     第二WAN口用户自定义源网址/网段至目标网址/网段流量出口列表静态路由方式绑定出口规则（wan_2_src_to_dst_addr_file）
 ##     第一WAN口用户自定义源网址/网段至目标网址/网段流量出口列表静态路由方式绑定出口规则（wan_1_src_to_dst_addr_file）
-##     最高高优先级用户自定义客户端或特定网址/网段流量出口静态路由方式命令绑定分流出口规则
-##     最高优先级用户自定义客户端或特定网址/网段流量出口静态路由方式命令绑定分流出口规则
-##     第二WAN口客户端及源网址/网段高优先级流量出口列表（总条目数≤list_mode_threshold阈值时）静态路由方式绑定出口规则（high_wan_2_client_src_addr_file）
-##     第一WAN口客户端及源网址/网段高优先级流量出口列表（总条目数≤list_mode_threshold阈值时）静态路由方式绑定出口规则（high_wan_1_client_src_addr_file）
-##     路由器主机内部应用访问外网及外网访问路由器静态路由方式出入口规则
-##     高优先级用户自定义客户端或特定网址/网段流量出口静态路由方式命令绑定分流出口规则
-##     用户自定义客户端或特定网址/网段流量出口静态路由方式命令绑定分流出口规则
-##     第二WAN口客户端及源网址/网段流量出口列表（总条目数≤list_mode_threshold阈值时）静态路由方式绑定出口规则（wan_2_client_src_addr_file）
-##     第一WAN口客户端及源网址/网段流量出口列表（总条目数≤list_mode_threshold阈值时）静态路由方式绑定出口规则（wan_1_client_src_addr_file）
+##     第二WAN口客户端及源网址/网段高优先级流量出口列表静态路由方式绑定出口规则（high_wan_2_client_src_addr_file）
+##     第一WAN口客户端及源网址/网段高优先级流量出口列表静态路由方式绑定出口规则（high_wan_1_client_src_addr_file）
+##     外网访问路由器静态路由方式出入口规则
+##     第二WAN口客户端及源网址/网段流量出口列表静态路由方式绑定出口规则（wan_2_client_src_addr_file）
+##     第一WAN口客户端及源网址/网段流量出口列表静态路由方式绑定出口规则（wan_1_client_src_addr_file）
 ##     用户自定义目标网址/网段(2)（总条目数≤list_mode_threshold阈值时）流量静态路由方式分流出口规则（custom_data_file_2）
 ##     用户自定义目标网址/网段(1)（总条目数≤list_mode_threshold阈值时）流量静态路由方式分流出口规则（custom_data_file_1）
 ##     国内运营商目标网址/网段静态路由方式分流第二WAN口流量出口规则
 ##     国内运营商目标网址/网段静态路由方式分流第一WAN口流量出口规则
-##     第二WAN口客户端及源网址/网段高优先级流量出口列表（总条目数>list_mode_threshold阈值时）动态路由方式绑定出口规则（high_wan_2_client_src_addr_file）
-##     第一WAN口客户端及源网址/网段高优先级流量出口列表（总条目数>list_mode_threshold阈值时）动态路由方式绑定出口规则（high_wan_1_client_src_addr_file）
 ##     端口流量动态路由方式分流出口规则
-##     协议流量动态路由方式分流出口规则
-##     第二WAN口客户端及源网址/网段流量出口列表（总条目数>list_mode_threshold阈值时）动态路由方式绑定出口规则（wan_2_client_src_addr_file）
-##     第一WAN口客户端及源网址/网段流量出口列表（总条目数>list_mode_threshold阈值时）动态路由方式绑定出口规则（wan_1_client_src_addr_file）
 ##     国内运营商及用户自定义目标网址/网段动态路由方式分流第二WAN口流量出口规则
 ##     国内运营商及用户自定义目标网址/网段动态路由方式分流第一WAN口流量出口规则
 ##     国外运营商目标网段流量动态路由方式分流出口规则
 ##     系统采用负载均衡技术自动分配流量出口规则
-##     未被规则和已定义网址/网段数据覆盖的流量分流出口规则
 
 ## 本脚本将全宇宙所有互联网IPv4地址网段划分为如下11个国内外网络运营商目标网段数据集合，使用中首先将所接
 ## 入网络运营商网段对应至相应的路由器出口，其他运营商网段可根据使用需求、所属运营商网络跨网段访问品质、
@@ -1124,19 +1083,6 @@ local_ipsets_file=$local_local_ipsets_file
 ## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
 private_ipsets_file=$local_private_ipsets_file
 
-## 协议分流（0--启用；非0--禁用）
-## 缺省为禁用（5）。
-## 该功能需要系统中有用于OSI模型第七层应用层控制的layer7模块，否则需重新编译和配置Linux内核，打netfilter
-## 补丁和安装l7-protocals协议包。
-## 仅能在动态分流模式下使用。
-l7_protocols=$local_l7_protocols
-
-## 协议分流流量出口网络应用层协议绑定列表文件（文件路径、名称可自定义和修改）
-## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
-## 文件中协议项取值：0--第一WAN口；1--第二WAN口；>1--禁用。
-## 缺省为禁用（5）。
-l7_protocols_file=$local_l7_protocols_file
-
 ## 第一WAN口目标访问端口分流
 ## （最多可设置15个不连续的端口号埠，仅针对TCP、UDP、UDPLITE、SCTP四类协议端口；不设置且为空时--禁用）
 ## 例如，TCP协议端口：wan0_dest_tcp_port=80,443,6881:6889,25671
@@ -1208,12 +1154,12 @@ wan_access_port=$local_wan_access_port
 usage_mode=$local_usage_mode
 
 ## 网址/网段绑定流量出口列表数据处理模式转换条目数阈值（单位：条目数）
-## 缺省阈值为512条。
+## 缺省阈值为128条。
 ## 列表数据总条目数≤该阈值时，采用按地址映射直接路由出口方式将列表中的网址/网段绑定至指定路由器出口。
 ## 列表数据总条目数>该阈值时，采用基于连接跟踪的报文数据包地址匹配标记导流出口方式将列表中的网址/网段绑
 ## 定至指定路由器出口。
-## 本阈值仅在动态分流模式下共同作用于用户自定义目标网址/网段流量出口数据文件、WAN口客户端及源网址/网段流
-## 量出口列表绑定数据文件，对WAN口用户自定义源网址/网段至目标网址/网段流量出口列表绑定数据文件无影响。
+## 本阈值仅在动态分流模式下共同作用于用户自定义目标网址/网段流量出口数据文件，对WAN口客户端及源网址/网段
+## 流量出口列表绑定数据文件、WAN口用户自定义源网址/网段至目标网址/网段流量出口列表绑定数据文件无影响。
 ## 仅能在动态分流模式下使用。
 list_mode_threshold=$local_list_mode_threshold
 
@@ -1522,12 +1468,6 @@ lz_read_config_param() {
 	local_private_ipsets_file="$( lz_get_file_cache_data "private_ipsets_file" "\"/jffs/scripts/lz/data/private_ipsets_data.txt\"" )"
 	[ "$?" = "0" ] && local_exist=0
 
-	local_l7_protocols="$( lz_get_file_cache_data "l7_protocols" "5" )"
-	[ "$?" = "0" ] && local_exist=0
-
-	local_l7_protocols_file="$( lz_get_file_cache_data "l7_protocols_file" "\"/jffs/scripts/lz/configs/lz_protocols.txt\"" )"
-	[ "$?" = "0" ] && local_exist=0
-
 	local_wan0_dest_tcp_port="$( lz_get_file_cache_data "wan0_dest_tcp_port" "" )"
 	[ "$?" = "0" ] && {
 		[ -n "$( grep "^wan0_dest_tcp_port=" "${PATH_CONFIGS}/lz_rule_config.sh" )" ] && local_wan0_dest_tcp_port="" || local_exist=0
@@ -1580,7 +1520,7 @@ lz_read_config_param() {
 	## wan_access_port现在只能为0或1
 	[ "$local_wan_access_port" -lt "0" -o "$local_wan_access_port" -gt "1" ] && local_wan_access_port=0 && local_exist=0
 
-	local_list_mode_threshold="$( lz_get_file_cache_data "list_mode_threshold" "512" )"
+	local_list_mode_threshold="$( lz_get_file_cache_data "list_mode_threshold" "128" )"
 	[ "$?" = "0" ] && local_exist=0
 
 	local_route_cache="$( lz_get_file_cache_data "route_cache" "0" )"
@@ -1746,8 +1686,6 @@ lz_cfg_is_default() {
 	[ "$local_high_wan_1_src_to_dst_addr_file" != \"/jffs/scripts/lz/data/high_wan_1_src_to_dst_addr.txt\" ] && return 0
 	[ "$local_local_ipsets_file" != \"/jffs/scripts/lz/data/local_ipsets_data.txt\" ] && return 0
 	[ "$local_private_ipsets_file" != \"/jffs/scripts/lz/data/private_ipsets_data.txt\" ] && return 0
-	[ "$local_l7_protocols" != "5" ] && return 0
-	[ "$local_l7_protocols_file" != \"/jffs/scripts/lz/configs/lz_protocols.txt\" ] && return 0
 	[ "$local_wan0_dest_tcp_port" != "" ] && return 0
 	[ "$local_wan0_dest_udp_port" != "" ] && return 0
 	[ "$local_wan0_dest_udplite_port" != "" ] && return 0
@@ -1759,7 +1697,7 @@ lz_cfg_is_default() {
 	[ "$local_ovs_client_wan_port" != "0" ] && return 0
 	[ "$local_vpn_client_polling_time" != "5" ] && return 0
 	[ "$local_wan_access_port" != "0" ] && return 0
-	[ "$local_list_mode_threshold" != "512" ] && return 0
+	[ "$local_list_mode_threshold" != "128" ] && return 0
 	[ "$local_route_cache" != "0" ] && return 0
 	[ "$local_clear_route_cache_time_interval" != "4" ] && return 0
 	[ "$local_iptv_igmp_switch" != "5" ] && return 0
@@ -1832,8 +1770,6 @@ lz_config_high_wan_1_src_to_dst_addr=$local_high_wan_1_src_to_dst_addr
 lz_config_high_wan_1_src_to_dst_addr_file=$local_high_wan_1_src_to_dst_addr_file
 lz_config_local_ipsets_file=$local_local_ipsets_file
 lz_config_private_ipsets_file=$local_private_ipsets_file
-lz_config_l7_protocols=$local_l7_protocols
-lz_config_l7_protocols_file=$local_l7_protocols_file
 lz_config_wan0_dest_tcp_port=$local_wan0_dest_tcp_port
 lz_config_wan0_dest_udp_port=$local_wan0_dest_udp_port
 lz_config_wan0_dest_udplite_port=$local_wan0_dest_udplite_port
@@ -1919,8 +1855,6 @@ lz_config_high_wan_1_src_to_dst_addr=$local_ini_high_wan_1_src_to_dst_addr
 lz_config_high_wan_1_src_to_dst_addr_file=$local_ini_high_wan_1_src_to_dst_addr_file
 lz_config_local_ipsets_file=$local_ini_local_ipsets_file
 lz_config_private_ipsets_file=$local_ini_private_ipsets_file
-lz_config_l7_protocols=$local_ini_l7_protocols
-lz_config_l7_protocols_file=$local_ini_l7_protocols_file
 lz_config_wan0_dest_tcp_port=$local_ini_wan0_dest_tcp_port
 lz_config_wan0_dest_udp_port=$local_ini_wan0_dest_udp_port
 lz_config_wan0_dest_udplite_port=$local_ini_wan0_dest_udplite_port
@@ -2137,12 +2071,6 @@ lz_read_box_data() {
 	local_ini_private_ipsets_file="$( lz_get_file_cache_data "lz_config_private_ipsets_file" "\"/jffs/scripts/lz/data/private_ipsets_data.txt\"" )"
 	[ "$?" = "0" ] && local_exist=0
 
-	local_ini_l7_protocols="$( lz_get_file_cache_data "lz_config_l7_protocols" "5" )"
-	[ "$?" = "0" ] && local_exist=0
-
-	local_ini_l7_protocols_file="$( lz_get_file_cache_data "lz_config_l7_protocols_file" "\"/jffs/scripts/lz/configs/lz_protocols.txt\"" )"
-	[ "$?" = "0" ] && local_exist=0
-
 	local_ini_wan0_dest_tcp_port="$( lz_get_file_cache_data "lz_config_wan0_dest_tcp_port" "" )"
 	[ "$?" = "0" ] && {
 		[ -n "$( grep "^lz_config_wan0_dest_tcp_port=" "${PATH_CONFIGS}/lz_rule_config.box" )" ] && local_ini_wan0_dest_tcp_port="" || local_exist=0
@@ -2195,7 +2123,7 @@ lz_read_box_data() {
 	## wan_access_port现在只能为0或1
 	[ "$local_ini_wan_access_port" -lt "0" -o "$local_ini_wan_access_port" -gt "1" ] && local_ini_wan_access_port=0 && local_exist=0
 
-	local_ini_list_mode_threshold="$( lz_get_file_cache_data "lz_config_list_mode_threshold" "512" )"
+	local_ini_list_mode_threshold="$( lz_get_file_cache_data "lz_config_list_mode_threshold" "128" )"
 	[ "$?" = "0" ] && local_exist=0
 
 	local_ini_route_cache="$( lz_get_file_cache_data "lz_config_route_cache" "0" )"
@@ -2347,8 +2275,6 @@ lz_cfg_is_changed() {
 	[ "$local_ini_high_wan_1_src_to_dst_addr_file" != "$local_high_wan_1_src_to_dst_addr_file" ] && local_high_wan_1_src_to_dst_addr_file_changed=1 && local_cfg_changed=1
 	[ "$local_ini_local_ipsets_file" != "$local_local_ipsets_file" ] && local_local_ipsets_file_changed=1 && local_cfg_changed=1
 	[ "$local_ini_private_ipsets_file" != "$local_private_ipsets_file" ] && local_private_ipsets_file_changed=1 && local_cfg_changed=1
-	[ "$local_ini_l7_protocols" != "$local_l7_protocols" ] && local_l7_protocols_changed=1 && local_cfg_changed=1
-	[ "$local_ini_l7_protocols_file" != "$local_l7_protocols_file" ] && local_l7_protocols_file_changed=1 && local_cfg_changed=1
 	[ "$local_ini_wan0_dest_tcp_port" != "$local_wan0_dest_tcp_port" ] && local_wan0_dest_tcp_port_changed=1 && local_cfg_changed=1
 	[ "$local_ini_wan0_dest_udp_port" != "$local_wan0_dest_udp_port" ] && local_wan0_dest_udp_port_changed=1 && local_cfg_changed=1
 	[ "$local_ini_wan0_dest_udplite_port" != "$local_wan0_dest_udplite_port" ] && local_wan0_dest_udplite_port_changed=1 && local_cfg_changed=1
@@ -2435,9 +2361,6 @@ lz_restore_config() {
 
 	[ $local_local_ipsets_file_changed = 1 ] && sed -i "s:^local_ipsets_file="$local_local_ipsets_file":local_ipsets_file="$local_ini_local_ipsets_file":" ${PATH_CONFIGS}/lz_rule_config.sh > /dev/null 2>&1
 	[ $local_private_ipsets_file_changed = 1 ] && sed -i "s:^private_ipsets_file="$local_private_ipsets_file":private_ipsets_file="$local_ini_private_ipsets_file":" ${PATH_CONFIGS}/lz_rule_config.sh > /dev/null 2>&1
-
-	[ $local_l7_protocols_changed = 1 ] && sed -i "s:^l7_protocols="$local_l7_protocols":l7_protocols="$local_ini_l7_protocols":" ${PATH_CONFIGS}/lz_rule_config.sh > /dev/null 2>&1
-	[ $local_l7_protocols_file_changed = 1 ] && sed -i "s:^l7_protocols_file="$local_l7_protocols_file":l7_protocols_file="$local_ini_l7_protocols_file":" ${PATH_CONFIGS}/lz_rule_config.sh > /dev/null 2>&1
 
 	[ $local_wan0_dest_tcp_port_changed = 1 ] && sed -i "s|^wan0_dest_tcp_port="$local_wan0_dest_tcp_port"|wan0_dest_tcp_port="$local_ini_wan0_dest_tcp_port"|" ${PATH_CONFIGS}/lz_rule_config.sh > /dev/null 2>&1
 	[ $local_wan0_dest_udp_port_changed = 1 ] && sed -i "s|^wan0_dest_udp_port="$local_wan0_dest_udp_port"|wan0_dest_udp_port="$local_ini_wan0_dest_udp_port"|" ${PATH_CONFIGS}/lz_rule_config.sh > /dev/null 2>&1
@@ -2883,8 +2806,6 @@ unset local_ini_high_wan_1_src_to_dst_addr
 unset local_ini_high_wan_1_src_to_dst_addr_file
 unset local_ini_local_ipsets_file
 unset local_ini_private_ipsets_file
-unset local_ini_l7_protocols
-unset local_ini_l7_protocols_file
 unset local_ini_wan0_dest_tcp_port
 unset local_ini_wan0_dest_udp_port
 unset local_ini_wan0_dest_udplite_port
@@ -2961,8 +2882,6 @@ unset local_high_wan_1_src_to_dst_addr
 unset local_high_wan_1_src_to_dst_addr_file
 unset local_local_ipsets_file
 unset local_private_ipsets_file
-unset local_l7_protocols
-unset local_l7_protocols_file
 unset local_wan0_dest_tcp_port
 unset local_wan0_dest_udp_port
 unset local_wan0_dest_udplite_port
@@ -3038,8 +2957,6 @@ unset local_high_wan_1_src_to_dst_addr_changed
 unset local_high_wan_1_src_to_dst_addr_file_changed
 unset local_local_ipsets_file_changed
 unset local_private_ipsets_file_changed
-unset local_l7_protocols_changed
-unset local_l7_protocols_file_changed
 unset local_wan0_dest_tcp_port_changed
 unset local_wan0_dest_udp_port_changed
 unset local_wan0_dest_udplite_port_changed
