@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_address_query.sh v3.6.9
+# lz_rule_address_query.sh v3.7.0
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 网址信息查询脚本

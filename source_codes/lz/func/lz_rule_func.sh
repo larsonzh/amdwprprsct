@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v3.6.9
+# lz_rule_func.sh v3.7.0
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 函数功能定义
@@ -2614,7 +2614,6 @@ EOF
 		fi
 	fi
 
-
 	## 创建内输出mangle表自定义规则链
 	iptables -t mangle -N $CUSTOM_OUTPUT_CHAIN > /dev/null 2>&1
 	iptables -t mangle -A OUTPUT -j $CUSTOM_OUTPUT_CHAIN > /dev/null 2>&1
@@ -4686,48 +4685,20 @@ lz_start_iptv_box_services() {
 				lz_add_net_address_sets "$iptv_box_ip_lst_file" "$BALANCE_GUARD_IP_SET" "1" "0"
 			fi
 
-			## 根据IPTV机顶盒访问IPTV线路方式阻止对IPTV流量进行动态分流
-			if [ "$iptv_access_mode" = "1" -a "$usage_mode" = "0" ]; then
-				## 直连IPTV线路时，机顶盒全部流量采用静态分流，须在动态分流中屏蔽其流量输出
-				lz_add_net_address_sets "$iptv_box_ip_lst_file" "$LOCAL_IP_SET" "1" "0"
-			elif [ "$iptv_access_mode" != "1" -a -f "$iptv_isp_ip_lst_file" ]; then
-				[ "$usage_mode" = "0" ] && lz_add_net_address_sets "$iptv_box_ip_lst_file" "$LOCAL_IP_SET" "1" "0"
-				lz_add_net_address_sets "$iptv_box_ip_lst_file" "$IPTV_BOX_IP_SET" "1" "0"
-				lz_add_net_address_sets "$iptv_isp_ip_lst_file" "$IPTV_ISP_IP_SET" "1" "0"
-				if [ "$( lz_get_ipset_total_number "$IPTV_BOX_IP_SET" )" -gt "0" \
-					-a "$( lz_get_ipset_total_number "$IPTV_ISP_IP_SET" )" -gt "0" ]; then
-					## 获取入口网卡设备标识
-					local local_ifname="$( nvram get lan_ifname | awk 'NR==1 {print $1}' )"
-					[ -z "$local_ifname" ] && local_ifname=br0
-					local local_new=0
-					## 创建路由前mangle表自定义规则链
-					iptables -t mangle -N $CUSTOM_PREROUTING_CHAIN > /dev/null 2>&1
-					[ "$?" = "0" ] && {
-						iptables -t mangle -I PREROUTING -i $local_ifname -j $CUSTOM_PREROUTING_CHAIN > /dev/null 2>&1
-						local_new=1
-					}
-					## 创建内输出mangle表自定义规则链
-					iptables -t mangle -N $CUSTOM_OUTPUT_CHAIN > /dev/null 2>&1
-					[ "$?" = "0" ] && iptables -t mangle -A OUTPUT -j $CUSTOM_OUTPUT_CHAIN > /dev/null 2>&1
-					## 创建规则
-					if [ -z "$( iptables -t mangle -L $CUSTOM_PREROUTING_CHAIN 2> /dev/null | grep "$SRC_DST_FWMARK" )" ]; then
-						[ "$local_new" != "1" ] && iptables -t mangle -I $CUSTOM_PREROUTING_CHAIN -m connmark --mark $SRC_DST_FWMARK/$SRC_DST_FWMARK -j RETURN > /dev/null 2>&1
-						iptables -t mangle -I $CUSTOM_PREROUTING_CHAIN -m connmark --mark $SRC_DST_FWMARK/$SRC_DST_FWMARK -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
-						iptables -t mangle -I $CUSTOM_PREROUTING_CHAIN -m state --state NEW -m set $MATCH_SET $IPTV_BOX_IP_SET src -m set $MATCH_SET $IPTV_ISP_IP_SET dst -j CONNMARK --set-xmark $SRC_DST_FWMARK/$FWMARK_MASK > /dev/null 2>&1
-					else
-						iptables -t mangle -I $CUSTOM_PREROUTING_CHAIN -m state --state NEW -m set $MATCH_SET $IPTV_BOX_IP_SET src -m set $MATCH_SET $IPTV_ISP_IP_SET dst -j CONNMARK --set-xmark $SRC_DST_FWMARK/$FWMARK_MASK > /dev/null 2>&1
+			## 根据IPTV机顶盒访问IPTV线路方式阻止对IPTV流量按运营商网段动态分流
+			if [ "$usage_mode" = "0" ]; then
+				if [ "$iptv_access_mode" = "1" ]; then
+					## 直连IPTV线路时，机顶盒全部流量采用静态分流，须在动态分流中屏蔽其流量输出
+					lz_add_net_address_sets "$iptv_box_ip_lst_file" "$LOCAL_IP_SET" "1" "0"
+				elif [ -f "$iptv_isp_ip_lst_file" -a -n "$( iptables -t mangle -L $PREROUTING 2> /dev/null | grep "$CUSTOM_PREROUTING_CHAIN" )" ]; then
+					## 按服务地址访问时，机顶盒IPTV流量采静态分流，其他流量按运营商网段动态分流
+					lz_add_net_address_sets "$iptv_box_ip_lst_file" "$IPTV_BOX_IP_SET" "1" "0"
+					lz_add_net_address_sets "$iptv_isp_ip_lst_file" "$IPTV_ISP_IP_SET" "1" "0"
+					if [ "$( lz_get_ipset_total_number "$IPTV_BOX_IP_SET" )" -gt "0" \
+						-a "$( lz_get_ipset_total_number "$IPTV_ISP_IP_SET" )" -gt "0" ]; then
+						## 创建阻止被运营商网段分流，提前跳出的防火墙规则
+						iptables -t mangle -I $CUSTOM_PREROUTING_CHAIN -m state --state NEW -m set $MATCH_SET $IPTV_BOX_IP_SET src -m set $MATCH_SET $IPTV_ISP_IP_SET dst -j RETURN > /dev/null 2>&1
 					fi
-					if [ -z "$( iptables -t mangle -L $CUSTOM_OUTPUT_CHAIN 2> /dev/null | grep "$SRC_DST_FWMARK" )" ]; then
-						local_ifname="$( nvram get wan1_ifname | grep -Eo 'eth[0-9]*|vlan[0-9]*' | awk 'NR==1 {print $1}' )"
-						[ -n "$local_ifname" ] && iptables -t mangle -I $CUSTOM_OUTPUT_CHAIN -o $local_ifname -m connmark --mark $SRC_DST_FWMARK/$SRC_DST_FWMARK -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
-						local_ifname="$( nvram get wan1_pppoe_ifname | grep -Eo 'ppp[0-9]*' | awk 'NR==1 {print $1}' )"
-						[ -n "$local_ifname" ] && iptables -t mangle -I $CUSTOM_OUTPUT_CHAIN -o $local_ifname -m connmark --mark $SRC_DST_FWMARK/$SRC_DST_FWMARK -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
-						local_ifname="$( nvram get wan0_ifname | grep -Eo 'eth[0-9]*|vlan[0-9]*' | awk 'NR==1 {print $1}' )"
-						[ -n "$local_ifname" ] && iptables -t mangle -I $CUSTOM_OUTPUT_CHAIN -o $local_ifname -m connmark --mark $SRC_DST_FWMARK/$SRC_DST_FWMARK -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
-						local_ifname="$( nvram get wan0_pppoe_ifname | grep -Eo 'ppp[0-9]*' | awk 'NR==1 {print $1}' )"
-						[ -n "$local_ifname" ] && iptables -t mangle -I $CUSTOM_OUTPUT_CHAIN -o $local_ifname -m connmark --mark $SRC_DST_FWMARK/$SRC_DST_FWMARK -j CONNMARK --restore-mark --nfmask $FWMARK_MASK --ctmask $FWMARK_MASK > /dev/null 2>&1
-					fi
-
 				fi
 			fi
 		fi
