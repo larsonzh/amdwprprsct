@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v3.7.0
+# lz_rule_func.sh v3.7.1
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 函数功能定义
@@ -954,11 +954,11 @@ lz_destroy_ipset() {
 	ipset -q flush $IPTV_ISP_IP_SET && ipset -q destroy $IPTV_ISP_IP_SET
 }
 
-## 清除Open虚拟专网服务支持（TAP及TUN接口类型）函数
+## 清除虚拟专网服务支持函数
 ## 输入项：
 ##     全局常量
 ## 返回值：无
-lz_clear_openvpn_support() {
+lz_clear_vpn_support() {
 	## 清理Open虚拟专网服务支持（TAP及TUN接口类型）中出口路由表添加项
 	local local_tun_number=
 	local local_ip_route=
@@ -973,13 +973,20 @@ lz_clear_openvpn_support() {
 		ip route del $local_ip_route table $WAN1 > /dev/null 2>&1
 	done
 
-	## 清除Open虚拟专网子网网段地址列表文件
-	[ -f ${PATH_TMP}/${OPENVPN_SUBNET_LIST} ] && \
-		rm ${PATH_TMP}/${OPENVPN_SUBNET_LIST} > /dev/null 2>&1
+	## 清除Open虚拟专网子网网段地址列表文件（保留，用于兼容v3.7.0及之前版本）
+	[ -f ${PATH_TMP}/${OPENVPN_SUBNET_LIST} ] && rm ${PATH_TMP}/${OPENVPN_SUBNET_LIST} > /dev/null 2>&1
 
-	## 清除虚拟专网客户端本地地址列表文件
-	[ -f ${PATH_TMP}/${VPN_CLIENT_LIST} ] && \
-		rm ${PATH_TMP}/${VPN_CLIENT_LIST} > /dev/null 2>&1
+	## 清除Open虚拟专网子网网段地址列表数据集
+	ipset -q destroy $OPENVPN_SUBNET_IP_SET
+
+	## 清除虚拟专网客户端本地地址列表文件（保留，用于兼容v3.7.0及之前版本）
+	[ -f ${PATH_TMP}/${VPN_CLIENT_LIST} ] && rm ${PATH_TMP}/${VPN_CLIENT_LIST} > /dev/null 2>&1
+
+	## 清除PPTP虚拟专网客户端本地地址列表数据集
+	ipset -q destroy $PPTP_CLIENT_IP_SET
+
+	## 清除IPSec虚拟专网子网网段地址列表数据集
+	ipset -q destroy $IPSEC_SUBNET_IP_SET
 }
 
 ## 设置udpxy_used参数函数
@@ -1109,14 +1116,15 @@ lz_data_cleaning() {
 	lz_destroy_ipset
 
 	## 清除虚拟专网客户端路由刷新处理后台守护进程
-	rm ${PATH_TMP}/${VPN_CLIENT_DAEMON_LOCK} > /dev/null 2>&1
+	rm ${PATH_TMP}/${VPN_CLIENT_DAEMON_LOCK} > /dev/null 2>&1	##（保留，用于兼容v3.7.0及之前版本）
+	ipset -q destroy $VPN_CLIENT_DAEMON_IP_SET_LOCK
 	ps | grep ${VPN_CLIENT_DAEMON} | grep -v grep | awk '{print $1}' | xargs kill -9 > /dev/null 2>&1
 
-	## 清除Open虚拟专网服务支持（TAP及TUN接口类型）
+	## 清除虚拟专网服务支持
 	## 输入项：
 	##     全局常量
 	## 返回值：无
-	lz_clear_openvpn_support
+	lz_clear_vpn_support
 
 	## 删除SS服务启停触发脚本文件
 	## 输入项：
@@ -1328,11 +1336,11 @@ lz_clear_interface_scripts() {
 	## 返回值：无
 	lz_clear_openvpn_rule
 
-	## 清除Open虚拟专网服务支持（TAP及TUN接口类型）
+	## 清除虚拟专网服务支持
 	## 输入项：
 	##     全局常量
 	## 返回值：无
-	lz_clear_openvpn_support
+	lz_clear_vpn_support
 
 	## 清除脚本生成的IGMP代理配置文件
 	[ -f ${PATH_TMP}/${IGMP_PROXY_CONF_NAME} ] && \
@@ -3401,12 +3409,13 @@ exec $LOCK_FILE_ID<>${LOCK_FILE}; flock -x $LOCK_FILE_ID > /dev/null 2>&1;
 echo \$(date) [\$\$]: >> /tmp/syslog.log
 echo \$(date) [\$\$]: Running LZ VPN Event Handling Process $LZ_VERSION >> /tmp/syslog.log
 
-lz_ovpn_subnet_list="\$( grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}' ${PATH_TMP}/${OPENVPN_SUBNET_LIST} 2> /dev/null )"
-lz_vpn_client_list="\$( grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}' ${PATH_TMP}/${VPN_CLIENT_LIST} 2> /dev/null )"
-lz_ipsec_vpn_subnet_list=
+lz_ovpn_subnet_list="\$( ipset -q list $OPENVPN_SUBNET_IP_SET )"
+lz_pptp_client_list="\$( ipset -q list $PPTP_CLIENT_IP_SET )"
+lz_ipsec_subnet_list="\$( ipset -q list $IPSEC_SUBNET_IP_SET )"
+lz_nvram_ipsec_subnet_list=
 if [ "\$( nvram get ipsec_server_enable )" = "1" ]; then
-	lz_ipsec_vpn_subnet_list=\$( nvram get ipsec_profile_1 | sed 's/>/\n/g' | sed -n 15p | grep -Eo '([0-9]{1,3}[\.]){2}[0-9]{1,3}' | sed 's/^.*\$/&\.0\/24/' )
-	[ -z "\$lz_ipsec_vpn_subnet_list" ] && lz_ipsec_vpn_subnet_list=\$( nvram get ipsec_profile_2 | sed 's/>/\n/g' | sed -n 15p | grep -Eo '([0-9]{1,3}[\.]){2}[0-9]{1,3}' | sed 's/^.*\$/&\.0\/24/' )
+	lz_nvram_ipsec_subnet_list=\$( nvram get ipsec_profile_1 | sed 's/>/\n/g' | sed -n 15p | grep -Eo '([0-9]{1,3}[\.]){2}[0-9]{1,3}' | sed 's/^.*\$/&\.0\/24/' )
+	[ -z "\$lz_nvram_ipsec_subnet_list" ] && lz_nvram_ipsec_subnet_list=\$( nvram get ipsec_profile_2 | sed 's/>/\n/g' | sed -n 15p | grep -Eo '([0-9]{1,3}[\.]){2}[0-9]{1,3}' | sed 's/^.*\$/&\.0\/24/' )
 fi
 ip rule show | grep $IP_RULE_PRIO_VPN: | sed 's/^\($IP_RULE_PRIO_VPN\):.*\$/ip rule del prio \1/g' | awk '{system(\$0 " > /dev/null 2>&1")}'
 if [ -n "\$( ip route list | grep nexthop )" ]; then
@@ -3424,25 +3433,27 @@ EOF_OVPN_A
 		[ "$ovs_client_wan_port" = "1" ] && local_ovs_client_wan=$WAN1
 		cat >> ${1}/${2} <<EOF_OVPN_B
 		echo "\$lz_route_vpn_list" | sed 's/^.*\$/ip rule add from & table $local_ovs_client_wan prio $IP_RULE_PRIO_VPN/g' | awk '{system(\$0 " > /dev/null 2>&1")}'
-		echo "\$lz_ipsec_vpn_subnet_list" | sed 's/^.*\$/ip rule add from & table $local_ovs_client_wan prio $IP_RULE_PRIO_VPN/g' | awk '{system(\$0 " > /dev/null 2>&1")}'
+		echo "\$lz_nvram_ipsec_subnet_list" | sed 's/^.*\$/ip rule add from & table $local_ovs_client_wan prio $IP_RULE_PRIO_VPN/g' | awk '{system(\$0 " > /dev/null 2>&1")}'
 		if [ -n "\$( ipset -q -n list $BALANCE_IP_SET )" ]; then
 			echo "\$lz_ovpn_subnet_list" | sed 's/^.*\$/-! del $BALANCE_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
-			echo "\$lz_vpn_client_list" | sed 's/^.*\$/-! del $BALANCE_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
+			echo "\$lz_pptp_client_list" | sed 's/^.*\$/-! del $BALANCE_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
+			echo "\$lz_ipsec_subnet_list" | sed 's/^.*\$/-! del $BALANCE_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
 			echo "\$lz_route_vpn_list" | sed 's/^.*\$/-! del $BALANCE_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
 			echo "\$lz_route_vpn_list" | sed 's/^.*\$/-! add $BALANCE_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
-			echo "\$lz_ipsec_vpn_subnet_list" | sed 's/^.*\$/-! del $BALANCE_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
-			echo "\$lz_ipsec_vpn_subnet_list" | sed 's/^.*\$/-! add $BALANCE_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
+			echo "\$lz_nvram_ipsec_subnet_list" | sed 's/^.*\$/-! del $BALANCE_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
+			echo "\$lz_nvram_ipsec_subnet_list" | sed 's/^.*\$/-! add $BALANCE_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
 		fi
 EOF_OVPN_B
 	elif [ "$usage_mode" != "0" ]; then
 		cat >> ${1}/${2} <<EOF_OVPN_C
 		if [ -n "\$( ipset -q -n list $BALANCE_IP_SET )" ]; then
 			echo "\$lz_ovpn_subnet_list" | sed 's/^.*\$/-! del $BALANCE_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
-			echo "\$lz_vpn_client_list" | sed 's/^.*\$/-! del $BALANCE_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
+			echo "\$lz_pptp_client_list" | sed 's/^.*\$/-! del $BALANCE_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
+			echo "\$lz_ipsec_subnet_list" | sed 's/^.*\$/-! del $BALANCE_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
 			echo "\$lz_route_vpn_list" | sed 's/^.*\$/-! del $BALANCE_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
 			echo "\$lz_route_vpn_list" | sed 's/^.*\$/-! add $BALANCE_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
-			echo "\$lz_ipsec_vpn_subnet_list" | sed 's/^.*\$/-! del $BALANCE_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
-			echo "\$lz_ipsec_vpn_subnet_list" | sed 's/^.*\$/-! add $BALANCE_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
+			echo "\$lz_nvram_ipsec_subnet_list" | sed 's/^.*\$/-! del $BALANCE_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
+			echo "\$lz_nvram_ipsec_subnet_list" | sed 's/^.*\$/-! add $BALANCE_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
 		fi
 EOF_OVPN_C
 	fi
@@ -3450,15 +3461,16 @@ EOF_OVPN_C
 	cat >> ${1}/${2} <<EOF_OVPN_D
 		if [ -n "\$( ipset -q -n list $LOCAL_IP_SET )" ]; then
 			echo "\$lz_ovpn_subnet_list" | sed 's/^.*\$/-! del $LOCAL_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
-			echo "\$lz_vpn_client_list" | sed 's/^.*\$/-! del $LOCAL_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
+			echo "\$lz_pptp_client_list" | sed 's/^.*\$/-! del $LOCAL_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
+			echo "\$lz_ipsec_subnet_list" | sed 's/^.*\$/-! del $LOCAL_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
 			echo "\$lz_route_vpn_list" | sed 's/^.*\$/-! del $LOCAL_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
-			echo "\$lz_ipsec_vpn_subnet_list" | sed 's/^.*\$/-! del $LOCAL_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
+			echo "\$lz_nvram_ipsec_subnet_list" | sed 's/^.*\$/-! del $LOCAL_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
 EOF_OVPN_D
 
 	if [ "$ovs_client_wan_port" = "0" -o "$ovs_client_wan_port" = "1" ]; then
 		cat >> ${1}/${2} <<EOF_OVPN_E
 			echo "\$lz_route_vpn_list" | sed 's/^.*\$/-! add $LOCAL_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
-			echo "\$lz_ipsec_vpn_subnet_list" | sed 's/^.*\$/-! add $LOCAL_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
+			echo "\$lz_nvram_ipsec_subnet_list" | sed 's/^.*\$/-! add $LOCAL_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
 EOF_OVPN_E
 	fi
 
@@ -3466,15 +3478,22 @@ EOF_OVPN_E
 		fi
 		if [ -n "\$( ipset -q -n list $BALANCE_GUARD_IP_SET )" ]; then
 			echo "\$lz_ovpn_subnet_list" | sed 's/^.*\$/-! del $BALANCE_GUARD_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
-			echo "\$lz_vpn_client_list" | sed 's/^.*\$/-! del $BALANCE_GUARD_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
+			echo "\$lz_pptp_client_list" | sed 's/^.*\$/-! del $BALANCE_GUARD_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
+			echo "\$lz_ipsec_subnet_list" | sed 's/^.*\$/-! del $BALANCE_GUARD_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
 			echo "\$lz_route_vpn_list" | sed 's/^.*\$/-! del $BALANCE_GUARD_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
 			echo "\$lz_route_vpn_list" | sed 's/^.*\$/-! add $BALANCE_GUARD_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
-			echo "\$lz_ipsec_vpn_subnet_list" | sed 's/^.*\$/-! del $BALANCE_GUARD_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
-			echo "\$lz_ipsec_vpn_subnet_list" | sed 's/^.*\$/-! add $BALANCE_GUARD_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
+			echo "\$lz_nvram_ipsec_subnet_list" | sed 's/^.*\$/-! del $BALANCE_GUARD_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
+			echo "\$lz_nvram_ipsec_subnet_list" | sed 's/^.*\$/-! add $BALANCE_GUARD_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
 		fi
-		echo "\$lz_route_list" | grep -E 'tap|tun' | awk '{print \$1}' > ${PATH_TMP}/${OPENVPN_SUBNET_LIST}
-		echo "\$lz_route_list" | grep pptp | awk '{print \$1,\$3}' > ${PATH_TMP}/${VPN_CLIENT_LIST}
-		echo "\$lz_ipsec_vpn_subnet_list" | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}' | awk '{print \$1,"ipsec"}' >> ${PATH_TMP}/${VPN_CLIENT_LIST}
+		ipset -! create $OPENVPN_SUBNET_IP_SET nethash
+		ipset -! create $PPTP_CLIENT_IP_SET nethash
+		ipset -! create $IPSEC_SUBNET_IP_SET nethash
+		ipset -q flush $OPENVPN_SUBNET_IP_SET
+		ipset -q flush $PPTP_CLIENT_IP_SET
+		ipset -q flush $IPSEC_SUBNET_IP_SET
+		echo "\$lz_route_list" | grep -E 'tap|tun' | awk '{print \$1}' | sed 's/^.*\$/-! add $OPENVPN_SUBNET_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
+		echo "\$lz_route_list" | grep pptp | awk '{print \$1}' | sed 's/^.*\$/-! add $PPTP_CLIENT_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
+		echo "\$lz_nvram_ipsec_subnet_list" | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}' | awk '{print \$1}' | sed 's/^.*\$/-! add $IPSEC_SUBNET_IP_SET &/g' | awk '{print \$0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
 	fi
 	lz_index=0
 	for lz_vpn_item in \$( echo "\$lz_route_list" | grep -E 'tap|tun' | awk '{print \$1":"\$3}' )
@@ -3498,9 +3517,9 @@ EOF_OVPN_E
 			echo \$(date) [\$\$]: LZ PPTP VPN Client: None >> /tmp/syslog.log
 		fi
 	fi
-	if [ -n "\$lz_ipsec_vpn_subnet_list" ]; then
+	if [ -n "\$lz_nvram_ipsec_subnet_list" ]; then
 		lz_index=0
-		for lz_vpn_item in \$( echo "\$lz_ipsec_vpn_subnet_list" | awk '{print \$1":ipsec"}' )
+		for lz_vpn_item in \$( echo "\$lz_nvram_ipsec_subnet_list" | awk '{print \$1":ipsec"}' )
 		do
 			let lz_index++
 			lz_vpn_item=\$( echo "\$lz_vpn_item" | sed 's/:/ /g' )
@@ -3770,11 +3789,16 @@ lz_vpn_support() {
 			## 返回值：无
 			llz_vpn_client_rule_update "$local_vpn_item"
 
-			## 创建Open虚拟专网子网网段地址列表文件
-			echo "$local_route_list" | grep -E 'tap|tun' | awk '{print $1}' > ${PATH_TMP}/${OPENVPN_SUBNET_LIST}
+			## 创建Open虚拟专网子网网段地址列表数据集
+			ipset -! create $OPENVPN_SUBNET_IP_SET nethash
+			ipset -q flush $OPENVPN_SUBNET_IP_SET
+			echo "$local_route_list" | grep -E 'tap|tun' | awk '{print $1}' | sed "s/^.*$/-! add "$OPENVPN_SUBNET_IP_SET" &/g" | awk '{print $0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
 
-			## 创建虚拟专网客户端本地地址列表文件并写入PPTP客户端地址
-			echo "$local_route_list" | grep pptp | awk '{print $1,$3}' > ${PATH_TMP}/${VPN_CLIENT_LIST}
+			## 创建PPTP虚拟专网客户端本地地址列表数据集
+			ipset -! create $PPTP_CLIENT_IP_SET nethash
+			ipset -q flush $PPTP_CLIENT_IP_SET
+			echo "$local_route_list" | grep pptp | awk '{print $1}' | sed "s/^.*$/-! add "$PPTP_CLIENT_IP_SET" &/g" | awk '{print $0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
+
 
 			## 输出显示Open虚拟专网服务器及客户端状态信息
 			for local_vpn_item in $( echo "$local_route_list" | grep -E 'tap|tun' | awk '{print $3":"$1}' )
@@ -3835,9 +3859,10 @@ lz_vpn_support() {
 				echo $(date) [$$]: LZ IPSec Client Export: $local_vpn_client_wan_port >> /tmp/syslog.log
 				echo $(date) [$$]: -------- LZ $LZ_VERSION IPSec VPN Server running! ---- >> /tmp/syslog.log
 			fi
-			## 在虚拟专网客户端本地地址列表文件中写入IPSec子网网段地址
-			echo "$local_vpn_item" | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}' \
-				| awk '{print $1,"ipsec"}' >> ${PATH_TMP}/${VPN_CLIENT_LIST}
+			## 创建IPSec虚拟专网子网网段地址列表数据集
+			ipset -! create $IPSEC_SUBNET_IP_SET nethash
+			ipset -q flush $IPSEC_SUBNET_IP_SET
+			echo "$local_vpn_item" | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}' | awk '{print $1}' | sed "s/^.*$/-! add "$IPSEC_SUBNET_IP_SET" &/g" | awk '{print $0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
 		fi
 	fi
 
@@ -5289,7 +5314,7 @@ lz_deployment_routing_policy() {
 [ ! -d ${PATH_LOCK} ] && { mkdir -p ${PATH_LOCK} > /dev/null 2>&1; chmod 777 ${PATH_LOCK} > /dev/null 2>&1; }
 exec $LOCK_FILE_ID<>${LOCK_FILE}; flock -x $LOCK_FILE_ID > /dev/null 2>&1;
 
-rm ${PATH_TMP}/${VPN_CLIENT_DAEMON_LOCK} > /dev/null 2>&1
+ipset -q destroy $VPN_CLIENT_DAEMON_IP_SET_LOCK
 ps | grep ${VPN_CLIENT_DAEMON} | grep -v grep | awk '{print \$1}' | xargs kill -9 > /dev/null 2>&1
 nohup sh ${PATH_FUNC}/${VPN_CLIENT_DAEMON} "$vpn_client_polling_time" > /dev/null 2>&1 &
 sleep 1s

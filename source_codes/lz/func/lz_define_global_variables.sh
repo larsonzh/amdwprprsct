@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_define_global_variables.sh v3.7.0
+# lz_define_global_variables.sh v3.7.1
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 # QnkgTFog5aaZ5aaZ5ZGc77yI6Juk6J+G5aKp5YS/77yJ（首次运行标识，切勿修改）
 
@@ -125,14 +125,26 @@ OPENVPN_EVENT_INTERFACE_NAME=lz_openvpn_event.sh
 ## 虚拟专网客户端路由刷新处理后台守护进程脚本文件名
 VPN_CLIENT_DAEMON=lz_vpn_daemon.sh
 
-## 虚拟专网客户端路由刷新处理后台守护进程锁文件
+## 虚拟专网客户端路由刷新处理后台守护进程锁文件（保留，用于兼容v3.7.0及之前版本）
 VPN_CLIENT_DAEMON_LOCK=lz_vpn_daemon.lock
 
-## Open虚拟专网子网网段地址列表文件名
+## 虚拟专网客户端路由刷新处理后台守护进程数据集锁名称
+VPN_CLIENT_DAEMON_IP_SET_LOCK="lz_vpn_daemon_lock"
+
+## Open虚拟专网子网网段地址列表文件名（保留，用于兼容v3.7.0及之前版本）
 OPENVPN_SUBNET_LIST=lz_openvpn_subnet.lst
 
-## 虚拟专网客户端本地地址列表文件名
+## Open虚拟专网子网网段地址列表数据集名称
+OPENVPN_SUBNET_IP_SET="lz_openvpn_subnet"
+
+## 虚拟专网客户端本地地址列表文件名（保留，用于兼容v3.7.0及之前版本）
 VPN_CLIENT_LIST=lz_vpn_client.lst
+
+## PPTP虚拟专网客户端本地地址列表数据集名称
+PPTP_CLIENT_IP_SET="lz_pptp_client"
+
+## IPSec虚拟专网子网网段地址列表数据集名称
+IPSEC_SUBNET_IP_SET="lz_ipsec_subnet"
 
 ## 启动后台守护进程脚本文件名
 START_DAEMON_SCRIPT=lz_start_daemon.sh
