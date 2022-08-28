@@ -11,7 +11,7 @@ v3.7.1 (2022/8/25)
 	tar包解压命令（安装包目录内执行）：
 		tar -xzvf lz_rule-v3.7.1.tar.gz
 	安装脚本命令（解压出的目录内执行）：
-		./lzintall.sh
+		./lzinstall.sh
 	2.更新运营商网段数据文件。
 	其他：
 	开发环境已由Windaows 11平台迁移至VirtualBox虚拟
