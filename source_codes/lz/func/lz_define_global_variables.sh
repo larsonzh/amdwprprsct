@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_define_global_variables.sh v3.7.1
+# lz_define_global_variables.sh v3.7.2
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 # QnkgTFog5aaZ5aaZ5ZGc77yI6Juk6J+G5aKp5YS/77yJ（首次运行标识，切勿修改）
 
@@ -9,7 +9,7 @@
 ## 返回值：无
 
 ## 自启动引导文件部署路径
-PATH_BOOTLOADER=/jffs/scripts
+PATH_BOOTLOADER=${PATH_BASE}
 
 ## 自启动引导文件名
 BOOTLOADER_NAME=firewall-start

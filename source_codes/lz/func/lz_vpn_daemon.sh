@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_vpn_daemon.sh v3.7.1
+# lz_vpn_daemon.sh v3.7.2
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 虚拟专网客户端路由刷新处理后台守护进程脚本
@@ -9,10 +9,10 @@
 
 #BEIGIN
 
-## 项目文件部署路径
-PATH_BASE=/jffs/scripts
-PATH_LZ=${PATH_BASE}/lz
-PATH_INTERFACE=${PATH_LZ}/interface
+## 项目接口文件部署路径
+PATH_INTERFACE="${0%/*}"
+[ "${PATH_INTERFACE:0:1}" != '/' ] && PATH_INTERFACE="$( pwd )${PATH_INTERFACE#*.}"
+PATH_INTERFACE=${PATH_INTERFACE}/interface
 
 ## 第一WAN口路由表ID号
 WAN0=100

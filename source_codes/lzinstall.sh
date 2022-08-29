@@ -1,17 +1,19 @@
 #!/bin/bash
-# lzinstall.sh v3.7.1
+# lzinstall.sh v3.7.2
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ script for asuswrt/merlin based router
 
 #BEIGIN
 
-LZ_VERSION=v3.7.1
+LZ_VERSION=v3.7.2
 TIMEOUT=10
 CURRENT_PATH="${0%/*}"
 [ "${CURRENT_PATH:0:1}" != '/' ] && CURRENT_PATH="$( pwd )${CURRENT_PATH#*.}"
 SYSLOG_NAME=
-[ -f /tmp/syslog.log ] && SYSLOG_NAME=/tmp/syslog.log
+[ -f /tmp/syslog.log ] && SYSLOG_NAME="/tmp/syslog.log"
+PATH_BASE=/jffs/scripts
+[ "$( echo "${1}" | tr T t )" = t ] && PATH_BASE=${HOME}
 
 echo 
 echo -----------------------------------------------------------
@@ -56,7 +58,41 @@ elif [ "${USER}" = root ]; then
 	exit 1
 fi
 
-AVAL_SPACE=$( df | grep -w "/jffs" | awk '{print $4}' )
+AVAL_SPACE=
+if [ "${1}" = entware ]; then
+	if [ -n "$( which opkg )" ]; then
+		index=1
+		while [ "$index" -le "$( df | grep "^/dev/sda" | wc -l )" ]
+		do
+			if [ -n "$( df | grep -w "^/dev/sda${index}" | awk '{print $6}' | xargs -i ls -al {} | grep -o entware )" ]; then
+				AVAL_SPACE=$( df | grep -w "^/dev/sda${index}" | awk '{print $4}' )
+				if [ -n "$( which opkg | grep -wo '^[\/]opt' )" -a -d /opt/home ]; then
+					PATH_BASE=/opt/home
+				else
+					PATH_BASE="$( df | grep -w "^/dev/sda${index}" | awk '{print $6}' )/entware/home"
+				fi
+				break
+			fi
+			let index++
+		done
+	fi
+	if [ -z "${AVAL_SPACE}" ]; then
+		echo -e "  Entware can\'t be used or doesn\'t exist."
+		echo -----------------------------------------------------------
+		echo "  LZ script installation failed."
+		echo -e "  $(date)\n"
+		if [ -n "${SYSLOG_NAME}" ]; then
+			echo -e "  Entware can\'t be used or doesn\'t exist." >> ${SYSLOG_NAME}
+			echo ----------------------------------------------------------- >> ${SYSLOG_NAME}
+			echo "  LZ script installation failed." >> ${SYSLOG_NAME}
+			echo -e "  $(date)\n" >> ${SYSLOG_NAME}
+		fi
+		exit 1
+	fi
+else
+	AVAL_SPACE=$( df | grep -w "/jffs" | awk '{print $4}' )
+fi
+
 SPACE_REQU=$( du -s "${CURRENT_PATH}" | awk '{print $1}' )
 
 [ -n "${AVAL_SPACE}" ] && AVAL_SPACE="${AVAL_SPACE} KB" || AVAL_SPACE=Unknown
@@ -125,30 +161,24 @@ fi
 
 echo "  Installation in progress..."
 
-[ "$( echo "${1}" | tr T t )" != t ] && PATH_BASE=/jffs/scripts || PATH_BASE=${HOME}/jffs/scripts
 PATH_LZ=${PATH_BASE}/lz
 mkdir -p ${PATH_LZ} > /dev/null 2>&1
 if [ "${?}" != 0 ]; then
-	PATH_BASE=${HOME}/jffs/scripts
-	PATH_LZ=${PATH_BASE}/lz
-	mkdir -p ${PATH_LZ} > /dev/null 2>&1
-	if [ "${?}" != 0 ]; then
-		echo -----------------------------------------------------------
-		echo "  Failed to create directory (${PATH_LZ})."
-		echo "  The installation process exited."
-		echo -----------------------------------------------------------
-		echo "  LZ script installation failed."
-		echo -e "  $(date)\n"
-		if [ -n "${SYSLOG_NAME}" ]; then
-			echo ----------------------------------------------------------- >> ${SYSLOG_NAME}
-			echo "  Failed to create directory (${PATH_LZ})." >> ${SYSLOG_NAME}
-			echo "  The installation process exited." >> ${SYSLOG_NAME}
-			echo ----------------------------------------------------------- >> ${SYSLOG_NAME}
-			echo "  LZ script installation failed." >> ${SYSLOG_NAME}
-			echo -e "  $(date)\n" >> ${SYSLOG_NAME}
-		fi
-		exit 1
+	echo -----------------------------------------------------------
+	echo "  Failed to create directory (${PATH_LZ})."
+	echo "  The installation process exited."
+	echo -----------------------------------------------------------
+	echo "  LZ script installation failed."
+	echo -e "  $(date)\n"
+	if [ -n "${SYSLOG_NAME}" ]; then
+		echo ----------------------------------------------------------- >> ${SYSLOG_NAME}
+		echo "  Failed to create directory (${PATH_LZ})." >> ${SYSLOG_NAME}
+		echo "  The installation process exited." >> ${SYSLOG_NAME}
+		echo ----------------------------------------------------------- >> ${SYSLOG_NAME}
+		echo "  LZ script installation failed." >> ${SYSLOG_NAME}
+		echo -e "  $(date)\n" >> ${SYSLOG_NAME}
 	fi
+	exit 1
 fi
 
 PATH_CONFIGS=${PATH_LZ}/configs
@@ -180,46 +210,37 @@ find "${CURRENT_PATH}/lz/data" -name "*_cidr.txt" -print 2> /dev/null | xargs -i
 [ ! -f ${PATH_DATA}/wan_2_client_src_addr.txt ] && cp -rp "${CURRENT_PATH}/lz/data/wan_2_client_src_addr.txt" ${PATH_DATA} > /dev/null 2>&1
 [ ! -f ${PATH_DATA}/wan_2_src_to_dst_addr.txt ] && cp -rp "${CURRENT_PATH}/lz/data/wan_2_src_to_dst_addr.txt" ${PATH_DATA} > /dev/null 2>&1
 
-if [ ! -f ${PATH_BASE}/firewall-start ]; then
-	cp -rp "${CURRENT_PATH}/firewall-start" ${PATH_BASE}/firewall-start > /dev/null 2>&1
-else
-	BOOTLOADER=$( grep -m 1 '.' ${PATH_BASE}/firewall-start | sed -e 's/^[ ]*//g' -e 's/[ ]*$//g' | grep "^#!/bin/sh$" )
-	[ -z "${BOOTLOADER}" ] && sed -i '1i #!/bin/sh' ${PATH_BASE}/firewall-start > /dev/null 2>&1
-	BOOTLOADER=$( grep "/jffs/scripts/lz/lz_rule.sh" ${PATH_BASE}/firewall-start )
-	if [ -z "${BOOTLOADER}" ]; then
-		sed -i '/lz_rule.sh/d' ${PATH_BASE}/firewall-start > /dev/null 2>&1
-		sed -i "\$a "/jffs/scripts/lz/lz_rule.sh"" ${PATH_BASE}/firewall-start > /dev/null 2>&1
-	fi
-fi
-
 chmod 775 ${PATH_LZ}/lz_rule.sh > /dev/null 2>&1
-chmod 775 ${PATH_BASE}/firewall-start > /dev/null 2>&1
 chmod -R 775 ${PATH_LZ} > /dev/null 2>&1
 
-if [ "${PATH_BASE}" = /jffs/scripts ]; then
-	echo -----------------------------------------------------------
-	echo "  Installed script path: ${PATH_BASE}"
-	echo "  The software installation has been completed."
-	echo -e "  $(date)\n"
-	if [ -n "${SYSLOG_NAME}" ]; then
-		echo ----------------------------------------------------------- >> ${SYSLOG_NAME}
-		echo "  Installed script path: ${PATH_BASE}" >> ${SYSLOG_NAME}
-		echo "  The software installation has been completed." >> ${SYSLOG_NAME}
-		echo -e "  $(date)\n" >> ${SYSLOG_NAME}
-	fi
-else
-	echo -----------------------------------------------------------
-	echo "  Installed script path: ${PATH_BASE}"
-	echo -e "  LZ script can't work unless in /jffs/scripts directory."
-	echo "  The software has been installed."
-	echo -e "  $(date)\n"
-	if [ -n "${SYSLOG_NAME}" ]; then
-		echo ----------------------------------------------------------- >> ${SYSLOG_NAME}
-		echo "  Installed script path: ${PATH_BASE}" >> ${SYSLOG_NAME}
-		echo -e "  LZ script can't work unless in /jffs/scripts directory." >> ${SYSLOG_NAME}
-		echo "  The software has been installed." >> ${SYSLOG_NAME}
-		echo -e "  $(date)\n" >> ${SYSLOG_NAME}
-	fi
+sed -i "s:/jffs/scripts/lz:"${PATH_LZ}":g" ${PATH_LZ}/lz_rule.sh > /dev/null 2>&1
+sed -i "s:/jffs/scripts/lz:"${PATH_LZ}":g" ${PATH_CONFIGS}/lz_rule_config.sh > /dev/null 2>&1
+sed -i "s:/jffs/scripts/lz:"${PATH_LZ}":g" ${PATH_FUNC}/lz_rule_address_query.sh > /dev/null 2>&1
+sed -i "s:/jffs/scripts/lz:"${PATH_LZ}":g" ${PATH_FUNC}/lz_rule_status.sh > /dev/null 2>&1
+sed -i "s:/jffs/scripts/lz:"${PATH_LZ}":g" ${PATH_FUNC}/lz_initialize_config.sh > /dev/null 2>&1
+sed -i "s:/jffs/scripts/lz:"${PATH_LZ}":g" ${PATH_FUNC}/lz_define_global_variables.sh > /dev/null 2>&1
+
+echo -----------------------------------------------------------
+echo "  Installed script path: ${PATH_BASE}"
+echo "  The software installation has been completed."
+echo -----------------------------------------------------------
+echo "  LZ script start command: "
+echo "        ${PATH_LZ}/lz_rule.sh"
+echo "  Terminate run command: "
+echo "        ${PATH_LZ}/lz_rule.sh STOP"
+echo -----------------------------------------------------------
+echo -e "  $(date)\n"
+if [ -n "${SYSLOG_NAME}" ]; then
+	echo ----------------------------------------------------------- >> ${SYSLOG_NAME}
+	echo "  Installed script path: ${PATH_BASE}" >> ${SYSLOG_NAME}
+	echo "  The software installation has been completed." >> ${SYSLOG_NAME}
+	echo ----------------------------------------------------------- >> ${SYSLOG_NAME}
+	echo "  LZ script start command: " >> ${SYSLOG_NAME}
+	echo "        ${PATH_LZ}/lz_rule.sh" >> ${SYSLOG_NAME}
+	echo "  Terminate run command: " >> ${SYSLOG_NAME}
+	echo "        ${PATH_LZ}/lz_rule.sh STOP" >> ${SYSLOG_NAME}
+	echo ----------------------------------------------------------- >> ${SYSLOG_NAME}
+	echo -e "  $(date)\n" >> ${SYSLOG_NAME}
 fi
 
 exit 0
