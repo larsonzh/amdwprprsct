@@ -163,6 +163,7 @@ elif [ "${AVAL_SPACE}" = Unknown -o "${SPACE_REQU}" = Unknown ]; then
 fi
 
 echo "  Installation in progress..."
+[ -n "${SYSLOG_NAME}" ] && echo "  Installation in progress..." >> ${SYSLOG_NAME}
 
 PATH_LZ=${PATH_BASE}/lz
 mkdir -p ${PATH_LZ} > /dev/null 2>&1
