@@ -89,7 +89,7 @@ ADDRESS_QUERY="address"
 FORCED_UNLOCKING="unlock"
 
 ## 系统记录文件名
-SYSLOG_NAME="tmp/syslog.log"
+SYSLOG_NAME="/tmp/syslog.log"
 [ ! -f ${SYSLOG_NAME} ] && SYSLOG_NAME="/dev/null"
 
 echo $(date) [$$]:
