@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_status.sh v3.7.2
+# lz_rule_status.sh v3.7.3
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 显示脚本运行状态脚本
@@ -2097,7 +2097,7 @@ __status_main() {
 	lz_read_box_data_status
 
 	if [ "$status_version" != "$LZ_VERSION" ]; then
-		echo $(date) [$$]: LZ $LZ_VERSION script hasn\'t been started and initialized, please restart.
+		echo -e $(date) [$$]: LZ $LZ_VERSION script hasn\'t been started and initialized, please restart.
 		return
 	fi
 
@@ -2198,7 +2198,7 @@ __status_main() {
 		if [ "$( ip rule show | grep -c "$STATUS_IP_RULE_PRIO_IPTV:" )" -gt "0" ]; then
 			echo $(date) [$$]: Only IPTV rules is running.
 		else
-			echo $(date) [$$]: The policy routing service isn\'t running.
+			echo -e $(date) [$$]: The policy routing service isn\'t running.
 		fi
 
 		## 显示SS服务支持状态
@@ -2209,13 +2209,13 @@ __status_main() {
 
 	## 无外网连接
 	else
-		echo $(date) [$$]: The router hasn\'t been connected to the two WANs.
-		echo $(date) [$$]: The policy routing service isn\'t running.
+		echo -e $(date) [$$]: The router hasn\'t been connected to the two WANs.
+		echo -e $(date) [$$]: The policy routing service isn\'t running.
 	fi
 }
 
 if [ ! -f "${PATH_CONFIGS}/lz_rule_config.box" ]; then
-	echo $(date) [$$]: LZ $LZ_VERSION script hasn\'t been started and initialized, please restart.
+	echo -e $(date) [$$]: LZ $LZ_VERSION script hasn\'t been started and initialized, please restart.
 	return
 fi
 

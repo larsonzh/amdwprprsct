@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_address_query.sh v3.7.2
+# lz_rule_address_query.sh v3.7.3
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 网址信息查询脚本
@@ -851,7 +851,7 @@ __aq_main() {
 	lz_aq_read_box_data
 
 	if [ "$aq_version" != "$LZ_VERSION" ]; then
-		echo $(date) [$$]: LZ $LZ_VERSION script hasn\'t been started and initialized, please restart.
+		echo -e $(date) [$$]: LZ $LZ_VERSION script hasn\'t been started and initialized, please restart.
 		return
 	fi
 
@@ -873,17 +873,17 @@ __aq_main() {
 			-a -n "$aq_route_local_ip_cidr_mask" ]; then
 		lz_query_address "$( lz_aq_resolve_ip "$1" "$2" )"
 	else
-		echo $(date) [$$]: LZ $LZ_VERSION script can\'t access the Internet, so the query function can\'t be used.
+		echo -e $(date) [$$]: LZ $LZ_VERSION script can\'t access the Internet, so the query function can\'t be used.
 	fi
 }
 
 if [ ! -f "${PATH_CONFIGS}/lz_rule_config.box" ]; then
-	echo $(date) [$$]: LZ $LZ_VERSION script hasn\'t been started and initialized, please restart.
+	echo -e $(date) [$$]: LZ $LZ_VERSION script hasn\'t been started and initialized, please restart.
 	return
 fi
 
 echo $(date) [$$]: Start network address information query.
-echo $(date) [$$]: Don\'t interrupt \& please wait......
+echo -e $(date) [$$]: Don\'t interrupt \& please wait......
 
 ## 定义网址信息查询用常量
 lz_define_aq_constant

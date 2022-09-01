@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule.sh v3.7.2
+# lz_rule.sh v3.7.3
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # 本版本采用CIDR（无类别域间路由，Classless Inter-Domain Routing）技术
@@ -77,7 +77,7 @@
 ## -------------全局数据定义及初始化-------------------
 
 ## 版本号
-LZ_VERSION=v3.7.2
+LZ_VERSION=v3.7.3
 
 ## 运行状态查询命令
 SHOW_STATUS="status"
@@ -90,11 +90,10 @@ FORCED_UNLOCKING="unlock"
 
 ## 系统记录文件名
 SYSLOG_NAME="/tmp/syslog.log"
-[ ! -f ${SYSLOG_NAME} ] && SYSLOG_NAME="/dev/null"
 
 echo $(date) [$$]:
 echo $(date) [$$]: LZ $LZ_VERSION script commands start......
-echo $(date) [$$]: By LZ \(larsonzhang@gmail.com\)
+echo -e $(date) [$$]: By LZ \(larsonzhang@gmail.com\)
 
 ## 项目文件部署路径
 PATH_BASE=/jffs/scripts
@@ -227,7 +226,7 @@ lz_project_file_management() {
 		local_scripts_file_exist=0
 	}
 	if [ "$local_scripts_file_exist" = "0" ]; then
-		echo $(date) [$$]: Policy routing service can\'t be started.
+		echo -e $(date) [$$]: Policy routing service can\'t be started.
 		echo $(date) [$$]: -------- No LZ $LZ_VERSION rules run! -------------- >> ${SYSLOG_NAME}
 		echo $(date) [$$]: >> ${SYSLOG_NAME}
 		return 1
@@ -538,7 +537,7 @@ __lz_main() {
 			echo $(date) [$$]: Only IPTV rules is running.
 			echo $(date) [$$]: -------- LZ $LZ_VERSION IPTV rules is running. ----- >> ${SYSLOG_NAME}
 		else
-			echo $(date) [$$]: The policy routing service isn\'t running.
+			echo -e $(date) [$$]: The policy routing service isn\'t running.
 			echo $(date) [$$]: -------- No LZ $LZ_VERSION rules run! -------------- >> ${SYSLOG_NAME}
 		fi
 
@@ -553,8 +552,8 @@ __lz_main() {
 	## 无外网连接
 	else
 
-		echo $(date) [$$]: The router hasn\'t been connected to the two WANs.
-		echo $(date) [$$]: LZ The router hasn\'t been connected to the two WANs. >> ${SYSLOG_NAME}
+		echo -e $(date) [$$]: The router hasn\'t been connected to the two WANs.
+		echo -e $(date) [$$]: LZ The router hasn\'t been connected to the two WANs. >> ${SYSLOG_NAME}
 
 		## 输出IPTV规则条目数至系统记录
 		## 输出当前单项分流规则的条目数至系统记录
@@ -579,7 +578,7 @@ __lz_main() {
 		## 返回值：无
 		lz_clear_interface_scripts "$1"
 
-		echo $(date) [$$]: The policy routing service isn\'t running.
+		echo -e $(date) [$$]: The policy routing service isn\'t running.
 		echo $(date) [$$]: -------- No LZ $LZ_VERSION rules run! -------------- >> ${SYSLOG_NAME}
 		echo $(date) [$$]: >> ${SYSLOG_NAME}
 	fi
@@ -628,7 +627,7 @@ if lz_project_file_management; then
 	elif [ "$1" = "$ADDRESS_QUERY" ]; then
 		## 载入函数功能定义
 		if [ -z "$2" -o -n "$( echo "$2" | grep -Eo '^[ ]*$' )" ]; then
-			echo $(date) [$$]: The input parameter \( network address \) can\'t be null.
+			echo -e $(date) [$$]: The input parameter \( network address \) can\'t be null.
 		else
 			${CALL_FUNC_SUBROUTINE}/lz_rule_address_query.sh "$2" "$3"
 		fi

@@ -1,5 +1,5 @@
-#!/bin/bash
-# lzinstall.sh v3.7.2
+#!/bin/sh
+# lzinstall.sh v3.7.3
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ script for asuswrt/merlin based router
@@ -9,55 +9,33 @@
 
 #BEIGIN
 
-LZ_VERSION=v3.7.2
+LZ_VERSION=v3.7.3
 TIMEOUT=10
 CURRENT_PATH="${0%/*}"
 [ "${CURRENT_PATH:0:1}" != '/' ] && CURRENT_PATH="$( pwd )${CURRENT_PATH#*.}"
-SYSLOG_NAME=
-[ -f /tmp/syslog.log ] && SYSLOG_NAME="/tmp/syslog.log"
+SYSLOG_NAME="/tmp/syslog.log"
 PATH_BASE=/jffs/scripts
 [ "$( echo "${1}" | tr T t )" = t ] && PATH_BASE=${HOME}
 
-echo 
-echo -----------------------------------------------------------
-echo "  LZ ${LZ_VERSION} installation script starts running..."
-echo "  By LZ (larsonzhang@gmail.com)"
-echo "  $(date)"
-echo -----------------------------------------------------------
-if [ -n "${SYSLOG_NAME}" ]; then
-	echo >> ${SYSLOG_NAME}
-	echo ----------------------------------------------------------- >> ${SYSLOG_NAME}
-	echo "  LZ ${LZ_VERSION} installation script starts running..." >> ${SYSLOG_NAME}
-	echo "  By LZ (larsonzhang@gmail.com)" >> ${SYSLOG_NAME}
-	echo "  $(date)" >> ${SYSLOG_NAME}
-	echo ----------------------------------------------------------- >> ${SYSLOG_NAME}
-fi
+echo  | tee -ai "${SYSLOG_NAME}" 2> /dev/null
+echo ----------------------------------------------------------- | tee -ai "${SYSLOG_NAME}" 2> /dev/null
+echo "  LZ ${LZ_VERSION} installation script starts running..." | tee -ai "${SYSLOG_NAME}" 2> /dev/null
+echo "  By LZ (larsonzhang@gmail.com)" | tee -ai "${SYSLOG_NAME}" 2> /dev/null
+echo "  $(date)" | tee -ai "${SYSLOG_NAME}" 2> /dev/null
+echo ----------------------------------------------------------- | tee -ai "${SYSLOG_NAME}" 2> /dev/null
 
 if [ -z "${USER}" ]; then
-	echo -e "  The user name is empty and can\'t continue."
-	echo -----------------------------------------------------------
-	echo "  LZ script installation failed."
-	echo -e "  $(date)\n"
-	if [ -n "${SYSLOG_NAME}" ]; then
-		echo -e "  The user name is empty and can\'t continue." >> ${SYSLOG_NAME}
-		echo ----------------------------------------------------------- >> ${SYSLOG_NAME}
-		echo "  LZ script installation failed." >> ${SYSLOG_NAME}
-		echo -e "  $(date)\n" >> ${SYSLOG_NAME}
-	fi
+	echo -e "  The user name is empty and can\'t continue." | tee -ai "${SYSLOG_NAME}" 2> /dev/null
+	echo ----------------------------------------------------------- | tee -ai "${SYSLOG_NAME}" 2> /dev/null
+	echo "  LZ script installation failed." | tee -ai "${SYSLOG_NAME}" 2> /dev/null
+	echo -e "  $(date)\n" | tee -ai "${SYSLOG_NAME}" 2> /dev/null
 	exit 1
 elif [ "${USER}" = root ]; then
-	echo -e "  The root user can\'t install this software."
-	echo "  Please log in with a different name."
-	echo -----------------------------------------------------------
-	echo "  LZ script installation failed."
-	echo -e "  $(date)\n"
-	if [ -n "${SYSLOG_NAME}" ]; then
-		echo -e "  The root user can\'t install this software." >> ${SYSLOG_NAME}
-		echo "  Please log in with a different name." >> ${SYSLOG_NAME}
-		echo ----------------------------------------------------------- >> ${SYSLOG_NAME}
-		echo "  LZ script installation failed." >> ${SYSLOG_NAME}
-		echo -e "  $(date)\n" >> ${SYSLOG_NAME}
-	fi
+	echo -e "  The root user can\'t install this software." | tee -ai "${SYSLOG_NAME}" 2> /dev/null
+	echo "  Please log in with a different name." | tee -ai "${SYSLOG_NAME}" 2> /dev/null
+	echo ----------------------------------------------------------- | tee -ai "${SYSLOG_NAME}" 2> /dev/null
+	echo "  LZ script installation failed." | tee -ai "${SYSLOG_NAME}" 2> /dev/null
+	echo -e "  $(date)\n" | tee -ai "${SYSLOG_NAME}" 2> /dev/null
 	exit 1
 fi
 
@@ -80,16 +58,10 @@ if [ "${1}" = entware ]; then
 		done
 	fi
 	if [ -z "${AVAL_SPACE}" ]; then
-		echo -e "  Entware can\'t be used or doesn\'t exist."
-		echo -----------------------------------------------------------
-		echo "  LZ script installation failed."
-		echo -e "  $(date)\n"
-		if [ -n "${SYSLOG_NAME}" ]; then
-			echo -e "  Entware can\'t be used or doesn\'t exist." >> ${SYSLOG_NAME}
-			echo ----------------------------------------------------------- >> ${SYSLOG_NAME}
-			echo "  LZ script installation failed." >> ${SYSLOG_NAME}
-			echo -e "  $(date)\n" >> ${SYSLOG_NAME}
-		fi
+		echo -e "  Entware can\'t be used or doesn\'t exist." | tee -ai "${SYSLOG_NAME}" 2> /dev/null
+		echo ----------------------------------------------------------- | tee -ai "${SYSLOG_NAME}" 2> /dev/null
+		echo "  LZ script installation failed." | tee -ai "${SYSLOG_NAME}" 2> /dev/null
+		echo -e "  $(date)\n" | tee -ai "${SYSLOG_NAME}" 2> /dev/null
 		exit 1
 	fi
 else
@@ -101,25 +73,15 @@ SPACE_REQU=$( du -s "${CURRENT_PATH}" | awk '{print $1}' )
 [ -n "${AVAL_SPACE}" ] && AVAL_SPACE="${AVAL_SPACE} KB" || AVAL_SPACE=Unknown
 [ -n "${SPACE_REQU}" ] && SPACE_REQU="${SPACE_REQU} KB" || SPACE_REQU=Unknown
 
-echo -e "  Available space: ${AVAL_SPACE}\tSpace required: ${SPACE_REQU}"
-echo -----------------------------------------------------------
-if [ -n "${SYSLOG_NAME}" ]; then
-	echo -e "  Available space: ${AVAL_SPACE}\tSpace required: ${SPACE_REQU}" >> ${SYSLOG_NAME}
-	echo ----------------------------------------------------------- >> ${SYSLOG_NAME}
-fi
+echo -e "  Available space: ${AVAL_SPACE}\tSpace required: ${SPACE_REQU}" | tee -ai "${SYSLOG_NAME}" 2> /dev/null
+echo ----------------------------------------------------------- | tee -ai "${SYSLOG_NAME}" 2> /dev/null
 
 if [ "${AVAL_SPACE}" != Unknown -a "${SPACE_REQU}" != Unknown ]; then
 	if [ "${AVAL_SPACE% KB*}" -le "${SPACE_REQU% KB*}" ]; then
-		echo "  Insufficient free space to install."
-		echo -----------------------------------------------------------
-		echo "  LZ script installation failed."
-		echo -e "  $(date)\n"
-		if [ -n "${SYSLOG_NAME}" ]; then
-			echo "  Insufficient free space to install." >> ${SYSLOG_NAME}
-			echo ----------------------------------------------------------- >> ${SYSLOG_NAME}
-			echo "  LZ script installation failed." >> ${SYSLOG_NAME}
-			echo -e "  $(date)\n" >> ${SYSLOG_NAME}
-		fi
+		echo "  Insufficient free space to install." | tee -ai "${SYSLOG_NAME}" 2> /dev/null
+		echo ----------------------------------------------------------- | tee -ai "${SYSLOG_NAME}" 2> /dev/null
+		echo "  LZ script installation failed." | tee -ai "${SYSLOG_NAME}" 2> /dev/null
+		echo -e "  $(date)\n" | tee -ai "${SYSLOG_NAME}" 2> /dev/null
 		exit 1
 	fi
 elif [ "${AVAL_SPACE}" = Unknown -o "${SPACE_REQU}" = Unknown ]; then
@@ -129,33 +91,22 @@ elif [ "${AVAL_SPACE}" = Unknown -o "${SPACE_REQU}" = Unknown ]; then
 	case ${ANSWER} in
 		Y | y)
 		{
-			echo -----------------------------------------------------------
-			[ -n "${SYSLOG_NAME}" ] && echo ----------------------------------------------------------- >> ${SYSLOG_NAME}
+			echo ----------------------------------------------------------- | tee -ai "${SYSLOG_NAME}" 2> /dev/null
 		}
 		;;
 		N | n)
 		{
-			echo -----------------------------------------------------------
-			echo "  The installation was terminated by the current user."
-			echo -e "  $(date)\n"
-			if [ -n "${SYSLOG_NAME}" ]; then
-				echo ----------------------------------------------------------- >> ${SYSLOG_NAME}
-				echo "  The installation was terminated by the current user." >> ${SYSLOG_NAME}
-				echo -e "  $(date)\n" >> ${SYSLOG_NAME}
-			fi
+			echo ----------------------------------------------------------- | tee -ai "${SYSLOG_NAME}" 2> /dev/null
+			echo "  The installation was terminated by the current user." | tee -ai "${SYSLOG_NAME}" 2> /dev/null
+			echo -e "  $(date)\n" | tee -ai "${SYSLOG_NAME}" 2> /dev/null
 			exit 1
 		}
 		;;
 		*)
 		{
-			echo -----------------------------------------------------------
-			echo "  LZ script installation failed."
-			echo -e "  $(date)\n"
-			if [ -n "${SYSLOG_NAME}" ]; then
-				echo ----------------------------------------------------------- >> ${SYSLOG_NAME}
-				echo "  LZ script installation failed." >> ${SYSLOG_NAME}
-				echo -e "  $(date)\n" >> ${SYSLOG_NAME}
-			fi
+			echo ----------------------------------------------------------- | tee -ai "${SYSLOG_NAME}" 2> /dev/null
+			echo "  LZ script installation failed." | tee -ai "${SYSLOG_NAME}" 2> /dev/null
+			echo -e "  $(date)\n" | tee -ai "${SYSLOG_NAME}" 2> /dev/null
 			exit 1
 		}
 		;;
@@ -168,20 +119,12 @@ echo "  Installation in progress..."
 PATH_LZ=${PATH_BASE}/lz
 mkdir -p ${PATH_LZ} > /dev/null 2>&1
 if [ "${?}" != 0 ]; then
-	echo -----------------------------------------------------------
-	echo "  Failed to create directory (${PATH_LZ})."
-	echo "  The installation process exited."
-	echo -----------------------------------------------------------
-	echo "  LZ script installation failed."
-	echo -e "  $(date)\n"
-	if [ -n "${SYSLOG_NAME}" ]; then
-		echo ----------------------------------------------------------- >> ${SYSLOG_NAME}
-		echo "  Failed to create directory (${PATH_LZ})." >> ${SYSLOG_NAME}
-		echo "  The installation process exited." >> ${SYSLOG_NAME}
-		echo ----------------------------------------------------------- >> ${SYSLOG_NAME}
-		echo "  LZ script installation failed." >> ${SYSLOG_NAME}
-		echo -e "  $(date)\n" >> ${SYSLOG_NAME}
-	fi
+	echo ----------------------------------------------------------- | tee -ai "${SYSLOG_NAME}" 2> /dev/null
+	echo "  Failed to create directory (${PATH_LZ})." | tee -ai "${SYSLOG_NAME}" 2> /dev/null
+	echo "  The installation process exited." | tee -ai "${SYSLOG_NAME}" 2> /dev/null
+	echo ----------------------------------------------------------- | tee -ai "${SYSLOG_NAME}" 2> /dev/null
+	echo "  LZ script installation failed." | tee -ai "${SYSLOG_NAME}" 2> /dev/null
+	echo -e "  $(date)\n" | tee -ai "${SYSLOG_NAME}" 2> /dev/null
 	exit 1
 fi
 
@@ -224,28 +167,16 @@ sed -i "s:/jffs/scripts/lz:"${PATH_LZ}":g" ${PATH_FUNC}/lz_rule_status.sh > /dev
 sed -i "s:/jffs/scripts/lz:"${PATH_LZ}":g" ${PATH_FUNC}/lz_initialize_config.sh > /dev/null 2>&1
 sed -i "s:/jffs/scripts/lz:"${PATH_LZ}":g" ${PATH_FUNC}/lz_define_global_variables.sh > /dev/null 2>&1
 
-echo -----------------------------------------------------------
-echo "  Installed script path: ${PATH_BASE}"
-echo "  The software installation has been completed."
-echo -----------------------------------------------------------
-echo "  LZ script start command: "
-echo "        ${PATH_LZ}/lz_rule.sh"
-echo "  Terminate run command: "
-echo "        ${PATH_LZ}/lz_rule.sh STOP"
-echo -----------------------------------------------------------
-echo -e "  $(date)\n"
-if [ -n "${SYSLOG_NAME}" ]; then
-	echo ----------------------------------------------------------- >> ${SYSLOG_NAME}
-	echo "  Installed script path: ${PATH_BASE}" >> ${SYSLOG_NAME}
-	echo "  The software installation has been completed." >> ${SYSLOG_NAME}
-	echo ----------------------------------------------------------- >> ${SYSLOG_NAME}
-	echo "  LZ script start command: " >> ${SYSLOG_NAME}
-	echo "        ${PATH_LZ}/lz_rule.sh" >> ${SYSLOG_NAME}
-	echo "  Terminate run command: " >> ${SYSLOG_NAME}
-	echo "        ${PATH_LZ}/lz_rule.sh STOP" >> ${SYSLOG_NAME}
-	echo ----------------------------------------------------------- >> ${SYSLOG_NAME}
-	echo -e "  $(date)\n" >> ${SYSLOG_NAME}
-fi
+echo ----------------------------------------------------------- | tee -ai "${SYSLOG_NAME}" 2> /dev/null
+echo "  Installed script path: ${PATH_BASE}" | tee -ai "${SYSLOG_NAME}" 2> /dev/null
+echo "  The software installation has been completed." | tee -ai "${SYSLOG_NAME}" 2> /dev/null
+echo ----------------------------------------------------------- | tee -ai "${SYSLOG_NAME}" 2> /dev/null
+echo "  LZ script start command: " | tee -ai "${SYSLOG_NAME}" 2> /dev/null
+echo "        ${PATH_LZ}/lz_rule.sh" | tee -ai "${SYSLOG_NAME}" 2> /dev/null
+echo "  Terminate run command: " | tee -ai "${SYSLOG_NAME}" 2> /dev/null
+echo "        ${PATH_LZ}/lz_rule.sh STOP" | tee -ai "${SYSLOG_NAME}" 2> /dev/null
+echo ----------------------------------------------------------- | tee -ai "${SYSLOG_NAME}" 2> /dev/null
+echo -e "  $(date)\n" | tee -ai "${SYSLOG_NAME}" 2> /dev/null
 
 exit 0
 

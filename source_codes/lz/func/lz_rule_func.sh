@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v3.7.2
+# lz_rule_func.sh v3.7.3
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 函数功能定义
