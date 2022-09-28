@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_define_global_variables.sh v3.7.3
+# lz_define_global_variables.sh v3.7.4
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 # QnkgTFog5aaZ5aaZ5ZGc77yI6Juk6J+G5aKp5YS/77yJ（首次运行标识，切勿修改）
 
@@ -8,27 +8,41 @@
 ##     全局常量及变量
 ## 返回值：无
 
+#BEIGIN
+
+# shellcheck disable=SC2034  # Unused variables left for readability
+# shellcheck disable=SC2154
+
 ## 自启动引导文件部署路径
-PATH_BOOTLOADER=${PATH_BASE}
+PATH_BOOTLOADER="${PATH_BASE}"
 
 ## 自启动引导文件名
-BOOTLOADER_NAME=firewall-start
+BOOTLOADER_NAME="firewall-start"
 
 ## 项目标识及项目文件名：取自本主执行脚本文件名称且保持一致
-PROJECT_ID=lz_rule
-PROJECT_FILENAME=${PROJECT_ID}.sh
+PROJECT_ID="lz_rule"
+PROJECT_FILENAME="${PROJECT_ID}.sh"
+
+## 项目运行状态标识数据集锁名称
+## 状态标识：不存在--项目未启动或处于终止运行STOP状态
+## 状态标识内容：PROJECT_START_ID--项目启动运行
+## 状态标识内容：空--项目已启动，处于暂停运行stop状态
+PROJECT_STATUS_SET="lz_rule_status"
+
+## 项目启动运行标识
+PROJECT_START_ID="168.168.168.168"
 
 ## 自动清理路由表缓存定时任务时间ID
-CLEAR_ROUTE_CACHE_TIMEER_ID=lz_clear_route_cache
+CLEAR_ROUTE_CACHE_TIMEER_ID="lz_clear_route_cache"
 
 ## 定时更新ISP网络运营商CIDR网段数据时间ID
-UPDATE_ISPIP_DATA_TIMEER_ID=lz_update_ispip_data
+UPDATE_ISPIP_DATA_TIMEER_ID="lz_update_ispip_data"
 
 ## 更新ISP网络运营商CIDR网段数据脚本文件名
 UPDATE_FILENAME="lz_update_ispip_data.sh"
 
 ## 更新ISP网络运营商CIDR网段数据文件临时下载目录
-PATH_TMP_DATA=${PATH_TMP}/data
+PATH_TMP_DATA="${PATH_TMP}/data"
 
 ## ISP网络运营商CIDR网段数据文件下载站点URL
 UPDATE_ISPIP_DATA_DOWNLOAD_URL="https://ispip.clang.cn"
@@ -50,29 +64,29 @@ ISP_DATA_9="mo_cidr.txt"
 ISP_DATA_10="tw_cidr.txt"
 
 ## 国内ISP网络运营商总数
-ISP_TOTAL=10
+ISP_TOTAL="10"
 
-local_index=0
-until [ $local_index -gt ${ISP_TOTAL} ]
+local_index="0"
+until [ "${local_index}" -gt "${ISP_TOTAL}" ]
 do
 	## ISP网络运营商CIDR网段数据条目数
-	eval isp_data_${local_index}_item_total=0
+	eval "isp_data_${local_index}_item_total=0"
 	let local_index++
 done
 unset local_index
 
 ## ISP网络运营商出口参数
-isp_wan_port_0="$all_foreign_wan_port"
-isp_wan_port_1="$chinatelecom_wan_port"
-isp_wan_port_2="$unicom_cnc_wan_port"
-isp_wan_port_3="$cmcc_wan_port"
-isp_wan_port_4="$crtc_wan_port"
-isp_wan_port_5="$cernet_wan_port"
-isp_wan_port_6="$gwbn_wan_port"
-isp_wan_port_7="$othernet_wan_port"
-isp_wan_port_8="$hk_wan_port"
-isp_wan_port_9="$mo_wan_port"
-isp_wan_port_10="$tw_wan_port"
+isp_wan_port_0="${all_foreign_wan_port}"
+isp_wan_port_1="${chinatelecom_wan_port}"
+isp_wan_port_2="${unicom_cnc_wan_port}"
+isp_wan_port_3="${cmcc_wan_port}"
+isp_wan_port_4="${crtc_wan_port}"
+isp_wan_port_5="${cernet_wan_port}"
+isp_wan_port_6="${gwbn_wan_port}"
+isp_wan_port_7="${othernet_wan_port}"
+isp_wan_port_8="${hk_wan_port}"
+isp_wan_port_9="${mo_wan_port}"
+isp_wan_port_10="${tw_wan_port}"
 
 ## 国内网段数据全集名称
 ISPIP_ALL_CN_SET="lz_all_cn"
@@ -117,28 +131,28 @@ IPTV_BOX_IP_SET="lz_iptv_box_ipsets"
 IPTV_ISP_IP_SET="lz_iptv_isp_ipsets"
 
 ## 系统中的Open虚拟专网事件触发文件名
-OPENVPN_EVENT_NAME=openvpn-event
+OPENVPN_EVENT_NAME="openvpn-event"
 
 ## Open虚拟专网事件触发接口文件名
-OPENVPN_EVENT_INTERFACE_NAME=lz_openvpn_event.sh
+OPENVPN_EVENT_INTERFACE_NAME="lz_openvpn_event.sh"
 
 ## 虚拟专网客户端路由刷新处理后台守护进程脚本文件名
-VPN_CLIENT_DAEMON=lz_vpn_daemon.sh
+VPN_CLIENT_DAEMON="lz_vpn_daemon.sh"
 
 ## 虚拟专网客户端路由刷新处理后台守护进程锁文件（保留，用于兼容v3.7.0及之前版本）
-VPN_CLIENT_DAEMON_LOCK=lz_vpn_daemon.lock
+VPN_CLIENT_DAEMON_LOCK="lz_vpn_daemon.lock"
 
 ## 虚拟专网客户端路由刷新处理后台守护进程数据集锁名称
 VPN_CLIENT_DAEMON_IP_SET_LOCK="lz_vpn_daemon_lock"
 
 ## Open虚拟专网子网网段地址列表文件名（保留，用于兼容v3.7.0及之前版本）
-OPENVPN_SUBNET_LIST=lz_openvpn_subnet.lst
+OPENVPN_SUBNET_LIST="lz_openvpn_subnet.lst"
 
 ## Open虚拟专网子网网段地址列表数据集名称
 OPENVPN_SUBNET_IP_SET="lz_openvpn_subnet"
 
 ## 虚拟专网客户端本地地址列表文件名（保留，用于兼容v3.7.0及之前版本）
-VPN_CLIENT_LIST=lz_vpn_client.lst
+VPN_CLIENT_LIST="lz_vpn_client.lst"
 
 ## PPTP虚拟专网客户端本地地址列表数据集名称
 PPTP_CLIENT_IP_SET="lz_pptp_client"
@@ -147,218 +161,218 @@ PPTP_CLIENT_IP_SET="lz_pptp_client"
 IPSEC_SUBNET_IP_SET="lz_ipsec_subnet"
 
 ## 启动后台守护进程脚本文件名
-START_DAEMON_SCRIPT=lz_start_daemon.sh
+START_DAEMON_SCRIPT="lz_start_daemon.sh"
 
 ## 启动后台守护进程定时任务时间ID
-START_DAEMON_TIMEER_ID=lz_start_daemon
+START_DAEMON_TIMEER_ID="lz_start_daemon"
 
 ## SS启动文件路径
-PATH_SS=/koolshare/ss
+PATH_SS="/koolshare/ss"
 
 ## SS启动短文件名
-SS_FILENAME=ssconfig.sh
+SS_FILENAME="ssconfig.sh"
 
 ## SS接口文件自动生成位置路径
-PATH_SS_PS=/koolshare/ss/postscripts
+PATH_SS_PS="/koolshare/ss/postscripts"
 
 ## SS自动接口文件名：需遵循SS接口规范
-SS_INTERFACE_FILENAME=P99_${PROJECT_FILENAME}
+SS_INTERFACE_FILENAME="P99_${PROJECT_FILENAME}"
 
 ## 报文数据包标记掩码值（最大为64位）
-FWMARK_MASK=0xffffffff
+FWMARK_MASK="0xffffffff"
 
 ## 国外运营商网段报文数据包标记
-FOREIGN_FWMARK=0xabab
+FOREIGN_FWMARK="0xabab"
 
 ## 国外运营商网段主机报文数据包标记
-HOST_FOREIGN_FWMARK=0xa1a1
+HOST_FOREIGN_FWMARK="0xa1a1"
 
 ## 第一WAN口报文数据包标记
-FWMARK0=0x9999
+FWMARK0="0x9999"
 
 ## 第一WAN口主机报文数据包标记
-HOST_FWMARK0=0x9191
+HOST_FWMARK0="0x9191"
 
 ## 第二WAN口报文数据包标记
-FWMARK1=0x8888
+FWMARK1="0x8888"
 
 ## 第二WAN口主机报文数据包标记
-HOST_FWMARK1=0x8181
+HOST_FWMARK1="0x8181"
 
 ## 第一WAN口客户端及源网址/网段绑定列表分流报文数据包标记（保留，用于兼容v3.6.8及之前版本）
-CLIENT_SRC_FWMARK_0=0x7777
+CLIENT_SRC_FWMARK_0="0x7777"
 
 ## 第二WAN口客户端及源网址/网段绑定列表分流报文数据包标记（保留，用于兼容v3.6.8及之前版本）
-CLIENT_SRC_FWMARK_1=0x6666
+CLIENT_SRC_FWMARK_1="0x6666"
 
 ## 第一WAN口目标访问协议分流报文数据包标记
-PROTOCOLS_FWMARK_0=0x5555
+PROTOCOLS_FWMARK_0="0x5555"
 
 ## 第一WAN口目标访问协议分流主机报文数据包标记
-HOST_PROTOCOLS_FWMARK_0=0x5151
+HOST_PROTOCOLS_FWMARK_0="0x5151"
 
 ## 第二WAN口目标访问协议分流报文数据包标记
-PROTOCOLS_FWMARK_1=0x4444
+PROTOCOLS_FWMARK_1="0x4444"
 
 ## 第二WAN口目标访问协议分流主机报文数据包标记
-HOST_PROTOCOLS_FWMARK_1=0x4141
+HOST_PROTOCOLS_FWMARK_1="0x4141"
 
 ## 第一WAN口目标访问端口分流报文数据包标记
-DEST_PORT_FWMARK_0=0x3333
+DEST_PORT_FWMARK_0="0x3333"
 
 ## 第一WAN口目标访问端口分流主机报文数据包标记
-HOST_DEST_PORT_FWMARK_0=0x3131
+HOST_DEST_PORT_FWMARK_0="0x3131"
 
 ## 第二WAN口目标访问端口分流报文数据包标记
-DEST_PORT_FWMARK_1=0x2222
+DEST_PORT_FWMARK_1="0x2222"
 
 ## 第二WAN口目标访问端口分流主机报文数据包标记
-HOST_DEST_PORT_FWMARK_1=0x2121
+HOST_DEST_PORT_FWMARK_1="0x2121"
 
 ## 第一WAN口客户端及源网址/网段高优先级绑定列表分流报文数据包标记（保留，用于兼容v3.6.8及之前版本）
-HIGH_CLIENT_SRC_FWMARK_0=0x1717
+HIGH_CLIENT_SRC_FWMARK_0="0x1717"
 
 ## 第二WAN口客户端及源网址/网段高优先级绑定列表分流报文数据包标记（保留，用于兼容v3.6.8及之前版本）
-HIGH_CLIENT_SRC_FWMARK_1=0x1616
+HIGH_CLIENT_SRC_FWMARK_1="0x1616"
 
 ## 用户自定义源网址/网段至目标网址/网段列表中指明源网址/网段和目标网址/网段条目报文数据包标记
-SRC_DST_FWMARK=0x3738
+SRC_DST_FWMARK="0x3738"
 
 ## 负载均衡流程控制用报文数据包标记
-BALANCE_JUMP_FWMARK=0xcdcd
+BALANCE_JUMP_FWMARK="0xcdcd"
 
 ## 策略规则基础优先级--25000（IP_RULE_PRIO）
-IP_RULE_PRIO=25000
+IP_RULE_PRIO="25000"
 
 ## 运营商网段流量负载均衡分流出口规则策略规则优先级--24999（IP_RULE_PRIO-1）
-IP_RULE_PRIO_ISP_DATA_LB=$(( $IP_RULE_PRIO - 1 ))
+IP_RULE_PRIO_ISP_DATA_LB="$(( IP_RULE_PRIO - 1 ))"
 
 ## 国外运营商网段分流出口规则策略规则优先级--24998（IP_RULE_PRIO-2）
-IP_RULE_PRIO_FOREIGN_DATA=$(( $IP_RULE_PRIO_ISP_DATA_LB - 1 ))
+IP_RULE_PRIO_FOREIGN_DATA="$(( IP_RULE_PRIO_ISP_DATA_LB - 1 ))"
 
 ## 国内运营商网段第一WAN口分流出口规则策略规则优先级--24997（IP_RULE_PRIO-3）
-IP_RULE_PRIO_PREFERRDE_WAN_DATA=$(( $IP_RULE_PRIO_FOREIGN_DATA - 1 ))
+IP_RULE_PRIO_PREFERRDE_WAN_DATA="$(( IP_RULE_PRIO_FOREIGN_DATA - 1 ))"
 
 ## 国内运营商网段第二WAN口分流出口规则策略规则优先级--24996（IP_RULE_PRIO-4）
-IP_RULE_PRIO_SECOND_WAN_DATA=$(( $IP_RULE_PRIO_PREFERRDE_WAN_DATA - 1 ))
+IP_RULE_PRIO_SECOND_WAN_DATA="$(( IP_RULE_PRIO_PREFERRDE_WAN_DATA - 1 ))"
 
 ## 国外运营商网段主机分流出口规则策略规则优先级--24995（IP_RULE_PRIO-5）
-IP_RULE_PRIO_HOST_FOREIGN_DATA=$(( $IP_RULE_PRIO_SECOND_WAN_DATA - 1 ))
+IP_RULE_PRIO_HOST_FOREIGN_DATA="$(( IP_RULE_PRIO_SECOND_WAN_DATA - 1 ))"
 
 ## 国内运营商网段主机第一WAN口分流出口规则策略规则优先级--24994（IP_RULE_PRIO-6）
-IP_RULE_PRIO_HOST_PREFERRDE_WAN_DATA=$(( $IP_RULE_PRIO_HOST_FOREIGN_DATA - 1 ))
+IP_RULE_PRIO_HOST_PREFERRDE_WAN_DATA="$(( IP_RULE_PRIO_HOST_FOREIGN_DATA - 1 ))"
 
 ## 国内运营商网段主机第二WAN口分流出口规则策略规则优先级--24993（IP_RULE_PRIO-7）
-IP_RULE_PRIO_HOST_SECOND_WAN_DATA=$(( $IP_RULE_PRIO_HOST_PREFERRDE_WAN_DATA - 1 ))
+IP_RULE_PRIO_HOST_SECOND_WAN_DATA="$(( IP_RULE_PRIO_HOST_PREFERRDE_WAN_DATA - 1 ))"
 
 ## 第一WAN口客户端及源网址/网段绑定列表（总条目数大于条目阈值数）分流出口规则策略规则优先级--24992（IP_RULE_PRIO-8）
-IP_RULE_PRIO_WAN_1_CLIENT_SRC_DATA=$(( $IP_RULE_PRIO_HOST_SECOND_WAN_DATA - 1 ))
+IP_RULE_PRIO_WAN_1_CLIENT_SRC_DATA="$(( IP_RULE_PRIO_HOST_SECOND_WAN_DATA - 1 ))"
 
 ## 第二WAN口客户端及源网址/网段绑定列表（总条目数小于条目阈值数）分流出口规则策略规则优先级--24991（IP_RULE_PRIO-9）
-IP_RULE_PRIO_WAN_2_CLIENT_SRC_DATA=$(( $IP_RULE_PRIO_WAN_1_CLIENT_SRC_DATA - 1 ))
+IP_RULE_PRIO_WAN_2_CLIENT_SRC_DATA="$(( IP_RULE_PRIO_WAN_1_CLIENT_SRC_DATA - 1 ))"
 
 ## 第一WAN口协议分流出口规则策略规则优先级--24990（IP_RULE_PRIO-10）
-IP_RULE_PRIO_WAN_1_PROTOCOLS=$(( $IP_RULE_PRIO_WAN_2_CLIENT_SRC_DATA - 1 ))
+IP_RULE_PRIO_WAN_1_PROTOCOLS="$(( IP_RULE_PRIO_WAN_2_CLIENT_SRC_DATA - 1 ))"
 
 ## 第二WAN口协议分流出口规则策略规则优先级--24989（IP_RULE_PRIO-11）
-IP_RULE_PRIO_WAN_2_PROTOCOLS=$(( $IP_RULE_PRIO_WAN_1_PROTOCOLS - 1 ))
+IP_RULE_PRIO_WAN_2_PROTOCOLS="$(( IP_RULE_PRIO_WAN_1_PROTOCOLS - 1 ))"
 
 ## 第一WAN口主机协议分流出口规则策略规则优先级--24988（IP_RULE_PRIO-12）
-IP_RULE_PRIO_HOST_WAN_1_PROTOCOLS=$(( $IP_RULE_PRIO_WAN_2_PROTOCOLS - 1 ))
+IP_RULE_PRIO_HOST_WAN_1_PROTOCOLS="$(( IP_RULE_PRIO_WAN_2_PROTOCOLS - 1 ))"
 
 ## 第二WAN口主机协议分流出口规则策略规则优先级--24987（IP_RULE_PRIO-13）
-IP_RULE_PRIO_HOST_WAN_2_PROTOCOLS=$(( $IP_RULE_PRIO_HOST_WAN_1_PROTOCOLS - 1 ))
+IP_RULE_PRIO_HOST_WAN_2_PROTOCOLS="$(( IP_RULE_PRIO_HOST_WAN_1_PROTOCOLS - 1 ))"
 
 ## 第一WAN口端口分流出口规则策略规则优先级--24986（IP_RULE_PRIO-14）
-IP_RULE_PRIO_WAN_1_PORT=$(( $IP_RULE_PRIO_HOST_WAN_2_PROTOCOLS - 1 ))
+IP_RULE_PRIO_WAN_1_PORT="$(( IP_RULE_PRIO_HOST_WAN_2_PROTOCOLS - 1 ))"
 
 ## 第二WAN口端口分流出口规则策略规则优先级--24985（IP_RULE_PRIO-15）
-IP_RULE_PRIO_WAN_2_PORT=$(( $IP_RULE_PRIO_WAN_1_PORT - 1 ))
+IP_RULE_PRIO_WAN_2_PORT="$(( IP_RULE_PRIO_WAN_1_PORT - 1 ))"
 
 ## 第一WAN口主机端口分流出口规则策略规则优先级--24984（IP_RULE_PRIO-16）
-IP_RULE_PRIO_HOST_WAN_1_PORT=$(( $IP_RULE_PRIO_WAN_2_PORT - 1 ))
+IP_RULE_PRIO_HOST_WAN_1_PORT="$(( IP_RULE_PRIO_WAN_2_PORT - 1 ))"
 
 ## 第二WAN口主机端口分流出口规则策略规则优先级--24983（IP_RULE_PRIO-17）
-IP_RULE_PRIO_HOST_WAN_2_PORT=$(( $IP_RULE_PRIO_HOST_WAN_1_PORT - 1 ))
+IP_RULE_PRIO_HOST_WAN_2_PORT="$(( IP_RULE_PRIO_HOST_WAN_1_PORT - 1 ))"
 
 ## 第一WAN口客户端及源网址/网段高优先级绑定列表（总条目数小于条目阈值数）分流出口规则策略规则优先级--24982（IP_RULE_PRIO-18）
-IP_RULE_PRIO_HIGH_WAN_1_CLIENT_SRC_DATA=$(( $IP_RULE_PRIO_HOST_WAN_2_PORT - 1 ))
+IP_RULE_PRIO_HIGH_WAN_1_CLIENT_SRC_DATA="$(( IP_RULE_PRIO_HOST_WAN_2_PORT - 1 ))"
 
 ## 第二WAN口客户端及源网址/网段高优先级绑定列表（总条目数小于条目阈值数）分流出口规则策略规则优先级--24981（IP_RULE_PRIO-19）
-IP_RULE_PRIO_HIGH_WAN_2_CLIENT_SRC_DATA=$(( $IP_RULE_PRIO_HIGH_WAN_1_CLIENT_SRC_DATA - 1 ))
+IP_RULE_PRIO_HIGH_WAN_2_CLIENT_SRC_DATA="$(( IP_RULE_PRIO_HIGH_WAN_1_CLIENT_SRC_DATA - 1 ))"
 
 ## 国内运营商网段高速直连绑定第一WAN口分流出口规则策略规则优先级--24980（IP_RULE_PRIO-20）
-IP_RULE_PRIO_DIRECT_PREFERRDE_WAN_DATA=$(( $IP_RULE_PRIO_HIGH_WAN_2_CLIENT_SRC_DATA - 1 ))
+IP_RULE_PRIO_DIRECT_PREFERRDE_WAN_DATA="$(( IP_RULE_PRIO_HIGH_WAN_2_CLIENT_SRC_DATA - 1 ))"
 
 ## 国内运营商网段高速直连绑定第二WAN口分流出口规则策略规则优先级--24979（IP_RULE_PRIO-21）
-IP_RULE_PRIO_DIRECT_SECOND_WAN_DATA=$(( $IP_RULE_PRIO_DIRECT_PREFERRDE_WAN_DATA - 1 ))
+IP_RULE_PRIO_DIRECT_SECOND_WAN_DATA="$(( IP_RULE_PRIO_DIRECT_PREFERRDE_WAN_DATA - 1 ))"
 
 ## 用户自定义目标网址/网段(1)（总条目数小于条目阈值数）分流出口规则策略规则优先级--24978（IP_RULE_PRIO-22）
-IP_RULE_PRIO_CUSTOM_1_DATA=$(( $IP_RULE_PRIO_DIRECT_SECOND_WAN_DATA - 1 ))
+IP_RULE_PRIO_CUSTOM_1_DATA="$(( IP_RULE_PRIO_DIRECT_SECOND_WAN_DATA - 1 ))"
 
 ## 用户自定义目标网址/网段(2)（总条目数小于条目阈值数）分流出口规则策略规则优先级--24977（IP_RULE_PRIO-23）
-IP_RULE_PRIO_CUSTOM_2_DATA=$(( $IP_RULE_PRIO_CUSTOM_1_DATA - 1 ))
+IP_RULE_PRIO_CUSTOM_2_DATA="$(( IP_RULE_PRIO_CUSTOM_1_DATA - 1 ))"
 
 ## 第一WAN口客户端及源网址/网段绑定列表分流出口规则策略规则优先级--24976（IP_RULE_PRIO-24）
-IP_RULE_PRIO_WAN_1_CLIENT_SRC_ADDR=$(( $IP_RULE_PRIO_CUSTOM_2_DATA - 1 ))
+IP_RULE_PRIO_WAN_1_CLIENT_SRC_ADDR="$(( IP_RULE_PRIO_CUSTOM_2_DATA - 1 ))"
 
 ## 第二WAN口客户端及源网址/网段绑定列表分流出口规则策略规则优先级--24975（IP_RULE_PRIO-25）
-IP_RULE_PRIO_WAN_2_CLIENT_SRC_ADDR=$(( $IP_RULE_PRIO_WAN_1_CLIENT_SRC_ADDR - 1 ))
+IP_RULE_PRIO_WAN_2_CLIENT_SRC_ADDR="$(( IP_RULE_PRIO_WAN_1_CLIENT_SRC_ADDR - 1 ))"
 
 ## 用户自定义客户端或特定网址/网段命令绑定分流出口规则策略规则优先级--24974（IP_RULE_PRIO-26）
-IP_RULE_PRIO_CUSTOM=$(( $IP_RULE_PRIO_WAN_2_CLIENT_SRC_ADDR - 1 ))
+IP_RULE_PRIO_CUSTOM="$(( IP_RULE_PRIO_WAN_2_CLIENT_SRC_ADDR - 1 ))"
 
 ## 用户自定义客户端或特定网址/网段命令绑定分流出口规则策略规则高优先级--24973（IP_RULE_PRIO-27）
-IP_RULE_PRIO_CUSTOM_HIGH=$(( $IP_RULE_PRIO_CUSTOM - 1 ))
+IP_RULE_PRIO_CUSTOM_HIGH="$(( IP_RULE_PRIO_CUSTOM - 1 ))"
 
 ## 路由器内部应用分流出口规则策略规则优先级--24972（IP_RULE_PRIO-28）
-IP_RULE_PRIO_INNER_ACCESS=$(( $IP_RULE_PRIO_CUSTOM_HIGH - 1 ))
+IP_RULE_PRIO_INNER_ACCESS="$(( IP_RULE_PRIO_CUSTOM_HIGH - 1 ))"
 
 ## SS服务线路绑定出口规则策略规则优先级--24971、24970（IP_RULE_PRIO-29、IP_RULE_PRIO-30）
-SS_RULE_TO_PRIO=$(( $IP_RULE_PRIO_INNER_ACCESS - 1 ))
-SS_RULE_FROM_PRIO=$(( $SS_RULE_TO_PRIO - 1 ))
+SS_RULE_TO_PRIO="$(( IP_RULE_PRIO_INNER_ACCESS - 1 ))"
+SS_RULE_FROM_PRIO="$(( SS_RULE_TO_PRIO - 1 ))"
 
 ## 第一WAN口客户端及源网址/网段高优先级绑定列表分流出口规则策略规则优先级--24969（IP_RULE_PRIO-31）
-IP_RULE_PRIO_HIGH_WAN_1_CLIENT_SRC_ADDR=$(( $SS_RULE_FROM_PRIO - 1 ))
+IP_RULE_PRIO_HIGH_WAN_1_CLIENT_SRC_ADDR="$(( SS_RULE_FROM_PRIO - 1 ))"
 
 ## 第二WAN口客户端及源网址/网段高优先级绑定列表分流出口规则策略规则优先级--24968（IP_RULE_PRIO-32）
-IP_RULE_PRIO_HIGH_WAN_2_CLIENT_SRC_ADDR=$(( $IP_RULE_PRIO_HIGH_WAN_1_CLIENT_SRC_ADDR - 1 ))
+IP_RULE_PRIO_HIGH_WAN_2_CLIENT_SRC_ADDR="$(( IP_RULE_PRIO_HIGH_WAN_1_CLIENT_SRC_ADDR - 1 ))"
 
 ## 用户自定义客户端或特定网址/网段命令绑定分流出口规则策略规则最高优先级--24967（IP_RULE_PRIO-33）
-IP_RULE_PRIO_CUSTOM_TOP=$(( $IP_RULE_PRIO_HIGH_WAN_2_CLIENT_SRC_ADDR - 1 ))
+IP_RULE_PRIO_CUSTOM_TOP="$(( IP_RULE_PRIO_HIGH_WAN_2_CLIENT_SRC_ADDR - 1 ))"
 
 ## 用户自定义客户端或特定网址/网段命令绑定分流出口规则策略规则最高高优先级--24966（IP_RULE_PRIO-34）
-IP_RULE_PRIO_CUSTOM_TOP_HIGH=$(( $IP_RULE_PRIO_CUSTOM_TOP - 1 ))
+IP_RULE_PRIO_CUSTOM_TOP_HIGH="$(( IP_RULE_PRIO_CUSTOM_TOP - 1 ))"
 
 ## 第一WAN口用户自定义源网址/网段至目标网址/网段流量出口绑定列表分流出口规则策略规则优先级--24965（IP_RULE_PRIO-35）
-IP_RULE_PRIO_WAN_1_SRC_TO_DST_ADDR=$(( $IP_RULE_PRIO_CUSTOM_TOP_HIGH - 1 ))
+IP_RULE_PRIO_WAN_1_SRC_TO_DST_ADDR="$(( IP_RULE_PRIO_CUSTOM_TOP_HIGH - 1 ))"
 
 ## 第二WAN口用户自定义源网址/网段至目标网址/网段流量出口绑定列表分流出口规则策略规则优先级--24964（IP_RULE_PRIO-36）
-IP_RULE_PRIO_WAN_2_SRC_TO_DST_ADDR=$(( $IP_RULE_PRIO_WAN_1_SRC_TO_DST_ADDR - 1 ))
+IP_RULE_PRIO_WAN_2_SRC_TO_DST_ADDR="$(( IP_RULE_PRIO_WAN_1_SRC_TO_DST_ADDR - 1 ))"
 
 ## 第一WAN口用户自定义源网址/网段至目标网址/网段高优先级流量出口绑定列表分流出口规则策略规则优先级--24963（IP_RULE_PRIO-37）
-IP_RULE_PRIO_HIGH_WAN_1_SRC_TO_DST_ADDR=$(( $IP_RULE_PRIO_WAN_2_SRC_TO_DST_ADDR - 1 ))
+IP_RULE_PRIO_HIGH_WAN_1_SRC_TO_DST_ADDR="$(( IP_RULE_PRIO_WAN_2_SRC_TO_DST_ADDR - 1 ))"
 
 ## 虚拟专网客户端访问互联网分流出口规则策略规则优先级--24962（IP_RULE_PRIO-38）
-IP_RULE_PRIO_VPN=$(( $IP_RULE_PRIO_HIGH_WAN_1_SRC_TO_DST_ADDR - 1 ))
+IP_RULE_PRIO_VPN="$(( IP_RULE_PRIO_HIGH_WAN_1_SRC_TO_DST_ADDR - 1 ))"
 
 ## 本地客户端网址/网段分流黑名单列表负载均衡出口规则策略规则优先级--24961（IP_RULE_PRIO-39）
-IP_RULE_PRIO_BLCLST_LB=$(( $IP_RULE_PRIO_VPN - 1 ))
+IP_RULE_PRIO_BLCLST_LB="$(( IP_RULE_PRIO_VPN - 1 ))"
 
 ## 最高策略规则优先级--24960（IP_RULE_PRIO-40）
-IP_RULE_PRIO_TOPEST=$(( $IP_RULE_PRIO_BLCLST_LB - 1 ))
+IP_RULE_PRIO_TOPEST="$(( IP_RULE_PRIO_BLCLST_LB - 1 ))"
 
 ## IPTV规则优先级
-IP_RULE_PRIO_IPTV=888
+IP_RULE_PRIO_IPTV="888"
 
 ## 系统原生负载均衡策略规则优先级
-IP_RULE_PRIO_BALANCE=150
+IP_RULE_PRIO_BALANCE="150"
 
 ## 每优先级策略规则现存条目数
-ip_rule_exist=0
+ip_rule_exist="0"
 
 ## IPTV路由表ID
-LZ_IPTV=888
+LZ_IPTV="888"
 
 ## iptables --match-set针对不同硬件类型选项设置的操作符宏变量
 MATCH_SET='--match-set'
@@ -374,7 +388,7 @@ l7_protocols=5
 ## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
 ## 文件中协议项取值：0--第一WAN口；1--第二WAN口；>1--禁用。
 ## 缺省为禁用（5）。
-l7_protocols_file="/jffs/scripts/lz/configs/lz_protocols.txt"
+l7_protocols_file="${PATH_CONFIGS}/configs/lz_protocols.txt"
 
 ## 运行模式（双线路接通时）
 ## 脚本提供三种运行模式（模式1、模式2、模式3），针对路由器WAN口通道按需设置相应的"动态路由"、"静态路由"
@@ -400,10 +414,10 @@ policy_mode=5
 ## 分流模式配置"命令、"静态分流模式配置"命令、"IPTV模式配置"命令让脚本自动配置和调整"运行模式"参数。
 
 ## 路由器硬件类型
-route_hardware_type=$( uname -m )
+route_hardware_type="$( uname -m )"
 
 ## 路由器操作系统名称
-route_os_name=$( uname -o )
+route_os_name="$( uname -o )"
 
 ## 路由器本地IP地址
 route_local_ip=
@@ -412,12 +426,12 @@ route_local_ip=
 route_local_ip_mask=
 
 ## 线路1接口设备标识
-route_wan0_ifname="$( nvram get wan0_pppoe_ifname | grep -Eo 'ppp[0-9]*' | awk 'NR==1 {print $1}' )"
-[ -z "$route_wan0_ifname" ] && route_wan0_ifname="$( nvram get wan0_ifname | grep -Eo 'eth[0-9]*|vlan[0-9]*' | awk 'NR==1 {print $1}' )"
+route_wan0_ifname="$( nvram get "wan0_pppoe_ifname" | grep -o 'ppp[0-9]*' | sed -n 1p )"
+[ -z "${route_wan0_ifname}" ] && route_wan0_ifname="$( nvram get "wan0_ifname" | grep -Eo 'eth[0-9]*|vlan[0-9]*' | sed -n 1p )"
 
 ## 线路2接口设备标识
-route_wan1_ifname="$( nvram get wan1_pppoe_ifname | grep -Eo 'ppp[0-9]*' | awk 'NR==1 {print $1}' )"
-[ -z "$route_wan1_ifname" ] && route_wan1_ifname="$( nvram get wan1_ifname | grep -Eo 'eth[0-9]*|vlan[0-9]*' | awk 'NR==1 {print $1}' )"
+route_wan1_ifname="$( nvram get "wan1_pppoe_ifname" | grep -o 'ppp[0-9]*' | sed -n 1p )"
+[ -z "${route_wan1_ifname}" ] && route_wan1_ifname="$( nvram get "wan1_ifname" | grep -Eo 'eth[0-9]*|vlan[0-9]*' | sed -n 1p )"
 
 ## 系统负载均衡防火墙过滤规则链是否存在（384固件使用）
 balance_chain_existing=0
@@ -454,11 +468,10 @@ udpxy_used=5
 IGMP_PROXY_CONF_NAME="igmpproxy.conf"
 
 ## 定时更新ISP网络运营商CIDR网段数据时间参数定义（[*]表示未设置，每间隔多久用[*/数字]表示）
-ruid_min="*"      ## 分钟（0-59）
-[ "$ruid_timer_min" -ge "0" -a "$ruid_timer_min" -le "59" > /dev/null 2>&1 ] && ruid_min="${ruid_timer_min}"
-ruid_hour="*"     ## 小时（0-24）："ruid_hour=3"表示每天凌晨3点
-[ "$ruid_timer_hour" -ge "0" -a "$ruid_timer_hour" -le "23" > /dev/null 2>&1 ] && ruid_hour="${ruid_timer_hour}"
-ruid_day="*/5"    ## 日期（1-31）："ruid_day=*/3"表示每隔3天
-[ "$ruid_interval_day" -ge "1" -a "$ruid_interval_day" -le "31" > /dev/null 2>&1 ] && ruid_day="*/${ruid_interval_day}"
-ruid_month="*"    ## 月份（1-12；或英文缩写Jan、Feb等）
-ruid_week="*"     ## 周几（0-6，0为周日；或单词缩写Sun、Mon等）
+ruid_min="${ruid_timer_min}"       ## 分钟（0-59）
+ruid_hour="${ruid_timer_hour}"     ## 小时（0-24）："ruid_hour=3"表示每天凌晨3点
+ruid_day="*/${ruid_interval_day}"  ## 日期（1-31）："ruid_day=*/3"表示每隔3天
+ruid_month="*"                     ## 月份（1-12；或英文缩写Jan、Feb等）
+ruid_week="*"                      ## 周几（0-6，0为周日；或单词缩写Sun、Mon等）
+
+#END

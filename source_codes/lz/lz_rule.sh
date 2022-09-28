@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule.sh v3.7.3
+# lz_rule.sh v3.7.4
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # 本版本采用CIDR（无类别域间路由，Classless Inter-Domain Routing）技术
@@ -74,10 +74,14 @@
 ##       制解锁。注意，在脚本正常运行过程中不要执行此命令。
 
 ## ----------------------------------------------------
+
+# shellcheck disable=SC2034  # Unused variables left for readability
+# shellcheck disable=SC2154
+
 ## -------------全局数据定义及初始化-------------------
 
 ## 版本号
-LZ_VERSION=v3.7.3
+LZ_VERSION=v3.7.4
 
 ## 运行状态查询命令
 SHOW_STATUS="status"
@@ -89,21 +93,24 @@ ADDRESS_QUERY="address"
 FORCED_UNLOCKING="unlock"
 
 ## 系统记录文件名
-SYSLOG_NAME="/tmp/syslog.log"
+SYSLOG="/tmp/syslog.log"
 
-echo $(date) [$$]:
-echo $(date) [$$]: LZ $LZ_VERSION script commands start......
-echo -e $(date) [$$]: By LZ \(larsonzhang@gmail.com\)
+## 日期时间自定义格式显示
+lzdate() { eval echo "$( date +"%F %T" )"; }
+
+echo "$(lzdate)" [$$]:
+echo "$(lzdate)" [$$]: LZ "${LZ_VERSION}" script commands start......
+echo "$(lzdate)" [$$]: By LZ \(larsonzhang@gmail.com\)
 
 ## 项目文件部署路径
-PATH_BASE=/jffs/scripts
+PATH_BASE="/jffs/scripts"
 PATH_LZ="${0%/*}"
 [ "${PATH_LZ:0:1}" != '/' ] && PATH_LZ="$( pwd )${PATH_LZ#*.}"
-PATH_CONFIGS=${PATH_LZ}/configs
-PATH_FUNC=${PATH_LZ}/func
-PATH_DATA=${PATH_LZ}/data
-PATH_INTERFACE=${PATH_LZ}/interface
-PATH_TMP=${PATH_LZ}/tmp
+PATH_CONFIGS="${PATH_LZ}/configs"
+PATH_FUNC="${PATH_LZ}/func"
+PATH_DATA="${PATH_LZ}/data"
+PATH_INTERFACE="${PATH_LZ}/interface"
+PATH_TMP="${PATH_LZ}/tmp"
 
 ## 调用自定义配置子例程宏定义
 CALL_CONFIG_SUBROUTINE="source ${PATH_CONFIGS}"
@@ -112,35 +119,34 @@ CALL_CONFIG_SUBROUTINE="source ${PATH_CONFIGS}"
 CALL_FUNC_SUBROUTINE="source ${PATH_FUNC}"
 
 ## 同步锁文件路径
-PATH_LOCK=/var/lock
+PATH_LOCK="/var/lock"
 
 ## 文件同步锁全路径文件名
-LOCK_FILE=${PATH_LOCK}/lz_rule.lock
+LOCK_FILE="${PATH_LOCK}/lz_rule.lock"
 
 ## 脚本实例列表全路径文件名
-INSTANCE_LIST=${PATH_LOCK}/lz_rule_instance.lock
+INSTANCE_LIST="${PATH_LOCK}/lz_rule_instance.lock"
 
 ## 同步锁文件ID
-LOCK_FILE_ID=555
+LOCK_FILE_ID="555"
 
-if [ "$1" != "$FORCED_UNLOCKING" ]; then
-	echo "lz_$1" >> ${INSTANCE_LIST}
+if [ "${1}" != "${FORCED_UNLOCKING}" ]; then
+	echo "lz_${1}" >> "${INSTANCE_LIST}"
 	## 设置文件同步锁
-	[ ! -d ${PATH_LOCK} ] && { mkdir -p ${PATH_LOCK} > /dev/null 2>&1; chmod 777 ${PATH_LOCK} > /dev/null 2>&1; }
-	exec 555<>"${LOCK_FILE}"; flock -x "$LOCK_FILE_ID" > /dev/null 2>&1;
+	[ ! -d "${PATH_LOCK}" ] && { mkdir -p "${PATH_LOCK}" > /dev/null 2>&1; chmod 777 "${PATH_LOCK}" > /dev/null 2>&1; }
+	eval "exec ${LOCK_FILE_ID}<>${LOCK_FILE}"
+	flock -x "$LOCK_FILE_ID" > /dev/null 2>&1
 	## 运行实例处理
-	sed -i '/^$/d' ${INSTANCE_LIST} > /dev/null 2>&1
-	sed -i '/^[ ]*$/d' ${INSTANCE_LIST} > /dev/null 2>&1
-	sed -i '1d' ${INSTANCE_LIST} > /dev/null 2>&1
-	if [ $( cat ${INSTANCE_LIST} 2> /dev/null | grep -c 'lz_' ) -gt 0 ]; then
-		local_instance=$( cat ${INSTANCE_LIST} 2> /dev/null | grep 'lz_' | sed -n 1p | sed -e 's/^[ ]*//g' -e 's/[ ]*$//g' )
-		if [ "$local_instance" = "lz_$1" \
-			-a "$local_instance" != "lz_$SHOW_STATUS" -a "$local_instance" != "lz_$ADDRESS_QUERY" ]; then
+    sed -i -e '/^$/d' -e '/^[ ]*$/d' -e '1d' "${INSTANCE_LIST}" > /dev/null 2>&1
+    if [ "$( grep -c 'lz_' "${INSTANCE_LIST}" 2> /dev/null )" -gt "0" ]; then
+		local_instance=$( grep 'lz_' ${INSTANCE_LIST} 2> /dev/null | sed -n 1p | sed -e 's/^[ ]*//g' -e 's/[ ]*$//g' )
+		if [ "${local_instance}" = "lz_${1}" ] \
+			&& [ "${local_instance}" != "lz_${SHOW_STATUS}" ] && [ "${local_instance}" != "lz_${ADDRESS_QUERY}" ]; then
 			unset local_instance
-			echo $(date) [$$]: The policy routing service is being started by another instance.
-			echo $(date) [$$]: ----------------------------------------
-			echo $(date) [$$]: LZ $LZ_VERSION script commands executed!
-			echo $(date) [$$]:
+			echo "$(lzdate)" [$$]: The policy routing service is being started by another instance.
+			echo "$(lzdate)" [$$]: ----------------------------------------
+			echo "$(lzdate)" [$$]: LZ "${LZ_VERSION}" script commands executed!
+			echo "$(lzdate)" [$$]:
 			## 解除文件同步锁
 			flock -u "$LOCK_FILE_ID" > /dev/null 2>&1
 			exit
@@ -149,9 +155,11 @@ if [ "$1" != "$FORCED_UNLOCKING" ]; then
 	fi
 fi
 
-[ "$1" != "$SHOW_STATUS" -a "$1" != "$ADDRESS_QUERY" -a "$1" != "$FORCED_UNLOCKING" ] && {
-	echo $(date) [$$]: >> ${SYSLOG_NAME}
-	echo $(date) [$$]: -------- LZ $LZ_VERSION rules come here! ----------- >> ${SYSLOG_NAME}
+[ "${1}" != "${SHOW_STATUS}" ] && [ "${1}" != "${ADDRESS_QUERY}" ] && [ "${1}" != "${FORCED_UNLOCKING}" ] && {
+	{
+		echo "$(lzdate)" [$$]:
+		echo "$(lzdate)" [$$]: -------- LZ "${LZ_VERSION}" rules come here! -----------
+	} >> "${SYSLOG}"
 }
 
 ## 第一WAN口路由表ID号
@@ -169,77 +177,79 @@ WAN1=200
 ##     1--失败
 lz_project_file_management() {
 	## 使项目文件部署路径、配置脚本、功能脚本和数据文件处于可运行状态
-	[ ! -d ${PATH_LZ} ] && mkdir -p ${PATH_LZ} > /dev/null 2>&1
-	chmod 775 ${PATH_LZ} > /dev/null 2>&1
-	[ ! -d ${PATH_CONFIGS} ] && mkdir -p ${PATH_CONFIGS} > /dev/null 2>&1
-	chmod 775 ${PATH_CONFIGS} > /dev/null 2>&1
-	[ ! -d ${PATH_FUNC} ] && mkdir -p ${PATH_FUNC} > /dev/null 2>&1
-	chmod 775 ${PATH_FUNC} > /dev/null 2>&1
-	[ ! -d ${PATH_DATA} ] && mkdir -p ${PATH_DATA} > /dev/null 2>&1
-	chmod 775 ${PATH_DATA} > /dev/null 2>&1
-	[ ! -d ${PATH_INTERFACE} ] && mkdir -p ${PATH_INTERFACE} > /dev/null 2>&1
-	chmod 775 ${PATH_INTERFACE} > /dev/null 2>&1
-	[ ! -d ${PATH_TMP} ] && mkdir -p ${PATH_TMP} > /dev/null 2>&1
-	chmod 775 ${PATH_TMP} > /dev/null 2>&1
-	cd ${PATH_CONFIGS}/ > /dev/null 2>&1 && chmod -R 775 * > /dev/null 2>&1
-	cd ${PATH_FUNC}/ > /dev/null 2>&1 && chmod -R 775 * > /dev/null 2>&1
-	cd ${PATH_DATA}/ > /dev/null 2>&1 && chmod -R 775 * > /dev/null 2>&1
-	cd ${PATH_INTERFACE}/ > /dev/null 2>&1 && chmod -R 775 * > /dev/null 2>&1
-	cd ${PATH_TMP}/ > /dev/null 2>&1 && chmod -R 775 * > /dev/null 2>&1
-	cd ${PATH_LZ}/ > /dev/null 2>&1 && chmod -R 775 * > /dev/null 2>&1
+	[ ! -d "${PATH_LZ}" ] && mkdir -p "${PATH_LZ}" > /dev/null 2>&1
+	chmod 775 "${PATH_LZ}" > /dev/null 2>&1
+	[ ! -d "${PATH_CONFIGS}" ] && mkdir -p "${PATH_CONFIGS}" > /dev/null 2>&1
+	chmod 775 "${PATH_CONFIGS}" > /dev/null 2>&1
+	[ ! -d "${PATH_FUNC}" ] && mkdir -p "${PATH_FUNC}" > /dev/null 2>&1
+	chmod 775 "${PATH_FUNC}" > /dev/null 2>&1
+	[ ! -d "${PATH_DATA}" ] && mkdir -p "${PATH_DATA}" > /dev/null 2>&1
+	chmod 775 "${PATH_DATA}" > /dev/null 2>&1
+	[ ! -d "${PATH_INTERFACE}" ] && mkdir -p "${PATH_INTERFACE}" > /dev/null 2>&1
+	chmod 775 "${PATH_INTERFACE}" > /dev/null 2>&1
+	[ ! -d "${PATH_TMP}" ] && mkdir -p "${PATH_TMP}" > /dev/null 2>&1
+	chmod 775 "${PATH_TMP}" > /dev/null 2>&1
+	cd "${PATH_CONFIGS}/" > /dev/null 2>&1 && chmod -R 775 ./* > /dev/null 2>&1
+	cd "${PATH_FUNC}/" > /dev/null 2>&1 && chmod -R 775 ./* > /dev/null 2>&1
+	cd "${PATH_DATA}/" > /dev/null 2>&1 && chmod -R 775 ./* > /dev/null 2>&1
+	cd "${PATH_INTERFACE}/" > /dev/null 2>&1 && chmod -R 775 ./* > /dev/null 2>&1
+	cd "${PATH_TMP}/" > /dev/null 2>&1 && chmod -R 775 ./* > /dev/null 2>&1
+	cd "${PATH_LZ}/" > /dev/null 2>&1 && chmod -R 775 ./* > /dev/null 2>&1
 
 	## 检查脚本关键文件是否存在，若有不存在项则退出运行。
 	local local_scripts_file_exist=1
-	[ ! -f ${PATH_FUNC}/lz_initialize_config.sh ] && {
-		echo $(date) [$$]: The file ${PATH_FUNC}/lz_initialize_config.sh does not exist.
-		echo $(date) [$$]: LZ ${PATH_FUNC}/lz_initialize_config.sh does not exist. >> ${SYSLOG_NAME}
+	[ ! -f "${PATH_FUNC}/lz_initialize_config.sh" ] && {
+		echo "$(lzdate)" [$$]: The file "${PATH_FUNC}/lz_initialize_config.sh" does not exist.
+		echo "$(lzdate)" [$$]: LZ "${PATH_FUNC}/lz_initialize_config.sh" does not exist. >> "${SYSLOG}"
 		local_scripts_file_exist=0
 	}
-	[ ! -f ${PATH_FUNC}/lz_define_global_variables.sh ] && {
-		echo $(date) [$$]: The file ${PATH_FUNC}/lz_define_global_variables.sh does not exist.
-		echo $(date) [$$]: LZ ${PATH_FUNC}/lz_define_global_variables.sh does not exist. >> ${SYSLOG_NAME}
+	[ ! -f "${PATH_FUNC}/lz_define_global_variables.sh" ] && {
+		echo "$(lzdate)" [$$]: The file "${PATH_FUNC}/lz_define_global_variables.sh" does not exist.
+		echo "$(lzdate)" [$$]: LZ "${PATH_FUNC}/lz_define_global_variables.sh" does not exist. >> "${SYSLOG}"
 		local_scripts_file_exist=0
 	}
-	[ ! -f ${PATH_FUNC}/lz_clear_custom_scripts_data.sh ] && {
-		echo $(date) [$$]: The file ${PATH_FUNC}/lz_clear_custom_scripts_data.sh does not exist.
-		echo $(date) [$$]: LZ ${PATH_FUNC}/lz_clear_custom_scripts_data.sh does not exist. >> ${SYSLOG_NAME}
+	[ ! -f "${PATH_FUNC}/lz_clear_custom_scripts_data.sh" ] && {
+		echo "$(lzdate)" [$$]: The file "${PATH_FUNC}/lz_clear_custom_scripts_data.sh" does not exist.
+		echo "$(lzdate)" [$$]: LZ "${PATH_FUNC}/lz_clear_custom_scripts_data.sh" does not exist. >> "${SYSLOG}"
 		local_scripts_file_exist=0
 	}
-	[ ! -f ${PATH_FUNC}/lz_rule_func.sh ] && {
-		echo $(date) [$$]: The file ${PATH_FUNC}/lz_rule_func.sh does not exist.
-		echo $(date) [$$]: LZ ${PATH_FUNC}/lz_rule_func.sh does not exist. >> ${SYSLOG_NAME}
+	[ ! -f "${PATH_FUNC}/lz_rule_func.sh" ] && {
+		echo "$(lzdate)" [$$]: The file "${PATH_FUNC}/lz_rule_func.sh" does not exist.
+		echo "$(lzdate)" [$$]: LZ "${PATH_FUNC}/lz_rule_func.sh" does not exist. >> "${SYSLOG}"
 		local_scripts_file_exist=0
 	}
-	[ ! -f ${PATH_FUNC}/lz_rule_status.sh ] && {
-		echo $(date) [$$]: The file ${PATH_FUNC}/lz_rule_status.sh does not exist.
-		echo $(date) [$$]: LZ ${PATH_FUNC}/lz_rule_status.sh does not exist. >> ${SYSLOG_NAME}
+	[ ! -f "${PATH_FUNC}/lz_rule_status.sh" ] && {
+		echo "$(lzdate)" [$$]: The file "${PATH_FUNC}/lz_rule_status.sh" does not exist.
+		echo "$(lzdate)" [$$]: LZ "${PATH_FUNC}/lz_rule_status.sh" does not exist. >> "${SYSLOG}"
 		local_scripts_file_exist=0
 	}
-	[ ! -f ${PATH_FUNC}/lz_rule_address_query.sh ] && {
-		echo $(date) [$$]: The file ${PATH_FUNC}/lz_rule_address_query.sh does not exist.
-		echo $(date) [$$]: LZ ${PATH_FUNC}/lz_rule_address_query.sh does not exist. >> ${SYSLOG_NAME}
+	[ ! -f "${PATH_FUNC}/lz_rule_address_query.sh" ] && {
+		echo "$(lzdate)" [$$]: The file "${PATH_FUNC}/lz_rule_address_query.sh" does not exist.
+		echo "$(lzdate)" [$$]: LZ "${PATH_FUNC}/lz_rule_address_query.sh" does not exist. >> "${SYSLOG}"
 		local_scripts_file_exist=0
 	}
-	[ ! -f ${PATH_FUNC}/lz_vpn_daemon.sh ] && {
-		echo $(date) [$$]: The file ${PATH_FUNC}/lz_vpn_daemon.sh does not exist.
-		echo $(date) [$$]: LZ ${PATH_FUNC}/lz_vpn_daemon.sh does not exist. >> ${SYSLOG_NAME}
+	[ ! -f "${PATH_FUNC}/lz_vpn_daemon.sh" ] && {
+		echo "$(lzdate)" [$$]: The file "${PATH_FUNC}/lz_vpn_daemon.sh" does not exist.
+		echo "$(lzdate)" [$$]: LZ "${PATH_FUNC}/lz_vpn_daemon.sh" does not exist. >> "${SYSLOG}"
 		local_scripts_file_exist=0
 	}
-	if [ "$local_scripts_file_exist" = "0" ]; then
-		echo -e $(date) [$$]: Policy routing service can\'t be started.
-		echo $(date) [$$]: -------- No LZ $LZ_VERSION rules run! -------------- >> ${SYSLOG_NAME}
-		echo $(date) [$$]: >> ${SYSLOG_NAME}
+	if [ "${local_scripts_file_exist}" = "0" ]; then
+		echo "$(lzdate)" [$$]: Policy routing service can\'t be started.
+		{
+			echo "$(lzdate)" [$$]: -------- No LZ "${LZ_VERSION}" rules run! --------------
+			echo "$(lzdate)" [$$]:
+		} >> "${SYSLOG}"
 		return 1
 	fi
 
 	## 清除已作废的脚本代码及资源文件
-	if [ -f ${PATH_CONFIGS}/lz_rule_func_config.sh ]; then
-		[ -z "$( grep "$LZ_VERSION" ${PATH_CONFIGS}/lz_rule_func_config.sh )" ] && \
-			rm ${PATH_CONFIGS}/lz_rule_func_config.sh > /dev/null 2>&1
+	if [ -f "${PATH_CONFIGS}/lz_rule_func_config.sh" ]; then
+		! grep -q "${LZ_VERSION}" "${PATH_CONFIGS}/lz_rule_func_config.sh" && \
+			rm -f "${PATH_CONFIGS}/lz_rule_func_config.sh" > /dev/null 2>&1
 	fi
-	if [ -f ${PATH_CONFIGS}/lz_protocols.txt ]; then
-		[ -n "$( grep -Eo '[l][z][\_]' ${PATH_CONFIGS}/lz_protocols.txt )" ] && \
-		rm ${PATH_CONFIGS}/lz_protocols.txt > /dev/null 2>&1
+	if [ -f "${PATH_CONFIGS}/lz_protocols.txt" ]; then
+		grep -qEo '[l][z][\_]' "${PATH_CONFIGS}/lz_protocols.txt" && \
+		rm -f "${PATH_CONFIGS}/lz_protocols.txt" > /dev/null 2>&1
 	fi
 
 	return 0
@@ -253,13 +263,18 @@ lz_project_file_management() {
 ##     0--有新实例开始运行
 ##     1--无新实例开始运行
 lz_check_instance() {
-	[ $( cat ${INSTANCE_LIST} 2> /dev/null | grep -c 'lz_' ) -le 0 ] && return 1
-	local local_instance=$( cat ${INSTANCE_LIST} 2> /dev/null | grep 'lz_' | sed -n 1p | sed -e 's/^[ ]*//g' -e 's/[ ]*$//g' )
-	[ "$local_instance" != "lz_$1" -o "$local_instance" = "lz_$SHOW_STATUS" -o "$local_instance" = "lz_$ADDRESS_QUERY"  ] && return 1
-	echo $(date) [$$]: The policy routing service is being started by another instance.
-	echo $(date) [$$]: LZ Another script instance is running. >> ${SYSLOG_NAME}
-	echo $(date) [$$]: -------- LZ $LZ_VERSION rules running! ------------- >> ${SYSLOG_NAME}
-	echo $(date) [$$]: >> ${SYSLOG_NAME}
+	[ "$( grep -c 'lz_' "${INSTANCE_LIST}" 2> /dev/null )" -le "0" ] && return 1
+	local local_instance="$( grep 'lz_' "${INSTANCE_LIST}" 2> /dev/null | sed -n 1p | sed -e 's/^[ ]*//g' -e 's/[ ]*$//g' )"
+	if [ "${local_instance}" != "lz_${1}" ] || [ "${local_instance}" = "lz_${SHOW_STATUS}" ] \
+		|| [ "${local_instance}" = "lz_${ADDRESS_QUERY}" ]; then
+		return 
+	fi
+	echo "$(lzdate)" [$$]: The policy routing service is being started by another instance.
+	{
+		echo "$(lzdate)" [$$]: LZ Another script instance is running.
+		echo "$(lzdate)" [$$]: -------- LZ "${LZ_VERSION}" rules running! -------------
+		echo "$(lzdate)" [$$]: 
+	} >> "${SYSLOG}"
 	return 0
 }
 
@@ -268,21 +283,20 @@ lz_check_instance() {
 ##     全局变量及常量
 ## 返回值：无
 lz_instance_exit() {
-	[ $( cat ${INSTANCE_LIST} 2> /dev/null | grep -c 'lz_' ) -le 0 ] && \
-		rm -rf ${INSTANCE_LIST} > /dev/null 2>&1
+	[ "$( grep -c 'lz_' "${INSTANCE_LIST}" 2> /dev/null )" -le "0" ] && rm -f "${INSTANCE_LIST}" > /dev/null 2>&1
 }
 
 ## ---------------------主执行脚本---------------------
 
 __lz_main() {
 
-	echo $(date) [$$]: Initialization script configuration parameters......
+	echo "$(lzdate)" [$$]: Initialization script configuration parameters......
 
 	## 初始化脚本配置
 	## 输入项：
 	##     $1--主执行脚本运行输入参数
 	## 返回值：无
-	${CALL_FUNC_SUBROUTINE}/lz_initialize_config.sh "$1"
+	eval "${CALL_FUNC_SUBROUTINE}/lz_initialize_config.sh" "${1}"
 
 	## 运行实例检测
 	## 输入项：
@@ -291,38 +305,49 @@ __lz_main() {
 	## 返回值：
 	##     0--有新实例开始运行
 	##     1--无新实例开始运行
-	lz_check_instance "$1" && return
+	lz_check_instance "${1}" && return
 
 	## 载入脚本配置参数
 	## 策略分流的用户自定义配置在/jffs/scripts/lz/configs/目录下的lz_rule_config.sh
 	## 和lz_rule_func_config.sh文件中
-	${CALL_CONFIG_SUBROUTINE}/lz_rule_config.sh
+	eval "${CALL_CONFIG_SUBROUTINE}/lz_rule_config.sh"
 
 	## 全局常量、变量定义及初始化
 	## 输入项：
 	##     全局常量
 	## 返回值：无
-	${CALL_FUNC_SUBROUTINE}/lz_define_global_variables.sh
+	eval "${CALL_FUNC_SUBROUTINE}/lz_define_global_variables.sh"
 
 	## 载入函数功能定义
-	${CALL_FUNC_SUBROUTINE}/lz_rule_func.sh
+	eval "${CALL_FUNC_SUBROUTINE}/lz_rule_func.sh"
 
-	echo $(date) [$$]: Configuration parameters initialization is complete.
-	echo $(date) [$$]: Get the router device information......
+	echo "$(lzdate)" [$$]: Configuration parameters initialization is complete.
+	echo "$(lzdate)" [$$]: Get the router device information......
 
-	## 启动延时5秒
-#	sleep 5s
+	## 加载ipset组件
+	## 输入项：
+	##     $1--主执行脚本运行输入参数
+	## 返回值：无
+	lz_load_ipset_module "${1}"
+
+	## 加载hashlimit组件
+	## 输入项：
+	##     $1--主执行脚本运行输入参数
+	## 返回值：无
+	[ "${limit_client_download_speed}" = "0" ] && lz_load_hashlimit_module "${1}"
+
+	## 创建项目启动运行标识
+	## 输入项：
+	##     全局常量
+	## 返回值：无
+	[ "${1}" != "stop" ] && [ "${1}" != "STOP" ] && lz_create_project_status_id
 
 	## 删除自动清理路由表缓存定时任务
-	if [ -n "$( cru l | grep "#${CLEAR_ROUTE_CACHE_TIMEER_ID}#" )" ]; then
-		cru d ${CLEAR_ROUTE_CACHE_TIMEER_ID} > /dev/null 2>&1
-	fi
+	cru l | grep -q "#${CLEAR_ROUTE_CACHE_TIMEER_ID}#" && cru d "${CLEAR_ROUTE_CACHE_TIMEER_ID}" > /dev/null 2>&1
 
-	## 删除启动后台守护进程定时任务
-	if [ -n "$( cru l | grep "#${START_DAEMON_TIMEER_ID}#" )" ]; then
-		cru d ${START_DAEMON_TIMEER_ID} > /dev/null 2>&1
-	fi
-	rm ${PATH_TMP}/${START_DAEMON_SCRIPT} > /dev/null 2>&1
+	## 删除启动后台守护进程定时任
+	cru l | grep -q "#${START_DAEMON_TIMEER_ID}#" && cru d "${START_DAEMON_TIMEER_ID}" > /dev/null 2>&1
+	[ -f "${PATH_TMP}/${START_DAEMON_SCRIPT}" ] && rm -f "${PATH_TMP}/${START_DAEMON_SCRIPT}" > /dev/null 2>&1
 
 	## 获取策略分流运行模式
 	## 输入项：
@@ -333,7 +358,7 @@ __lz_main() {
 	##     1--当前为非双线路状态
 	lz_get_policy_mode
 
-	lz_check_instance "$1" && return
+	lz_check_instance "${1}" && return
 
 	## 获取路由器基本信息并输出至系统记录
 	## 输入项：
@@ -345,31 +370,19 @@ __lz_main() {
 	## 返回值：
 	##     MATCH_SET--iptables设置操作符宏变量，全局常量
 	##     route_local_ip--路由器本地IP地址，全局变量
-	lz_get_route_info "$1"
+	lz_get_route_info "${1}"
 
-	lz_check_instance "$1" && return
+	lz_check_instance "${1}" && return
 
-	echo $(date) [$$]: Initializes the policy routing library......
-	echo $(date) [$$]: -------- LZ $LZ_VERSION rules initializing! -------- >> ${SYSLOG_NAME}
+	echo "$(lzdate)" [$$]: Initializes the policy routing library......
+	echo "$(lzdate)" [$$]: -------- LZ "${LZ_VERSION}" rules initializing! -------- >> "${SYSLOG}"
 
 	## 处理系统负载均衡分流策略规则
 	## 输入项：
 	##     $1--规则优先级（$IP_RULE_PRIO_BALANCE--ASUS原始；$IP_RULE_PRIO + 1--脚本定义）
 	##     全局常量
 	## 返回值：无
-	lz_sys_load_balance_control "$(( $IP_RULE_PRIO + 1 ))"
-
-	## 加载ipset组件
-	## 输入项：
-	##     $1--主执行脚本运行输入参数
-	## 返回值：无
-	lz_load_ipset_module "$1"
-
-	## 加载hashlimit组件
-	## 输入项：
-	##     $1--主执行脚本运行输入参数
-	## 返回值：无
-	[ "$limit_client_download_speed" = "0" ] && lz_load_hashlimit_module "$1"
+	lz_sys_load_balance_control "$(( IP_RULE_PRIO + 1 ))"
 
 	## 数据清理
 	## 输入项：
@@ -377,23 +390,23 @@ __lz_main() {
 	##     全局常量
 	## 返回值：
 	##     ip_rule_exist--删除后剩余条目数，正常为0，全局变量
-	lz_data_cleaning "$1"
+	lz_data_cleaning "${1}"
 
-	echo $(date) [$$]: Policy routing library has been initialized.
-	echo $(date) [$$]: -------- LZ $LZ_VERSION rules initialized! --------- >> ${SYSLOG_NAME}
+	echo "$(lzdate)" [$$]: Policy routing library has been initialized.
+	echo "$(lzdate)" [$$]: -------- LZ "${LZ_VERSION}" rules initialized! --------- >> "${SYSLOG}"
 
 	## 接到停止运行命令
-	## SSH中执行“/jffs/scripts/lz_rule.sh stop”或“/jffs/scripts/lz_rule.sh STOP”，都会立刻停止本脚本配
-	## 置的策略路由服务，若“/jffs/firewall-start”中的“/jffs/scripts/lz_rule.sh”引导启动命令未清除，路
+	## SSH中执行“/jffs/scripts/lz/lz_rule.sh stop”或“/jffs/scripts/lz/lz_rule.sh STOP”，都会立刻停止本脚本配
+	## 置的策略路由服务，若“/jffs/firewall-start”中的“/jffs/scripts/lz/lz_rule.sh”引导启动命令未清除，路
 	## 由器重启、线路接入或断开、防火墙开关等事件都会导致自启动运行本脚本。
-	if [ "$1" = "stop" -o "$1" = "STOP" ]; then
+	if [ "${1}" = "stop" ] || [ "${1}" = "STOP" ]; then
 		## 输出IPTV规则条目数至系统记录
 		## 输出当前单项分流规则的条目数至系统记录
 		## 输入项：
 		##     $1--规则优先级
 		## 返回值：
 		##     ip_rule_exist--条目总数数，全局变量
-		lz_single_ip_rule_output_syslog "$IP_RULE_PRIO_IPTV"
+		lz_single_ip_rule_output_syslog "${IP_RULE_PRIO_IPTV}"
 
 		## 输出当前分流规则每个优先级的条目数至系统记录
 		## 输入项：
@@ -401,14 +414,14 @@ __lz_main() {
 		##     $2--IP_RULE_PRIO--既有分流规则条目优先级下限数值（例如：IP_RULE_PRIO=25000）
 		##     全局变量（ip_rule_exist）
 		## 返回值：无
-		lz_ip_rule_output_syslog "$IP_RULE_PRIO_TOPEST" "$IP_RULE_PRIO"
+		lz_ip_rule_output_syslog "${IP_RULE_PRIO_TOPEST}" "${IP_RULE_PRIO}"
 
 		## 清除接口脚本文件
 		## 输入项：
 		##     $1--主执行脚本运行输入参数
 		##     全局常量
 		## 返回值：无
-		lz_clear_interface_scripts "$1"
+		lz_clear_interface_scripts "${1}"
 
 		## 恢复系统负载均衡分流策略规则为系统初始的优先级状态
 		## 处理系统负载均衡分流策略规则
@@ -416,10 +429,19 @@ __lz_main() {
 		##     $1--规则优先级（$IP_RULE_PRIO_BALANCE--ASUS原始；$IP_RULE_PRIO + 1--脚本定义）
 		##     全局常量
 		## 返回值：无
-		lz_sys_load_balance_control "$IP_RULE_PRIO_BALANCE"
+		lz_sys_load_balance_control "${IP_RULE_PRIO_BALANCE}"
 
-		echo $(date) [$$]: Policy routing service has stopped.
-		echo $(date) [$$]: -------- LZ $LZ_VERSION rules stopped! ------------- >> ${SYSLOG_NAME}
+		local local_stop_id="${1}"
+		if [ -z "$( ipset -q -n list "${PROJECT_STATUS_SET}" )" ]; then
+			local_stop_id="STOP"
+		fi
+
+		## 清理项目运行状态及启动标识
+		ipset -q flush "${PROJECT_STATUS_SET}"
+		[ "${local_stop_id}" = "STOP" ] && ipset -q destroy "${PROJECT_STATUS_SET}"
+
+		echo "$(lzdate)" [$$]: Policy routing service has "${local_stop_id}"ped.
+		echo "$(lzdate)" [$$]: -------- LZ "${LZ_VERSION}" rules "${local_stop_id}"ped! ------------- >> "${SYSLOG}"
 
 		## SS服务支持
 		## 输入项：
@@ -427,7 +449,7 @@ __lz_main() {
 		## 返回值：无
 		lz_ss_support
 
-		echo $(date) [$$]: >> ${SYSLOG_NAME}
+		echo "$(lzdate)" [$$]: >> "${SYSLOG}"
 
 		return
 	fi
@@ -443,30 +465,30 @@ __lz_main() {
 	##     $1--主执行脚本运行输入参数
 	##     全局变量及常量
 	## 返回值：无
-	lz_create_update_ispip_data_file "$1"
+	lz_create_update_ispip_data_file "${1}"
 
 	## 载入外置用户自定义配置脚本文件
-	if [ "$custom_config_scripts" = "0" -a ! -z "$custom_config_scripts_filename" ]; then
-		if [ -f "$custom_config_scripts_filename" ]; then
-			chmod 775 "$custom_config_scripts_filename" > /dev/null 2>&1
-			source "$custom_config_scripts_filename"
+	if [ "${custom_config_scripts}" = "0" ] && [ -n "${custom_config_scripts_filename}" ]; then
+		if [ -f "${custom_config_scripts_filename}" ]; then
+			chmod 775 "${custom_config_scripts_filename}" > /dev/null 2>&1
+			eval source "${custom_config_scripts_filename}"
 		fi
 	fi
 
-	lz_check_instance "$1" && return
+	lz_check_instance "${1}" && return
 
 	## 双线路
-	if [ -n "$( ip route | grep nexthop | sed -n 1p )" -a $ip_rule_exist = 0 ]; then
+	if ip route | grep -q nexthop && [ "${ip_rule_exist}" = "0" ]; then
 
-		echo $(date) [$$]: The router has successfully joined into two WANs.
-		echo $(date) [$$]: Policy routing service is being started......
+		echo "$(lzdate)" [$$]: The router has successfully joined into two WANs.
+		echo "$(lzdate)" [$$]: Policy routing service is being started......
 
 		## 部署流量路由策略
 		## 输入项：
 		##     $1--主执行脚本运行输入参数
 		##     全局常量及变量
 		## 返回值：无
-		lz_deployment_routing_policy "$1"
+		lz_deployment_routing_policy "${1}"
 
 		## 输出IPTV规则条目数至系统记录
 		## 输出当前单项分流规则的条目数至系统记录
@@ -474,7 +496,7 @@ __lz_main() {
 		##     $1--规则优先级
 		## 返回值：
 		##     ip_rule_exist--条目总数数，全局变量
-		lz_single_ip_rule_output_syslog "$IP_RULE_PRIO_IPTV"
+		lz_single_ip_rule_output_syslog "${IP_RULE_PRIO_IPTV}"
 
 		## 输出当前分流规则每个优先级的条目数至系统记录
 		## 输入项：
@@ -482,10 +504,10 @@ __lz_main() {
 		##     $2--IP_RULE_PRIO--既有分流规则条目优先级下限数值（例如：IP_RULE_PRIO=25000）
 		##     全局变量（ip_rule_exist）
 		## 返回值：无
-		lz_ip_rule_output_syslog "$IP_RULE_PRIO_TOPEST" "$IP_RULE_PRIO"
+		lz_ip_rule_output_syslog "${IP_RULE_PRIO_TOPEST}" "${IP_RULE_PRIO}"
 
-		echo $(date) [$$]: Policy routing service has been started successfully.
-		echo $(date) [$$]: -------- LZ $LZ_VERSION rules run ok! -------------- >> ${SYSLOG_NAME}
+		echo "$(lzdate)" [$$]: Policy routing service has been started successfully.
+		echo "$(lzdate)" [$$]: -------- LZ "${LZ_VERSION}" rules run ok! -------------- >> "${SYSLOG}"
 
 		## SS服务支持
 		## 输入项：
@@ -493,22 +515,24 @@ __lz_main() {
 		## 返回值：无
 		lz_ss_support
 
-		echo $(date) [$$]: >> ${SYSLOG_NAME}
+		echo "$(lzdate)" [$$]: >> "${SYSLOG}"
 
 	## 单线路
-	elif [ -n "$( ip route | grep default | sed -n 1p )" -a $ip_rule_exist = 0 ]; then
+	elif ip route | grep -q default && [ "${ip_rule_exist}" = "0" ]; then
 
-		echo $(date) [$$]: The router is connected to only one WAN.
-		echo $(date) [$$]: ----------------------------------------
-		echo $(date) [$$]: LZ The router is connected to only one WAN. >> ${SYSLOG_NAME}
-		echo $(date) [$$]: ----------------------------------------------- >> ${SYSLOG_NAME}
+		echo "$(lzdate)" [$$]: The router is connected to only one WAN.
+		echo "$(lzdate)" [$$]: ----------------------------------------
+		{
+			echo "$(lzdate)" [$$]: LZ The router is connected to only one WAN.
+			echo "$(lzdate)" [$$]: -----------------------------------------------
+		} >> "${SYSLOG}"
 
 		## 启动单网络的IPTV机顶盒服务
 		## 输入项：
 		##     $1--主执行脚本运行输入参数
 		##     全局常量及变量
 		## 返回值：无
-		lz_start_single_net_iptv_box_services "$1"
+		lz_start_single_net_iptv_box_services "${1}"
 
 		## 输出IPTV规则条目数至系统记录
 		## 输出当前单项分流规则的条目数至系统记录
@@ -516,7 +540,7 @@ __lz_main() {
 		##     $1--规则优先级
 		## 返回值：
 		##     ip_rule_exist--条目总数数，全局变量
-		lz_single_ip_rule_output_syslog "$IP_RULE_PRIO_IPTV"
+		lz_single_ip_rule_output_syslog "${IP_RULE_PRIO_IPTV}"
 
 		## 输出当前分流规则每个优先级的条目数至系统记录
 		## 输入项：
@@ -524,21 +548,21 @@ __lz_main() {
 		##     $2--IP_RULE_PRIO--既有分流规则条目优先级下限数值（例如：IP_RULE_PRIO=25000）
 		##     全局变量（ip_rule_exist）
 		## 返回值：无
-		lz_ip_rule_output_syslog "$IP_RULE_PRIO_TOPEST" "$IP_RULE_PRIO"
+		lz_ip_rule_output_syslog "${IP_RULE_PRIO_TOPEST}" "${IP_RULE_PRIO}"
 
 		## 清除接口脚本文件
 		## 输入项：
 		##     $1--主执行脚本运行输入参数
 		##     全局常量
 		## 返回值：无
-		lz_clear_interface_scripts "$1"
+		lz_clear_interface_scripts "${1}"
 
-		if [ "$ip_rule_exist" -gt "0" ]; then
-			echo $(date) [$$]: Only IPTV rules is running.
-			echo $(date) [$$]: -------- LZ $LZ_VERSION IPTV rules is running. ----- >> ${SYSLOG_NAME}
+		if [ "${ip_rule_exist}" -gt "0" ]; then
+			echo "$(lzdate)" [$$]: Only IPTV rules is running.
+			echo "$(lzdate)" [$$]: -------- LZ "${LZ_VERSION}" IPTV rules is running. ----- >> "${SYSLOG}"
 		else
-			echo -e $(date) [$$]: The policy routing service isn\'t running.
-			echo $(date) [$$]: -------- No LZ $LZ_VERSION rules run! -------------- >> ${SYSLOG_NAME}
+			echo "$(lzdate)" [$$]: The policy routing service isn\'t running.
+			echo "$(lzdate)" [$$]: -------- No LZ "${LZ_VERSION}" rules run! -------------- >> "${SYSLOG}"
 		fi
 
 		## SS服务支持
@@ -547,13 +571,13 @@ __lz_main() {
 		## 返回值：无
 		lz_ss_support
 
-		echo $(date) [$$]: >> ${SYSLOG_NAME}
+		echo "$(lzdate)" [$$]: >> "${SYSLOG}"
 
 	## 无外网连接
 	else
 
-		echo -e $(date) [$$]: The router hasn\'t been connected to the two WANs.
-		echo -e $(date) [$$]: LZ The router hasn\'t been connected to the two WANs. >> ${SYSLOG_NAME}
+		echo "$(lzdate)" [$$]: The router hasn\'t been connected to the two WANs.
+		echo "$(lzdate)" [$$]: LZ The router hasn\'t been connected to the two WANs. >> "${SYSLOG}"
 
 		## 输出IPTV规则条目数至系统记录
 		## 输出当前单项分流规则的条目数至系统记录
@@ -561,7 +585,7 @@ __lz_main() {
 		##     $1--规则优先级
 		## 返回值：
 		##     ip_rule_exist--条目总数数，全局变量
-		lz_single_ip_rule_output_syslog "$IP_RULE_PRIO_IPTV"
+		lz_single_ip_rule_output_syslog "${IP_RULE_PRIO_IPTV}"
 
 		## 输出当前分流规则每个优先级的条目数至系统记录
 		## 输入项：
@@ -569,18 +593,20 @@ __lz_main() {
 		##     $2--IP_RULE_PRIO--既有分流规则条目优先级下限数值（例如：IP_RULE_PRIO=25000）
 		##     全局变量（ip_rule_exist）
 		## 返回值：无
-		lz_ip_rule_output_syslog "$IP_RULE_PRIO_TOPEST" "$IP_RULE_PRIO"
+		lz_ip_rule_output_syslog "${IP_RULE_PRIO_TOPEST}" "${IP_RULE_PRIO}"
 
 		## 清除接口脚本文件
 		## 输入项：
 		##     $1--主执行脚本运行输入参数
 		##     全局常量
 		## 返回值：无
-		lz_clear_interface_scripts "$1"
+		lz_clear_interface_scripts "${1}"
 
-		echo -e $(date) [$$]: The policy routing service isn\'t running.
-		echo $(date) [$$]: -------- No LZ $LZ_VERSION rules run! -------------- >> ${SYSLOG_NAME}
-		echo $(date) [$$]: >> ${SYSLOG_NAME}
+		echo "$(lzdate)" [$$]: The policy routing service isn\'t running.
+		{
+			echo "$(lzdate)" [$$]: -------- No LZ "${LZ_VERSION}" rules run! --------------
+			echo "$(lzdate)" [$$]:
+		} >> "${SYSLOG}"
 	fi
 }
 
@@ -592,72 +618,73 @@ __lz_main() {
 ##     0--成功
 ##     1--失败
 if lz_project_file_management; then
-	if [ "$1" = "$FORCED_UNLOCKING" ]; then
+	if [ "${1}" = "${FORCED_UNLOCKING}" ]; then
 		## 解除运行锁函数
 		## 输入项：
 		##     全局变量及常量
 		## 返回值：无
 		llz_forced_unlocking() {
-			local local_db_unlocked=0
-			until [ $( ip rule show | grep -c "from 168.168.168.168 to 169.169.169.169" ) -le 0 ]
+			local local_db_unlocked="0"
+			until [ "$( ip rule show from "168.168.168.168" to "169.169.169.169" 2> /dev/null | wc -l )" -le "0" ]
 			do
-				ip rule show | grep "from 168.168.168.168 to 169.169.169.169" | \
-					sed "s/^\(.*\)\:.*$/ip rule del prio \1/g" | \
-					awk '{system($0 " > \/dev\/null 2>\&1")}'
+				ip rule show from "168.168.168.168" to "169.169.169.169" 2> /dev/null | \
+					awk -F: '{system("ip rule del prio "$1" > /dev/null 2>&1")}'
 				ip route flush cache > /dev/null 2>&1
-				local_db_unlocked=1
+				local_db_unlocked="1"
 			done
-			if [ $local_db_unlocked != 0 ]; then
-				echo $(date) [$$]: The policy routing database was successfully unlocked.
+			if [ "${local_db_unlocked}" != "0" ]; then
+				echo "$(lzdate)" [$$]: The policy routing database was successfully unlocked.
 			else
-				echo $(date) [$$]: The policy routing database is not locked.
+				echo "$(lzdate)" [$$]: The policy routing database is not locked.
 			fi
-			rm -rf ${INSTANCE_LIST} > /dev/null 2>&1
+			rm -f "${INSTANCE_LIST}" > /dev/null 2>&1
 			if [ -f "${LOCK_FILE}" ]; then
-				rm -rf ${LOCK_FILE} > /dev/null 2>&1
-				echo $(date) [$$]: Program synchronization lock has been successfully unlocked.
+				rm -f "${LOCK_FILE}" > /dev/null 2>&1
+				echo "$(lzdate)" [$$]: Program synchronization lock has been successfully unlocked.
 			else
-				echo $(date) [$$]: There is no program synchronization lock.
+				echo "$(lzdate)" [$$]: There is no program synchronization lock.
 			fi
 		}
 		llz_forced_unlocking
-	elif [ "$1" = "$SHOW_STATUS" ]; then
+	elif [ "${1}" = "${SHOW_STATUS}" ]; then
 		## 载入函数功能定义
-		${CALL_FUNC_SUBROUTINE}/lz_rule_status.sh
-	elif [ "$1" = "$ADDRESS_QUERY" ]; then
+		eval "${CALL_FUNC_SUBROUTINE}/lz_rule_status.sh"
+	elif [ "${1}" = "${ADDRESS_QUERY}" ]; then
 		## 载入函数功能定义
-		if [ -z "$2" -o -n "$( echo "$2" | grep -Eo '^[ ]*$' )" ]; then
-			echo -e $(date) [$$]: The input parameter \( network address \) can\'t be null.
+		if [ -z "${2}" ] || echo "${2}" | grep -qo '^[ ]*$'; then
+			echo "$(lzdate)" [$$]: The input parameter \( network address \) can\'t be null.
 		else
-			${CALL_FUNC_SUBROUTINE}/lz_rule_address_query.sh "$2" "$3"
+			eval "${CALL_FUNC_SUBROUTINE}/lz_rule_address_query.sh" "${2}" "${3}"
 		fi
 	else
 		## 极限情况下文件锁偶有锁不住的情况发生，与预期不符。利用系统自带的策略路由数据库做进程间异步模式同步，
 		## 虽会降低些效率，代码也不好看，但作为同步过程中的二次防御手段还是很值得。一旦脚本执行过程中意外中断，
 		## 可通过手工删除垃圾规则条目或重启路由器清理策略路由库中的垃圾数据
-		if [ $( ip rule show | grep -c "from 168.168.168.168 to 169.169.169.169" ) = 0 ]; then
+		if [ "$( ip rule show from "168.168.168.168" to "169.169.169.169" 2> /dev/null | wc -l )" = "0" ]; then
 			## 临时规则，用于进程间同步，防止启动时系统或其它应用同时调用和执行两个以上的lz脚本实例
 			## 如与系统中现有规则冲突，可酌情修改；高手们会用更好的方法，请教教我，谢啦！
-			ip rule add from 168.168.168.168 to 169.169.169.169
+			ip rule add from "168.168.168.168" to "169.169.169.169" > /dev/null 2>&1
 
 			## 刷新系统cache，使上述命令立即生效
 			ip route flush cache > /dev/null 2>&1
 
 			sleep 1s
 
-			if [ $( ip rule show | grep -c "from 168.168.168.168 to 169.169.169.169" ) -gt 1 ]; then
-				ip rule del from 168.168.168.168 to 169.169.169.169 > /dev/null 2>&1
+			if [ "$( ip rule show from "168.168.168.168" to "169.169.169.169" 2> /dev/null | wc -l )" -gt "1" ]; then
+				ip rule del from "168.168.168.168" to "169.169.169.169" > /dev/null 2>&1
 
 				ip route flush cache > /dev/null 2>&1
 
-				echo $(date) [$$]: LZ Another script instance is running. >> ${SYSLOG_NAME}
-				echo $(date) [$$]: -------- LZ $LZ_VERSION rules running! ------------- >> ${SYSLOG_NAME}
-				echo $(date) [$$]: >> ${SYSLOG_NAME}
+				{
+					echo "$(lzdate)" [$$]: LZ Another script instance is running.
+					echo "$(lzdate)" [$$]: -------- LZ "${LZ_VERSION}" rules running! -------------
+					echo "$(lzdate)" [$$]:
+				} >> "${SYSLOG}"
 
-				echo $(date) [$$]: The policy routing service is being started by another instance.
-				echo $(date) [$$]: ----------------------------------------
-				echo $(date) [$$]: LZ $LZ_VERSION script commands executed!
-				echo $(date) [$$]:
+				echo "$(lzdate)" [$$]: The policy routing service is being started by another instance.
+				echo "$(lzdate)" [$$]: ----------------------------------------
+				echo "$(lzdate)" [$$]: LZ "${LZ_VERSION}" script commands executed!
+				echo "$(lzdate)" [$$]:
 
 				## 实例退出处理
 				## 输入项：
@@ -666,19 +693,18 @@ if lz_project_file_management; then
 				lz_instance_exit
 
 				## 解除文件同步锁
-				flock -u "$LOCK_FILE_ID" > /dev/null 2>&1
+				flock -u "${LOCK_FILE_ID}" > /dev/null 2>&1
 				exit
 			fi
 
 			## 主执行脚本
-			__lz_main "$1"
+			__lz_main "${1}"
 
 			## 删除进程间同步用临时规则，要与脚本开始时的添加命令一致
-			until [ $( ip rule show | grep -c "from 168.168.168.168 to 169.169.169.169" ) -le 0 ]
+			until [ "$( ip rule show from "168.168.168.168" to "169.169.169.169" 2> /dev/null | wc -l )" -le "0" ]
 			do
-				ip rule show | grep "from 168.168.168.168 to 169.169.169.169" | \
-					sed -e "s/^.*\:/ip rule del /g" | \
-					awk '{system($0 " > \/dev\/null 2>\&1")}'
+				ip rule show  from "168.168.168.168" to "169.169.169.169" 2> /dev/null | \
+					awk -F: '{system("ip rule del prio "$1" > /dev/null 2>&1")}'
 				ip route flush cache > /dev/null 2>&1
 			done
 
@@ -686,23 +712,24 @@ if lz_project_file_management; then
 			ip route flush cache > /dev/null 2>&1
 
 		else
-
-			echo $(date) [$$]: The policy routing service is being started by another instance.
-			echo $(date) [$$]: LZ Another script instance is running. >> ${SYSLOG_NAME}
-			echo $(date) [$$]: -------- LZ $LZ_VERSION rules running! ------------- >> ${SYSLOG_NAME}
-			echo $(date) [$$]: >> ${SYSLOG_NAME}
+			echo "$(lzdate)" [$$]: The policy routing service is being started by another instance.
+			{
+				echo "$(lzdate)" [$$]: LZ Another script instance is running.
+				echo "$(lzdate)" [$$]: -------- LZ "${LZ_VERSION}" rules running! -------------
+				echo "$(lzdate)" [$$]:
+			} >> "${SYSLOG}"
 		fi
 	fi
 fi
 
-[ "$1" != "$ADDRESS_QUERY" ] && echo $(date) [$$]: ----------------------------------------
-echo $(date) [$$]: LZ $LZ_VERSION script commands executed!
-echo $(date) [$$]:
+[ "${1}" != "${ADDRESS_QUERY}" ] && echo "$(lzdate)" [$$]: ----------------------------------------
+echo "$(lzdate)" [$$]: LZ "${LZ_VERSION}" script commands executed!
+echo "$(lzdate)" [$$]:
 
-[ "$1" != "$FORCED_UNLOCKING" ] && {
+[ "${1}" != "${FORCED_UNLOCKING}" ] && {
 	lz_instance_exit
 	## 解除文件同步锁
-	flock -u "$LOCK_FILE_ID" > /dev/null 2>&1
+	flock -u "${LOCK_FILE_ID}" > /dev/null 2>&1
 }
 
 #END

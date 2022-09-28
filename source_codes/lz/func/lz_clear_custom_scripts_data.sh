@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_clear_custom_scripts_data.sh v3.7.3
+# lz_clear_custom_scripts_data.sh v3.7.4
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 清除用户自定义脚本数据
@@ -7,11 +7,15 @@
 ##     $1--主执行脚本运行输入参数
 ## 返回值：无
 
+#BEIGIN
+
+# shellcheck disable=SC2154
+
 ## 执行用户自定义清理资源脚本文件
-if [ "$custom_clear_scripts" = "0" ]; then
-	if [ -f "$custom_clear_scripts_filename" ]; then
-		chmod +x "$custom_clear_scripts_filename" > /dev/null 2>&1
-		source "$custom_clear_scripts_filename" $1
+if [ "${custom_clear_scripts}" = "0" ]; then
+	if [ -f "${custom_clear_scripts_filename}" ]; then
+		chmod +x "${custom_clear_scripts_filename}" > /dev/null 2>&1
+		eval source "${custom_clear_scripts_filename}" "${1}"
 	fi
 fi
 
@@ -46,14 +50,14 @@ EOF_X
 <<EOF_Y
 ## 释放资源
 ## 删除自定义脚本定时任务
-local local_timer_idx_exist=$( cru l | grep -c "#Timer_IDx#" )
-if [ $local_timer_idx_exist -gt 0 ]; then
+local_timer_idx_exist="$( cru l | grep -c "#Timer_IDx#" )"
+if [ "${local_timer_idx_exist}" -gt "0" ]; then
 	cru d Timer_IDx > /dev/null 2>&1
 fi
 unset local_timer_idx_exist
 
 ## 主执行脚本未收到执行停止命令时执行自定义代码
-if [ "$1" != "stop" -a "$1" != "STOP" ]; then
+if [ "${1}" != "stop" ] && [ "${1}" != "STOP" ]; then
 	## 创建每天3点30分执行/目录名/自定义脚本文件名.sh
 	cru a Timer_IDx "30 3 * * * /bin/sh /目录名/自定义脚本文件名.sh" > /dev/null 2>&1
 
@@ -64,3 +68,5 @@ if [ "$1" != "stop" -a "$1" != "STOP" ]; then
 	fi
 fi
 EOF_Y
+
+#END
