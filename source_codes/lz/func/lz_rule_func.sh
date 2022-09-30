@@ -1175,7 +1175,7 @@ lz_single_ip_rule_output_syslog() {
     ip_rule_exist="$( ip rule show prio "${local_ip_rule_prio_no}" | wc -l )"
     [ "${ip_rule_exist}" -gt "0" ] && \
         echo "$(lzdate)" [$$]: "   ip_rule_iptv_${local_ip_rule_prio_no} = ${ip_rule_exist}" | tee -ai "${SYSLOG}" 2> /dev/null
-    }
+}
 
 ## 输出当前分流规则每个优先级的条目数至系统记录函数
 ## 输入项：
