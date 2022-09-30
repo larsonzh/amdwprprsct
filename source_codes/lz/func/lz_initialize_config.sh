@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_initialize_config.sh v3.7.4
+# lz_initialize_config.sh v3.7.5
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 初始化脚本配置
@@ -15,472 +15,472 @@
 ## 输入项：无
 ## 返回值：无
 lz_variable_initialize() {
-	local_version="${LZ_VERSION}"
-	local_all_foreign_wan_port=
-	local_chinatelecom_wan_port=
-	local_unicom_cnc_wan_port=
-	local_cmcc_wan_port=
-	local_crtc_wan_port=
-	local_cernet_wan_port=
-	local_gwbn_wan_port=
-	local_othernet_wan_port=
-	local_hk_wan_port=
-	local_mo_wan_port=
-	local_tw_wan_port=
-	local_usage_mode=
-	local_custom_data_wan_port_1=
-	local_custom_data_file_1=
-	local_custom_data_wan_port_2=
-	local_custom_data_file_2=
-	local_wan_1_client_src_addr=
-	local_wan_1_client_src_addr_file=
-	local_wan_2_client_src_addr=
-	local_wan_2_client_src_addr_file=
-	local_high_wan_1_client_src_addr=
-	local_high_wan_1_client_src_addr_file=
-	local_high_wan_2_client_src_addr=
-	local_high_wan_2_client_src_addr_file=
-	local_wan_1_src_to_dst_addr=
-	local_wan_1_src_to_dst_addr_file=
-	local_wan_2_src_to_dst_addr=
-	local_wan_2_src_to_dst_addr_file=
-	local_high_wan_1_src_to_dst_addr=
-	local_high_wan_1_src_to_dst_addr_file=
-	local_local_ipsets_file=
-	local_private_ipsets_file=
-	local_wan0_dest_tcp_port=
-	local_wan0_dest_udp_port=
-	local_wan0_dest_udplite_port=
-	local_wan0_dest_sctp_port=
-	local_wan1_dest_tcp_port=
-	local_wan1_dest_udp_port=
-	local_wan1_dest_udplite_port=
-	local_wan1_dest_sctp_port=
-	local_ovs_client_wan_port=
-	local_vpn_client_polling_time=
-	local_wan_access_port=
-	local_list_mode_threshold=
-	local_route_cache=
-	local_clear_route_cache_time_interval=
-	local_iptv_igmp_switch=
-	local_igmp_version=
-	local_hnd_br0_bcmmcast_mode=
-	local_iptv_access_mode=
-	local_iptv_box_ip_lst_file=
-	local_iptv_isp_ip_lst_file=
-	local_wan1_iptv_mode=
-	local_wan1_udpxy_switch=
-	local_wan1_udpxy_port=
-	local_wan1_udpxy_buffer=
-	local_wan1_udpxy_client_num=
-	local_wan2_iptv_mode=
-	local_wan2_udpxy_switch=
-	local_wan2_udpxy_port=
-	local_wan2_udpxy_buffer=
-	local_wan2_udpxy_client_num=
-	local_udpxy_used=
-	local_regularly_update_ispip_data_enable=
-	local_ruid_interval_day=
-	local_ruid_timer_hour=
-	local_ruid_timer_min=
-	local_ruid_retry_num=
-	local_custom_config_scripts=
-	local_custom_config_scripts_filename=
-	local_custom_dualwan_scripts=
-	local_custom_dualwan_scripts_filename=
-	local_custom_clear_scripts=
-	local_custom_clear_scripts_filename=
+    local_version="${LZ_VERSION}"
+    local_all_foreign_wan_port=
+    local_chinatelecom_wan_port=
+    local_unicom_cnc_wan_port=
+    local_cmcc_wan_port=
+    local_crtc_wan_port=
+    local_cernet_wan_port=
+    local_gwbn_wan_port=
+    local_othernet_wan_port=
+    local_hk_wan_port=
+    local_mo_wan_port=
+    local_tw_wan_port=
+    local_usage_mode=
+    local_custom_data_wan_port_1=
+    local_custom_data_file_1=
+    local_custom_data_wan_port_2=
+    local_custom_data_file_2=
+    local_wan_1_client_src_addr=
+    local_wan_1_client_src_addr_file=
+    local_wan_2_client_src_addr=
+    local_wan_2_client_src_addr_file=
+    local_high_wan_1_client_src_addr=
+    local_high_wan_1_client_src_addr_file=
+    local_high_wan_2_client_src_addr=
+    local_high_wan_2_client_src_addr_file=
+    local_wan_1_src_to_dst_addr=
+    local_wan_1_src_to_dst_addr_file=
+    local_wan_2_src_to_dst_addr=
+    local_wan_2_src_to_dst_addr_file=
+    local_high_wan_1_src_to_dst_addr=
+    local_high_wan_1_src_to_dst_addr_file=
+    local_local_ipsets_file=
+    local_private_ipsets_file=
+    local_wan0_dest_tcp_port=
+    local_wan0_dest_udp_port=
+    local_wan0_dest_udplite_port=
+    local_wan0_dest_sctp_port=
+    local_wan1_dest_tcp_port=
+    local_wan1_dest_udp_port=
+    local_wan1_dest_udplite_port=
+    local_wan1_dest_sctp_port=
+    local_ovs_client_wan_port=
+    local_vpn_client_polling_time=
+    local_wan_access_port=
+    local_list_mode_threshold=
+    local_route_cache=
+    local_clear_route_cache_time_interval=
+    local_iptv_igmp_switch=
+    local_igmp_version=
+    local_hnd_br0_bcmmcast_mode=
+    local_iptv_access_mode=
+    local_iptv_box_ip_lst_file=
+    local_iptv_isp_ip_lst_file=
+    local_wan1_iptv_mode=
+    local_wan1_udpxy_switch=
+    local_wan1_udpxy_port=
+    local_wan1_udpxy_buffer=
+    local_wan1_udpxy_client_num=
+    local_wan2_iptv_mode=
+    local_wan2_udpxy_switch=
+    local_wan2_udpxy_port=
+    local_wan2_udpxy_buffer=
+    local_wan2_udpxy_client_num=
+    local_udpxy_used=
+    local_regularly_update_ispip_data_enable=
+    local_ruid_interval_day=
+    local_ruid_timer_hour=
+    local_ruid_timer_min=
+    local_ruid_retry_num=
+    local_custom_config_scripts=
+    local_custom_config_scripts_filename=
+    local_custom_dualwan_scripts=
+    local_custom_dualwan_scripts_filename=
+    local_custom_clear_scripts=
+    local_custom_clear_scripts_filename=
 
-	local_ini_version=
-	local_ini_all_foreign_wan_port=
-	local_ini_chinatelecom_wan_port=
-	local_ini_unicom_cnc_wan_port=
-	local_ini_cmcc_wan_port=
-	local_ini_crtc_wan_port=
-	local_ini_cernet_wan_port=
-	local_ini_gwbn_wan_port=
-	local_ini_othernet_wan_port=
-	local_ini_hk_wan_port=
-	local_ini_mo_wan_port=
-	local_ini_tw_wan_port=
-	local_ini_usage_mode=
-	local_ini_custom_data_wan_port_1=
-	local_ini_custom_data_file_1=
-	local_ini_custom_data_wan_port_2=
-	local_ini_custom_data_file_2=
-	local_ini_wan_1_client_src_addr=
-	local_ini_wan_1_client_src_addr_file=
-	local_ini_wan_2_client_src_addr=
-	local_ini_wan_2_client_src_addr_file=
-	local_ini_high_wan_1_client_src_addr=
-	local_ini_high_wan_1_client_src_addr_file=
-	local_ini_high_wan_2_client_src_addr=
-	local_ini_high_wan_2_client_src_addr_file=
-	local_ini_wan_1_src_to_dst_addr=
-	local_ini_wan_1_src_to_dst_addr_file=
-	local_ini_wan_2_src_to_dst_addr=
-	local_ini_wan_2_src_to_dst_addr_file=
-	local_ini_high_wan_1_src_to_dst_addr=
-	local_ini_high_wan_1_src_to_dst_addr_file=
-	local_ini_local_ipsets_file=
-	local_ini_private_ipsets_file=
-	local_ini_wan0_dest_tcp_port=
-	local_ini_wan0_dest_udp_port=
-	local_ini_wan0_dest_udplite_port=
-	local_ini_wan0_dest_sctp_port=
-	local_ini_wan1_dest_tcp_port=
-	local_ini_wan1_dest_udp_port=
-	local_ini_wan1_dest_udplite_port=
-	local_ini_wan1_dest_sctp_port=
-	local_ini_ovs_client_wan_port=
-	local_ini_vpn_client_polling_time=
-	local_ini_wan_access_port=
-	local_ini_list_mode_threshold=
-	local_ini_route_cache=
-	local_ini_clear_route_cache_time_interval=
-	local_ini_iptv_igmp_switch=
-	local_ini_igmp_version=
-	local_ini_hnd_br0_bcmmcast_mode=
-	local_ini_iptv_access_mode=
-	local_ini_iptv_box_ip_lst_file=
-	local_ini_iptv_isp_ip_lst_file=
-	local_ini_wan1_iptv_mode=
-	local_ini_wan1_udpxy_switch=
-	local_ini_wan1_udpxy_port=
-	local_ini_wan1_udpxy_buffer=
-	local_ini_wan1_udpxy_client_num=
-	local_ini_wan2_iptv_mode=
-	local_ini_wan2_udpxy_switch=
-	local_ini_wan2_udpxy_port=
-	local_ini_wan2_udpxy_buffer=
-	local_ini_wan2_udpxy_client_num=
-	local_ini_udpxy_used=
-	local_ini_regularly_update_ispip_data_enable=
-	local_ini_ruid_interval_day=
-	local_ini_ruid_timer_hour=
-	local_ini_ruid_timer_min=
-	local_ini_ruid_retry_num=
-	local_ini_custom_config_scripts=
-	local_ini_custom_config_scripts_filename=
-	local_ini_custom_dualwan_scripts=
-	local_ini_custom_dualwan_scripts_filename=
-	local_ini_custom_clear_scripts=
-	local_ini_custom_clear_scripts_filename=
+    local_ini_version=
+    local_ini_all_foreign_wan_port=
+    local_ini_chinatelecom_wan_port=
+    local_ini_unicom_cnc_wan_port=
+    local_ini_cmcc_wan_port=
+    local_ini_crtc_wan_port=
+    local_ini_cernet_wan_port=
+    local_ini_gwbn_wan_port=
+    local_ini_othernet_wan_port=
+    local_ini_hk_wan_port=
+    local_ini_mo_wan_port=
+    local_ini_tw_wan_port=
+    local_ini_usage_mode=
+    local_ini_custom_data_wan_port_1=
+    local_ini_custom_data_file_1=
+    local_ini_custom_data_wan_port_2=
+    local_ini_custom_data_file_2=
+    local_ini_wan_1_client_src_addr=
+    local_ini_wan_1_client_src_addr_file=
+    local_ini_wan_2_client_src_addr=
+    local_ini_wan_2_client_src_addr_file=
+    local_ini_high_wan_1_client_src_addr=
+    local_ini_high_wan_1_client_src_addr_file=
+    local_ini_high_wan_2_client_src_addr=
+    local_ini_high_wan_2_client_src_addr_file=
+    local_ini_wan_1_src_to_dst_addr=
+    local_ini_wan_1_src_to_dst_addr_file=
+    local_ini_wan_2_src_to_dst_addr=
+    local_ini_wan_2_src_to_dst_addr_file=
+    local_ini_high_wan_1_src_to_dst_addr=
+    local_ini_high_wan_1_src_to_dst_addr_file=
+    local_ini_local_ipsets_file=
+    local_ini_private_ipsets_file=
+    local_ini_wan0_dest_tcp_port=
+    local_ini_wan0_dest_udp_port=
+    local_ini_wan0_dest_udplite_port=
+    local_ini_wan0_dest_sctp_port=
+    local_ini_wan1_dest_tcp_port=
+    local_ini_wan1_dest_udp_port=
+    local_ini_wan1_dest_udplite_port=
+    local_ini_wan1_dest_sctp_port=
+    local_ini_ovs_client_wan_port=
+    local_ini_vpn_client_polling_time=
+    local_ini_wan_access_port=
+    local_ini_list_mode_threshold=
+    local_ini_route_cache=
+    local_ini_clear_route_cache_time_interval=
+    local_ini_iptv_igmp_switch=
+    local_ini_igmp_version=
+    local_ini_hnd_br0_bcmmcast_mode=
+    local_ini_iptv_access_mode=
+    local_ini_iptv_box_ip_lst_file=
+    local_ini_iptv_isp_ip_lst_file=
+    local_ini_wan1_iptv_mode=
+    local_ini_wan1_udpxy_switch=
+    local_ini_wan1_udpxy_port=
+    local_ini_wan1_udpxy_buffer=
+    local_ini_wan1_udpxy_client_num=
+    local_ini_wan2_iptv_mode=
+    local_ini_wan2_udpxy_switch=
+    local_ini_wan2_udpxy_port=
+    local_ini_wan2_udpxy_buffer=
+    local_ini_wan2_udpxy_client_num=
+    local_ini_udpxy_used=
+    local_ini_regularly_update_ispip_data_enable=
+    local_ini_ruid_interval_day=
+    local_ini_ruid_timer_hour=
+    local_ini_ruid_timer_min=
+    local_ini_ruid_retry_num=
+    local_ini_custom_config_scripts=
+    local_ini_custom_config_scripts_filename=
+    local_ini_custom_dualwan_scripts=
+    local_ini_custom_dualwan_scripts_filename=
+    local_ini_custom_clear_scripts=
+    local_ini_custom_clear_scripts_filename=
 
-	local_all_foreign_wan_port_changed="0"
-	local_chinatelecom_wan_port_changed="0"
-	local_unicom_cnc_wan_port_changed="0"
-	local_cmcc_wan_port_changed="0"
-	local_crtc_wan_port_changed="0"
-	local_cernet_wan_port_changed="0"
-	local_gwbn_wan_port_changed="0"
-	local_othernet_wan_port_changed="0"
-	local_hk_wan_port_changed="0"
-	local_mo_wan_port_changed="0"
-	local_tw_wan_port_changed="0"
-	local_usage_mode_changed="0"
-	local_custom_data_wan_port_1_changed="0"
-	local_custom_data_file_1_changed="0"
-	local_custom_data_wan_port_2_changed="0"
-	local_custom_data_file_2_changed="0"
-	local_wan_1_client_src_addr_changed="0"
-	local_wan_1_client_src_addr_file_changed="0"
-	local_wan_2_client_src_addr_changed="0"
-	local_wan_2_client_src_addr_file_changed="0"
-	local_high_wan_1_client_src_addr_changed="0"
-	local_high_wan_1_client_src_addr_file_changed="0"
-	local_high_wan_2_client_src_addr_changed="0"
-	local_high_wan_2_client_src_addr_file_changed="0"
-	local_wan_1_src_to_dst_addr_changed="0"
-	local_wan_1_src_to_dst_addr_file_changed="0"
-	local_wan_2_src_to_dst_addr_changed="0"
-	local_wan_2_src_to_dst_addr_file_changed="0"
-	local_high_wan_1_src_to_dst_addr_changed="0"
-	local_high_wan_1_src_to_dst_addr_file_changed="0"
-	local_local_ipsets_file_changed="0"
-	local_private_ipsets_file_changed="0"
-	local_wan0_dest_tcp_port_changed="0"
-	local_wan0_dest_udp_port_changed="0"
-	local_wan0_dest_udplite_port_changed="0"
-	local_wan0_dest_sctp_port_changed="0"
-	local_wan1_dest_tcp_port_changed="0"
-	local_wan1_dest_udp_port_changed="0"
-	local_wan1_dest_udplite_port_changed="0"
-	local_wan1_dest_sctp_port_changed="0"
-	local_ovs_client_wan_port_changed="0"
-	local_vpn_client_polling_time_changed="0"
-	local_wan_access_port_changed="0"
-	local_list_mode_threshold_changed="0"
-	local_route_cache_changed="0"
-	local_clear_route_cache_time_interval_changed="0"
-	local_iptv_igmp_switch_changed="0"
-	local_igmp_version_changed="0"
-	local_hnd_br0_bcmmcast_mode_changed="0"
-	local_iptv_access_mode_changed="0"
-	local_iptv_box_ip_lst_file_changed="0"
-	local_iptv_isp_ip_lst_file_changed="0"
-	local_wan1_iptv_mode_changed="0"
-	local_wan1_udpxy_switch_changed="0"
-	local_wan1_udpxy_port_changed="0"
-	local_wan1_udpxy_buffer_changed="0"
-	local_wan1_udpxy_client_num_changed="0"
-	local_wan2_iptv_mode_changed="0"
-	local_wan2_udpxy_switch_changed="0"
-	local_wan2_udpxy_port_changed="0"
-	local_wan2_udpxy_buffer_changed="0"
-	local_wan2_udpxy_client_num_changed="0"
-	local_udpxy_used_changed="0"
-	local_regularly_update_ispip_data_enable_changed="0"
-	local_ruid_interval_day_changed="0"
-	local_ruid_timer_hour_changed="0"
-	local_ruid_timer_min_changed="0"
-	local_ruid_retry_num_changed="0"
-	local_custom_config_scripts_changed="0"
-	local_custom_config_scripts_filename_changed="0"
-	local_custom_dualwan_scripts_changed="0"
-	local_custom_dualwan_scripts_filename_changed="0"
-	local_custom_clear_scripts_changed="0"
-	local_custom_clear_scripts_filename_changed="0"
+    local_all_foreign_wan_port_changed="0"
+    local_chinatelecom_wan_port_changed="0"
+    local_unicom_cnc_wan_port_changed="0"
+    local_cmcc_wan_port_changed="0"
+    local_crtc_wan_port_changed="0"
+    local_cernet_wan_port_changed="0"
+    local_gwbn_wan_port_changed="0"
+    local_othernet_wan_port_changed="0"
+    local_hk_wan_port_changed="0"
+    local_mo_wan_port_changed="0"
+    local_tw_wan_port_changed="0"
+    local_usage_mode_changed="0"
+    local_custom_data_wan_port_1_changed="0"
+    local_custom_data_file_1_changed="0"
+    local_custom_data_wan_port_2_changed="0"
+    local_custom_data_file_2_changed="0"
+    local_wan_1_client_src_addr_changed="0"
+    local_wan_1_client_src_addr_file_changed="0"
+    local_wan_2_client_src_addr_changed="0"
+    local_wan_2_client_src_addr_file_changed="0"
+    local_high_wan_1_client_src_addr_changed="0"
+    local_high_wan_1_client_src_addr_file_changed="0"
+    local_high_wan_2_client_src_addr_changed="0"
+    local_high_wan_2_client_src_addr_file_changed="0"
+    local_wan_1_src_to_dst_addr_changed="0"
+    local_wan_1_src_to_dst_addr_file_changed="0"
+    local_wan_2_src_to_dst_addr_changed="0"
+    local_wan_2_src_to_dst_addr_file_changed="0"
+    local_high_wan_1_src_to_dst_addr_changed="0"
+    local_high_wan_1_src_to_dst_addr_file_changed="0"
+    local_local_ipsets_file_changed="0"
+    local_private_ipsets_file_changed="0"
+    local_wan0_dest_tcp_port_changed="0"
+    local_wan0_dest_udp_port_changed="0"
+    local_wan0_dest_udplite_port_changed="0"
+    local_wan0_dest_sctp_port_changed="0"
+    local_wan1_dest_tcp_port_changed="0"
+    local_wan1_dest_udp_port_changed="0"
+    local_wan1_dest_udplite_port_changed="0"
+    local_wan1_dest_sctp_port_changed="0"
+    local_ovs_client_wan_port_changed="0"
+    local_vpn_client_polling_time_changed="0"
+    local_wan_access_port_changed="0"
+    local_list_mode_threshold_changed="0"
+    local_route_cache_changed="0"
+    local_clear_route_cache_time_interval_changed="0"
+    local_iptv_igmp_switch_changed="0"
+    local_igmp_version_changed="0"
+    local_hnd_br0_bcmmcast_mode_changed="0"
+    local_iptv_access_mode_changed="0"
+    local_iptv_box_ip_lst_file_changed="0"
+    local_iptv_isp_ip_lst_file_changed="0"
+    local_wan1_iptv_mode_changed="0"
+    local_wan1_udpxy_switch_changed="0"
+    local_wan1_udpxy_port_changed="0"
+    local_wan1_udpxy_buffer_changed="0"
+    local_wan1_udpxy_client_num_changed="0"
+    local_wan2_iptv_mode_changed="0"
+    local_wan2_udpxy_switch_changed="0"
+    local_wan2_udpxy_port_changed="0"
+    local_wan2_udpxy_buffer_changed="0"
+    local_wan2_udpxy_client_num_changed="0"
+    local_udpxy_used_changed="0"
+    local_regularly_update_ispip_data_enable_changed="0"
+    local_ruid_interval_day_changed="0"
+    local_ruid_timer_hour_changed="0"
+    local_ruid_timer_min_changed="0"
+    local_ruid_retry_num_changed="0"
+    local_custom_config_scripts_changed="0"
+    local_custom_config_scripts_filename_changed="0"
+    local_custom_dualwan_scripts_changed="0"
+    local_custom_dualwan_scripts_filename_changed="0"
+    local_custom_clear_scripts_changed="0"
+    local_custom_clear_scripts_filename_changed="0"
 
-	local_default=1
-	local_changed="0"
-	local_reinstall="0"
+    local_default=1
+    local_changed="0"
+    local_reinstall="0"
 }
 
 ## 卸载变量函数
 ## 输入项：无
 ## 返回值：无
 lz_variable_uninitialize() {
-	unset local_default
-	unset local_changed
-	unset local_reinstall
+    unset local_default
+    unset local_changed
+    unset local_reinstall
 
-	unset local_ini_version
-	unset local_ini_all_foreign_wan_port
-	unset local_ini_chinatelecom_wan_port
-	unset local_ini_unicom_cnc_wan_port
-	unset local_ini_cmcc_wan_port
-	unset local_ini_crtc_wan_port
-	unset local_ini_cernet_wan_port
-	unset local_ini_gwbn_wan_port
-	unset local_ini_othernet_wan_port
-	unset local_ini_hk_wan_port
-	unset local_ini_mo_wan_port
-	unset local_ini_tw_wan_port
-	unset local_ini_usage_mode_mode
-	unset local_ini_custom_data_wan_port_1
-	unset local_ini_custom_data_file_1
-	unset local_ini_custom_data_wan_port_2
-	unset local_ini_custom_data_file_2
-	unset local_ini_wan_1_client_src_addr
-	unset local_ini_wan_1_client_src_addr_file
-	unset local_ini_wan_2_client_src_addr
-	unset local_ini_wan_2_client_src_addr_file
-	unset local_ini_high_wan_1_client_src_addr
-	unset local_ini_high_wan_1_client_src_addr_file
-	unset local_ini_high_wan_2_client_src_addr
-	unset local_ini_high_wan_2_client_src_addr_file
-	unset local_ini_wan_1_src_to_dst_addr
-	unset local_ini_wan_1_src_to_dst_addr_file
-	unset local_ini_wan_2_src_to_dst_addr
-	unset local_ini_wan_2_src_to_dst_addr_file
-	unset local_ini_high_wan_1_src_to_dst_addr
-	unset local_ini_high_wan_1_src_to_dst_addr_file
-	unset local_ini_local_ipsets_file
-	unset local_ini_private_ipsets_file
-	unset local_ini_wan0_dest_tcp_port
-	unset local_ini_wan0_dest_udp_port
-	unset local_ini_wan0_dest_udplite_port
-	unset local_ini_wan0_dest_sctp_port
-	unset local_ini_wan1_dest_tcp_port
-	unset local_ini_wan1_dest_udp_port
-	unset local_ini_wan1_dest_udplite_port
-	unset local_ini_wan1_dest_sctp_port
-	unset local_ini_ovs_client_wan_port
-	unset local_ini_vpn_client_polling_time
-	unset local_ini_wan_access_port
-	unset local_ini_list_mode_threshold
-	unset local_ini_route_cache
-	unset local_ini_clear_route_cache_time_interval
-	unset local_ini_iptv_igmp_switch
-	unset local_ini_igmp_version
-	unset local_ini_hnd_br0_bcmmcast_mode
-	unset local_ini_iptv_access_mode
-	unset local_ini_iptv_box_ip_lst_file
-	unset local_ini_iptv_isp_ip_lst_file
-	unset local_ini_wan1_udpxy_switch
-	unset local_ini_wan1_iptv_mode
-	unset local_ini_wan1_udpxy_port
-	unset local_ini_wan1_udpxy_buffer
-	unset local_ini_wan1_udpxy_client_num
-	unset local_ini_wan2_iptv_mode
-	unset local_ini_wan2_udpxy_switch
-	unset local_ini_wan2_udpxy_port
-	unset local_ini_wan2_udpxy_buffer
-	unset local_ini_wan2_udpxy_client_num
-	unset local_ini_udpxy_used
-	unset local_ini_regularly_update_ispip_data_enable
-	unset local_ini_ruid_interval_day
-	unset local_ini_ruid_timer_hour
-	unset local_ini_ruid_timer_min
-	unset local_ini_ruid_retry_num
-	unset local_ini_custom_config_scripts
-	unset local_ini_custom_config_scripts_filename
-	unset local_ini_custom_dualwan_scripts
-	unset local_ini_custom_dualwan_scripts_filename
-	unset local_ini_custom_clear_scripts
-	unset local_ini_custom_clear_scripts_filename
+    unset local_ini_version
+    unset local_ini_all_foreign_wan_port
+    unset local_ini_chinatelecom_wan_port
+    unset local_ini_unicom_cnc_wan_port
+    unset local_ini_cmcc_wan_port
+    unset local_ini_crtc_wan_port
+    unset local_ini_cernet_wan_port
+    unset local_ini_gwbn_wan_port
+    unset local_ini_othernet_wan_port
+    unset local_ini_hk_wan_port
+    unset local_ini_mo_wan_port
+    unset local_ini_tw_wan_port
+    unset local_ini_usage_mode_mode
+    unset local_ini_custom_data_wan_port_1
+    unset local_ini_custom_data_file_1
+    unset local_ini_custom_data_wan_port_2
+    unset local_ini_custom_data_file_2
+    unset local_ini_wan_1_client_src_addr
+    unset local_ini_wan_1_client_src_addr_file
+    unset local_ini_wan_2_client_src_addr
+    unset local_ini_wan_2_client_src_addr_file
+    unset local_ini_high_wan_1_client_src_addr
+    unset local_ini_high_wan_1_client_src_addr_file
+    unset local_ini_high_wan_2_client_src_addr
+    unset local_ini_high_wan_2_client_src_addr_file
+    unset local_ini_wan_1_src_to_dst_addr
+    unset local_ini_wan_1_src_to_dst_addr_file
+    unset local_ini_wan_2_src_to_dst_addr
+    unset local_ini_wan_2_src_to_dst_addr_file
+    unset local_ini_high_wan_1_src_to_dst_addr
+    unset local_ini_high_wan_1_src_to_dst_addr_file
+    unset local_ini_local_ipsets_file
+    unset local_ini_private_ipsets_file
+    unset local_ini_wan0_dest_tcp_port
+    unset local_ini_wan0_dest_udp_port
+    unset local_ini_wan0_dest_udplite_port
+    unset local_ini_wan0_dest_sctp_port
+    unset local_ini_wan1_dest_tcp_port
+    unset local_ini_wan1_dest_udp_port
+    unset local_ini_wan1_dest_udplite_port
+    unset local_ini_wan1_dest_sctp_port
+    unset local_ini_ovs_client_wan_port
+    unset local_ini_vpn_client_polling_time
+    unset local_ini_wan_access_port
+    unset local_ini_list_mode_threshold
+    unset local_ini_route_cache
+    unset local_ini_clear_route_cache_time_interval
+    unset local_ini_iptv_igmp_switch
+    unset local_ini_igmp_version
+    unset local_ini_hnd_br0_bcmmcast_mode
+    unset local_ini_iptv_access_mode
+    unset local_ini_iptv_box_ip_lst_file
+    unset local_ini_iptv_isp_ip_lst_file
+    unset local_ini_wan1_udpxy_switch
+    unset local_ini_wan1_iptv_mode
+    unset local_ini_wan1_udpxy_port
+    unset local_ini_wan1_udpxy_buffer
+    unset local_ini_wan1_udpxy_client_num
+    unset local_ini_wan2_iptv_mode
+    unset local_ini_wan2_udpxy_switch
+    unset local_ini_wan2_udpxy_port
+    unset local_ini_wan2_udpxy_buffer
+    unset local_ini_wan2_udpxy_client_num
+    unset local_ini_udpxy_used
+    unset local_ini_regularly_update_ispip_data_enable
+    unset local_ini_ruid_interval_day
+    unset local_ini_ruid_timer_hour
+    unset local_ini_ruid_timer_min
+    unset local_ini_ruid_retry_num
+    unset local_ini_custom_config_scripts
+    unset local_ini_custom_config_scripts_filename
+    unset local_ini_custom_dualwan_scripts
+    unset local_ini_custom_dualwan_scripts_filename
+    unset local_ini_custom_clear_scripts
+    unset local_ini_custom_clear_scripts_filename
 
-	unset local_version
-	unset local_all_foreign_wan_port
-	unset local_chinatelecom_wan_port
-	unset local_unicom_cnc_wan_port
-	unset local_cmcc_wan_port
-	unset local_crtc_wan_port
-	unset local_cernet_wan_port
-	unset local_gwbn_wan_port
-	unset local_othernet_wan_port
-	unset local_hk_wan_port
-	unset local_mo_wan_port
-	unset local_tw_wan_port
-	unset local_usage_mode
-	unset local_custom_data_wan_port_1
-	unset local_custom_data_file_1
-	unset local_custom_data_wan_port_2
-	unset local_custom_data_file_2
-	unset local_wan_1_client_src_addr
-	unset local_wan_1_client_src_addr_file
-	unset local_wan_2_client_src_addr
-	unset local_wan_2_client_src_addr_file
-	unset local_high_wan_1_client_src_addr
-	unset local_high_wan_1_client_src_addr_file
-	unset local_high_wan_2_client_src_addr
-	unset local_high_wan_2_client_src_addr_file
-	unset local_wan_1_src_to_dst_addr
-	unset local_wan_1_src_to_dst_addr_file
-	unset local_wan_2_src_to_dst_addr
-	unset local_wan_2_src_to_dst_addr_file
-	unset local_high_wan_1_src_to_dst_addr
-	unset local_high_wan_1_src_to_dst_addr_file
-	unset local_local_ipsets_file
-	unset local_private_ipsets_file
-	unset local_wan0_dest_tcp_port
-	unset local_wan0_dest_udp_port
-	unset local_wan0_dest_udplite_port
-	unset local_wan0_dest_sctp_port
-	unset local_wan1_dest_tcp_port
-	unset local_wan1_dest_ucp_port
-	unset local_wan1_dest_udplite_port
-	unset local_wan1_dest_sctp_port
-	unset local_ovs_client_wan_port
-	unset local_vpn_client_polling_time
-	unset local_wan_access_port
-	unset local_list_mode_threshold
-	unset local_route_cache
-	unset local_clear_route_cache_time_interval
-	unset local_iptv_igmp_switch
-	unset local_igmp_version
-	unset local_hnd_br0_bcmmcast_mode
-	unset local_iptv_access_mode
-	unset local_iptv_box_ip_lst_file
-	unset local_iptv_isp_ip_lst_file
-	unset local_wan1_iptv_mode
-	unset local_wan1_udpxy_switch
-	unset local_wan1_udpxy_port
-	unset local_wan1_udpxy_buffer
-	unset local_wan1_udpxy_client_num
-	unset local_wan2_iptv_mode
-	unset local_wan2_udpxy_switch
-	unset local_wan2_udpxy_port
-	unset local_wan2_udpxy_buffer
-	unset local_wan2_udpxy_client_num
-	unset local_udpxy_used
-	unset local_regularly_update_ispip_data_enable
-	unset local_ruid_interval_day
-	unset local_ruid_timer_hour
-	unset local_ruid_timer_min
-	unset local_ruid_retry_num
-	unset local_custom_config_scripts
-	unset local_custom_config_scripts_filename
-	unset local_custom_dualwan_scripts
-	unset local_custom_dualwan_scripts_filename
-	unset local_custom_clear_scripts
-	unset local_custom_clear_scripts_filename
+    unset local_version
+    unset local_all_foreign_wan_port
+    unset local_chinatelecom_wan_port
+    unset local_unicom_cnc_wan_port
+    unset local_cmcc_wan_port
+    unset local_crtc_wan_port
+    unset local_cernet_wan_port
+    unset local_gwbn_wan_port
+    unset local_othernet_wan_port
+    unset local_hk_wan_port
+    unset local_mo_wan_port
+    unset local_tw_wan_port
+    unset local_usage_mode
+    unset local_custom_data_wan_port_1
+    unset local_custom_data_file_1
+    unset local_custom_data_wan_port_2
+    unset local_custom_data_file_2
+    unset local_wan_1_client_src_addr
+    unset local_wan_1_client_src_addr_file
+    unset local_wan_2_client_src_addr
+    unset local_wan_2_client_src_addr_file
+    unset local_high_wan_1_client_src_addr
+    unset local_high_wan_1_client_src_addr_file
+    unset local_high_wan_2_client_src_addr
+    unset local_high_wan_2_client_src_addr_file
+    unset local_wan_1_src_to_dst_addr
+    unset local_wan_1_src_to_dst_addr_file
+    unset local_wan_2_src_to_dst_addr
+    unset local_wan_2_src_to_dst_addr_file
+    unset local_high_wan_1_src_to_dst_addr
+    unset local_high_wan_1_src_to_dst_addr_file
+    unset local_local_ipsets_file
+    unset local_private_ipsets_file
+    unset local_wan0_dest_tcp_port
+    unset local_wan0_dest_udp_port
+    unset local_wan0_dest_udplite_port
+    unset local_wan0_dest_sctp_port
+    unset local_wan1_dest_tcp_port
+    unset local_wan1_dest_ucp_port
+    unset local_wan1_dest_udplite_port
+    unset local_wan1_dest_sctp_port
+    unset local_ovs_client_wan_port
+    unset local_vpn_client_polling_time
+    unset local_wan_access_port
+    unset local_list_mode_threshold
+    unset local_route_cache
+    unset local_clear_route_cache_time_interval
+    unset local_iptv_igmp_switch
+    unset local_igmp_version
+    unset local_hnd_br0_bcmmcast_mode
+    unset local_iptv_access_mode
+    unset local_iptv_box_ip_lst_file
+    unset local_iptv_isp_ip_lst_file
+    unset local_wan1_iptv_mode
+    unset local_wan1_udpxy_switch
+    unset local_wan1_udpxy_port
+    unset local_wan1_udpxy_buffer
+    unset local_wan1_udpxy_client_num
+    unset local_wan2_iptv_mode
+    unset local_wan2_udpxy_switch
+    unset local_wan2_udpxy_port
+    unset local_wan2_udpxy_buffer
+    unset local_wan2_udpxy_client_num
+    unset local_udpxy_used
+    unset local_regularly_update_ispip_data_enable
+    unset local_ruid_interval_day
+    unset local_ruid_timer_hour
+    unset local_ruid_timer_min
+    unset local_ruid_retry_num
+    unset local_custom_config_scripts
+    unset local_custom_config_scripts_filename
+    unset local_custom_dualwan_scripts
+    unset local_custom_dualwan_scripts_filename
+    unset local_custom_clear_scripts
+    unset local_custom_clear_scripts_filename
 
-	unset local_all_foreign_wan_port_changed
-	unset local_chinatelecom_wan_port_changed
-	unset local_unicom_cnc_wan_port_changed
-	unset local_cmcc_wan_port_changed
-	unset local_crtc_wan_port_changed
-	unset local_cernet_wan_port_changed
-	unset local_gwbn_wan_port_changed
-	unset local_othernet_wan_port_changed
-	unset local_hk_wan_port_changed
-	unset local_mo_wan_port_changed
-	unset local_tw_wan_port_changed
-	unset local_usage_mode_changed
-	unset local_custom_data_wan_port_1_changed
-	unset local_custom_data_file_1_changed
-	unset local_custom_data_wan_port_2_changed
-	unset local_custom_data_file_2_changed
-	unset local_wan_1_client_src_addr_changed
-	unset local_wan_1_client_src_addr_file_changed
-	unset local_wan_2_client_src_addr_changed
-	unset local_wan_2_client_src_addr_file_changed
-	unset local_high_wan_1_client_src_addr_changed
-	unset local_high_wan_1_client_src_addr_file_changed
-	unset local_high_wan_2_client_src_addr_changed
-	unset local_high_wan_2_client_src_addr_file_changed
-	unset local_wan_1_src_to_dst_addr_changed
-	unset local_wan_1_src_to_dst_addr_file_changed
-	unset local_wan_2_src_to_dst_addr_changed
-	unset local_wan_2_src_to_dst_addr_file_changed
-	unset local_high_wan_1_src_to_dst_addr_changed
-	unset local_high_wan_1_src_to_dst_addr_file_changed
-	unset local_local_ipsets_file_changed
-	unset local_private_ipsets_file_changed
-	unset local_wan0_dest_tcp_port_changed
-	unset local_wan0_dest_udp_port_changed
-	unset local_wan0_dest_udplite_port_changed
-	unset local_wan0_dest_sctp_port_changed
-	unset local_wan1_dest_tcp_port_changed
-	unset local_wan1_dest_udp_port_changed
-	unset local_wan1_dest_udplite_port_changed
-	unset local_wan1_dest_sctp_port_changed
-	unset local_ovs_client_wan_port_changed
-	unset local_vpn_client_polling_time_changed
-	unset local_wan_access_port_changed
-	unset local_list_mode_threshold_changed
-	unset local_route_cache_changed
-	unset local_clear_route_cache_time_interval_changed
-	unset local_iptv_igmp_switch_changed
-	unset local_igmp_version_changed
-	unset local_hnd_br0_bcmmcast_mode_changed
-	unset local_iptv_access_mode_changed
-	unset local_iptv_box_ip_lst_file_changed
-	unset local_iptv_isp_ip_lst_file_changed
-	unset local_wan1_iptv_mode_changed
-	unset local_wan1_udpxy_switch_changed
-	unset local_wan1_udpxy_port_changed
-	unset local_wan1_udpxy_buffer_changed
-	unset local_wan1_udpxy_client_num_changed
-	unset local_wan2_iptv_mode_changed
-	unset local_wan2_udpxy_switch_changed
-	unset local_wan2_udpxy_port_changed
-	unset local_wan2_udpxy_buffer_changed
-	unset local_wan2_udpxy_client_num_changed
-	unset local_udpxy_used_changed
-	unset local_regularly_update_ispip_data_enable_changed
-	unset local_ruid_interval_day_changed
-	unset local_ruid_timer_hour_changed
-	unset local_ruid_timer_min_changed
-	unset local_ruid_retry_num_changed
-	unset local_custom_config_scripts_changed
-	unset local_custom_config_scripts_filename_changed
-	unset local_custom_dualwan_scripts_changed
-	unset local_custom_dualwan_scripts_filename_changed
-	unset local_custom_clear_scripts_changed
-	unset local_custom_clear_scripts_filename_changed
+    unset local_all_foreign_wan_port_changed
+    unset local_chinatelecom_wan_port_changed
+    unset local_unicom_cnc_wan_port_changed
+    unset local_cmcc_wan_port_changed
+    unset local_crtc_wan_port_changed
+    unset local_cernet_wan_port_changed
+    unset local_gwbn_wan_port_changed
+    unset local_othernet_wan_port_changed
+    unset local_hk_wan_port_changed
+    unset local_mo_wan_port_changed
+    unset local_tw_wan_port_changed
+    unset local_usage_mode_changed
+    unset local_custom_data_wan_port_1_changed
+    unset local_custom_data_file_1_changed
+    unset local_custom_data_wan_port_2_changed
+    unset local_custom_data_file_2_changed
+    unset local_wan_1_client_src_addr_changed
+    unset local_wan_1_client_src_addr_file_changed
+    unset local_wan_2_client_src_addr_changed
+    unset local_wan_2_client_src_addr_file_changed
+    unset local_high_wan_1_client_src_addr_changed
+    unset local_high_wan_1_client_src_addr_file_changed
+    unset local_high_wan_2_client_src_addr_changed
+    unset local_high_wan_2_client_src_addr_file_changed
+    unset local_wan_1_src_to_dst_addr_changed
+    unset local_wan_1_src_to_dst_addr_file_changed
+    unset local_wan_2_src_to_dst_addr_changed
+    unset local_wan_2_src_to_dst_addr_file_changed
+    unset local_high_wan_1_src_to_dst_addr_changed
+    unset local_high_wan_1_src_to_dst_addr_file_changed
+    unset local_local_ipsets_file_changed
+    unset local_private_ipsets_file_changed
+    unset local_wan0_dest_tcp_port_changed
+    unset local_wan0_dest_udp_port_changed
+    unset local_wan0_dest_udplite_port_changed
+    unset local_wan0_dest_sctp_port_changed
+    unset local_wan1_dest_tcp_port_changed
+    unset local_wan1_dest_udp_port_changed
+    unset local_wan1_dest_udplite_port_changed
+    unset local_wan1_dest_sctp_port_changed
+    unset local_ovs_client_wan_port_changed
+    unset local_vpn_client_polling_time_changed
+    unset local_wan_access_port_changed
+    unset local_list_mode_threshold_changed
+    unset local_route_cache_changed
+    unset local_clear_route_cache_time_interval_changed
+    unset local_iptv_igmp_switch_changed
+    unset local_igmp_version_changed
+    unset local_hnd_br0_bcmmcast_mode_changed
+    unset local_iptv_access_mode_changed
+    unset local_iptv_box_ip_lst_file_changed
+    unset local_iptv_isp_ip_lst_file_changed
+    unset local_wan1_iptv_mode_changed
+    unset local_wan1_udpxy_switch_changed
+    unset local_wan1_udpxy_port_changed
+    unset local_wan1_udpxy_buffer_changed
+    unset local_wan1_udpxy_client_num_changed
+    unset local_wan2_iptv_mode_changed
+    unset local_wan2_udpxy_switch_changed
+    unset local_wan2_udpxy_port_changed
+    unset local_wan2_udpxy_buffer_changed
+    unset local_wan2_udpxy_client_num_changed
+    unset local_udpxy_used_changed
+    unset local_regularly_update_ispip_data_enable_changed
+    unset local_ruid_interval_day_changed
+    unset local_ruid_timer_hour_changed
+    unset local_ruid_timer_min_changed
+    unset local_ruid_retry_num_changed
+    unset local_custom_config_scripts_changed
+    unset local_custom_config_scripts_filename_changed
+    unset local_custom_dualwan_scripts_changed
+    unset local_custom_dualwan_scripts_filename_changed
+    unset local_custom_clear_scripts_changed
+    unset local_custom_clear_scripts_filename_changed
 }
 
 ## 恢复缺省配置数据文件函数
@@ -488,7 +488,7 @@ lz_variable_uninitialize() {
 ##     全局常量
 ## 返回值：无
 lz_restore_default_config() {
-	cat > "${PATH_CONFIGS}/lz_rule_config.sh" <<EOF
+    cat > "${PATH_CONFIGS}/lz_rule_config.sh" <<EOF
 #!/bin/sh
 # lz_rule_config.sh ${LZ_VERSION}
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
@@ -1078,7 +1078,7 @@ custom_clear_scripts_filename="${PATH_LZ}/custom_clear_scripts.sh"
 
 #END
 EOF
-	chmod 775 "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    chmod 775 "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
 }
 
 ## 复原配置文件函数
@@ -1086,7 +1086,7 @@ EOF
 ##     全局常量及变量
 ## 返回值：无
 lz_restore_cfg_file() {
-	cat > "${PATH_CONFIGS}/lz_rule_config.sh" <<EOF
+    cat > "${PATH_CONFIGS}/lz_rule_config.sh" <<EOF
 #!/bin/sh
 # lz_rule_config.sh ${LZ_VERSION}
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
@@ -1676,7 +1676,7 @@ custom_clear_scripts_filename=${local_custom_clear_scripts_filename}
 
 #END
 EOF
-	chmod 775 "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    chmod 775 "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
 }
 
 ## 格式化读取文件缓冲区函数
@@ -1685,10 +1685,10 @@ EOF
 ## 返回值：
 ##     数据文件缓冲区内容
 lz_read_file_cache_buffer() {
-	local local_buffer="$( grep -E '^[ ]*[a-zA-Z0-9_-]+[=]' "${1}" \
-			| sed -e 's/[#].*$//g' -e 's/^[ ]*//g' -e 's/^\([^=]*[=][^ =]*\).*$/\1/g' -e 's/^\(.*[=][^\"][^\"]*\).*$/\1/g' \
-				-e 's/^\(.*[=][\"][^\"]*[\"]\).*$/\1/g' -e 's/^\(.*[=]\)[\"][^\"]*$/\1/g' -e 's/\"/##/g' )"
-	echo "${local_buffer}"
+    local local_buffer="$( grep -E '^[ ]*[a-zA-Z0-9_-]+[=]' "${1}" \
+            | sed -e 's/[#].*$//g' -e 's/^[ ]*//g' -e 's/^\([^=]*[=][^ =]*\).*$/\1/g' -e 's/^\(.*[=][^\"][^\"]*\).*$/\1/g' \
+                -e 's/^\(.*[=][\"][^\"]*[\"]\).*$/\1/g' -e 's/^\(.*[=]\)[\"][^\"]*$/\1/g' -e 's/\"/##/g' )"
+    echo "${local_buffer}"
 }
 
 ## 读取文件数据项函数
@@ -1701,24 +1701,24 @@ lz_read_file_cache_buffer() {
 ##     0--数据项不存在，或数据项值缺失，均以数据项缺省值输出
 ##     非0--数据项读取成功
 lz_get_file_data_item() {
-	local local_retval="1"
-	local local_default="$( echo "${2}" | sed 's/\"/##/g' )"
-	local local_data_item="$( grep -m 1 "^[ ]*${1}=" "${3}" \
-	| sed -e 's/[#].*$//g' -e 's/^[ ]*//g' -e 's/^\([^=]*[=][^ =]*\).*$/\1/g' -e 's/^\(.*[=][^\"][^\"]*\).*$/\1/g' \
-		-e 's/^\(.*[=][\"][^\"]*[\"]\).*$/\1/g' -e 's/^\(.*[=]\)[\"][^\"]*$/\1/g' \
-	| awk -F "=" '{if ($2 == "" && "'"${local_default}"'" != "") print "#LOSE#"; else if ($2 == "" && "'"${local_default}"'" == "") print "#DEFAULT#"; else print $2}' )"
-	local_data_item="$( echo "${local_data_item}" | sed 's/##/\"/g' )"
-	if [ -z "${local_data_item}" ]; then
-		local_data_item="${2}"
-		local_retval="0"
-	elif [ "${local_data_item}" = "#LOSE#" ]; then
-		local_data_item="${2}"
-		local_retval="0"
-	elif [ "${local_data_item}" = "#DEFAULT#" ]; then
-		local_data_item="${2}"
-	fi
-	echo "${local_data_item}"
-	return "${local_retval}"
+    local local_retval="1"
+    local local_default="$( echo "${2}" | sed 's/\"/##/g' )"
+    local local_data_item="$( grep -m 1 "^[ ]*${1}=" "${3}" \
+    | sed -e 's/[#].*$//g' -e 's/^[ ]*//g' -e 's/^\([^=]*[=][^ =]*\).*$/\1/g' -e 's/^\(.*[=][^\"][^\"]*\).*$/\1/g' \
+        -e 's/^\(.*[=][\"][^\"]*[\"]\).*$/\1/g' -e 's/^\(.*[=]\)[\"][^\"]*$/\1/g' \
+    | awk -F "=" '{if ($2 == "" && "'"${local_default}"'" != "") print "#LOSE#"; else if ($2 == "" && "'"${local_default}"'" == "") print "#DEFAULT#"; else print $2}' )"
+    local_data_item="$( echo "${local_data_item}" | sed 's/##/\"/g' )"
+    if [ -z "${local_data_item}" ]; then
+        local_data_item="${2}"
+        local_retval="0"
+    elif [ "${local_data_item}" = "#LOSE#" ]; then
+        local_data_item="${2}"
+        local_retval="0"
+    elif [ "${local_data_item}" = "#DEFAULT#" ]; then
+        local_data_item="${2}"
+    fi
+    echo "${local_data_item}"
+    return "${local_retval}"
 }
 
 ## 读取文件缓冲区数据项函数
@@ -1731,22 +1731,22 @@ lz_get_file_data_item() {
 ##     0--数据项不存在，或数据项值缺失，均以数据项缺省值输出
 ##     非0--数据项读取成功
 lz_get_file_cache_data() {
-	local local_retval="1"
-	local local_default="$( echo "${2}" | sed 's/\"/##/g' )"
-	local local_data_item="$( echo "${local_file_cache}" | grep -m 1 "^${1}=" \
-	| awk -F "=" '{if ($2 == "" && "'"${local_default}"'" != "") print "#LOSE#"; else if ($2 == "" && "'"${local_default}"'" == "") print "#DEFAULT#"; else print $2}' )"
-	local_data_item="$( echo "${local_data_item}" | sed 's/##/\"/g' )"
-	if [ -z "${local_data_item}" ]; then
-		local_data_item="${2}"
-		local_retval="0"
-	elif [ "${local_data_item}" = "#LOSE#" ]; then
-		local_data_item="${2}"
-		local_retval="0"
-	elif [ "${local_data_item}" = "#DEFAULT#" ]; then
-		local_data_item="${2}"
-	fi
-	echo "${local_data_item}"
-	return "${local_retval}"
+    local local_retval="1"
+    local local_default="$( echo "${2}" | sed 's/\"/##/g' )"
+    local local_data_item="$( echo "${local_file_cache}" | grep -m 1 "^${1}=" \
+    | awk -F "=" '{if ($2 == "" && "'"${local_default}"'" != "") print "#LOSE#"; else if ($2 == "" && "'"${local_default}"'" == "") print "#DEFAULT#"; else print $2}' )"
+    local_data_item="$( echo "${local_data_item}" | sed 's/##/\"/g' )"
+    if [ -z "${local_data_item}" ]; then
+        local_data_item="${2}"
+        local_retval="0"
+    elif [ "${local_data_item}" = "#LOSE#" ]; then
+        local_data_item="${2}"
+        local_retval="0"
+    elif [ "${local_data_item}" = "#DEFAULT#" ]; then
+        local_data_item="${2}"
+    fi
+    echo "${local_data_item}"
+    return "${local_retval}"
 }
 
 ## 读取配置参数函数
@@ -1755,292 +1755,292 @@ lz_get_file_cache_data() {
 ## 返回值：无
 lz_read_config_param() {
 
-	local local_exist="1"
+    local local_exist="1"
 
-	local_version="${LZ_VERSION}"
+    local_version="${LZ_VERSION}"
 
-	## 格式化读取文件缓冲区
-	## 输入项：
-	##     $1--数据文件全路径文件名
-	## 返回值：
-	##     数据文件缓冲区内容
-	local_file_cache="$( lz_read_file_cache_buffer "${PATH_CONFIGS}/lz_rule_config.sh" )"
+    ## 格式化读取文件缓冲区
+    ## 输入项：
+    ##     $1--数据文件全路径文件名
+    ## 返回值：
+    ##     数据文件缓冲区内容
+    local_file_cache="$( lz_read_file_cache_buffer "${PATH_CONFIGS}/lz_rule_config.sh" )"
 
-	## 读取文件缓冲区数据项
-	## 输入项：
-	##     $1--数据项名称
-	##     $2--数据项缺省值
-	##     local_file_cache--数据文件缓冲区
-	##     全局常量
-	## 返回值：
-	##     0--数据项不存在，或数据项值缺失，均以数据项缺省值输出
-	##     非0--数据项读取成功
+    ## 读取文件缓冲区数据项
+    ## 输入项：
+    ##     $1--数据项名称
+    ##     $2--数据项缺省值
+    ##     local_file_cache--数据文件缓冲区
+    ##     全局常量
+    ## 返回值：
+    ##     0--数据项不存在，或数据项值缺失，均以数据项缺省值输出
+    ##     非0--数据项读取成功
 
-	local_all_foreign_wan_port="$( lz_get_file_cache_data "all_foreign_wan_port" "0" )" && local_exist="0"
-	! echo "${local_all_foreign_wan_port}" | grep -q '^[0-9]$' && local_all_foreign_wan_port="0" && local_exist="0"
+    local_all_foreign_wan_port="$( lz_get_file_cache_data "all_foreign_wan_port" "0" )" && local_exist="0"
+    ! echo "${local_all_foreign_wan_port}" | grep -q '^[0-9]$' && local_all_foreign_wan_port="0" && local_exist="0"
 
-	local_chinatelecom_wan_port="$( lz_get_file_cache_data "chinatelecom_wan_port" "0" )" && local_exist="0"
-	! echo "${local_chinatelecom_wan_port}" | grep -q '^[0-9]$' && local_chinatelecom_wan_port="0" && local_exist="0"
+    local_chinatelecom_wan_port="$( lz_get_file_cache_data "chinatelecom_wan_port" "0" )" && local_exist="0"
+    ! echo "${local_chinatelecom_wan_port}" | grep -q '^[0-9]$' && local_chinatelecom_wan_port="0" && local_exist="0"
 
-	local_unicom_cnc_wan_port="$( lz_get_file_cache_data "unicom_cnc_wan_port" "0" )" && local_exist="0"
-	! echo "${local_unicom_cnc_wan_port}" | grep -q '^[0-9]$' && local_unicom_cnc_wan_port="0" && local_exist="0"
+    local_unicom_cnc_wan_port="$( lz_get_file_cache_data "unicom_cnc_wan_port" "0" )" && local_exist="0"
+    ! echo "${local_unicom_cnc_wan_port}" | grep -q '^[0-9]$' && local_unicom_cnc_wan_port="0" && local_exist="0"
 
-	local_cmcc_wan_port="$( lz_get_file_cache_data "cmcc_wan_port" "1" )" && local_exist="0"
-	! echo "${local_cmcc_wan_port}" | grep -q '^[0-9]$' && local_cmcc_wan_port="1" && local_exist="0"
+    local_cmcc_wan_port="$( lz_get_file_cache_data "cmcc_wan_port" "1" )" && local_exist="0"
+    ! echo "${local_cmcc_wan_port}" | grep -q '^[0-9]$' && local_cmcc_wan_port="1" && local_exist="0"
 
-	local_crtc_wan_port="$( lz_get_file_cache_data "crtc_wan_port" "1" )" && local_exist="0"
-	! echo "${local_crtc_wan_port}" | grep -q '^[0-9]$' && local_crtc_wan_port="1" && local_exist="0"
+    local_crtc_wan_port="$( lz_get_file_cache_data "crtc_wan_port" "1" )" && local_exist="0"
+    ! echo "${local_crtc_wan_port}" | grep -q '^[0-9]$' && local_crtc_wan_port="1" && local_exist="0"
 
-	local_cernet_wan_port="$( lz_get_file_cache_data "cernet_wan_port" "1" )" && local_exist="0"
-	! echo "${local_cernet_wan_port}" | grep -q '^[0-9]$' && local_cernet_wan_port="1" && local_exist="0"
+    local_cernet_wan_port="$( lz_get_file_cache_data "cernet_wan_port" "1" )" && local_exist="0"
+    ! echo "${local_cernet_wan_port}" | grep -q '^[0-9]$' && local_cernet_wan_port="1" && local_exist="0"
 
-	local_gwbn_wan_port="$( lz_get_file_cache_data "gwbn_wan_port" "1" )" && local_exist="0"
-	! echo "${local_gwbn_wan_port}" | grep -q '^[0-9]$' && local_gwbn_wan_port="1" && local_exist="0"
+    local_gwbn_wan_port="$( lz_get_file_cache_data "gwbn_wan_port" "1" )" && local_exist="0"
+    ! echo "${local_gwbn_wan_port}" | grep -q '^[0-9]$' && local_gwbn_wan_port="1" && local_exist="0"
 
-	local_othernet_wan_port="$( lz_get_file_cache_data "othernet_wan_port" "0" )" && local_exist="0"
-	! echo "${local_othernet_wan_port}" | grep -q '^[0-9]$' && local_othernet_wan_port="0" && local_exist="0"
+    local_othernet_wan_port="$( lz_get_file_cache_data "othernet_wan_port" "0" )" && local_exist="0"
+    ! echo "${local_othernet_wan_port}" | grep -q '^[0-9]$' && local_othernet_wan_port="0" && local_exist="0"
 
-	local_hk_wan_port="$( lz_get_file_cache_data "hk_wan_port" "0" )" && local_exist="0"
-	! echo "${local_hk_wan_port}" | grep -q '^[0-9]$' && local_hk_wan_port="0" && local_exist="0"
+    local_hk_wan_port="$( lz_get_file_cache_data "hk_wan_port" "0" )" && local_exist="0"
+    ! echo "${local_hk_wan_port}" | grep -q '^[0-9]$' && local_hk_wan_port="0" && local_exist="0"
 
-	local_mo_wan_port="$( lz_get_file_cache_data "mo_wan_port" "0" )" && local_exist="0"
-	! echo "${local_mo_wan_port}" | grep -q '^[0-9]$' && local_mo_wan_port="0" && local_exist="0"
+    local_mo_wan_port="$( lz_get_file_cache_data "mo_wan_port" "0" )" && local_exist="0"
+    ! echo "${local_mo_wan_port}" | grep -q '^[0-9]$' && local_mo_wan_port="0" && local_exist="0"
 
-	local_tw_wan_port="$( lz_get_file_cache_data "tw_wan_port" "0" )" && local_exist="0"
-	! echo "${local_tw_wan_port}" | grep -q '^[0-9]$' && local_tw_wan_port="0" && local_exist="0"
+    local_tw_wan_port="$( lz_get_file_cache_data "tw_wan_port" "0" )" && local_exist="0"
+    ! echo "${local_tw_wan_port}" | grep -q '^[0-9]$' && local_tw_wan_port="0" && local_exist="0"
 
-	local_usage_mode="$( lz_get_file_cache_data "usage_mode" "0" )" && local_exist="0"
-	[ "${local_usage_mode}" != "0" ] && [ "${local_usage_mode}" != "1" ] && local_usage_mode="0" && local_exist="0"
+    local_usage_mode="$( lz_get_file_cache_data "usage_mode" "0" )" && local_exist="0"
+    [ "${local_usage_mode}" != "0" ] && [ "${local_usage_mode}" != "1" ] && local_usage_mode="0" && local_exist="0"
 
-	local_custom_data_wan_port_1="$( lz_get_file_cache_data "custom_data_wan_port_1" "5" )" && local_exist="0"
-	! echo "${local_custom_data_wan_port_1}" | grep -q '^[0-9]$' && local_custom_data_wan_port_1="5" && local_exist="0"
+    local_custom_data_wan_port_1="$( lz_get_file_cache_data "custom_data_wan_port_1" "5" )" && local_exist="0"
+    ! echo "${local_custom_data_wan_port_1}" | grep -q '^[0-9]$' && local_custom_data_wan_port_1="5" && local_exist="0"
 
-	local_custom_data_file_1="$( lz_get_file_cache_data "custom_data_file_1" "\"${PATH_DATA}/custom_data_1.txt\"" )" && local_exist="0"
+    local_custom_data_file_1="$( lz_get_file_cache_data "custom_data_file_1" "\"${PATH_DATA}/custom_data_1.txt\"" )" && local_exist="0"
 
-	local_custom_data_wan_port_2="$( lz_get_file_cache_data "custom_data_wan_port_2" "5" )" && local_exist="0"
-	! echo "${local_custom_data_wan_port_2}" | grep -q '^[0-9]$' && local_custom_data_wan_port_2="5" && local_exist="0"
+    local_custom_data_wan_port_2="$( lz_get_file_cache_data "custom_data_wan_port_2" "5" )" && local_exist="0"
+    ! echo "${local_custom_data_wan_port_2}" | grep -q '^[0-9]$' && local_custom_data_wan_port_2="5" && local_exist="0"
 
-	local_custom_data_file_2="$( lz_get_file_cache_data "custom_data_file_2" "\"${PATH_DATA}/custom_data_2.txt\"" )" && local_exist="0"
+    local_custom_data_file_2="$( lz_get_file_cache_data "custom_data_file_2" "\"${PATH_DATA}/custom_data_2.txt\"" )" && local_exist="0"
 
-	local_wan_1_client_src_addr="$( lz_get_file_cache_data "wan_1_client_src_addr" "5" )" && local_exist="0"
-	! echo "${local_wan_1_client_src_addr}" | grep -q '^[0-9]$' && local_wan_1_client_src_addr="5" && local_exist="0"
+    local_wan_1_client_src_addr="$( lz_get_file_cache_data "wan_1_client_src_addr" "5" )" && local_exist="0"
+    ! echo "${local_wan_1_client_src_addr}" | grep -q '^[0-9]$' && local_wan_1_client_src_addr="5" && local_exist="0"
 
-	local_wan_1_client_src_addr_file="$( lz_get_file_cache_data "wan_1_client_src_addr_file" "\"${PATH_DATA}/wan_1_client_src_addr.txt\"" )" && local_exist="0"
+    local_wan_1_client_src_addr_file="$( lz_get_file_cache_data "wan_1_client_src_addr_file" "\"${PATH_DATA}/wan_1_client_src_addr.txt\"" )" && local_exist="0"
 
-	local_wan_2_client_src_addr="$( lz_get_file_cache_data "wan_2_client_src_addr" "5" )" && local_exist="0"
-	! echo "${local_wan_2_client_src_addr}" | grep -q '^[0-9]$' && local_wan_2_client_src_addr="5" && local_exist="0"
+    local_wan_2_client_src_addr="$( lz_get_file_cache_data "wan_2_client_src_addr" "5" )" && local_exist="0"
+    ! echo "${local_wan_2_client_src_addr}" | grep -q '^[0-9]$' && local_wan_2_client_src_addr="5" && local_exist="0"
 
-	local_wan_2_client_src_addr_file="$( lz_get_file_cache_data "wan_2_client_src_addr_file" "\"${PATH_DATA}/wan_2_client_src_addr.txt\"" )" && local_exist="0"
+    local_wan_2_client_src_addr_file="$( lz_get_file_cache_data "wan_2_client_src_addr_file" "\"${PATH_DATA}/wan_2_client_src_addr.txt\"" )" && local_exist="0"
 
-	local_high_wan_1_client_src_addr="$( lz_get_file_cache_data "high_wan_1_client_src_addr" "5" )" && local_exist="0"
-	! echo "${local_high_wan_1_client_src_addr}" | grep -q '^[0-9]$' && local_high_wan_1_client_src_addr="5" && local_exist="0"
+    local_high_wan_1_client_src_addr="$( lz_get_file_cache_data "high_wan_1_client_src_addr" "5" )" && local_exist="0"
+    ! echo "${local_high_wan_1_client_src_addr}" | grep -q '^[0-9]$' && local_high_wan_1_client_src_addr="5" && local_exist="0"
 
-	local_high_wan_1_client_src_addr_file="$( lz_get_file_cache_data "high_wan_1_client_src_addr_file" "\"${PATH_DATA}/high_wan_1_client_src_addr.txt\"" )" && local_exist="0"
+    local_high_wan_1_client_src_addr_file="$( lz_get_file_cache_data "high_wan_1_client_src_addr_file" "\"${PATH_DATA}/high_wan_1_client_src_addr.txt\"" )" && local_exist="0"
 
-	local_high_wan_2_client_src_addr="$( lz_get_file_cache_data "high_wan_2_client_src_addr" "5" )" && local_exist="0"
-	! echo "${local_high_wan_2_client_src_addr}" | grep -q '^[0-9]$' && local_high_wan_2_client_src_addr="5" && local_exist="0"
+    local_high_wan_2_client_src_addr="$( lz_get_file_cache_data "high_wan_2_client_src_addr" "5" )" && local_exist="0"
+    ! echo "${local_high_wan_2_client_src_addr}" | grep -q '^[0-9]$' && local_high_wan_2_client_src_addr="5" && local_exist="0"
 
-	local_high_wan_2_client_src_addr_file="$( lz_get_file_cache_data "high_wan_2_client_src_addr_file" "\"${PATH_DATA}/high_wan_2_client_src_addr.txt\"" )" && local_exist="0"
+    local_high_wan_2_client_src_addr_file="$( lz_get_file_cache_data "high_wan_2_client_src_addr_file" "\"${PATH_DATA}/high_wan_2_client_src_addr.txt\"" )" && local_exist="0"
 
-	local_wan_1_src_to_dst_addr="$( lz_get_file_cache_data "wan_1_src_to_dst_addr" "5" )" && local_exist="0"
-	! echo "${local_wan_1_src_to_dst_addr}" | grep -q '^[0-9]$' && local_wan_1_src_to_dst_addr="5" && local_exist="0"
+    local_wan_1_src_to_dst_addr="$( lz_get_file_cache_data "wan_1_src_to_dst_addr" "5" )" && local_exist="0"
+    ! echo "${local_wan_1_src_to_dst_addr}" | grep -q '^[0-9]$' && local_wan_1_src_to_dst_addr="5" && local_exist="0"
 
-	local_wan_1_src_to_dst_addr_file="$( lz_get_file_cache_data "wan_1_src_to_dst_addr_file" "\"${PATH_DATA}/wan_1_src_to_dst_addr.txt\"" )" && local_exist="0"
+    local_wan_1_src_to_dst_addr_file="$( lz_get_file_cache_data "wan_1_src_to_dst_addr_file" "\"${PATH_DATA}/wan_1_src_to_dst_addr.txt\"" )" && local_exist="0"
 
-	local_wan_2_src_to_dst_addr="$( lz_get_file_cache_data "wan_2_src_to_dst_addr" "5" )" && local_exist="0"
-	! echo "${local_wan_2_src_to_dst_addr}" | grep -q '^[0-9]$' && local_wan_2_src_to_dst_addr="5" && local_exist="0"
+    local_wan_2_src_to_dst_addr="$( lz_get_file_cache_data "wan_2_src_to_dst_addr" "5" )" && local_exist="0"
+    ! echo "${local_wan_2_src_to_dst_addr}" | grep -q '^[0-9]$' && local_wan_2_src_to_dst_addr="5" && local_exist="0"
 
-	local_wan_2_src_to_dst_addr_file="$( lz_get_file_cache_data "wan_2_src_to_dst_addr_file" "\"${PATH_DATA}/wan_2_src_to_dst_addr.txt\"" )" && local_exist="0"
+    local_wan_2_src_to_dst_addr_file="$( lz_get_file_cache_data "wan_2_src_to_dst_addr_file" "\"${PATH_DATA}/wan_2_src_to_dst_addr.txt\"" )" && local_exist="0"
 
-	local_high_wan_1_src_to_dst_addr="$( lz_get_file_cache_data "high_wan_1_src_to_dst_addr" "5" )" && local_exist="0"
-	! echo "${local_high_wan_1_src_to_dst_addr}" | grep -q '^[0-9]$' && local_high_wan_1_src_to_dst_addr="5" && local_exist="0"
+    local_high_wan_1_src_to_dst_addr="$( lz_get_file_cache_data "high_wan_1_src_to_dst_addr" "5" )" && local_exist="0"
+    ! echo "${local_high_wan_1_src_to_dst_addr}" | grep -q '^[0-9]$' && local_high_wan_1_src_to_dst_addr="5" && local_exist="0"
 
-	local_high_wan_1_src_to_dst_addr_file="$( lz_get_file_cache_data "high_wan_1_src_to_dst_addr_file" "\"${PATH_DATA}/high_wan_1_src_to_dst_addr.txt\"" )" && local_exist="0"
+    local_high_wan_1_src_to_dst_addr_file="$( lz_get_file_cache_data "high_wan_1_src_to_dst_addr_file" "\"${PATH_DATA}/high_wan_1_src_to_dst_addr.txt\"" )" && local_exist="0"
 
-	local_local_ipsets_file="$( lz_get_file_cache_data "local_ipsets_file" "\"${PATH_DATA}/local_ipsets_data.txt\"" )" && local_exist="0"
+    local_local_ipsets_file="$( lz_get_file_cache_data "local_ipsets_file" "\"${PATH_DATA}/local_ipsets_data.txt\"" )" && local_exist="0"
 
-	local_private_ipsets_file="$( lz_get_file_cache_data "private_ipsets_file" "\"${PATH_DATA}/private_ipsets_data.txt\"" )" && local_exist="0"
+    local_private_ipsets_file="$( lz_get_file_cache_data "private_ipsets_file" "\"${PATH_DATA}/private_ipsets_data.txt\"" )" && local_exist="0"
 
-	local_wan0_dest_tcp_port="$( lz_get_file_cache_data "wan0_dest_tcp_port" "" )" && {
-		if grep -qE "^[ ]*wan0_dest_tcp_port=" "${PATH_CONFIGS}/lz_rule_config.sh"; then local_wan0_dest_tcp_port=""; else local_exist="0"; fi;
-	}
+    local_wan0_dest_tcp_port="$( lz_get_file_cache_data "wan0_dest_tcp_port" "" )" && {
+        if grep -qE "^[ ]*wan0_dest_tcp_port=" "${PATH_CONFIGS}/lz_rule_config.sh"; then local_wan0_dest_tcp_port=""; else local_exist="0"; fi;
+    }
 
-	local_wan0_dest_udp_port="$( lz_get_file_cache_data "wan0_dest_udp_port" "" )" && {
-		if grep -qE "^[ ]*wan0_dest_udp_port=" "${PATH_CONFIGS}/lz_rule_config.sh"; then local_wan0_dest_udp_port=""; else local_exist="0"; fi;
-	}
+    local_wan0_dest_udp_port="$( lz_get_file_cache_data "wan0_dest_udp_port" "" )" && {
+        if grep -qE "^[ ]*wan0_dest_udp_port=" "${PATH_CONFIGS}/lz_rule_config.sh"; then local_wan0_dest_udp_port=""; else local_exist="0"; fi;
+    }
 
-	local_wan0_dest_udplite_port="$( lz_get_file_cache_data "wan0_dest_udplite_port" "" )" && {
-		if grep -qE "^[ ]*wan0_dest_udplite_port=" "${PATH_CONFIGS}/lz_rule_config.sh"; then local_wan0_dest_udplite_port=""; else local_exist="0"; fi;
-	}
+    local_wan0_dest_udplite_port="$( lz_get_file_cache_data "wan0_dest_udplite_port" "" )" && {
+        if grep -qE "^[ ]*wan0_dest_udplite_port=" "${PATH_CONFIGS}/lz_rule_config.sh"; then local_wan0_dest_udplite_port=""; else local_exist="0"; fi;
+    }
 
-	local_wan0_dest_sctp_port="$( lz_get_file_cache_data "wan0_dest_sctp_port" "" )" && {
-		if grep -qE "^[ ]*wan0_dest_sctp_port=" "${PATH_CONFIGS}/lz_rule_config.sh"; then local_wan0_dest_sctp_port=""; else local_exist="0"; fi;
-	}
+    local_wan0_dest_sctp_port="$( lz_get_file_cache_data "wan0_dest_sctp_port" "" )" && {
+        if grep -qE "^[ ]*wan0_dest_sctp_port=" "${PATH_CONFIGS}/lz_rule_config.sh"; then local_wan0_dest_sctp_port=""; else local_exist="0"; fi;
+    }
 
-	local_wan1_dest_tcp_port="$( lz_get_file_cache_data "wan1_dest_tcp_port" "" )" && {
-		if grep -qE "^[ ]*wan1_dest_tcp_port=" "${PATH_CONFIGS}/lz_rule_config.sh"; then local_wan1_dest_tcp_port=""; else local_exist="0"; fi;
-	}
+    local_wan1_dest_tcp_port="$( lz_get_file_cache_data "wan1_dest_tcp_port" "" )" && {
+        if grep -qE "^[ ]*wan1_dest_tcp_port=" "${PATH_CONFIGS}/lz_rule_config.sh"; then local_wan1_dest_tcp_port=""; else local_exist="0"; fi;
+    }
 
-	local_wan1_dest_udp_port="$( lz_get_file_cache_data "wan1_dest_udp_port" "" )" && {
-		if grep -qE "^[ ]*wan1_dest_udp_port=" "${PATH_CONFIGS}/lz_rule_config.sh"; then local_wan1_dest_udp_port=""; else local_exist="0"; fi;
-	}
-
-	local_wan1_dest_udplite_port="$( lz_get_file_cache_data "wan1_dest_udplite_port" "" )" && {
-		if grep -qE "^[ ]*wan1_dest_udplite_port=" "${PATH_CONFIGS}/lz_rule_config.sh"; then local_wan1_dest_udplite_port=""; else local_exist="0"; fi;
-	}
-
-	local_wan1_dest_sctp_port="$( lz_get_file_cache_data "wan1_dest_sctp_port" "" )" && {
-		if grep -qE "^[ ]*wan1_dest_sctp_port=" "${PATH_CONFIGS}/lz_rule_config.sh"; then local_wan1_dest_sctp_port=""; else local_exist="0"; fi;
-	}
-
-	local_ovs_client_wan_port="$( lz_get_file_cache_data "ovs_client_wan_port" "5" )" && local_exist="0"
-	! echo "${local_ovs_client_wan_port}" | grep -q '^[0-9]$' && local_ovs_client_wan_port="5" && local_exist="0"
-
-	local_vpn_client_polling_time="$( lz_get_file_cache_data "vpn_client_polling_time" "5" )" && local_exist="0"
-	! echo "${local_vpn_client_polling_time}" | grep -qE '^[0-9]$|^[1][0-9]$|^[2][0]$' && local_vpn_client_polling_time="5" && local_exist="0"
-
-	local_wan_access_port="$( lz_get_file_cache_data "wan_access_port" "0" )" && local_exist="0"
-	## wan_access_port现在只能为0或1
-	[ "${local_wan_access_port}" != "0" ] && [ "${local_wan_access_port}" != "1" ] && local_wan_access_port="0" && local_exist="0"
-
-	local_list_mode_threshold="$( lz_get_file_cache_data "list_mode_threshold" "128" )" && local_exist="0"
-	! echo "${local_list_mode_threshold}" | grep -qE '^[0-9]$|^[1-9][0-9][0-9]*$' && local_list_mode_threshold="128" && local_exist="0"
-
-	local_route_cache="$( lz_get_file_cache_data "route_cache" "0" )" && local_exist="0"
-	! echo "${local_route_cache}" | grep -q '^[0-9]$' && local_route_cache="0" && local_exist="0"
-
-	local_clear_route_cache_time_interval="$( lz_get_file_cache_data "clear_route_cache_time_interval" "4" )" && local_exist="0"
-	! echo "${local_clear_route_cache_time_interval}" | grep -qE '^[0-9]$|^[1][0-9]$|^[2][0-4]$' && local_clear_route_cache_time_interval="4" && local_exist="0"
-
-	local_iptv_igmp_switch="$( lz_get_file_cache_data "iptv_igmp_switch" "5" )" && local_exist="0"
-	! echo "${local_iptv_igmp_switch}" | grep -q '^[0-9]$' && local_iptv_igmp_switch="5" && local_exist="0"
-
-	local_igmp_version="$( lz_get_file_cache_data "igmp_version" "0" )" && local_exist="0"
-	! echo "${local_igmp_version}" | grep -q '^[0-3]$' && local_igmp_version="0" && local_exist="0"
-
-	local_hnd_br0_bcmmcast_mode="$( lz_get_file_cache_data "hnd_br0_bcmmcast_mode" "2" )" && local_exist="0"
-	! echo "${local_hnd_br0_bcmmcast_mode}" | grep -q '^[0-2]$' && local_hnd_br0_bcmmcast_mode="2" && local_exist="0"
-
-	local_iptv_access_mode="$( lz_get_file_cache_data "iptv_access_mode" "1" )" && local_exist="0"
-	! echo "${local_iptv_access_mode}" | grep -q '^[1-2]$' && local_iptv_access_mode="1" && local_exist="0"
-
-	local_iptv_box_ip_lst_file="$( lz_get_file_cache_data "iptv_box_ip_lst_file" "\"${PATH_DATA}/iptv_box_ip_lst.txt\"" )" && local_exist="0"
-
-	local_iptv_isp_ip_lst_file="$( lz_get_file_cache_data "iptv_isp_ip_lst_file" "\"${PATH_DATA}/iptv_isp_ip_lst.txt\"" )" && local_exist="0"
-
-	local_wan1_iptv_mode="$( lz_get_file_cache_data "wan1_iptv_mode" "5" )" && local_exist="0"
-	! echo "${local_wan1_iptv_mode}" | grep -q '^[0-9]$' && local_wan1_iptv_mode="5" && local_exist="0"
-
-	local_wan1_udpxy_switch="$( lz_get_file_cache_data "wan1_udpxy_switch" "5" )" && local_exist="0"
-	! echo "${local_wan1_udpxy_switch}" | grep -q '^[0-9]$' && local_wan1_udpxy_switch="5" && local_exist="0"
-
-	local_wan1_udpxy_port="$( lz_get_file_cache_data "wan1_udpxy_port" "8686" )" && local_exist="0"
-	if echo "${local_wan1_udpxy_port}" | grep -qE '^[1-9]$|^[1-9][0-9][0-9]*$'; then
-		[ "${local_wan1_udpxy_port}" -gt "65535" ] && local_wan1_udpxy_port="8686" && local_exist="0"
-	else
-		local_wan1_udpxy_port="8686" && local_exist="0"
-	fi
-
-	local_wan1_udpxy_buffer="$( lz_get_file_cache_data "wan1_udpxy_buffer" "65536" )" && local_exist="0"
-	if echo "${local_wan1_udpxy_buffer}" | grep -qE '^[1-9][0-9][0-9][0-9][0-9]*$'; then
-		if [ "${local_wan1_udpxy_buffer}" -lt "4096" ] || [ "${local_wan1_udpxy_buffer}" -gt "2097152" ]; then
-			local_wan1_udpxy_buffer="65536" && local_exist="0"
-		fi
-	else
-		local_wan1_udpxy_buffer="65536" && local_exist="0"
-	fi
-
-	local_wan1_udpxy_client_num="$( lz_get_file_cache_data "wan1_udpxy_client_num" "10" )" && local_exist="0"
-	if echo "${local_wan1_udpxy_client_num}" | grep -qE '^[1-9]$|^[1-9][0-9][0-9]*$'; then
-		[ "${local_wan1_udpxy_client_num}" -gt "5000" ] && local_wan1_udpxy_client_num="10" && local_exist="0"
-	else
-		local_wan1_udpxy_client_num="10" && local_exist="0"
-	fi
-
-	local_wan2_iptv_mode="$( lz_get_file_cache_data "wan2_iptv_mode" "5" )" && local_exist="0"
-	! echo "${local_wan2_iptv_mode}" | grep -q '^[0-9]$' && local_wan2_iptv_mode="5" && local_exist="0"
-
-	local_wan2_udpxy_switch="$( lz_get_file_cache_data "wan2_udpxy_switch" "5" )" && local_exist="0"
-	! echo "${local_wan2_udpxy_switch}" | grep -q '^[0-9]$' && local_wan2_udpxy_switch="5" && local_exist="0"
-
-	local_wan2_udpxy_port="$( lz_get_file_cache_data "wan2_udpxy_port" "8888" )" && local_exist="0"
-	if echo "${local_wan2_udpxy_port}" | grep -qE '^[1-9]$|^[1-9][0-9][0-9]*$'; then
-		[ "${local_wan2_udpxy_port}" -gt "65535" ] && local_wan2_udpxy_port="8888" && local_exist="0"
-	else
-		local_wan2_udpxy_port="8888" && local_exist="0"
-	fi
-
-	local_wan2_udpxy_buffer="$( lz_get_file_cache_data "wan2_udpxy_buffer" "65536" )" && local_exist="0"
-	if echo "${local_wan2_udpxy_buffer}" | grep -qE '^[1-9][0-9][0-9][0-9][0-9]*$'; then
-		if [ "${local_wan2_udpxy_buffer}" -lt "4096" ] || [ "${local_wan2_udpxy_buffer}" -gt "2097152" ]; then
-			local_wan2_udpxy_buffer="65536" && local_exist="0"
-		fi
-	else
-		local_wan2_udpxy_buffer="65536" && local_exist="0"
-	fi
-
-	local_wan2_udpxy_client_num="$( lz_get_file_cache_data "wan2_udpxy_client_num" "10" )" && local_exist="0"
-	if echo "${local_wan2_udpxy_client_num}" | grep -qE '^[1-9]$|^[1-9][0-9][0-9]*$'; then
-		[ "${local_wan2_udpxy_client_num}" -gt "5000" ] && local_wan2_udpxy_client_num="10" && local_exist="0"
-	else
-		local_wan2_udpxy_client_num="10" && local_exist="0"
-	fi
-
-	## 读取文件数据项
-	## 输入项：
-	##     $1--数据项名称
-	##     $2--数据项缺省值
-	##     $3--数据文件全路径文件名
-	##     全局常量
-	## 返回值：
-	##     0--数据项不存在，或数据项值缺失，均以数据项缺省值输出
-	##     非0--数据项读取成功
-	local_udpxy_used="$( lz_get_file_data_item "udpxy_used" "5" "${PATH_FUNC}/lz_define_global_variables.sh" )" && {
-		cat >> "${PATH_FUNC}/lz_define_global_variables.sh" <<EOF
+    local_wan1_dest_udp_port="$( lz_get_file_cache_data "wan1_dest_udp_port" "" )" && {
+        if grep -qE "^[ ]*wan1_dest_udp_port=" "${PATH_CONFIGS}/lz_rule_config.sh"; then local_wan1_dest_udp_port=""; else local_exist="0"; fi;
+    }
+
+    local_wan1_dest_udplite_port="$( lz_get_file_cache_data "wan1_dest_udplite_port" "" )" && {
+        if grep -qE "^[ ]*wan1_dest_udplite_port=" "${PATH_CONFIGS}/lz_rule_config.sh"; then local_wan1_dest_udplite_port=""; else local_exist="0"; fi;
+    }
+
+    local_wan1_dest_sctp_port="$( lz_get_file_cache_data "wan1_dest_sctp_port" "" )" && {
+        if grep -qE "^[ ]*wan1_dest_sctp_port=" "${PATH_CONFIGS}/lz_rule_config.sh"; then local_wan1_dest_sctp_port=""; else local_exist="0"; fi;
+    }
+
+    local_ovs_client_wan_port="$( lz_get_file_cache_data "ovs_client_wan_port" "5" )" && local_exist="0"
+    ! echo "${local_ovs_client_wan_port}" | grep -q '^[0-9]$' && local_ovs_client_wan_port="5" && local_exist="0"
+
+    local_vpn_client_polling_time="$( lz_get_file_cache_data "vpn_client_polling_time" "5" )" && local_exist="0"
+    ! echo "${local_vpn_client_polling_time}" | grep -qE '^[0-9]$|^[1][0-9]$|^[2][0]$' && local_vpn_client_polling_time="5" && local_exist="0"
+
+    local_wan_access_port="$( lz_get_file_cache_data "wan_access_port" "0" )" && local_exist="0"
+    ## wan_access_port现在只能为0或1
+    [ "${local_wan_access_port}" != "0" ] && [ "${local_wan_access_port}" != "1" ] && local_wan_access_port="0" && local_exist="0"
+
+    local_list_mode_threshold="$( lz_get_file_cache_data "list_mode_threshold" "128" )" && local_exist="0"
+    ! echo "${local_list_mode_threshold}" | grep -qE '^[0-9]$|^[1-9][0-9][0-9]*$' && local_list_mode_threshold="128" && local_exist="0"
+
+    local_route_cache="$( lz_get_file_cache_data "route_cache" "0" )" && local_exist="0"
+    ! echo "${local_route_cache}" | grep -q '^[0-9]$' && local_route_cache="0" && local_exist="0"
+
+    local_clear_route_cache_time_interval="$( lz_get_file_cache_data "clear_route_cache_time_interval" "4" )" && local_exist="0"
+    ! echo "${local_clear_route_cache_time_interval}" | grep -qE '^[0-9]$|^[1][0-9]$|^[2][0-4]$' && local_clear_route_cache_time_interval="4" && local_exist="0"
+
+    local_iptv_igmp_switch="$( lz_get_file_cache_data "iptv_igmp_switch" "5" )" && local_exist="0"
+    ! echo "${local_iptv_igmp_switch}" | grep -q '^[0-9]$' && local_iptv_igmp_switch="5" && local_exist="0"
+
+    local_igmp_version="$( lz_get_file_cache_data "igmp_version" "0" )" && local_exist="0"
+    ! echo "${local_igmp_version}" | grep -q '^[0-3]$' && local_igmp_version="0" && local_exist="0"
+
+    local_hnd_br0_bcmmcast_mode="$( lz_get_file_cache_data "hnd_br0_bcmmcast_mode" "2" )" && local_exist="0"
+    ! echo "${local_hnd_br0_bcmmcast_mode}" | grep -q '^[0-2]$' && local_hnd_br0_bcmmcast_mode="2" && local_exist="0"
+
+    local_iptv_access_mode="$( lz_get_file_cache_data "iptv_access_mode" "1" )" && local_exist="0"
+    ! echo "${local_iptv_access_mode}" | grep -q '^[1-2]$' && local_iptv_access_mode="1" && local_exist="0"
+
+    local_iptv_box_ip_lst_file="$( lz_get_file_cache_data "iptv_box_ip_lst_file" "\"${PATH_DATA}/iptv_box_ip_lst.txt\"" )" && local_exist="0"
+
+    local_iptv_isp_ip_lst_file="$( lz_get_file_cache_data "iptv_isp_ip_lst_file" "\"${PATH_DATA}/iptv_isp_ip_lst.txt\"" )" && local_exist="0"
+
+    local_wan1_iptv_mode="$( lz_get_file_cache_data "wan1_iptv_mode" "5" )" && local_exist="0"
+    ! echo "${local_wan1_iptv_mode}" | grep -q '^[0-9]$' && local_wan1_iptv_mode="5" && local_exist="0"
+
+    local_wan1_udpxy_switch="$( lz_get_file_cache_data "wan1_udpxy_switch" "5" )" && local_exist="0"
+    ! echo "${local_wan1_udpxy_switch}" | grep -q '^[0-9]$' && local_wan1_udpxy_switch="5" && local_exist="0"
+
+    local_wan1_udpxy_port="$( lz_get_file_cache_data "wan1_udpxy_port" "8686" )" && local_exist="0"
+    if echo "${local_wan1_udpxy_port}" | grep -qE '^[1-9]$|^[1-9][0-9][0-9]*$'; then
+        [ "${local_wan1_udpxy_port}" -gt "65535" ] && local_wan1_udpxy_port="8686" && local_exist="0"
+    else
+        local_wan1_udpxy_port="8686" && local_exist="0"
+    fi
+
+    local_wan1_udpxy_buffer="$( lz_get_file_cache_data "wan1_udpxy_buffer" "65536" )" && local_exist="0"
+    if echo "${local_wan1_udpxy_buffer}" | grep -qE '^[1-9][0-9][0-9][0-9][0-9]*$'; then
+        if [ "${local_wan1_udpxy_buffer}" -lt "4096" ] || [ "${local_wan1_udpxy_buffer}" -gt "2097152" ]; then
+            local_wan1_udpxy_buffer="65536" && local_exist="0"
+        fi
+    else
+        local_wan1_udpxy_buffer="65536" && local_exist="0"
+    fi
+
+    local_wan1_udpxy_client_num="$( lz_get_file_cache_data "wan1_udpxy_client_num" "10" )" && local_exist="0"
+    if echo "${local_wan1_udpxy_client_num}" | grep -qE '^[1-9]$|^[1-9][0-9][0-9]*$'; then
+        [ "${local_wan1_udpxy_client_num}" -gt "5000" ] && local_wan1_udpxy_client_num="10" && local_exist="0"
+    else
+        local_wan1_udpxy_client_num="10" && local_exist="0"
+    fi
+
+    local_wan2_iptv_mode="$( lz_get_file_cache_data "wan2_iptv_mode" "5" )" && local_exist="0"
+    ! echo "${local_wan2_iptv_mode}" | grep -q '^[0-9]$' && local_wan2_iptv_mode="5" && local_exist="0"
+
+    local_wan2_udpxy_switch="$( lz_get_file_cache_data "wan2_udpxy_switch" "5" )" && local_exist="0"
+    ! echo "${local_wan2_udpxy_switch}" | grep -q '^[0-9]$' && local_wan2_udpxy_switch="5" && local_exist="0"
+
+    local_wan2_udpxy_port="$( lz_get_file_cache_data "wan2_udpxy_port" "8888" )" && local_exist="0"
+    if echo "${local_wan2_udpxy_port}" | grep -qE '^[1-9]$|^[1-9][0-9][0-9]*$'; then
+        [ "${local_wan2_udpxy_port}" -gt "65535" ] && local_wan2_udpxy_port="8888" && local_exist="0"
+    else
+        local_wan2_udpxy_port="8888" && local_exist="0"
+    fi
+
+    local_wan2_udpxy_buffer="$( lz_get_file_cache_data "wan2_udpxy_buffer" "65536" )" && local_exist="0"
+    if echo "${local_wan2_udpxy_buffer}" | grep -qE '^[1-9][0-9][0-9][0-9][0-9]*$'; then
+        if [ "${local_wan2_udpxy_buffer}" -lt "4096" ] || [ "${local_wan2_udpxy_buffer}" -gt "2097152" ]; then
+            local_wan2_udpxy_buffer="65536" && local_exist="0"
+        fi
+    else
+        local_wan2_udpxy_buffer="65536" && local_exist="0"
+    fi
+
+    local_wan2_udpxy_client_num="$( lz_get_file_cache_data "wan2_udpxy_client_num" "10" )" && local_exist="0"
+    if echo "${local_wan2_udpxy_client_num}" | grep -qE '^[1-9]$|^[1-9][0-9][0-9]*$'; then
+        [ "${local_wan2_udpxy_client_num}" -gt "5000" ] && local_wan2_udpxy_client_num="10" && local_exist="0"
+    else
+        local_wan2_udpxy_client_num="10" && local_exist="0"
+    fi
+
+    ## 读取文件数据项
+    ## 输入项：
+    ##     $1--数据项名称
+    ##     $2--数据项缺省值
+    ##     $3--数据文件全路径文件名
+    ##     全局常量
+    ## 返回值：
+    ##     0--数据项不存在，或数据项值缺失，均以数据项缺省值输出
+    ##     非0--数据项读取成功
+    local_udpxy_used="$( lz_get_file_data_item "udpxy_used" "5" "${PATH_FUNC}/lz_define_global_variables.sh" )" && {
+        cat >> "${PATH_FUNC}/lz_define_global_variables.sh" <<EOF
 
 ## 本脚本启用UDPXY标识（0--启用；非0--未启用）
 udpxy_used=5
 EOF
-	}
+    }
 
-	local_regularly_update_ispip_data_enable="$( lz_get_file_cache_data "regularly_update_ispip_data_enable" "5" )" && local_exist="0"
-	! echo "${local_regularly_update_ispip_data_enable}" | grep -q '^[0-9]$' && local_regularly_update_ispip_data_enable="5" && local_exist="0"
+    local_regularly_update_ispip_data_enable="$( lz_get_file_cache_data "regularly_update_ispip_data_enable" "5" )" && local_exist="0"
+    ! echo "${local_regularly_update_ispip_data_enable}" | grep -q '^[0-9]$' && local_regularly_update_ispip_data_enable="5" && local_exist="0"
 
-	local_ruid_interval_day="$( lz_get_file_cache_data "ruid_interval_day" "5" )" && local_exist="0"
-	! echo "${local_ruid_interval_day}" | grep -qE '^[0-9]$|^[2][0-9]$|^[3][0-1]$' && local_ruid_interval_day="5" && local_exist="0"
+    local_ruid_interval_day="$( lz_get_file_cache_data "ruid_interval_day" "5" )" && local_exist="0"
+    ! echo "${local_ruid_interval_day}" | grep -qE '^[0-9]$|^[2][0-9]$|^[3][0-1]$' && local_ruid_interval_day="5" && local_exist="0"
 
-	local_ruid_timer_hour="$( lz_get_file_cache_data "ruid_timer_hour" "\*" )" && local_exist="0"
-	! echo "${local_ruid_timer_hour}" | grep -qE '^[0-9]$|^[1][0-9]$|^[2][0-4]$' && local_ruid_timer_hour="*" && local_exist="0"
+    local_ruid_timer_hour="$( lz_get_file_cache_data "ruid_timer_hour" "\*" )" && local_exist="0"
+    ! echo "${local_ruid_timer_hour}" | grep -qE '^[0-9]$|^[1][0-9]$|^[2][0-4]$' && local_ruid_timer_hour="*" && local_exist="0"
 
-	local_ruid_timer_min="$( lz_get_file_cache_data "ruid_timer_min" "\*" )" && local_exist="0"
-	! echo "${local_ruid_timer_min}" | grep -qE '^[0-9]$|^[1-5][0-9]$' && local_ruid_timer_min="*" && local_exist="0"
+    local_ruid_timer_min="$( lz_get_file_cache_data "ruid_timer_min" "\*" )" && local_exist="0"
+    ! echo "${local_ruid_timer_min}" | grep -qE '^[0-9]$|^[1-5][0-9]$' && local_ruid_timer_min="*" && local_exist="0"
 
-	local_ruid_retry_num="$( lz_get_file_cache_data "ruid_retry_num" "5" )" && local_exist="0"
-	! echo "${local_ruid_retry_num}" | grep -qE '^[0-9][0-9]*$' && local_ruid_retry_num="5" && local_exist="0"
+    local_ruid_retry_num="$( lz_get_file_cache_data "ruid_retry_num" "5" )" && local_exist="0"
+    ! echo "${local_ruid_retry_num}" | grep -qE '^[0-9][0-9]*$' && local_ruid_retry_num="5" && local_exist="0"
 
-	local_custom_config_scripts="$( lz_get_file_cache_data "custom_config_scripts" "5" )" && local_exist="0"
-	! echo "${local_custom_config_scripts}" | grep -q '^[0-9]$' && local_custom_config_scripts="5" && local_exist="0"
+    local_custom_config_scripts="$( lz_get_file_cache_data "custom_config_scripts" "5" )" && local_exist="0"
+    ! echo "${local_custom_config_scripts}" | grep -q '^[0-9]$' && local_custom_config_scripts="5" && local_exist="0"
 
-	local_custom_config_scripts_filename="$( lz_get_file_cache_data "custom_config_scripts_filename" "\"${PATH_LZ}/custom_config.sh\"" )" && local_exist="0"
+    local_custom_config_scripts_filename="$( lz_get_file_cache_data "custom_config_scripts_filename" "\"${PATH_LZ}/custom_config.sh\"" )" && local_exist="0"
 
-	local_custom_dualwan_scripts="$( lz_get_file_cache_data "custom_dualwan_scripts" "5" )" && local_exist="0"
-	! echo "${local_custom_dualwan_scripts}" | grep -q '^[0-9]$' && local_custom_dualwan_scripts="5" && local_exist="0"
+    local_custom_dualwan_scripts="$( lz_get_file_cache_data "custom_dualwan_scripts" "5" )" && local_exist="0"
+    ! echo "${local_custom_dualwan_scripts}" | grep -q '^[0-9]$' && local_custom_dualwan_scripts="5" && local_exist="0"
 
-	local_custom_dualwan_scripts_filename="$( lz_get_file_cache_data "custom_dualwan_scripts_filename" "\"${PATH_LZ}/custom_dualwan_scripts.sh\"" )" && local_exist="0"
+    local_custom_dualwan_scripts_filename="$( lz_get_file_cache_data "custom_dualwan_scripts_filename" "\"${PATH_LZ}/custom_dualwan_scripts.sh\"" )" && local_exist="0"
 
-	local_custom_clear_scripts="$( lz_get_file_cache_data "custom_clear_scripts" "5" )" && local_exist="0"
-	! echo "${local_custom_clear_scripts}" | grep -q '^[0-9]$' && local_custom_clear_scripts="5" && local_exist="0"
+    local_custom_clear_scripts="$( lz_get_file_cache_data "custom_clear_scripts" "5" )" && local_exist="0"
+    ! echo "${local_custom_clear_scripts}" | grep -q '^[0-9]$' && local_custom_clear_scripts="5" && local_exist="0"
 
-	local_custom_clear_scripts_filename="$( lz_get_file_cache_data "custom_clear_scripts_filename" "\"${PATH_LZ}/custom_clear_scripts.sh\"" )" && local_exist="0"
+    local_custom_clear_scripts_filename="$( lz_get_file_cache_data "custom_clear_scripts_filename" "\"${PATH_LZ}/custom_clear_scripts.sh\"" )" && local_exist="0"
 
-	## 若有不存在的参数项，文件内容缺失，以缺省值填入失去参数项
-	## 复原配置文件
-	## 输入项：
-	##     全局常量及变量
-	## 返回值：无
-	[ "${local_exist}" = "0" ] && lz_restore_cfg_file
+    ## 若有不存在的参数项，文件内容缺失，以缺省值填入失去参数项
+    ## 复原配置文件
+    ## 输入项：
+    ##     全局常量及变量
+    ## 返回值：无
+    [ "${local_exist}" = "0" ] && lz_restore_cfg_file
 
-	unset local_file_cache
+    unset local_file_cache
 }
 
 ## 判断配置数据是否处于缺省状态函数
@@ -2050,81 +2050,81 @@ EOF
 ##     1--缺省状态
 ##     0--非缺省状态
 lz_cfg_is_default() {
-	[ "${local_all_foreign_wan_port}" != "0" ] && return 0
-	[ "${local_chinatelecom_wan_port}" != "0" ] && return 0
-	[ "${local_unicom_cnc_wan_port}" != "0" ] && return 0
-	[ "${local_cmcc_wan_port}" != "1" ] && return 0
-	[ "${local_crtc_wan_port}" != "1" ] && return 0
-	[ "${local_cernet_wan_port}" != "1" ] && return 0
-	[ "${local_gwbn_wan_port}" != "1" ] && return 0
-	[ "${local_othernet_wan_port}" != "0" ] && return 0
-	[ "${local_hk_wan_port}" != "0" ] && return 0
-	[ "${local_mo_wan_port}" != "0" ] && return 0
-	[ "${local_tw_wan_port}" != "0" ] && return 0
-	[ "${local_usage_mode}" != "0" ] && return 0
-	[ "${local_custom_data_wan_port_1}" != "5" ] && return 0
-	[ "${local_custom_data_file_1}" != "\"${PATH_DATA}/custom_data_1.txt\"" ] && return 0
-	[ "${local_custom_data_wan_port_2}" != "5" ] && return 0
-	[ "${local_custom_data_file_2}" != "\"${PATH_DATA}/custom_data_2.txt\"" ] && return 0
-	[ "${local_wan_1_client_src_addr}" != "5" ] && return 0
-	[ "${local_wan_1_client_src_addr_file}" != "\"${PATH_DATA}/wan_1_client_src_addr.txt\"" ] && return 0
-	[ "${local_wan_2_client_src_addr}" != "5" ] && return 0
-	[ "${local_wan_2_client_src_addr_file}" != "\"${PATH_DATA}/wan_2_client_src_addr.txt\"" ] && return 0
-	[ "${local_high_wan_1_client_src_addr}" != "5" ] && return 0
-	[ "${local_high_wan_1_client_src_addr_file}" != "\"${PATH_DATA}/high_wan_1_client_src_addr.txt\"" ] && return 0
-	[ "${local_high_wan_2_client_src_addr}" != "5" ] && return 0
-	[ "${local_high_wan_2_client_src_addr_file}" != "\"${PATH_DATA}/high_wan_2_client_src_addr.txt\"" ] && return 0
-	[ "${local_wan_1_src_to_dst_addr}" != "5" ] && return 0
-	[ "${local_wan_1_src_to_dst_addr_file}" != "\"${PATH_DATA}/wan_1_src_to_dst_addr.txt\"" ] && return 0
-	[ "${local_wan_2_src_to_dst_addr}" != "5" ] && return 0
-	[ "${local_wan_2_src_to_dst_addr_file}" != "\"${PATH_DATA}/wan_2_src_to_dst_addr.txt\"" ] && return 0
-	[ "${local_high_wan_1_src_to_dst_addr}" != "5" ] && return 0
-	[ "${local_high_wan_1_src_to_dst_addr_file}" != "\"${PATH_DATA}/high_wan_1_src_to_dst_addr.txt\"" ] && return 0
-	[ "${local_local_ipsets_file}" != "\"${PATH_DATA}/local_ipsets_data.txt\"" ] && return 0
-	[ "${local_private_ipsets_file}" != "\"${PATH_DATA}/private_ipsets_data.txt\"" ] && return 0
-	[ "${local_wan0_dest_tcp_port}" != "" ] && return 0
-	[ "${local_wan0_dest_udp_port}" != "" ] && return 0
-	[ "${local_wan0_dest_udplite_port}" != "" ] && return 0
-	[ "${local_wan0_dest_sctp_port}" != "" ] && return 0
-	[ "${local_wan1_dest_tcp_port}" != "" ] && return 0
-	[ "${local_wan1_dest_udp_port}" != "" ] && return 0
-	[ "${local_wan1_dest_udplite_port}" != "" ] && return 0
-	[ "${local_wan1_dest_sctp_port}" != "" ] && return 0
-	[ "${local_ovs_client_wan_port}" != "0" ] && return 0
-	[ "${local_vpn_client_polling_time}" != "5" ] && return 0
-	[ "${local_wan_access_port}" != "0" ] && return 0
-	[ "${local_list_mode_threshold}" != "128" ] && return 0
-	[ "${local_route_cache}" != "0" ] && return 0
-	[ "${local_clear_route_cache_time_interval}" != "4" ] && return 0
-	[ "${local_iptv_igmp_switch}" != "5" ] && return 0
-	[ "${local_igmp_version}" != "0" ] && return 0
-	[ "${local_hnd_br0_bcmmcast_mode}" != "2" ] && return 0
-	[ "${local_iptv_access_mode}" != "1" ] && return 0
-	[ "${local_iptv_box_ip_lst_file}" != "\"${PATH_DATA}/iptv_box_ip_lst.txt\"" ] && return 0
-	[ "${local_iptv_isp_ip_lst_file}" != "\"${PATH_DATA}/iptv_isp_ip_lst.txt\"" ] && return 0
-	[ "${local_wan1_iptv_mode}" != "5" ] && return 0
-	[ "${local_wan1_udpxy_switch}" != "5" ] && return 0
-	[ "${local_wan1_udpxy_port}" != "8686" ] && return 0
-	[ "${local_wan1_udpxy_buffer}" != "65536" ] && return 0
-	[ "${local_wan1_udpxy_client_num}" != "10" ] && return 0
-	[ "${local_wan2_iptv_mode}" != "5" ] && return 0
-	[ "${local_wan2_udpxy_switch}" != "5" ] && return 0
-	[ "${local_wan2_udpxy_port}" != "8888" ] && return 0
-	[ "${local_wan2_udpxy_buffer}" != "65536" ] && return 0
-	[ "${local_wan2_udpxy_client_num}" != "10" ] && return 0
-	[ "${local_regularly_update_ispip_data_enable}" != "5" ] && return 0
-	[ "${local_ruid_interval_day}" != "5" ] && return 0
-	[ "${local_ruid_timer_hour}" != "*" ] && return 0
-	[ "${local_ruid_timer_min}" != "*" ] && return 0
-	[ "${local_ruid_retry_num}" != "5" ] && return 0
-	[ "${local_custom_config_scripts}" != "5" ] && return 0
-	[ "${local_custom_config_scripts_filename}" != "\"${PATH_LZ}/custom_config.sh\"" ] && return 0
-	[ "${local_custom_dualwan_scripts}" != "5" ] && return 0
-	[ "${local_custom_dualwan_scripts_filename}" != "\"${PATH_LZ}/custom_dualwan_scripts.sh\"" ] && return 0
-	[ "${local_custom_clear_scripts}" != "5" ] && return 0
-	[ "${local_custom_clear_scripts_filename}" != "\"${PATH_LZ}/custom_clear_scripts.sh\"" ] && return 0
+    [ "${local_all_foreign_wan_port}" != "0" ] && return 0
+    [ "${local_chinatelecom_wan_port}" != "0" ] && return 0
+    [ "${local_unicom_cnc_wan_port}" != "0" ] && return 0
+    [ "${local_cmcc_wan_port}" != "1" ] && return 0
+    [ "${local_crtc_wan_port}" != "1" ] && return 0
+    [ "${local_cernet_wan_port}" != "1" ] && return 0
+    [ "${local_gwbn_wan_port}" != "1" ] && return 0
+    [ "${local_othernet_wan_port}" != "0" ] && return 0
+    [ "${local_hk_wan_port}" != "0" ] && return 0
+    [ "${local_mo_wan_port}" != "0" ] && return 0
+    [ "${local_tw_wan_port}" != "0" ] && return 0
+    [ "${local_usage_mode}" != "0" ] && return 0
+    [ "${local_custom_data_wan_port_1}" != "5" ] && return 0
+    [ "${local_custom_data_file_1}" != "\"${PATH_DATA}/custom_data_1.txt\"" ] && return 0
+    [ "${local_custom_data_wan_port_2}" != "5" ] && return 0
+    [ "${local_custom_data_file_2}" != "\"${PATH_DATA}/custom_data_2.txt\"" ] && return 0
+    [ "${local_wan_1_client_src_addr}" != "5" ] && return 0
+    [ "${local_wan_1_client_src_addr_file}" != "\"${PATH_DATA}/wan_1_client_src_addr.txt\"" ] && return 0
+    [ "${local_wan_2_client_src_addr}" != "5" ] && return 0
+    [ "${local_wan_2_client_src_addr_file}" != "\"${PATH_DATA}/wan_2_client_src_addr.txt\"" ] && return 0
+    [ "${local_high_wan_1_client_src_addr}" != "5" ] && return 0
+    [ "${local_high_wan_1_client_src_addr_file}" != "\"${PATH_DATA}/high_wan_1_client_src_addr.txt\"" ] && return 0
+    [ "${local_high_wan_2_client_src_addr}" != "5" ] && return 0
+    [ "${local_high_wan_2_client_src_addr_file}" != "\"${PATH_DATA}/high_wan_2_client_src_addr.txt\"" ] && return 0
+    [ "${local_wan_1_src_to_dst_addr}" != "5" ] && return 0
+    [ "${local_wan_1_src_to_dst_addr_file}" != "\"${PATH_DATA}/wan_1_src_to_dst_addr.txt\"" ] && return 0
+    [ "${local_wan_2_src_to_dst_addr}" != "5" ] && return 0
+    [ "${local_wan_2_src_to_dst_addr_file}" != "\"${PATH_DATA}/wan_2_src_to_dst_addr.txt\"" ] && return 0
+    [ "${local_high_wan_1_src_to_dst_addr}" != "5" ] && return 0
+    [ "${local_high_wan_1_src_to_dst_addr_file}" != "\"${PATH_DATA}/high_wan_1_src_to_dst_addr.txt\"" ] && return 0
+    [ "${local_local_ipsets_file}" != "\"${PATH_DATA}/local_ipsets_data.txt\"" ] && return 0
+    [ "${local_private_ipsets_file}" != "\"${PATH_DATA}/private_ipsets_data.txt\"" ] && return 0
+    [ "${local_wan0_dest_tcp_port}" != "" ] && return 0
+    [ "${local_wan0_dest_udp_port}" != "" ] && return 0
+    [ "${local_wan0_dest_udplite_port}" != "" ] && return 0
+    [ "${local_wan0_dest_sctp_port}" != "" ] && return 0
+    [ "${local_wan1_dest_tcp_port}" != "" ] && return 0
+    [ "${local_wan1_dest_udp_port}" != "" ] && return 0
+    [ "${local_wan1_dest_udplite_port}" != "" ] && return 0
+    [ "${local_wan1_dest_sctp_port}" != "" ] && return 0
+    [ "${local_ovs_client_wan_port}" != "0" ] && return 0
+    [ "${local_vpn_client_polling_time}" != "5" ] && return 0
+    [ "${local_wan_access_port}" != "0" ] && return 0
+    [ "${local_list_mode_threshold}" != "128" ] && return 0
+    [ "${local_route_cache}" != "0" ] && return 0
+    [ "${local_clear_route_cache_time_interval}" != "4" ] && return 0
+    [ "${local_iptv_igmp_switch}" != "5" ] && return 0
+    [ "${local_igmp_version}" != "0" ] && return 0
+    [ "${local_hnd_br0_bcmmcast_mode}" != "2" ] && return 0
+    [ "${local_iptv_access_mode}" != "1" ] && return 0
+    [ "${local_iptv_box_ip_lst_file}" != "\"${PATH_DATA}/iptv_box_ip_lst.txt\"" ] && return 0
+    [ "${local_iptv_isp_ip_lst_file}" != "\"${PATH_DATA}/iptv_isp_ip_lst.txt\"" ] && return 0
+    [ "${local_wan1_iptv_mode}" != "5" ] && return 0
+    [ "${local_wan1_udpxy_switch}" != "5" ] && return 0
+    [ "${local_wan1_udpxy_port}" != "8686" ] && return 0
+    [ "${local_wan1_udpxy_buffer}" != "65536" ] && return 0
+    [ "${local_wan1_udpxy_client_num}" != "10" ] && return 0
+    [ "${local_wan2_iptv_mode}" != "5" ] && return 0
+    [ "${local_wan2_udpxy_switch}" != "5" ] && return 0
+    [ "${local_wan2_udpxy_port}" != "8888" ] && return 0
+    [ "${local_wan2_udpxy_buffer}" != "65536" ] && return 0
+    [ "${local_wan2_udpxy_client_num}" != "10" ] && return 0
+    [ "${local_regularly_update_ispip_data_enable}" != "5" ] && return 0
+    [ "${local_ruid_interval_day}" != "5" ] && return 0
+    [ "${local_ruid_timer_hour}" != "*" ] && return 0
+    [ "${local_ruid_timer_min}" != "*" ] && return 0
+    [ "${local_ruid_retry_num}" != "5" ] && return 0
+    [ "${local_custom_config_scripts}" != "5" ] && return 0
+    [ "${local_custom_config_scripts_filename}" != "\"${PATH_LZ}/custom_config.sh\"" ] && return 0
+    [ "${local_custom_dualwan_scripts}" != "5" ] && return 0
+    [ "${local_custom_dualwan_scripts_filename}" != "\"${PATH_LZ}/custom_dualwan_scripts.sh\"" ] && return 0
+    [ "${local_custom_clear_scripts}" != "5" ] && return 0
+    [ "${local_custom_clear_scripts_filename}" != "\"${PATH_LZ}/custom_clear_scripts.sh\"" ] && return 0
 
-	return 1
+    return 1
 }
 
 ## 备份脚本配置参数函数
@@ -2132,7 +2132,7 @@ lz_cfg_is_default() {
 ##     全局常量及变量
 ## 返回值：无
 lz_backup_config() {
-	cat > "${PATH_CONFIGS}/lz_rule_config.box" <<EOF
+    cat > "${PATH_CONFIGS}/lz_rule_config.box" <<EOF
 lz_config_version=${local_version}
 lz_config_all_foreign_wan_port=${local_all_foreign_wan_port}
 lz_config_chinatelecom_wan_port=${local_chinatelecom_wan_port}
@@ -2209,7 +2209,7 @@ lz_config_custom_dualwan_scripts_filename=${local_custom_dualwan_scripts_filenam
 lz_config_custom_clear_scripts=${local_custom_clear_scripts}
 lz_config_custom_clear_scripts_filename=${local_custom_clear_scripts_filename}
 EOF
-	chmod +x "${PATH_CONFIGS}/lz_rule_config.box" > /dev/null 2>&1
+    chmod +x "${PATH_CONFIGS}/lz_rule_config.box" > /dev/null 2>&1
 }
 
 ## 恢复lz_rule_config.box中的配置参数函数
@@ -2217,7 +2217,7 @@ EOF
 ##     全局常量及变量
 ## 返回值：无
 lz_restore_box_data() {
-	cat > "${PATH_CONFIGS}/lz_rule_config.box" <<EOF
+    cat > "${PATH_CONFIGS}/lz_rule_config.box" <<EOF
 lz_config_version=${local_ini_version}
 lz_config_all_foreign_wan_port=${local_ini_all_foreign_wan_port}
 lz_config_chinatelecom_wan_port=${local_ini_chinatelecom_wan_port}
@@ -2294,7 +2294,7 @@ lz_config_custom_dualwan_scripts_filename=${local_ini_custom_dualwan_scripts_fil
 lz_config_custom_clear_scripts=${local_ini_custom_clear_scripts}
 lz_config_custom_clear_scripts_filename=${local_ini_custom_clear_scripts_filename}
 EOF
-	chmod +x "${PATH_CONFIGS}/lz_rule_config.box" > /dev/null 2>&1
+    chmod +x "${PATH_CONFIGS}/lz_rule_config.box" > /dev/null 2>&1
 }
 
 ## 读取lz_rule_config.box中的配置参数函数
@@ -2303,332 +2303,332 @@ EOF
 ## 返回值：无
 lz_read_box_data() {
 
-	local local_exist="1"
-
-	## 格式化读取文件缓冲区
-	## 输入项：
-	##     $1--数据文件全路径文件名
-	## 返回值：
-	##     数据文件缓冲区内容
-	local_file_cache="$( lz_read_file_cache_buffer "${PATH_CONFIGS}/lz_rule_config.box" )"
-
-	## 读取文件缓冲区数据项
-	## 输入项：
-	##     $1--数据项名称
-	##     $2--数据项缺省值
-	##     local_file_cache--数据文件缓冲区
-	##     全局常量
-	## 返回值：
-	##     0--数据项不存在，或数据项值缺失，均以数据项缺省值输出
-	##     非0--数据项读取成功
-	local_ini_version="$( lz_get_file_cache_data "lz_config_version" "${LZ_VERSION}" )" && local_exist="0"
-
-	## 判断之前安装的版本是否在v2.9.5~v3.4.6之间
-	local local_hd_mark="0"
-	local local_old_version_number="$( echo "${local_ini_version}" | grep -Eo 'v[0-9][\.][0-9][\.][0-9]' | sed -e 's/v\([0-9]\)[\.]\([0-9]\)[\.]\([0-9]\)/\1\2\3/g' | sed -n 1p )"
-	[ -n "${local_old_version_number}" ] && [ "${local_old_version_number}" -ge "295" ] && [ "${local_old_version_number}" -le "346" ] && local_hd_mark="1"
-
-	local_ini_all_foreign_wan_port="$( lz_get_file_cache_data "lz_config_all_foreign_wan_port" "0" )" && local_exist="0"
-	! echo "${local_ini_all_foreign_wan_port}" | grep -q '^[0-9]$' && local_ini_all_foreign_wan_port="0" && local_exist="0"
-
-	local_ini_chinatelecom_wan_port="$( lz_get_file_cache_data "lz_config_chinatelecom_wan_port" "0" )" && local_exist="0"
-	[ "${local_hd_mark}" = "1" ] && {
-		## 之前安装的版本在v2.9.5~v3.4.6之间时，若运营商网段出口参数为2或3，需调整为0或1
-		[ "${local_ini_chinatelecom_wan_port}" = "2" ] && local_ini_chinatelecom_wan_port="0" && local_exist="0"
-		[ "${local_ini_chinatelecom_wan_port}" = "3" ] && local_ini_chinatelecom_wan_port="1" && local_exist="0"
-	}
-	! echo "${local_ini_chinatelecom_wan_port}" | grep -q '^[0-9]$' && local_ini_chinatelecom_wan_port="0" && local_exist="0"
-
-	local_ini_unicom_cnc_wan_port="$( lz_get_file_cache_data "lz_config_unicom_cnc_wan_port" "0" )" && local_exist="0"
-	[ "${local_hd_mark}" = "1" ] && {
-		[ "${local_ini_unicom_cnc_wan_port}" = "2" ] && local_ini_unicom_cnc_wan_port="0" && local_exist="0"
-		[ "${local_ini_unicom_cnc_wan_port}" = "3" ] && local_ini_unicom_cnc_wan_port="1" && local_exist="0"
-	}
-	! echo "${local_ini_unicom_cnc_wan_port}" | grep -q '^[0-9]$' && local_ini_unicom_cnc_wan_port="0" && local_exist="0"
-
-	local_ini_cmcc_wan_port="$( lz_get_file_cache_data "lz_config_cmcc_wan_port" "1" )" && local_exist="0"
-	[ "${local_hd_mark}" = "1" ] && {
-		[ "${local_ini_cmcc_wan_port}" = "2" ] && local_ini_cmcc_wan_port="0" && local_exist="0"
-		[ "${local_ini_cmcc_wan_port}" = "3" ] && local_ini_cmcc_wan_port="1" && local_exist="0"
-	}
-	! echo "${local_ini_cmcc_wan_port}" | grep -q '^[0-9]$' && local_ini_cmcc_wan_port="1" && local_exist="0"
-
-	local_ini_crtc_wan_port="$( lz_get_file_cache_data "lz_config_crtc_wan_port" "1" )" && local_exist="0"
-	[ "${local_hd_mark}" = "1" ] && {
-		[ "${local_ini_crtc_wan_port}" = "2" ] && local_ini_crtc_wan_port="0" && local_exist="0"
-		[ "${local_ini_crtc_wan_port}" = "3" ] && local_ini_crtc_wan_port="1" && local_exist="0"
-	}
-	! echo "${local_ini_crtc_wan_port}" | grep -q '^[0-9]$' && local_ini_crtc_wan_port="1" && local_exist="0"
-
-	local_ini_cernet_wan_port="$( lz_get_file_cache_data "lz_config_cernet_wan_port" "1" )" && local_exist="0"
-	[ "${local_hd_mark}" = "1" ] && {
-		[ "${local_ini_cernet_wan_port}" = "2" ] && local_ini_cernet_wan_port="0" && local_exist="0"
-		[ "${local_ini_cernet_wan_port}" = "3" ] && local_ini_cernet_wan_port="1" && local_exist="0"
-	}
-	! echo "${local_ini_cernet_wan_port}" | grep -q '^[0-9]$' && local_ini_cernet_wan_port="1" && local_exist="0"
-
-	local_ini_gwbn_wan_port="$( lz_get_file_cache_data "lz_config_gwbn_wan_port" "1" )" && local_exist="0"
-	[ "${local_hd_mark}" = "1" ] && {
-		[ "${local_ini_gwbn_wan_port}" = "2" ] && local_ini_gwbn_wan_port="0" && local_exist="0"
-		[ "${local_ini_gwbn_wan_port}" = "3" ] && local_ini_gwbn_wan_port="1" && local_exist="0"
-	}
-	! echo "${local_ini_gwbn_wan_port}" | grep -q '^[0-9]$' && local_ini_gwbn_wan_port="1" && local_exist="0"
-
-	local_ini_othernet_wan_port="$( lz_get_file_cache_data "lz_config_othernet_wan_port" "0" )" && local_exist="0"
-	[ "${local_hd_mark}" = "1" ] && {
-		[ "${local_ini_othernet_wan_port}" = "2" ] && local_ini_othernet_wan_port="0" && local_exist="0"
-		[ "${local_ini_othernet_wan_port}" = "3" ] && local_ini_othernet_wan_port="1" && local_exist="0"
-	}
-	! echo "${local_ini_othernet_wan_port}" | grep -q '^[0-9]$' && local_ini_othernet_wan_port="0" && local_exist="0"
-
-	local_ini_hk_wan_port="$( lz_get_file_cache_data "lz_config_hk_wan_port" "0" )" && local_exist="0"
-	[ "${local_hd_mark}" = "1" ] && {
-		[ "${local_ini_hk_wan_port}" = "2" ] && local_ini_hk_wan_port="0" && local_exist="0"
-		[ "${local_ini_hk_wan_port}" = "3" ] && local_ini_hk_wan_port="1" && local_exist="0"
-	}
-	! echo "${local_ini_hk_wan_port}" | grep -q '^[0-9]$' && local_ini_hk_wan_port="0" && local_exist="0"
-
-	local_ini_mo_wan_port="$( lz_get_file_cache_data "lz_config_mo_wan_port" "0" )" && local_exist="0"
-	[ "${local_hd_mark}" = "1" ] && {
-		[ "${local_ini_mo_wan_port}" = "2" ] && local_ini_mo_wan_port="0" && local_exist="0"
-		[ "${local_ini_mo_wan_port}" = "3" ] && local_ini_mo_wan_port="1" && local_exist="0"
-	}
-	! echo "${local_ini_mo_wan_port}" | grep -q '^[0-9]$' && local_ini_mo_wan_port="0" && local_exist="0"
-
-	local_ini_tw_wan_port="$( lz_get_file_cache_data "lz_config_tw_wan_port" "0" )" && local_exist="0"
-	[ "${local_hd_mark}" = "1" ] && {
-		[ "${local_ini_tw_wan_port}" = "2" ] && local_ini_tw_wan_port="0" && local_exist="0"
-		[ "${local_ini_tw_wan_port}" = "3" ] && local_ini_tw_wan_port="1" && local_exist="0"
-	}
-	! echo "${local_ini_tw_wan_port}" | grep -q '^[0-9]$' && local_ini_tw_wan_port="0" && local_exist="0"
-
-	local_ini_usage_mode="$( lz_get_file_cache_data "lz_config_usage_mode" "0" )" && local_exist="0"
-	[ "${local_ini_usage_mode}" != "0" ] && [ "${local_ini_usage_mode}" != "1" ] && local_ini_usage_mode="0" && local_exist="0"
-	[ "${local_hd_mark}" = "1" ] && {
-		local local_ini_policy_mode="$( lz_get_file_cache_data "lz_config_policy_mode" "5" )"
-		if [ "${local_ini_policy_mode}" != "0" ] && [ "${local_ini_policy_mode}" != "1" ]; then
-			local_ini_usage_mode="0"
-		else
-			local_ini_usage_mode="1"
-		fi
-		local_exist="0"
-	}
+    local local_exist="1"
+
+    ## 格式化读取文件缓冲区
+    ## 输入项：
+    ##     $1--数据文件全路径文件名
+    ## 返回值：
+    ##     数据文件缓冲区内容
+    local_file_cache="$( lz_read_file_cache_buffer "${PATH_CONFIGS}/lz_rule_config.box" )"
+
+    ## 读取文件缓冲区数据项
+    ## 输入项：
+    ##     $1--数据项名称
+    ##     $2--数据项缺省值
+    ##     local_file_cache--数据文件缓冲区
+    ##     全局常量
+    ## 返回值：
+    ##     0--数据项不存在，或数据项值缺失，均以数据项缺省值输出
+    ##     非0--数据项读取成功
+    local_ini_version="$( lz_get_file_cache_data "lz_config_version" "${LZ_VERSION}" )" && local_exist="0"
+
+    ## 判断之前安装的版本是否在v2.9.5~v3.4.6之间
+    local local_hd_mark="0"
+    local local_old_version_number="$( echo "${local_ini_version}" | grep -Eo 'v[0-9][\.][0-9][\.][0-9]' | sed -e 's/v\([0-9]\)[\.]\([0-9]\)[\.]\([0-9]\)/\1\2\3/g' | sed -n 1p )"
+    [ -n "${local_old_version_number}" ] && [ "${local_old_version_number}" -ge "295" ] && [ "${local_old_version_number}" -le "346" ] && local_hd_mark="1"
+
+    local_ini_all_foreign_wan_port="$( lz_get_file_cache_data "lz_config_all_foreign_wan_port" "0" )" && local_exist="0"
+    ! echo "${local_ini_all_foreign_wan_port}" | grep -q '^[0-9]$' && local_ini_all_foreign_wan_port="0" && local_exist="0"
+
+    local_ini_chinatelecom_wan_port="$( lz_get_file_cache_data "lz_config_chinatelecom_wan_port" "0" )" && local_exist="0"
+    [ "${local_hd_mark}" = "1" ] && {
+        ## 之前安装的版本在v2.9.5~v3.4.6之间时，若运营商网段出口参数为2或3，需调整为0或1
+        [ "${local_ini_chinatelecom_wan_port}" = "2" ] && local_ini_chinatelecom_wan_port="0" && local_exist="0"
+        [ "${local_ini_chinatelecom_wan_port}" = "3" ] && local_ini_chinatelecom_wan_port="1" && local_exist="0"
+    }
+    ! echo "${local_ini_chinatelecom_wan_port}" | grep -q '^[0-9]$' && local_ini_chinatelecom_wan_port="0" && local_exist="0"
+
+    local_ini_unicom_cnc_wan_port="$( lz_get_file_cache_data "lz_config_unicom_cnc_wan_port" "0" )" && local_exist="0"
+    [ "${local_hd_mark}" = "1" ] && {
+        [ "${local_ini_unicom_cnc_wan_port}" = "2" ] && local_ini_unicom_cnc_wan_port="0" && local_exist="0"
+        [ "${local_ini_unicom_cnc_wan_port}" = "3" ] && local_ini_unicom_cnc_wan_port="1" && local_exist="0"
+    }
+    ! echo "${local_ini_unicom_cnc_wan_port}" | grep -q '^[0-9]$' && local_ini_unicom_cnc_wan_port="0" && local_exist="0"
+
+    local_ini_cmcc_wan_port="$( lz_get_file_cache_data "lz_config_cmcc_wan_port" "1" )" && local_exist="0"
+    [ "${local_hd_mark}" = "1" ] && {
+        [ "${local_ini_cmcc_wan_port}" = "2" ] && local_ini_cmcc_wan_port="0" && local_exist="0"
+        [ "${local_ini_cmcc_wan_port}" = "3" ] && local_ini_cmcc_wan_port="1" && local_exist="0"
+    }
+    ! echo "${local_ini_cmcc_wan_port}" | grep -q '^[0-9]$' && local_ini_cmcc_wan_port="1" && local_exist="0"
+
+    local_ini_crtc_wan_port="$( lz_get_file_cache_data "lz_config_crtc_wan_port" "1" )" && local_exist="0"
+    [ "${local_hd_mark}" = "1" ] && {
+        [ "${local_ini_crtc_wan_port}" = "2" ] && local_ini_crtc_wan_port="0" && local_exist="0"
+        [ "${local_ini_crtc_wan_port}" = "3" ] && local_ini_crtc_wan_port="1" && local_exist="0"
+    }
+    ! echo "${local_ini_crtc_wan_port}" | grep -q '^[0-9]$' && local_ini_crtc_wan_port="1" && local_exist="0"
+
+    local_ini_cernet_wan_port="$( lz_get_file_cache_data "lz_config_cernet_wan_port" "1" )" && local_exist="0"
+    [ "${local_hd_mark}" = "1" ] && {
+        [ "${local_ini_cernet_wan_port}" = "2" ] && local_ini_cernet_wan_port="0" && local_exist="0"
+        [ "${local_ini_cernet_wan_port}" = "3" ] && local_ini_cernet_wan_port="1" && local_exist="0"
+    }
+    ! echo "${local_ini_cernet_wan_port}" | grep -q '^[0-9]$' && local_ini_cernet_wan_port="1" && local_exist="0"
+
+    local_ini_gwbn_wan_port="$( lz_get_file_cache_data "lz_config_gwbn_wan_port" "1" )" && local_exist="0"
+    [ "${local_hd_mark}" = "1" ] && {
+        [ "${local_ini_gwbn_wan_port}" = "2" ] && local_ini_gwbn_wan_port="0" && local_exist="0"
+        [ "${local_ini_gwbn_wan_port}" = "3" ] && local_ini_gwbn_wan_port="1" && local_exist="0"
+    }
+    ! echo "${local_ini_gwbn_wan_port}" | grep -q '^[0-9]$' && local_ini_gwbn_wan_port="1" && local_exist="0"
+
+    local_ini_othernet_wan_port="$( lz_get_file_cache_data "lz_config_othernet_wan_port" "0" )" && local_exist="0"
+    [ "${local_hd_mark}" = "1" ] && {
+        [ "${local_ini_othernet_wan_port}" = "2" ] && local_ini_othernet_wan_port="0" && local_exist="0"
+        [ "${local_ini_othernet_wan_port}" = "3" ] && local_ini_othernet_wan_port="1" && local_exist="0"
+    }
+    ! echo "${local_ini_othernet_wan_port}" | grep -q '^[0-9]$' && local_ini_othernet_wan_port="0" && local_exist="0"
+
+    local_ini_hk_wan_port="$( lz_get_file_cache_data "lz_config_hk_wan_port" "0" )" && local_exist="0"
+    [ "${local_hd_mark}" = "1" ] && {
+        [ "${local_ini_hk_wan_port}" = "2" ] && local_ini_hk_wan_port="0" && local_exist="0"
+        [ "${local_ini_hk_wan_port}" = "3" ] && local_ini_hk_wan_port="1" && local_exist="0"
+    }
+    ! echo "${local_ini_hk_wan_port}" | grep -q '^[0-9]$' && local_ini_hk_wan_port="0" && local_exist="0"
+
+    local_ini_mo_wan_port="$( lz_get_file_cache_data "lz_config_mo_wan_port" "0" )" && local_exist="0"
+    [ "${local_hd_mark}" = "1" ] && {
+        [ "${local_ini_mo_wan_port}" = "2" ] && local_ini_mo_wan_port="0" && local_exist="0"
+        [ "${local_ini_mo_wan_port}" = "3" ] && local_ini_mo_wan_port="1" && local_exist="0"
+    }
+    ! echo "${local_ini_mo_wan_port}" | grep -q '^[0-9]$' && local_ini_mo_wan_port="0" && local_exist="0"
+
+    local_ini_tw_wan_port="$( lz_get_file_cache_data "lz_config_tw_wan_port" "0" )" && local_exist="0"
+    [ "${local_hd_mark}" = "1" ] && {
+        [ "${local_ini_tw_wan_port}" = "2" ] && local_ini_tw_wan_port="0" && local_exist="0"
+        [ "${local_ini_tw_wan_port}" = "3" ] && local_ini_tw_wan_port="1" && local_exist="0"
+    }
+    ! echo "${local_ini_tw_wan_port}" | grep -q '^[0-9]$' && local_ini_tw_wan_port="0" && local_exist="0"
+
+    local_ini_usage_mode="$( lz_get_file_cache_data "lz_config_usage_mode" "0" )" && local_exist="0"
+    [ "${local_ini_usage_mode}" != "0" ] && [ "${local_ini_usage_mode}" != "1" ] && local_ini_usage_mode="0" && local_exist="0"
+    [ "${local_hd_mark}" = "1" ] && {
+        local local_ini_policy_mode="$( lz_get_file_cache_data "lz_config_policy_mode" "5" )"
+        if [ "${local_ini_policy_mode}" != "0" ] && [ "${local_ini_policy_mode}" != "1" ]; then
+            local_ini_usage_mode="0"
+        else
+            local_ini_usage_mode="1"
+        fi
+        local_exist="0"
+    }
 
-	local_ini_custom_data_wan_port_1="$( lz_get_file_cache_data "lz_config_custom_data_wan_port_1" "5" )" && local_exist="0"
-	! echo "${local_ini_custom_data_wan_port_1}" | grep -q '^[0-9]$' && local_ini_custom_data_wan_port_1="5" && local_exist="0"
+    local_ini_custom_data_wan_port_1="$( lz_get_file_cache_data "lz_config_custom_data_wan_port_1" "5" )" && local_exist="0"
+    ! echo "${local_ini_custom_data_wan_port_1}" | grep -q '^[0-9]$' && local_ini_custom_data_wan_port_1="5" && local_exist="0"
 
-	local_ini_custom_data_file_1="$( lz_get_file_cache_data "lz_config_custom_data_file_1" "\"${PATH_DATA}/custom_data_1.txt\"" )" && local_exist="0"
+    local_ini_custom_data_file_1="$( lz_get_file_cache_data "lz_config_custom_data_file_1" "\"${PATH_DATA}/custom_data_1.txt\"" )" && local_exist="0"
 
-	local_ini_custom_data_wan_port_2="$( lz_get_file_cache_data "lz_config_custom_data_wan_port_2" "5" )" && local_exist="0"
-	! echo "${local_ini_custom_data_wan_port_2}" | grep -q '^[0-9]$' && local_ini_custom_data_wan_port_2="5" && local_exist="0"
+    local_ini_custom_data_wan_port_2="$( lz_get_file_cache_data "lz_config_custom_data_wan_port_2" "5" )" && local_exist="0"
+    ! echo "${local_ini_custom_data_wan_port_2}" | grep -q '^[0-9]$' && local_ini_custom_data_wan_port_2="5" && local_exist="0"
 
-	local_ini_custom_data_file_2="$( lz_get_file_cache_data "lz_config_custom_data_file_2" "\"${PATH_DATA}/custom_data_2.txt\"" )" && local_exist="0"
+    local_ini_custom_data_file_2="$( lz_get_file_cache_data "lz_config_custom_data_file_2" "\"${PATH_DATA}/custom_data_2.txt\"" )" && local_exist="0"
 
-	local_ini_wan_1_client_src_addr="$( lz_get_file_cache_data "lz_config_wan_1_client_src_addr" "5" )" && local_exist="0"
-	! echo "${local_ini_wan_1_client_src_addr}" | grep -q '^[0-9]$' && local_ini_wan_1_client_src_addr="5" && local_exist="0"
+    local_ini_wan_1_client_src_addr="$( lz_get_file_cache_data "lz_config_wan_1_client_src_addr" "5" )" && local_exist="0"
+    ! echo "${local_ini_wan_1_client_src_addr}" | grep -q '^[0-9]$' && local_ini_wan_1_client_src_addr="5" && local_exist="0"
 
-	local_ini_wan_1_client_src_addr_file="$( lz_get_file_cache_data "lz_config_wan_1_client_src_addr_file" "\"${PATH_DATA}/wan_1_client_src_addr.txt\"" )" && local_exist="0"
+    local_ini_wan_1_client_src_addr_file="$( lz_get_file_cache_data "lz_config_wan_1_client_src_addr_file" "\"${PATH_DATA}/wan_1_client_src_addr.txt\"" )" && local_exist="0"
 
-	local_ini_wan_2_client_src_addr="$( lz_get_file_cache_data "lz_config_wan_2_client_src_addr" "5" )" && local_exist="0"
-	! echo "${local_ini_wan_2_client_src_addr}" | grep -q '^[0-9]$' && local_ini_wan_2_client_src_addr="5" && local_exist="0"
+    local_ini_wan_2_client_src_addr="$( lz_get_file_cache_data "lz_config_wan_2_client_src_addr" "5" )" && local_exist="0"
+    ! echo "${local_ini_wan_2_client_src_addr}" | grep -q '^[0-9]$' && local_ini_wan_2_client_src_addr="5" && local_exist="0"
 
-	local_ini_wan_2_client_src_addr_file="$( lz_get_file_cache_data "lz_config_wan_2_client_src_addr_file" "\"${PATH_DATA}/wan_2_client_src_addr.txt\"" )" && local_exist="0"
+    local_ini_wan_2_client_src_addr_file="$( lz_get_file_cache_data "lz_config_wan_2_client_src_addr_file" "\"${PATH_DATA}/wan_2_client_src_addr.txt\"" )" && local_exist="0"
 
-	local_ini_high_wan_1_client_src_addr="$( lz_get_file_cache_data "lz_config_high_wan_1_client_src_addr" "5" )" && local_exist="0"
-	! echo "${local_ini_high_wan_1_client_src_addr}" | grep -q '^[0-9]$' && local_ini_high_wan_1_client_src_addr="5" && local_exist="0"
+    local_ini_high_wan_1_client_src_addr="$( lz_get_file_cache_data "lz_config_high_wan_1_client_src_addr" "5" )" && local_exist="0"
+    ! echo "${local_ini_high_wan_1_client_src_addr}" | grep -q '^[0-9]$' && local_ini_high_wan_1_client_src_addr="5" && local_exist="0"
 
-	local_ini_high_wan_1_client_src_addr_file="$( lz_get_file_cache_data "lz_config_high_wan_1_client_src_addr_file" "\"${PATH_DATA}/high_wan_1_client_src_addr.txt\"" )" && local_exist="0"
+    local_ini_high_wan_1_client_src_addr_file="$( lz_get_file_cache_data "lz_config_high_wan_1_client_src_addr_file" "\"${PATH_DATA}/high_wan_1_client_src_addr.txt\"" )" && local_exist="0"
 
-	local_ini_high_wan_2_client_src_addr="$( lz_get_file_cache_data "lz_config_high_wan_2_client_src_addr" "5" )" && local_exist="0"
-	! echo "${local_ini_high_wan_2_client_src_addr}" | grep -q '^[0-9]$' && local_ini_high_wan_2_client_src_addr="5" && local_exist="0"
+    local_ini_high_wan_2_client_src_addr="$( lz_get_file_cache_data "lz_config_high_wan_2_client_src_addr" "5" )" && local_exist="0"
+    ! echo "${local_ini_high_wan_2_client_src_addr}" | grep -q '^[0-9]$' && local_ini_high_wan_2_client_src_addr="5" && local_exist="0"
 
-	local_ini_high_wan_2_client_src_addr_file="$( lz_get_file_cache_data "lz_config_high_wan_2_client_src_addr_file" "\"${PATH_DATA}/high_wan_2_client_src_addr.txt\"" )" && local_exist="0"
+    local_ini_high_wan_2_client_src_addr_file="$( lz_get_file_cache_data "lz_config_high_wan_2_client_src_addr_file" "\"${PATH_DATA}/high_wan_2_client_src_addr.txt\"" )" && local_exist="0"
 
-	local_ini_wan_1_src_to_dst_addr="$( lz_get_file_cache_data "lz_config_wan_1_src_to_dst_addr" "5" )" && local_exist="0"
-	! echo "${local_ini_wan_1_src_to_dst_addr}" | grep -q '^[0-9]$' && local_ini_wan_1_src_to_dst_addr="5" && local_exist="0"
+    local_ini_wan_1_src_to_dst_addr="$( lz_get_file_cache_data "lz_config_wan_1_src_to_dst_addr" "5" )" && local_exist="0"
+    ! echo "${local_ini_wan_1_src_to_dst_addr}" | grep -q '^[0-9]$' && local_ini_wan_1_src_to_dst_addr="5" && local_exist="0"
 
-	local_ini_wan_1_src_to_dst_addr_file="$( lz_get_file_cache_data "lz_config_wan_1_src_to_dst_addr_file" "\"${PATH_DATA}/wan_1_src_to_dst_addr.txt\"" )" && local_exist="0"
+    local_ini_wan_1_src_to_dst_addr_file="$( lz_get_file_cache_data "lz_config_wan_1_src_to_dst_addr_file" "\"${PATH_DATA}/wan_1_src_to_dst_addr.txt\"" )" && local_exist="0"
 
-	local_ini_wan_2_src_to_dst_addr="$( lz_get_file_cache_data "lz_config_wan_2_src_to_dst_addr" "5" )" && local_exist="0"
-	! echo "${local_ini_wan_2_src_to_dst_addr}" | grep -q '^[0-9]$' && local_ini_wan_2_src_to_dst_addr="5" && local_exist="0"
+    local_ini_wan_2_src_to_dst_addr="$( lz_get_file_cache_data "lz_config_wan_2_src_to_dst_addr" "5" )" && local_exist="0"
+    ! echo "${local_ini_wan_2_src_to_dst_addr}" | grep -q '^[0-9]$' && local_ini_wan_2_src_to_dst_addr="5" && local_exist="0"
 
-	local_ini_wan_2_src_to_dst_addr_file="$( lz_get_file_cache_data "lz_config_wan_2_src_to_dst_addr_file" "\"${PATH_DATA}/wan_2_src_to_dst_addr.txt\"" )" && local_exist="0"
+    local_ini_wan_2_src_to_dst_addr_file="$( lz_get_file_cache_data "lz_config_wan_2_src_to_dst_addr_file" "\"${PATH_DATA}/wan_2_src_to_dst_addr.txt\"" )" && local_exist="0"
 
-	local_ini_high_wan_1_src_to_dst_addr="$( lz_get_file_cache_data "lz_config_high_wan_1_src_to_dst_addr" "5" )" && local_exist="0"
-	! echo "${local_ini_high_wan_1_src_to_dst_addr}" | grep -q '^[0-9]$' && local_ini_high_wan_1_src_to_dst_addr="5" && local_exist="0"
+    local_ini_high_wan_1_src_to_dst_addr="$( lz_get_file_cache_data "lz_config_high_wan_1_src_to_dst_addr" "5" )" && local_exist="0"
+    ! echo "${local_ini_high_wan_1_src_to_dst_addr}" | grep -q '^[0-9]$' && local_ini_high_wan_1_src_to_dst_addr="5" && local_exist="0"
 
-	local_ini_high_wan_1_src_to_dst_addr_file="$( lz_get_file_cache_data "lz_config_high_wan_1_src_to_dst_addr_file" "\"${PATH_DATA}/high_wan_1_src_to_dst_addr.txt\"" )" && local_exist="0"
+    local_ini_high_wan_1_src_to_dst_addr_file="$( lz_get_file_cache_data "lz_config_high_wan_1_src_to_dst_addr_file" "\"${PATH_DATA}/high_wan_1_src_to_dst_addr.txt\"" )" && local_exist="0"
 
-	local_ini_local_ipsets_file="$( lz_get_file_cache_data "lz_config_local_ipsets_file" "\"${PATH_DATA}/local_ipsets_data.txt\"" )" && local_exist="0"
+    local_ini_local_ipsets_file="$( lz_get_file_cache_data "lz_config_local_ipsets_file" "\"${PATH_DATA}/local_ipsets_data.txt\"" )" && local_exist="0"
 
-	local_ini_private_ipsets_file="$( lz_get_file_cache_data "lz_config_private_ipsets_file" "\"${PATH_DATA}/private_ipsets_data.txt\"" )" && local_exist="0"
+    local_ini_private_ipsets_file="$( lz_get_file_cache_data "lz_config_private_ipsets_file" "\"${PATH_DATA}/private_ipsets_data.txt\"" )" && local_exist="0"
 
-	local_ini_wan0_dest_tcp_port="$( lz_get_file_cache_data "lz_config_wan0_dest_tcp_port" "" )" && {
-		if grep "^[ ]*lz_config_wan0_dest_tcp_port=" "${PATH_CONFIGS}/lz_rule_config.box"; then local_ini_wan0_dest_tcp_port=""; else local_exist="0"; fi;
-	}
+    local_ini_wan0_dest_tcp_port="$( lz_get_file_cache_data "lz_config_wan0_dest_tcp_port" "" )" && {
+        if grep "^[ ]*lz_config_wan0_dest_tcp_port=" "${PATH_CONFIGS}/lz_rule_config.box"; then local_ini_wan0_dest_tcp_port=""; else local_exist="0"; fi;
+    }
 
-	local_ini_wan0_dest_udp_port="$( lz_get_file_cache_data "lz_config_wan0_dest_udp_port" "" )" && {
-		if grep "^[ ]*lz_config_wan0_dest_udp_port=" "${PATH_CONFIGS}/lz_rule_config.box"; then local_ini_wan0_dest_udp_port=""; else local_exist="0"; fi;
-	}
+    local_ini_wan0_dest_udp_port="$( lz_get_file_cache_data "lz_config_wan0_dest_udp_port" "" )" && {
+        if grep "^[ ]*lz_config_wan0_dest_udp_port=" "${PATH_CONFIGS}/lz_rule_config.box"; then local_ini_wan0_dest_udp_port=""; else local_exist="0"; fi;
+    }
 
-	local_ini_wan0_dest_udplite_port="$( lz_get_file_cache_data "lz_config_wan0_dest_udplite_port" "" )" && {
-		if grep "^[ ]*lz_config_wan0_dest_udplite_port=" "${PATH_CONFIGS}/lz_rule_config.box"; then local_ini_wan0_dest_udplite_port=""; else local_exist="0"; fi;
-	}
+    local_ini_wan0_dest_udplite_port="$( lz_get_file_cache_data "lz_config_wan0_dest_udplite_port" "" )" && {
+        if grep "^[ ]*lz_config_wan0_dest_udplite_port=" "${PATH_CONFIGS}/lz_rule_config.box"; then local_ini_wan0_dest_udplite_port=""; else local_exist="0"; fi;
+    }
 
-	local_ini_wan0_dest_sctp_port="$( lz_get_file_cache_data "lz_config_wan0_dest_sctp_port" "" )" && {
-		if grep "^[ ]*lz_config_wan0_dest_sctp_port=" "${PATH_CONFIGS}/lz_rule_config.box"; then local_ini_wan0_dest_sctp_port=""; else local_exist="0"; fi;
-	}
+    local_ini_wan0_dest_sctp_port="$( lz_get_file_cache_data "lz_config_wan0_dest_sctp_port" "" )" && {
+        if grep "^[ ]*lz_config_wan0_dest_sctp_port=" "${PATH_CONFIGS}/lz_rule_config.box"; then local_ini_wan0_dest_sctp_port=""; else local_exist="0"; fi;
+    }
 
-	local_ini_wan1_dest_tcp_port="$( lz_get_file_cache_data "lz_config_wan1_dest_tcp_port" "" )" && {
-		if grep "^[ ]*lz_config_wan1_dest_tcp_port=" "${PATH_CONFIGS}/lz_rule_config.box"; then local_ini_wan1_dest_tcp_port=""; else local_exist="0"; fi;
-	}
+    local_ini_wan1_dest_tcp_port="$( lz_get_file_cache_data "lz_config_wan1_dest_tcp_port" "" )" && {
+        if grep "^[ ]*lz_config_wan1_dest_tcp_port=" "${PATH_CONFIGS}/lz_rule_config.box"; then local_ini_wan1_dest_tcp_port=""; else local_exist="0"; fi;
+    }
 
-	local_ini_wan1_dest_udp_port="$( lz_get_file_cache_data "lz_config_wan1_dest_udp_port" "" )" && {
-		if grep "^[ ]*lz_config_wan1_dest_udp_port=" "${PATH_CONFIGS}/lz_rule_config.box"; then local_ini_wan1_dest_udp_port=""; else local_exist="0"; fi;
-	}
+    local_ini_wan1_dest_udp_port="$( lz_get_file_cache_data "lz_config_wan1_dest_udp_port" "" )" && {
+        if grep "^[ ]*lz_config_wan1_dest_udp_port=" "${PATH_CONFIGS}/lz_rule_config.box"; then local_ini_wan1_dest_udp_port=""; else local_exist="0"; fi;
+    }
 
-	local_ini_wan1_dest_udplite_port="$( lz_get_file_cache_data "lz_config_wan1_dest_udplite_port" "" )" && {
-		if grep "^[ ]*lz_config_wan1_dest_udplite_port=" "${PATH_CONFIGS}/lz_rule_config.box"; then local_ini_wan1_dest_udplite_port=""; else local_exist="0"; fi;
-	}
+    local_ini_wan1_dest_udplite_port="$( lz_get_file_cache_data "lz_config_wan1_dest_udplite_port" "" )" && {
+        if grep "^[ ]*lz_config_wan1_dest_udplite_port=" "${PATH_CONFIGS}/lz_rule_config.box"; then local_ini_wan1_dest_udplite_port=""; else local_exist="0"; fi;
+    }
 
-	local_ini_wan1_dest_sctp_port="$( lz_get_file_cache_data "lz_config_wan1_dest_sctp_port" "" )" && {
-		if grep "^[ ]*lz_config_wan1_dest_sctp_port=" "${PATH_CONFIGS}/lz_rule_config.box"; then local_ini_wan1_dest_sctp_port=""; else local_exist="0"; fi;
-	}
+    local_ini_wan1_dest_sctp_port="$( lz_get_file_cache_data "lz_config_wan1_dest_sctp_port" "" )" && {
+        if grep "^[ ]*lz_config_wan1_dest_sctp_port=" "${PATH_CONFIGS}/lz_rule_config.box"; then local_ini_wan1_dest_sctp_port=""; else local_exist="0"; fi;
+    }
 
-	local_ini_ovs_client_wan_port="$( lz_get_file_cache_data "lz_config_ovs_client_wan_port" "5" )" && local_exist="0"
-	! echo "${local_ini_ovs_client_wan_port}" | grep -q '^[0-9]$' && local_ini_ovs_client_wan_port="5" && local_exist="0"
+    local_ini_ovs_client_wan_port="$( lz_get_file_cache_data "lz_config_ovs_client_wan_port" "5" )" && local_exist="0"
+    ! echo "${local_ini_ovs_client_wan_port}" | grep -q '^[0-9]$' && local_ini_ovs_client_wan_port="5" && local_exist="0"
 
-	local_ini_vpn_client_polling_time="$( lz_get_file_cache_data "lz_config_vpn_client_polling_time" "0" )" && local_exist="0"
-	! echo "${local_ini_vpn_client_polling_time}" | grep -qE '^[0-9]$|^[1][0-9]$|^[2][0]$' && local_ini_vpn_client_polling_time="5" && local_exist="0"
+    local_ini_vpn_client_polling_time="$( lz_get_file_cache_data "lz_config_vpn_client_polling_time" "0" )" && local_exist="0"
+    ! echo "${local_ini_vpn_client_polling_time}" | grep -qE '^[0-9]$|^[1][0-9]$|^[2][0]$' && local_ini_vpn_client_polling_time="5" && local_exist="0"
 
-	local_ini_wan_access_port="$( lz_get_file_cache_data "lz_config_wan_access_port" "0" )" && local_exist="0"
-	## wan_access_port现在只能为0或1
-	[ "${local_ini_wan_access_port}" != "0" ] && [ "${local_ini_wan_access_port}" != "1" ] && local_ini_wan_access_port="0" && local_exist="0"
+    local_ini_wan_access_port="$( lz_get_file_cache_data "lz_config_wan_access_port" "0" )" && local_exist="0"
+    ## wan_access_port现在只能为0或1
+    [ "${local_ini_wan_access_port}" != "0" ] && [ "${local_ini_wan_access_port}" != "1" ] && local_ini_wan_access_port="0" && local_exist="0"
 
-	local_ini_list_mode_threshold="$( lz_get_file_cache_data "lz_config_list_mode_threshold" "128" )" && local_exist="0"
-	! echo "${local_ini_list_mode_threshold}" | grep -qE '^[0-9]$|^[1-9][0-9][0-9]*$' && local_ini_list_mode_threshold="128" && local_exist="0"
+    local_ini_list_mode_threshold="$( lz_get_file_cache_data "lz_config_list_mode_threshold" "128" )" && local_exist="0"
+    ! echo "${local_ini_list_mode_threshold}" | grep -qE '^[0-9]$|^[1-9][0-9][0-9]*$' && local_ini_list_mode_threshold="128" && local_exist="0"
 
-	local_ini_route_cache="$( lz_get_file_cache_data "lz_config_route_cache" "0" )" && local_exist="0"
-	! echo "${local_ini_route_cache}" | grep -q '^[0-9]$' && local_ini_route_cache="0" && local_exist="0"
+    local_ini_route_cache="$( lz_get_file_cache_data "lz_config_route_cache" "0" )" && local_exist="0"
+    ! echo "${local_ini_route_cache}" | grep -q '^[0-9]$' && local_ini_route_cache="0" && local_exist="0"
 
-	local_ini_clear_route_cache_time_interval="$( lz_get_file_cache_data "lz_config_clear_route_cache_time_interval" "4" )" && local_exist="0"
-	! echo "${local_ini_clear_route_cache_time_interval}" | grep -qE '^[0-9]$|^[1][0-9]$|^[2][0-4]$' && local_ini_clear_route_cache_time_interval="4" && local_exist="0"
+    local_ini_clear_route_cache_time_interval="$( lz_get_file_cache_data "lz_config_clear_route_cache_time_interval" "4" )" && local_exist="0"
+    ! echo "${local_ini_clear_route_cache_time_interval}" | grep -qE '^[0-9]$|^[1][0-9]$|^[2][0-4]$' && local_ini_clear_route_cache_time_interval="4" && local_exist="0"
 
-	local_ini_iptv_igmp_switch="$( lz_get_file_cache_data "lz_config_iptv_igmp_switch" "5" )" && local_exist="0"
-	! echo "${local_ini_iptv_igmp_switch}" | grep -q '^[0-9]$' && local_ini_iptv_igmp_switch="5" && local_exist="0"
+    local_ini_iptv_igmp_switch="$( lz_get_file_cache_data "lz_config_iptv_igmp_switch" "5" )" && local_exist="0"
+    ! echo "${local_ini_iptv_igmp_switch}" | grep -q '^[0-9]$' && local_ini_iptv_igmp_switch="5" && local_exist="0"
 
-	local_ini_igmp_version="$( lz_get_file_cache_data "lz_config_igmp_version" "0" )" && local_exist="0"
-	! echo "${local_ini_igmp_version}" | grep -q '^[0-3]$' && local_ini_igmp_version="0" && local_exist="0"
+    local_ini_igmp_version="$( lz_get_file_cache_data "lz_config_igmp_version" "0" )" && local_exist="0"
+    ! echo "${local_ini_igmp_version}" | grep -q '^[0-3]$' && local_ini_igmp_version="0" && local_exist="0"
 
-	local_ini_hnd_br0_bcmmcast_mode="$( lz_get_file_cache_data "lz_config_hnd_br0_bcmmcast_mode" "2" )" && local_exist="0"
-	! echo "${local_ini_hnd_br0_bcmmcast_mode}" | grep -q '^[0-2]$' && local_ini_hnd_br0_bcmmcast_mode="2" && local_exist="0"
+    local_ini_hnd_br0_bcmmcast_mode="$( lz_get_file_cache_data "lz_config_hnd_br0_bcmmcast_mode" "2" )" && local_exist="0"
+    ! echo "${local_ini_hnd_br0_bcmmcast_mode}" | grep -q '^[0-2]$' && local_ini_hnd_br0_bcmmcast_mode="2" && local_exist="0"
 
-	local_ini_iptv_access_mode="$( lz_get_file_cache_data "lz_config_iptv_access_mode" "1" )" && local_exist="0"
-	! echo "${local_ini_iptv_access_mode}" | grep -q '^[0-2]$' && local_ini_iptv_access_mode="2" && local_exist="0"
+    local_ini_iptv_access_mode="$( lz_get_file_cache_data "lz_config_iptv_access_mode" "1" )" && local_exist="0"
+    ! echo "${local_ini_iptv_access_mode}" | grep -q '^[0-2]$' && local_ini_iptv_access_mode="2" && local_exist="0"
 
-	local_ini_iptv_box_ip_lst_file="$( lz_get_file_cache_data "lz_config_iptv_box_ip_lst_file" "\"${PATH_DATA}/iptv_box_ip_lst.txt\"" )" && local_exist="0"
+    local_ini_iptv_box_ip_lst_file="$( lz_get_file_cache_data "lz_config_iptv_box_ip_lst_file" "\"${PATH_DATA}/iptv_box_ip_lst.txt\"" )" && local_exist="0"
 
-	local_ini_iptv_isp_ip_lst_file="$( lz_get_file_cache_data "lz_config_iptv_isp_ip_lst_file" "\"${PATH_DATA}/iptv_isp_ip_lst.txt\"" )" && local_exist="0"
+    local_ini_iptv_isp_ip_lst_file="$( lz_get_file_cache_data "lz_config_iptv_isp_ip_lst_file" "\"${PATH_DATA}/iptv_isp_ip_lst.txt\"" )" && local_exist="0"
 
-	local_ini_wan1_iptv_mode="$( lz_get_file_cache_data "lz_config_wan1_iptv_mode" "5" )" && local_exist="0"
-	! echo "${local_ini_wan1_iptv_mode}" | grep -q '^[0-9]$' && local_ini_wan1_iptv_mode="5" && local_exist="0"
+    local_ini_wan1_iptv_mode="$( lz_get_file_cache_data "lz_config_wan1_iptv_mode" "5" )" && local_exist="0"
+    ! echo "${local_ini_wan1_iptv_mode}" | grep -q '^[0-9]$' && local_ini_wan1_iptv_mode="5" && local_exist="0"
 
-	local_ini_wan1_udpxy_switch="$( lz_get_file_cache_data "lz_config_wan1_udpxy_switch" "5" )" && local_exist="0"
-	! echo "${local_ini_wan1_udpxy_switch}" | grep -q '^[0-9]$' && local_ini_wan1_udpxy_switch="5" && local_exist="0"
+    local_ini_wan1_udpxy_switch="$( lz_get_file_cache_data "lz_config_wan1_udpxy_switch" "5" )" && local_exist="0"
+    ! echo "${local_ini_wan1_udpxy_switch}" | grep -q '^[0-9]$' && local_ini_wan1_udpxy_switch="5" && local_exist="0"
 
-	local_ini_wan1_udpxy_port="$( lz_get_file_cache_data "lz_config_wan1_udpxy_port" "8686" )" && local_exist="0"
-	if echo "${local_ini_wan1_udpxy_port}" | grep -qE '^[1-9]$|^[1-9][0-9][0-9]*$'; then
-		[ "${local_ini_wan1_udpxy_port}" -gt "65535" ] && local_ini_wan1_udpxy_port="8686" && local_exist="0"
-	else
-		local_ini_wan1_udpxy_port="8686" && local_exist="0"
-	fi
+    local_ini_wan1_udpxy_port="$( lz_get_file_cache_data "lz_config_wan1_udpxy_port" "8686" )" && local_exist="0"
+    if echo "${local_ini_wan1_udpxy_port}" | grep -qE '^[1-9]$|^[1-9][0-9][0-9]*$'; then
+        [ "${local_ini_wan1_udpxy_port}" -gt "65535" ] && local_ini_wan1_udpxy_port="8686" && local_exist="0"
+    else
+        local_ini_wan1_udpxy_port="8686" && local_exist="0"
+    fi
 
-	local_ini_wan1_udpxy_buffer="$( lz_get_file_cache_data "lz_config_wan1_udpxy_buffer" "65536" )" && local_exist="0"
-	if echo "${local_ini_wan1_udpxy_buffer}" | grep -qE '^[1-9][0-9][0-9][0-9][0-9]*$'; then
-		if [ "${local_ini_wan1_udpxy_buffer}" -lt "4096" ] || [ "${local_ini_wan1_udpxy_buffer}" -gt "2097152" ]; then
-			local_ini_wan1_udpxy_buffer="65536" && local_exist="0"
-		fi
-	else
-		local_ini_wan1_udpxy_buffer="65536" && local_exist="0"
-	fi
+    local_ini_wan1_udpxy_buffer="$( lz_get_file_cache_data "lz_config_wan1_udpxy_buffer" "65536" )" && local_exist="0"
+    if echo "${local_ini_wan1_udpxy_buffer}" | grep -qE '^[1-9][0-9][0-9][0-9][0-9]*$'; then
+        if [ "${local_ini_wan1_udpxy_buffer}" -lt "4096" ] || [ "${local_ini_wan1_udpxy_buffer}" -gt "2097152" ]; then
+            local_ini_wan1_udpxy_buffer="65536" && local_exist="0"
+        fi
+    else
+        local_ini_wan1_udpxy_buffer="65536" && local_exist="0"
+    fi
 
-	local_ini_wan1_udpxy_client_num="$( lz_get_file_cache_data "lz_config_wan1_udpxy_client_num" "10" )" && local_exist="0"
-	if echo "${local_ini_wan1_udpxy_client_num}" | grep -qE '^[1-9]$|^[1-9][0-9][0-9]*$'; then
-		[ "${local_ini_wan1_udpxy_client_num}" -gt "5000" ] && local_ini_wan1_udpxy_client_num="10" && local_exist="0"
-	else
-		local_ini_wan1_udpxy_client_num="10" && local_exist="0"
-	fi
+    local_ini_wan1_udpxy_client_num="$( lz_get_file_cache_data "lz_config_wan1_udpxy_client_num" "10" )" && local_exist="0"
+    if echo "${local_ini_wan1_udpxy_client_num}" | grep -qE '^[1-9]$|^[1-9][0-9][0-9]*$'; then
+        [ "${local_ini_wan1_udpxy_client_num}" -gt "5000" ] && local_ini_wan1_udpxy_client_num="10" && local_exist="0"
+    else
+        local_ini_wan1_udpxy_client_num="10" && local_exist="0"
+    fi
 
-	local_ini_wan2_iptv_mode="$( lz_get_file_cache_data "lz_config_wan2_iptv_mode" "5" )" && local_exist="0"
-	! echo "${local_ini_wan2_iptv_mode}" | grep -q '^[0-9]$' && local_ini_wan2_iptv_mode="5" && local_exist="0"
+    local_ini_wan2_iptv_mode="$( lz_get_file_cache_data "lz_config_wan2_iptv_mode" "5" )" && local_exist="0"
+    ! echo "${local_ini_wan2_iptv_mode}" | grep -q '^[0-9]$' && local_ini_wan2_iptv_mode="5" && local_exist="0"
 
-	local_ini_wan2_udpxy_switch="$( lz_get_file_cache_data "lz_config_wan2_udpxy_switch" "5" )" && local_exist="0"
-	! echo "${local_ini_wan2_udpxy_switch}" | grep -q '^[0-9]$' && local_ini_wan2_udpxy_switch="5" && local_exist="0"
+    local_ini_wan2_udpxy_switch="$( lz_get_file_cache_data "lz_config_wan2_udpxy_switch" "5" )" && local_exist="0"
+    ! echo "${local_ini_wan2_udpxy_switch}" | grep -q '^[0-9]$' && local_ini_wan2_udpxy_switch="5" && local_exist="0"
 
-	local_ini_wan2_udpxy_port="$( lz_get_file_cache_data "lz_config_wan2_udpxy_port" "8888" )" && local_exist="0"
-	if echo "${local_ini_wan2_udpxy_port}" | grep -qE '^[1-9]$|^[1-9][0-9][0-9]*$'; then
-		[ "${local_ini_wan2_udpxy_port}" -gt "65535" ] && local_ini_wan2_udpxy_port="8888" && local_exist="0"
-	else
-		local_ini_wan2_udpxy_port="8888" && local_exist="0"
-	fi
+    local_ini_wan2_udpxy_port="$( lz_get_file_cache_data "lz_config_wan2_udpxy_port" "8888" )" && local_exist="0"
+    if echo "${local_ini_wan2_udpxy_port}" | grep -qE '^[1-9]$|^[1-9][0-9][0-9]*$'; then
+        [ "${local_ini_wan2_udpxy_port}" -gt "65535" ] && local_ini_wan2_udpxy_port="8888" && local_exist="0"
+    else
+        local_ini_wan2_udpxy_port="8888" && local_exist="0"
+    fi
 
-	local_ini_wan2_udpxy_buffer="$( lz_get_file_cache_data "lz_config_wan2_udpxy_buffer" "65536" )" && local_exist="0"
-	if echo "${local_ini_wan2_udpxy_buffer}" | grep -qE '^[1-9][0-9][0-9][0-9][0-9]*$'; then
-		if [ "${local_ini_wan2_udpxy_buffer}" -lt "4096" ] || [ "${local_ini_wan2_udpxy_buffer}" -gt "2097152" ]; then
-			local_ini_wan2_udpxy_buffer="65536" && local_exist="0"
-		fi
-	else
-		local_ini_wan2_udpxy_buffer="65536" && local_exist="0"
-	fi
+    local_ini_wan2_udpxy_buffer="$( lz_get_file_cache_data "lz_config_wan2_udpxy_buffer" "65536" )" && local_exist="0"
+    if echo "${local_ini_wan2_udpxy_buffer}" | grep -qE '^[1-9][0-9][0-9][0-9][0-9]*$'; then
+        if [ "${local_ini_wan2_udpxy_buffer}" -lt "4096" ] || [ "${local_ini_wan2_udpxy_buffer}" -gt "2097152" ]; then
+            local_ini_wan2_udpxy_buffer="65536" && local_exist="0"
+        fi
+    else
+        local_ini_wan2_udpxy_buffer="65536" && local_exist="0"
+    fi
 
-	local_ini_wan2_udpxy_client_num="$( lz_get_file_cache_data "lz_config_wan2_udpxy_client_num" "10" )" && local_exist="0"
-	if echo "${local_ini_wan2_udpxy_client_num}" | grep -qE '^[1-9]$|^[1-9][0-9][0-9]*$'; then
-		[ "${local_ini_wan2_udpxy_client_num}" -gt "5000" ] && local_ini_wan2_udpxy_client_num="10" && local_exist="0"
-	else
-		local_ini_wan2_udpxy_client_num="10" && local_exist="0"
-	fi
+    local_ini_wan2_udpxy_client_num="$( lz_get_file_cache_data "lz_config_wan2_udpxy_client_num" "10" )" && local_exist="0"
+    if echo "${local_ini_wan2_udpxy_client_num}" | grep -qE '^[1-9]$|^[1-9][0-9][0-9]*$'; then
+        [ "${local_ini_wan2_udpxy_client_num}" -gt "5000" ] && local_ini_wan2_udpxy_client_num="10" && local_exist="0"
+    else
+        local_ini_wan2_udpxy_client_num="10" && local_exist="0"
+    fi
 
-	local_ini_udpxy_used="$( lz_get_file_cache_data "lz_config_udpxy_used" "5" )" && local_exist="0"
-	! echo "${local_ini_udpxy_used}" | grep -q '^[0-9]$' && local_ini_udpxy_used="5" && local_exist="0"
+    local_ini_udpxy_used="$( lz_get_file_cache_data "lz_config_udpxy_used" "5" )" && local_exist="0"
+    ! echo "${local_ini_udpxy_used}" | grep -q '^[0-9]$' && local_ini_udpxy_used="5" && local_exist="0"
 
-	local_ini_regularly_update_ispip_data_enable="$( lz_get_file_cache_data "lz_config_regularly_update_ispip_data_enable" "5" )" && local_exist="0"
-	! echo "${local_ini_regularly_update_ispip_data_enable}" | grep -q '^[0-9]$' && local_ini_regularly_update_ispip_data_enable="5" && local_exist="0"
+    local_ini_regularly_update_ispip_data_enable="$( lz_get_file_cache_data "lz_config_regularly_update_ispip_data_enable" "5" )" && local_exist="0"
+    ! echo "${local_ini_regularly_update_ispip_data_enable}" | grep -q '^[0-9]$' && local_ini_regularly_update_ispip_data_enable="5" && local_exist="0"
 
-	local_ini_ruid_interval_day="$( lz_get_file_cache_data "lz_config_ruid_interval_day" "5" )" && local_exist="0"
-	! echo "${local_ini_ruid_interval_day}" | grep -qE '^[0-9]$|^[2][0-9]$|^[3][0-1]$' && local_ini_ruid_interval_day="5" && local_exist="0"
+    local_ini_ruid_interval_day="$( lz_get_file_cache_data "lz_config_ruid_interval_day" "5" )" && local_exist="0"
+    ! echo "${local_ini_ruid_interval_day}" | grep -qE '^[0-9]$|^[2][0-9]$|^[3][0-1]$' && local_ini_ruid_interval_day="5" && local_exist="0"
 
-	local_ini_ruid_timer_hour="$( lz_get_file_cache_data "lz_config_ruid_timer_hour" "\*" )" && local_exist="0"
-	! echo "${local_ini_ruid_timer_hour}" | grep -qE '^[0-9]$|^[1][0-9]$|^[2][0-4]$' && local_ini_ruid_timer_hour="*" && local_exist="0"
+    local_ini_ruid_timer_hour="$( lz_get_file_cache_data "lz_config_ruid_timer_hour" "\*" )" && local_exist="0"
+    ! echo "${local_ini_ruid_timer_hour}" | grep -qE '^[0-9]$|^[1][0-9]$|^[2][0-4]$' && local_ini_ruid_timer_hour="*" && local_exist="0"
 
-	local_ini_ruid_timer_min="$( lz_get_file_cache_data "lz_config_ruid_timer_min" "\*" )" && local_exist="0"
-	! echo "${local_ini_ruid_timer_min}" | grep -qE '^[0-9]$|^[1-5][0-9]$' && local_ini_ruid_timer_min="*" && local_exist="0"
+    local_ini_ruid_timer_min="$( lz_get_file_cache_data "lz_config_ruid_timer_min" "\*" )" && local_exist="0"
+    ! echo "${local_ini_ruid_timer_min}" | grep -qE '^[0-9]$|^[1-5][0-9]$' && local_ini_ruid_timer_min="*" && local_exist="0"
 
-	local_ini_ruid_retry_num="$( lz_get_file_cache_data "lz_config_ruid_retry_num" "5" )" && local_exist="0"
-	! echo "${local_ini_ruid_retry_num}" | grep -qE '^[0-9][0-9]*$' && local_ini_ruid_retry_num="5" && local_exist="0"
+    local_ini_ruid_retry_num="$( lz_get_file_cache_data "lz_config_ruid_retry_num" "5" )" && local_exist="0"
+    ! echo "${local_ini_ruid_retry_num}" | grep -qE '^[0-9][0-9]*$' && local_ini_ruid_retry_num="5" && local_exist="0"
 
-	local_ini_custom_config_scripts="$( lz_get_file_cache_data "lz_config_custom_config_scripts" "5" )" && local_exist="0"
-	! echo "${local_ini_custom_config_scripts}" | grep -q '^[0-9]$' && local_ini_custom_config_scripts="5" && local_exist="0"
+    local_ini_custom_config_scripts="$( lz_get_file_cache_data "lz_config_custom_config_scripts" "5" )" && local_exist="0"
+    ! echo "${local_ini_custom_config_scripts}" | grep -q '^[0-9]$' && local_ini_custom_config_scripts="5" && local_exist="0"
 
-	local_ini_custom_config_scripts_filename="$( lz_get_file_cache_data "lz_config_custom_config_scripts_filename" "\"${PATH_LZ}/custom_config.sh\"" )" && local_exist="0"
+    local_ini_custom_config_scripts_filename="$( lz_get_file_cache_data "lz_config_custom_config_scripts_filename" "\"${PATH_LZ}/custom_config.sh\"" )" && local_exist="0"
 
-	local_ini_custom_dualwan_scripts="$( lz_get_file_cache_data "lz_config_custom_dualwan_scripts" "5" )" && local_exist="0"
-	! echo "${local_ini_custom_dualwan_scripts}" | grep -q '^[0-9]$' && local_ini_custom_dualwan_scripts="5" && local_exist="0"
+    local_ini_custom_dualwan_scripts="$( lz_get_file_cache_data "lz_config_custom_dualwan_scripts" "5" )" && local_exist="0"
+    ! echo "${local_ini_custom_dualwan_scripts}" | grep -q '^[0-9]$' && local_ini_custom_dualwan_scripts="5" && local_exist="0"
 
-	local_ini_custom_dualwan_scripts_filename="$( lz_get_file_cache_data "lz_config_custom_dualwan_scripts_filename" "\"${PATH_LZ}/custom_dualwan_scripts.sh\"" )" && local_exist="0"
+    local_ini_custom_dualwan_scripts_filename="$( lz_get_file_cache_data "lz_config_custom_dualwan_scripts_filename" "\"${PATH_LZ}/custom_dualwan_scripts.sh\"" )" && local_exist="0"
 
-	local_ini_custom_clear_scripts="$( lz_get_file_cache_data "lz_config_custom_clear_scripts" "5" )" && local_exist="0"
-	! echo "${local_ini_custom_clear_scripts}" | grep -q '^[0-9]$' && local_ini_custom_clear_scripts="5" && local_exist="0"
+    local_ini_custom_clear_scripts="$( lz_get_file_cache_data "lz_config_custom_clear_scripts" "5" )" && local_exist="0"
+    ! echo "${local_ini_custom_clear_scripts}" | grep -q '^[0-9]$' && local_ini_custom_clear_scripts="5" && local_exist="0"
 
-	local_ini_custom_clear_scripts_filename="$( lz_get_file_cache_data "lz_config_custom_clear_scripts_filename" "\"${PATH_LZ}/custom_clear_scripts.sh\"" )" && local_exist="0"
+    local_ini_custom_clear_scripts_filename="$( lz_get_file_cache_data "lz_config_custom_clear_scripts_filename" "\"${PATH_LZ}/custom_clear_scripts.sh\"" )" && local_exist="0"
 
-	## 若有不存在的参数项，以缺省值填入新参数项
-	## 恢复lz_rule_config.box中的配置参数
-	## 输入项：
-	##     全局常量及变量
-	## 返回值：无
-	[ "${local_exist}" = "0" ] && lz_restore_box_data
+    ## 若有不存在的参数项，以缺省值填入新参数项
+    ## 恢复lz_rule_config.box中的配置参数
+    ## 输入项：
+    ##     全局常量及变量
+    ## 返回值：无
+    [ "${local_exist}" = "0" ] && lz_restore_box_data
 
-	unset local_file_cache
+    unset local_file_cache
 }
 
 ## 判断配置数据是否变更函数
@@ -2638,82 +2638,82 @@ lz_read_box_data() {
 ##     1--已改变
 ##     0--未改变
 lz_cfg_is_changed() {
-	local local_cfg_changed="0"
-	[ "${local_ini_all_foreign_wan_port}" != "${local_all_foreign_wan_port}" ] && local_all_foreign_wan_port_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_chinatelecom_wan_port}" != "${local_chinatelecom_wan_port}" ] && local_chinatelecom_wan_port_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_unicom_cnc_wan_port}" != "${local_unicom_cnc_wan_port}" ] && local_unicom_cnc_wan_port_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_cmcc_wan_port}" != "${local_cmcc_wan_port}" ] && local_cmcc_wan_port_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_crtc_wan_port}" != "${local_crtc_wan_port}" ] && local_crtc_wan_port_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_cernet_wan_port}" != "${local_cernet_wan_port}" ] && local_cernet_wan_port_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_gwbn_wan_port}" != "${local_gwbn_wan_port}" ] && local_gwbn_wan_port_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_othernet_wan_port}" != "${local_othernet_wan_port}" ] && local_othernet_wan_port_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_hk_wan_port}" != "${local_hk_wan_port}" ] && local_hk_wan_port_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_mo_wan_port}" != "${local_mo_wan_port}" ] && local_mo_wan_port_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_tw_wan_port}" != "${local_tw_wan_port}" ] && local_tw_wan_port_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_usage_mode}" != "${local_usage_mode}" ] && local_usage_mode_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_custom_data_wan_port_1}" != "${local_custom_data_wan_port_1}" ] && local_custom_data_wan_port_1_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_custom_data_file_1}" != "${local_custom_data_file_1}" ] && local_custom_data_file_1_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_custom_data_wan_port_2}" != "${local_custom_data_wan_port_2}" ] && local_custom_data_wan_port_2_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_custom_data_file_2}" != "${local_custom_data_file_2}" ] && local_custom_data_file_2_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_wan_1_client_src_addr}" != "${local_wan_1_client_src_addr}" ] && local_wan_1_client_src_addr_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_wan_1_client_src_addr_file}" != "${local_wan_1_client_src_addr_file}" ] && local_wan_1_client_src_addr_file_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_wan_2_client_src_addr}" != "${local_wan_2_client_src_addr}" ] && local_wan_2_client_src_addr_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_wan_2_client_src_addr_file}" != "${local_wan_2_client_src_addr_file}" ] && local_wan_2_client_src_addr_file_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_high_wan_1_client_src_addr}" != "${local_high_wan_1_client_src_addr}" ] && local_high_wan_1_client_src_addr_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_high_wan_1_client_src_addr_file}" != "${local_high_wan_1_client_src_addr_file}" ] && local_high_wan_1_client_src_addr_file_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_high_wan_2_client_src_addr}" != "${local_high_wan_2_client_src_addr}" ] && local_high_wan_2_client_src_addr_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_high_wan_2_client_src_addr_file}" != "${local_high_wan_2_client_src_addr_file}" ] && local_high_wan_2_client_src_addr_file_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_wan_1_src_to_dst_addr}" != "${local_wan_1_src_to_dst_addr}" ] && local_wan_1_src_to_dst_addr_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_wan_1_src_to_dst_addr_file}" != "${local_wan_1_src_to_dst_addr_file}" ] && local_wan_1_src_to_dst_addr_file_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_wan_2_src_to_dst_addr}" != "${local_wan_2_src_to_dst_addr}" ] && local_wan_2_src_to_dst_addr_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_wan_2_src_to_dst_addr_file}" != "${local_wan_2_src_to_dst_addr_file}" ] && local_wan_2_src_to_dst_addr_file_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_high_wan_1_src_to_dst_addr}" != "${local_high_wan_1_src_to_dst_addr}" ] && local_high_wan_1_src_to_dst_addr_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_high_wan_1_src_to_dst_addr_file}" != "${local_high_wan_1_src_to_dst_addr_file}" ] && local_high_wan_1_src_to_dst_addr_file_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_local_ipsets_file}" != "${local_local_ipsets_file}" ] && local_local_ipsets_file_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_private_ipsets_file}" != "${local_private_ipsets_file}" ] && local_private_ipsets_file_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_wan0_dest_tcp_port}" != "${local_wan0_dest_tcp_port}" ] && local_wan0_dest_tcp_port_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_wan0_dest_udp_port}" != "${local_wan0_dest_udp_port}" ] && local_wan0_dest_udp_port_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_wan0_dest_udplite_port}" != "${local_wan0_dest_udplite_port}" ] && local_wan0_dest_udplite_port_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_wan0_dest_sctp_port}" != "${local_wan0_dest_sctp_port}" ] && local_wan0_dest_sctp_port_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_wan1_dest_tcp_port}" != "${local_wan1_dest_tcp_port}" ] && local_wan1_dest_tcp_port_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_wan1_dest_udp_port}" != "${local_wan1_dest_udp_port}" ] && local_wan1_dest_udp_port_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_wan1_dest_udplite_port}" != "${local_wan1_dest_udplite_port}" ] && local_wan1_dest_udplite_port_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_wan1_dest_sctp_port}" != "${local_wan1_dest_sctp_port}" ] && local_wan1_dest_sctp_port_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_ovs_client_wan_port}" != "${local_ovs_client_wan_port}" ] && local_ovs_client_wan_port_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_vpn_client_polling_time}" != "${local_vpn_client_polling_time}" ] && local_vpn_client_polling_time_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_wan_access_port}" != "${local_wan_access_port}" ] && local_wan_access_port_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_list_mode_threshold}" != "${local_list_mode_threshold}" ] && local_list_mode_threshold_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_route_cache}" != "${local_route_cache}" ] && local_route_cache_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_clear_route_cache_time_interval}" != "${local_clear_route_cache_time_interval}" ] && local_clear_route_cache_time_interval_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_iptv_igmp_switch}" != "${local_iptv_igmp_switch}" ] && local_iptv_igmp_switch_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_igmp_version}" != "${local_igmp_version}" ] && local_igmp_version_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_hnd_br0_bcmmcast_mode}" != "${local_hnd_br0_bcmmcast_mode}" ] && local_hnd_br0_bcmmcast_mode_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_iptv_access_mode}" != "${local_iptv_access_mode}" ] && local_iptv_access_mode_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_iptv_box_ip_lst_file}" != "${local_iptv_box_ip_lst_file}" ] && local_iptv_box_ip_lst_file_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_iptv_isp_ip_lst_file}" != "${local_iptv_isp_ip_lst_file}" ] && local_iptv_isp_ip_lst_file_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_wan1_iptv_mode}" != "${local_wan1_iptv_mode}" ] && local_wan1_iptv_mode_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_wan1_udpxy_switch}" != "${local_wan1_udpxy_switch}" ] && local_wan1_udpxy_switch_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_wan1_udpxy_port}" != "${local_wan1_udpxy_port}" ] && local_wan1_udpxy_port_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_wan1_udpxy_buffer}" != "${local_wan1_udpxy_buffer}" ] && local_wan1_udpxy_buffer_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_wan1_udpxy_client_num}" != "${local_wan1_udpxy_client_num}" ] && local_wan1_udpxy_client_num_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_wan2_iptv_mode}" != "${local_wan2_iptv_mode}" ] && local_wan2_iptv_mode_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_wan2_udpxy_switch}" != "${local_wan2_udpxy_switch}" ] && local_wan2_udpxy_switch_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_wan2_udpxy_port}" != "${local_wan2_udpxy_port}" ] && local_wan2_udpxy_port_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_wan2_udpxy_buffer}" != "${local_wan2_udpxy_buffer}" ] && local_wan2_udpxy_buffer_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_wan2_udpxy_client_num}" != "${local_wan2_udpxy_client_num}" ] && local_wan2_udpxy_client_num_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_regularly_update_ispip_data_enable}" != "${local_regularly_update_ispip_data_enable}" ] && local_regularly_update_ispip_data_enable_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_ruid_interval_day}" != "${local_ruid_interval_day}" ] && local_ruid_interval_day_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_ruid_timer_hour}" != "${local_ruid_timer_hour}" ] && local_ruid_timer_hour_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_ruid_timer_min}" != "${local_ruid_timer_min}" ] && local_ruid_timer_min_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_ruid_retry_num}" != "${local_ruid_retry_num}" ] && local_ruid_retry_num_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_custom_config_scripts}" != "${local_custom_config_scripts}" ] && local_custom_config_scripts_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_custom_config_scripts_filename}" != "${local_custom_config_scripts_filename}" ] && local_custom_config_scripts_filename_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_custom_dualwan_scripts}" != "${local_custom_dualwan_scripts}" ] && local_custom_dualwan_scripts_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_custom_dualwan_scripts_filename}" != "${local_custom_dualwan_scripts_filename}" ] && local_custom_dualwan_scripts_filename_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_custom_clear_scripts}" != "${local_custom_clear_scripts}" ] && local_custom_clear_scripts_changed="1" && local_cfg_changed="1"
-	[ "${local_ini_custom_clear_scripts_filename}" != "${local_custom_clear_scripts_filename}" ] && local_custom_clear_scripts_filename_changed="1" && local_cfg_changed="1"
+    local local_cfg_changed="0"
+    [ "${local_ini_all_foreign_wan_port}" != "${local_all_foreign_wan_port}" ] && local_all_foreign_wan_port_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_chinatelecom_wan_port}" != "${local_chinatelecom_wan_port}" ] && local_chinatelecom_wan_port_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_unicom_cnc_wan_port}" != "${local_unicom_cnc_wan_port}" ] && local_unicom_cnc_wan_port_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_cmcc_wan_port}" != "${local_cmcc_wan_port}" ] && local_cmcc_wan_port_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_crtc_wan_port}" != "${local_crtc_wan_port}" ] && local_crtc_wan_port_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_cernet_wan_port}" != "${local_cernet_wan_port}" ] && local_cernet_wan_port_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_gwbn_wan_port}" != "${local_gwbn_wan_port}" ] && local_gwbn_wan_port_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_othernet_wan_port}" != "${local_othernet_wan_port}" ] && local_othernet_wan_port_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_hk_wan_port}" != "${local_hk_wan_port}" ] && local_hk_wan_port_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_mo_wan_port}" != "${local_mo_wan_port}" ] && local_mo_wan_port_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_tw_wan_port}" != "${local_tw_wan_port}" ] && local_tw_wan_port_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_usage_mode}" != "${local_usage_mode}" ] && local_usage_mode_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_custom_data_wan_port_1}" != "${local_custom_data_wan_port_1}" ] && local_custom_data_wan_port_1_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_custom_data_file_1}" != "${local_custom_data_file_1}" ] && local_custom_data_file_1_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_custom_data_wan_port_2}" != "${local_custom_data_wan_port_2}" ] && local_custom_data_wan_port_2_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_custom_data_file_2}" != "${local_custom_data_file_2}" ] && local_custom_data_file_2_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_wan_1_client_src_addr}" != "${local_wan_1_client_src_addr}" ] && local_wan_1_client_src_addr_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_wan_1_client_src_addr_file}" != "${local_wan_1_client_src_addr_file}" ] && local_wan_1_client_src_addr_file_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_wan_2_client_src_addr}" != "${local_wan_2_client_src_addr}" ] && local_wan_2_client_src_addr_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_wan_2_client_src_addr_file}" != "${local_wan_2_client_src_addr_file}" ] && local_wan_2_client_src_addr_file_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_high_wan_1_client_src_addr}" != "${local_high_wan_1_client_src_addr}" ] && local_high_wan_1_client_src_addr_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_high_wan_1_client_src_addr_file}" != "${local_high_wan_1_client_src_addr_file}" ] && local_high_wan_1_client_src_addr_file_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_high_wan_2_client_src_addr}" != "${local_high_wan_2_client_src_addr}" ] && local_high_wan_2_client_src_addr_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_high_wan_2_client_src_addr_file}" != "${local_high_wan_2_client_src_addr_file}" ] && local_high_wan_2_client_src_addr_file_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_wan_1_src_to_dst_addr}" != "${local_wan_1_src_to_dst_addr}" ] && local_wan_1_src_to_dst_addr_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_wan_1_src_to_dst_addr_file}" != "${local_wan_1_src_to_dst_addr_file}" ] && local_wan_1_src_to_dst_addr_file_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_wan_2_src_to_dst_addr}" != "${local_wan_2_src_to_dst_addr}" ] && local_wan_2_src_to_dst_addr_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_wan_2_src_to_dst_addr_file}" != "${local_wan_2_src_to_dst_addr_file}" ] && local_wan_2_src_to_dst_addr_file_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_high_wan_1_src_to_dst_addr}" != "${local_high_wan_1_src_to_dst_addr}" ] && local_high_wan_1_src_to_dst_addr_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_high_wan_1_src_to_dst_addr_file}" != "${local_high_wan_1_src_to_dst_addr_file}" ] && local_high_wan_1_src_to_dst_addr_file_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_local_ipsets_file}" != "${local_local_ipsets_file}" ] && local_local_ipsets_file_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_private_ipsets_file}" != "${local_private_ipsets_file}" ] && local_private_ipsets_file_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_wan0_dest_tcp_port}" != "${local_wan0_dest_tcp_port}" ] && local_wan0_dest_tcp_port_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_wan0_dest_udp_port}" != "${local_wan0_dest_udp_port}" ] && local_wan0_dest_udp_port_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_wan0_dest_udplite_port}" != "${local_wan0_dest_udplite_port}" ] && local_wan0_dest_udplite_port_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_wan0_dest_sctp_port}" != "${local_wan0_dest_sctp_port}" ] && local_wan0_dest_sctp_port_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_wan1_dest_tcp_port}" != "${local_wan1_dest_tcp_port}" ] && local_wan1_dest_tcp_port_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_wan1_dest_udp_port}" != "${local_wan1_dest_udp_port}" ] && local_wan1_dest_udp_port_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_wan1_dest_udplite_port}" != "${local_wan1_dest_udplite_port}" ] && local_wan1_dest_udplite_port_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_wan1_dest_sctp_port}" != "${local_wan1_dest_sctp_port}" ] && local_wan1_dest_sctp_port_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_ovs_client_wan_port}" != "${local_ovs_client_wan_port}" ] && local_ovs_client_wan_port_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_vpn_client_polling_time}" != "${local_vpn_client_polling_time}" ] && local_vpn_client_polling_time_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_wan_access_port}" != "${local_wan_access_port}" ] && local_wan_access_port_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_list_mode_threshold}" != "${local_list_mode_threshold}" ] && local_list_mode_threshold_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_route_cache}" != "${local_route_cache}" ] && local_route_cache_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_clear_route_cache_time_interval}" != "${local_clear_route_cache_time_interval}" ] && local_clear_route_cache_time_interval_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_iptv_igmp_switch}" != "${local_iptv_igmp_switch}" ] && local_iptv_igmp_switch_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_igmp_version}" != "${local_igmp_version}" ] && local_igmp_version_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_hnd_br0_bcmmcast_mode}" != "${local_hnd_br0_bcmmcast_mode}" ] && local_hnd_br0_bcmmcast_mode_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_iptv_access_mode}" != "${local_iptv_access_mode}" ] && local_iptv_access_mode_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_iptv_box_ip_lst_file}" != "${local_iptv_box_ip_lst_file}" ] && local_iptv_box_ip_lst_file_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_iptv_isp_ip_lst_file}" != "${local_iptv_isp_ip_lst_file}" ] && local_iptv_isp_ip_lst_file_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_wan1_iptv_mode}" != "${local_wan1_iptv_mode}" ] && local_wan1_iptv_mode_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_wan1_udpxy_switch}" != "${local_wan1_udpxy_switch}" ] && local_wan1_udpxy_switch_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_wan1_udpxy_port}" != "${local_wan1_udpxy_port}" ] && local_wan1_udpxy_port_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_wan1_udpxy_buffer}" != "${local_wan1_udpxy_buffer}" ] && local_wan1_udpxy_buffer_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_wan1_udpxy_client_num}" != "${local_wan1_udpxy_client_num}" ] && local_wan1_udpxy_client_num_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_wan2_iptv_mode}" != "${local_wan2_iptv_mode}" ] && local_wan2_iptv_mode_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_wan2_udpxy_switch}" != "${local_wan2_udpxy_switch}" ] && local_wan2_udpxy_switch_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_wan2_udpxy_port}" != "${local_wan2_udpxy_port}" ] && local_wan2_udpxy_port_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_wan2_udpxy_buffer}" != "${local_wan2_udpxy_buffer}" ] && local_wan2_udpxy_buffer_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_wan2_udpxy_client_num}" != "${local_wan2_udpxy_client_num}" ] && local_wan2_udpxy_client_num_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_regularly_update_ispip_data_enable}" != "${local_regularly_update_ispip_data_enable}" ] && local_regularly_update_ispip_data_enable_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_ruid_interval_day}" != "${local_ruid_interval_day}" ] && local_ruid_interval_day_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_ruid_timer_hour}" != "${local_ruid_timer_hour}" ] && local_ruid_timer_hour_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_ruid_timer_min}" != "${local_ruid_timer_min}" ] && local_ruid_timer_min_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_ruid_retry_num}" != "${local_ruid_retry_num}" ] && local_ruid_retry_num_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_custom_config_scripts}" != "${local_custom_config_scripts}" ] && local_custom_config_scripts_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_custom_config_scripts_filename}" != "${local_custom_config_scripts_filename}" ] && local_custom_config_scripts_filename_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_custom_dualwan_scripts}" != "${local_custom_dualwan_scripts}" ] && local_custom_dualwan_scripts_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_custom_dualwan_scripts_filename}" != "${local_custom_dualwan_scripts_filename}" ] && local_custom_dualwan_scripts_filename_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_custom_clear_scripts}" != "${local_custom_clear_scripts}" ] && local_custom_clear_scripts_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_custom_clear_scripts_filename}" != "${local_custom_clear_scripts_filename}" ] && local_custom_clear_scripts_filename_changed="1" && local_cfg_changed="1"
 
-	return "${local_cfg_changed}"
+    return "${local_cfg_changed}"
 }
 
 ## 恢复原有配置数据函数
@@ -2721,90 +2721,90 @@ lz_cfg_is_changed() {
 ##     全局常量及变量
 ## 返回值：无
 lz_restore_config() {
-	[ "${local_all_foreign_wan_port_changed}" = "1" ] && sed -i "s:^[ ]*all_foreign_wan_port=${local_all_foreign_wan_port}:all_foreign_wan_port=${local_ini_all_foreign_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-	[ "${local_chinatelecom_wan_port_changed}" = "1" ] && sed -i "s:^[ ]*chinatelecom_wan_port=${local_chinatelecom_wan_port}:chinatelecom_wan_port=${local_ini_chinatelecom_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-	[ "${local_unicom_cnc_wan_port_changed}" = "1" ] && sed -i "s:^[ ]*unicom_cnc_wan_port=${local_unicom_cnc_wan_port}:unicom_cnc_wan_port=${local_ini_unicom_cnc_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-	[ "${local_cmcc_wan_port_changed}" = "1" ] && sed -i "s:^[ ]*cmcc_wan_port=${local_cmcc_wan_port}:cmcc_wan_port=${local_ini_cmcc_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-	[ "${local_crtc_wan_port_changed}" = "1" ] && sed -i "s:^[ ]*crtc_wan_port=${local_crtc_wan_port}:crtc_wan_port=${local_ini_crtc_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-	[ "${local_cernet_wan_port_changed}" = "1" ] && sed -i "s:^[ ]*cernet_wan_port=${local_cernet_wan_port}:cernet_wan_port=${local_ini_cernet_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-	[ "${local_gwbn_wan_port_changed}" = "1" ] && sed -i "s:^[ ]*gwbn_wan_port=${local_gwbn_wan_port}:gwbn_wan_port=${local_ini_gwbn_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-	[ "${local_othernet_wan_port_changed}" = "1" ] && sed -i "s:^[ ]*othernet_wan_port=${local_othernet_wan_port}:othernet_wan_port=${local_ini_othernet_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-	[ "${local_hk_wan_port_changed}" = "1" ] && sed -i "s:^[ ]*hk_wan_port=${local_hk_wan_port}:hk_wan_port=${local_ini_hk_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-	[ "${local_mo_wan_port_changed}" = "1" ] && sed -i "s:^[ ]*mo_wan_port=${local_mo_wan_port}:mo_wan_port=${local_ini_mo_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-	[ "${local_tw_wan_port_changed}" = "1" ] && sed -i "s:^[ ]*tw_wan_port=${local_tw_wan_port}:tw_wan_port=${local_ini_tw_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_all_foreign_wan_port_changed}" = "1" ] && sed -i "s:^[ ]*all_foreign_wan_port=${local_all_foreign_wan_port}:all_foreign_wan_port=${local_ini_all_foreign_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_chinatelecom_wan_port_changed}" = "1" ] && sed -i "s:^[ ]*chinatelecom_wan_port=${local_chinatelecom_wan_port}:chinatelecom_wan_port=${local_ini_chinatelecom_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_unicom_cnc_wan_port_changed}" = "1" ] && sed -i "s:^[ ]*unicom_cnc_wan_port=${local_unicom_cnc_wan_port}:unicom_cnc_wan_port=${local_ini_unicom_cnc_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_cmcc_wan_port_changed}" = "1" ] && sed -i "s:^[ ]*cmcc_wan_port=${local_cmcc_wan_port}:cmcc_wan_port=${local_ini_cmcc_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_crtc_wan_port_changed}" = "1" ] && sed -i "s:^[ ]*crtc_wan_port=${local_crtc_wan_port}:crtc_wan_port=${local_ini_crtc_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_cernet_wan_port_changed}" = "1" ] && sed -i "s:^[ ]*cernet_wan_port=${local_cernet_wan_port}:cernet_wan_port=${local_ini_cernet_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_gwbn_wan_port_changed}" = "1" ] && sed -i "s:^[ ]*gwbn_wan_port=${local_gwbn_wan_port}:gwbn_wan_port=${local_ini_gwbn_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_othernet_wan_port_changed}" = "1" ] && sed -i "s:^[ ]*othernet_wan_port=${local_othernet_wan_port}:othernet_wan_port=${local_ini_othernet_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_hk_wan_port_changed}" = "1" ] && sed -i "s:^[ ]*hk_wan_port=${local_hk_wan_port}:hk_wan_port=${local_ini_hk_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_mo_wan_port_changed}" = "1" ] && sed -i "s:^[ ]*mo_wan_port=${local_mo_wan_port}:mo_wan_port=${local_ini_mo_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_tw_wan_port_changed}" = "1" ] && sed -i "s:^[ ]*tw_wan_port=${local_tw_wan_port}:tw_wan_port=${local_ini_tw_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
 
-	[ "${local_usage_mode_changed}" = "1" ] && sed -i "s:^[ ]*usage_mode=${local_usage_mode}:usage_mode=${local_ini_usage_mode}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_usage_mode_changed}" = "1" ] && sed -i "s:^[ ]*usage_mode=${local_usage_mode}:usage_mode=${local_ini_usage_mode}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
 
-	[ "${local_custom_data_wan_port_1_changed}" = "1" ] && sed -i "s:^[ ]*custom_data_wan_port_1=${local_custom_data_wan_port_1}:custom_data_wan_port_1=${local_ini_custom_data_wan_port_1}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-	[ "${local_custom_data_file_1_changed}" = "1" ] && sed -i "s:^[ ]*custom_data_file_1=${local_custom_data_file_1}:custom_data_file_1=${local_ini_custom_data_file_1}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-	[ "${local_custom_data_wan_port_2_changed}" = "1" ] && sed -i "s:^[ ]*custom_data_wan_port_2=${local_custom_data_wan_port_2}:custom_data_wan_port_2=${local_ini_custom_data_wan_port_2}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-	[ "${local_custom_data_file_2_changed}" = "1" ] && sed -i "s:^[ ]*custom_data_file_2=${local_custom_data_file_2}:custom_data_file_2=${local_ini_custom_data_file_2}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_custom_data_wan_port_1_changed}" = "1" ] && sed -i "s:^[ ]*custom_data_wan_port_1=${local_custom_data_wan_port_1}:custom_data_wan_port_1=${local_ini_custom_data_wan_port_1}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_custom_data_file_1_changed}" = "1" ] && sed -i "s:^[ ]*custom_data_file_1=${local_custom_data_file_1}:custom_data_file_1=${local_ini_custom_data_file_1}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_custom_data_wan_port_2_changed}" = "1" ] && sed -i "s:^[ ]*custom_data_wan_port_2=${local_custom_data_wan_port_2}:custom_data_wan_port_2=${local_ini_custom_data_wan_port_2}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_custom_data_file_2_changed}" = "1" ] && sed -i "s:^[ ]*custom_data_file_2=${local_custom_data_file_2}:custom_data_file_2=${local_ini_custom_data_file_2}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
 
-	[ "${local_wan_1_client_src_addr_changed}" = "1" ] && sed -i "s:^[ ]*wan_1_client_src_addr=${local_wan_1_client_src_addr}:wan_1_client_src_addr=${local_ini_wan_1_client_src_addr}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-	[ "${local_wan_1_client_src_addr_file_changed}" = "1" ] && sed -i "s:^[ ]*wan_1_client_src_addr_file=${local_wan_1_client_src_addr_file}:wan_1_client_src_addr_file=${local_ini_wan_1_client_src_addr_file}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-	[ "${local_wan_2_client_src_addr_changed}" = "1" ] && sed -i "s:^[ ]*wan_2_client_src_addr=${local_wan_2_client_src_addr}:wan_2_client_src_addr=${local_ini_wan_2_client_src_addr}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-	[ "${local_wan_2_client_src_addr_file_changed}" = "1" ] && sed -i "s:^[ ]*wan_2_client_src_addr_file=${local_wan_2_client_src_addr_file}}:wan_2_client_src_addr_file=${local_ini_wan_2_client_src_addr_file}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-	[ "${local_high_wan_1_client_src_addr_changed}" = "1" ] && sed -i "s:^[ ]*high_wan_1_client_src_addr=${local_high_wan_1_client_src_addr}:high_wan_1_client_src_addr=${local_ini_high_wan_1_client_src_addr}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-	[ "${local_high_wan_1_client_src_addr_file_changed}" = "1" ] && sed -i "s:^[ ]*high_wan_1_client_src_addr_file=${local_high_wan_1_client_src_addr_file}:high_wan_1_client_src_addr_file=${local_ini_high_wan_1_client_src_addr_file}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-	[ "${local_high_wan_2_client_src_addr_changed}" = "1" ] && sed -i "s:^[ ]*high_wan_2_client_src_addr=${local_high_wan_2_client_src_addr}:high_wan_2_client_src_addr=${local_ini_high_wan_2_client_src_addr}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-	[ "${local_high_wan_2_client_src_addr_file_changed}" = "1" ] && sed -i "s:^[ ]*high_wan_2_client_src_addr_file=${local_high_wan_2_client_src_addr_file}:high_wan_2_client_src_addr_file=${local_ini_high_wan_2_client_src_addr_file}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-	[ "${local_wan_1_src_to_dst_addr_changed}" = "1" ] && sed -i "s:^[ ]*wan_1_src_to_dst_addr=${local_wan_1_src_to_dst_addr}:wan_1_src_to_dst_addr=${local_ini_wan_1_src_to_dst_addr}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-	[ "${local_wan_1_src_to_dst_addr_file_changed}" = "1" ] && sed -i "s:^[ ]*wan_1_src_to_dst_addr_file=${local_wan_1_src_to_dst_addr_file}:wan_1_src_to_dst_addr_file=${local_ini_wan_1_src_to_dst_addr_file}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-	[ "${local_wan_2_src_to_dst_addr_changed}" = "1" ] && sed -i "s:^[ ]*wan_2_src_to_dst_addr=${local_wan_2_src_to_dst_addr}:wan_2_src_to_dst_addr=${local_ini_wan_2_src_to_dst_addr}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-	[ "${local_wan_2_src_to_dst_addr_file_changed}" = "1" ] && sed -i "s:^[ ]*wan_2_src_to_dst_addr_file=${local_wan_2_src_to_dst_addr_file}:wan_2_src_to_dst_addr_file=${local_ini_wan_2_src_to_dst_addr_file}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-	[ "${local_high_wan_1_src_to_dst_addr_changed}" = "1" ] && sed -i "s:^[ ]*high_wan_1_src_to_dst_addr=${local_high_wan_1_src_to_dst_addr}:high_wan_1_src_to_dst_addr=${local_ini_high_wan_1_src_to_dst_addr}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-	[ "${local_high_wan_1_src_to_dst_addr_file_changed}" = "1" ] && sed -i "s:^[ ]*high_wan_1_src_to_dst_addr_file=${local_high_wan_1_src_to_dst_addr_file}:high_wan_1_src_to_dst_addr_file=${local_ini_high_wan_1_src_to_dst_addr_file}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan_1_client_src_addr_changed}" = "1" ] && sed -i "s:^[ ]*wan_1_client_src_addr=${local_wan_1_client_src_addr}:wan_1_client_src_addr=${local_ini_wan_1_client_src_addr}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan_1_client_src_addr_file_changed}" = "1" ] && sed -i "s:^[ ]*wan_1_client_src_addr_file=${local_wan_1_client_src_addr_file}:wan_1_client_src_addr_file=${local_ini_wan_1_client_src_addr_file}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan_2_client_src_addr_changed}" = "1" ] && sed -i "s:^[ ]*wan_2_client_src_addr=${local_wan_2_client_src_addr}:wan_2_client_src_addr=${local_ini_wan_2_client_src_addr}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan_2_client_src_addr_file_changed}" = "1" ] && sed -i "s:^[ ]*wan_2_client_src_addr_file=${local_wan_2_client_src_addr_file}}:wan_2_client_src_addr_file=${local_ini_wan_2_client_src_addr_file}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_high_wan_1_client_src_addr_changed}" = "1" ] && sed -i "s:^[ ]*high_wan_1_client_src_addr=${local_high_wan_1_client_src_addr}:high_wan_1_client_src_addr=${local_ini_high_wan_1_client_src_addr}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_high_wan_1_client_src_addr_file_changed}" = "1" ] && sed -i "s:^[ ]*high_wan_1_client_src_addr_file=${local_high_wan_1_client_src_addr_file}:high_wan_1_client_src_addr_file=${local_ini_high_wan_1_client_src_addr_file}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_high_wan_2_client_src_addr_changed}" = "1" ] && sed -i "s:^[ ]*high_wan_2_client_src_addr=${local_high_wan_2_client_src_addr}:high_wan_2_client_src_addr=${local_ini_high_wan_2_client_src_addr}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_high_wan_2_client_src_addr_file_changed}" = "1" ] && sed -i "s:^[ ]*high_wan_2_client_src_addr_file=${local_high_wan_2_client_src_addr_file}:high_wan_2_client_src_addr_file=${local_ini_high_wan_2_client_src_addr_file}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan_1_src_to_dst_addr_changed}" = "1" ] && sed -i "s:^[ ]*wan_1_src_to_dst_addr=${local_wan_1_src_to_dst_addr}:wan_1_src_to_dst_addr=${local_ini_wan_1_src_to_dst_addr}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan_1_src_to_dst_addr_file_changed}" = "1" ] && sed -i "s:^[ ]*wan_1_src_to_dst_addr_file=${local_wan_1_src_to_dst_addr_file}:wan_1_src_to_dst_addr_file=${local_ini_wan_1_src_to_dst_addr_file}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan_2_src_to_dst_addr_changed}" = "1" ] && sed -i "s:^[ ]*wan_2_src_to_dst_addr=${local_wan_2_src_to_dst_addr}:wan_2_src_to_dst_addr=${local_ini_wan_2_src_to_dst_addr}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan_2_src_to_dst_addr_file_changed}" = "1" ] && sed -i "s:^[ ]*wan_2_src_to_dst_addr_file=${local_wan_2_src_to_dst_addr_file}:wan_2_src_to_dst_addr_file=${local_ini_wan_2_src_to_dst_addr_file}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_high_wan_1_src_to_dst_addr_changed}" = "1" ] && sed -i "s:^[ ]*high_wan_1_src_to_dst_addr=${local_high_wan_1_src_to_dst_addr}:high_wan_1_src_to_dst_addr=${local_ini_high_wan_1_src_to_dst_addr}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_high_wan_1_src_to_dst_addr_file_changed}" = "1" ] && sed -i "s:^[ ]*high_wan_1_src_to_dst_addr_file=${local_high_wan_1_src_to_dst_addr_file}:high_wan_1_src_to_dst_addr_file=${local_ini_high_wan_1_src_to_dst_addr_file}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
 
-	[ "${local_local_ipsets_file_changed}" = "1" ] && sed -i "s:^[ ]*local_ipsets_file=${local_local_ipsets_file}:local_ipsets_file=${local_ini_local_ipsets_file}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-	[ "${local_private_ipsets_file_changed}" = "1" ] && sed -i "s:^[ ]*private_ipsets_file=${local_private_ipsets_file}:private_ipsets_file=${local_ini_private_ipsets_file}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_local_ipsets_file_changed}" = "1" ] && sed -i "s:^[ ]*local_ipsets_file=${local_local_ipsets_file}:local_ipsets_file=${local_ini_local_ipsets_file}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_private_ipsets_file_changed}" = "1" ] && sed -i "s:^[ ]*private_ipsets_file=${local_private_ipsets_file}:private_ipsets_file=${local_ini_private_ipsets_file}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
 
-	[ "${local_wan0_dest_tcp_port_changed}" = "1" ] && sed -i "s|^[ ]*wan0_dest_tcp_port=${local_wan0_dest_tcp_port}|wan0_dest_tcp_port=${local_ini_wan0_dest_tcp_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-	[ "${local_wan0_dest_udp_port_changed}" = "1" ] && sed -i "s|^[ ]*wan0_dest_udp_port=${local_wan0_dest_udp_port}|wan0_dest_udp_port=${local_ini_wan0_dest_udp_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-	[ "${local_wan0_dest_udplite_port_changed}" = "1" ] && sed -i "s|^[ ]*wan0_dest_udplite_port=${local_wan0_dest_udplite_port}|wan0_dest_udplite_port=${local_ini_wan0_dest_udplite_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-	[ "${local_wan0_dest_sctp_port_changed}" = "1" ] && sed -i "s|^[ ]*wan0_dest_sctp_port=${local_wan0_dest_sctp_port}|wan0_dest_sctp_port=${local_ini_wan0_dest_sctp_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan0_dest_tcp_port_changed}" = "1" ] && sed -i "s|^[ ]*wan0_dest_tcp_port=${local_wan0_dest_tcp_port}|wan0_dest_tcp_port=${local_ini_wan0_dest_tcp_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan0_dest_udp_port_changed}" = "1" ] && sed -i "s|^[ ]*wan0_dest_udp_port=${local_wan0_dest_udp_port}|wan0_dest_udp_port=${local_ini_wan0_dest_udp_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan0_dest_udplite_port_changed}" = "1" ] && sed -i "s|^[ ]*wan0_dest_udplite_port=${local_wan0_dest_udplite_port}|wan0_dest_udplite_port=${local_ini_wan0_dest_udplite_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan0_dest_sctp_port_changed}" = "1" ] && sed -i "s|^[ ]*wan0_dest_sctp_port=${local_wan0_dest_sctp_port}|wan0_dest_sctp_port=${local_ini_wan0_dest_sctp_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
 
-	[ "${local_wan1_dest_tcp_port_changed}" = "1" ] && sed -i "s|^[ ]*wan1_dest_tcp_port=${local_wan1_dest_tcp_port}|wan1_dest_tcp_port=${local_ini_wan1_dest_tcp_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-	[ "${local_wan1_dest_udp_port_changed}" = "1" ] && sed -i "s|^[ ]*wan1_dest_udp_port=${local_wan1_dest_udp_port}|wan1_dest_udp_port=${local_ini_wan1_dest_udp_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-	[ "${local_wan1_dest_udplite_port_changed}" = "1" ] && sed -i "s|^[ ]*wan1_dest_udplite_port=${local_wan1_dest_udplite_port}|wan1_dest_udplite_port=${local_ini_wan1_dest_udplite_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-	[ "${local_wan1_dest_sctp_port_changed}" = "1" ] && sed -i "s|^[ ]*wan1_dest_sctp_port=${local_wan1_dest_sctp_port}|wan1_dest_sctp_port=${local_ini_wan1_dest_sctp_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan1_dest_tcp_port_changed}" = "1" ] && sed -i "s|^[ ]*wan1_dest_tcp_port=${local_wan1_dest_tcp_port}|wan1_dest_tcp_port=${local_ini_wan1_dest_tcp_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan1_dest_udp_port_changed}" = "1" ] && sed -i "s|^[ ]*wan1_dest_udp_port=${local_wan1_dest_udp_port}|wan1_dest_udp_port=${local_ini_wan1_dest_udp_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan1_dest_udplite_port_changed}" = "1" ] && sed -i "s|^[ ]*wan1_dest_udplite_port=${local_wan1_dest_udplite_port}|wan1_dest_udplite_port=${local_ini_wan1_dest_udplite_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan1_dest_sctp_port_changed}" = "1" ] && sed -i "s|^[ ]*wan1_dest_sctp_port=${local_wan1_dest_sctp_port}|wan1_dest_sctp_port=${local_ini_wan1_dest_sctp_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
 
-	[ "${local_ovs_client_wan_port_changed}" = "1" ] && sed -i "s:^[ ]*ovs_client_wan_port=${local_ovs_client_wan_port}:ovs_client_wan_port=${local_ini_ovs_client_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-	[ "${local_vpn_client_polling_time_changed}" = "1" ] && sed -i "s:^[ ]*vpn_client_polling_time=${local_vpn_client_polling_time}:vpn_client_polling_time=${local_ini_vpn_client_polling_time}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-	[ "${local_wan_access_port_changed}" = "1" ] && sed -i "s:^[ ]*wan_access_port=${local_wan_access_port}:wan_access_port=${local_ini_wan_access_port}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-	[ "${local_list_mode_threshold_changed}" = "1" ] && sed -i "s:^[ ]*list_mode_threshold=${local_list_mode_threshold}:list_mode_threshold=${local_ini_list_mode_threshold}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-	[ "${local_route_cache_changed}" = "1" ] && sed -i "s:^[ ]*route_cache=${local_route_cache}:route_cache=${local_ini_route_cache}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-	[ "${local_clear_route_cache_time_interval_changed}" = "1" ] && sed -i "s:^[ ]*clear_route_cache_time_interval=${local_clear_route_cache_time_interval}:clear_route_cache_time_interval=${local_ini_clear_route_cache_time_interval}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_ovs_client_wan_port_changed}" = "1" ] && sed -i "s:^[ ]*ovs_client_wan_port=${local_ovs_client_wan_port}:ovs_client_wan_port=${local_ini_ovs_client_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_vpn_client_polling_time_changed}" = "1" ] && sed -i "s:^[ ]*vpn_client_polling_time=${local_vpn_client_polling_time}:vpn_client_polling_time=${local_ini_vpn_client_polling_time}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan_access_port_changed}" = "1" ] && sed -i "s:^[ ]*wan_access_port=${local_wan_access_port}:wan_access_port=${local_ini_wan_access_port}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_list_mode_threshold_changed}" = "1" ] && sed -i "s:^[ ]*list_mode_threshold=${local_list_mode_threshold}:list_mode_threshold=${local_ini_list_mode_threshold}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_route_cache_changed}" = "1" ] && sed -i "s:^[ ]*route_cache=${local_route_cache}:route_cache=${local_ini_route_cache}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_clear_route_cache_time_interval_changed}" = "1" ] && sed -i "s:^[ ]*clear_route_cache_time_interval=${local_clear_route_cache_time_interval}:clear_route_cache_time_interval=${local_ini_clear_route_cache_time_interval}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
 
-	[ "${local_iptv_igmp_switch_changed}" = "1" ] && sed -i "s:^[ ]*iptv_igmp_switch=${local_iptv_igmp_switch}:iptv_igmp_switch=${local_ini_iptv_igmp_switch}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-	[ "${local_igmp_version_changed}" = "1" ] && sed -i "s:^[ ]*igmp_version=${local_igmp_version}:igmp_version=${local_ini_igmp_version}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-	[ "${local_hnd_br0_bcmmcast_mode_changed}" = "1" ] && sed -i "s:^[ ]*hnd_br0_bcmmcast_mode=${local_hnd_br0_bcmmcast_mode}:hnd_br0_bcmmcast_mode=${local_ini_hnd_br0_bcmmcast_mode}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-	[ "${local_iptv_access_mode_changed}" = "1" ] && sed -i "s:^[ ]*iptv_access_mode=${local_iptv_access_mode}:iptv_access_mode=${local_ini_iptv_access_mode}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-	[ "${local_iptv_box_ip_lst_file_changed}" = "1" ] && sed -i "s:^[ ]*iptv_box_ip_lst_file=${local_iptv_box_ip_lst_file}:iptv_box_ip_lst_file=${local_ini_iptv_box_ip_lst_file}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-	[ "${local_iptv_isp_ip_lst_file_changed}" = "1" ] && sed -i "s:^[ ]*iptv_isp_ip_lst_file=${local_iptv_isp_ip_lst_file}:iptv_isp_ip_lst_file=${local_ini_iptv_isp_ip_lst_file}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-	[ "${local_wan1_iptv_mode_changed}" = "1" ] && sed -i "s:^[ ]*wan1_iptv_mode=${local_wan1_iptv_mode}:wan1_iptv_mode=${local_ini_wan1_iptv_mode}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-	[ "${local_wan1_udpxy_switch_changed}" = "1" ] && sed -i "s:^[ ]*wan1_udpxy_switch=${local_wan1_udpxy_switch}:wan1_udpxy_switch=${local_ini_wan1_udpxy_switch}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-	[ "${local_wan1_udpxy_port_changed}" = "1" ] && sed -i "s:^[ ]*wan1_udpxy_port=${local_wan1_udpxy_port}:wan1_udpxy_port=${local_ini_wan1_udpxy_port}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-	[ "${local_wan1_udpxy_buffer_changed}" = "1" ] && sed -i "s:^[ ]*wan1_udpxy_buffer=${local_wan1_udpxy_buffer}:wan1_udpxy_buffer=${local_ini_wan1_udpxy_buffer}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-	[ "${local_wan1_udpxy_client_num_changed}" = "1" ] && sed -i "s:^[ ]*wan1_udpxy_client_num=${local_wan1_udpxy_client_num}:wan1_udpxy_client_num=${local_ini_wan1_udpxy_client_num}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-	[ "${local_wan2_iptv_mode_changed}" = "1" ] && sed -i "s:^[ ]*wan2_iptv_mode=${local_wan2_iptv_mode}:wan2_iptv_mode=${local_ini_wan2_iptv_mode}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-	[ "${local_wan2_udpxy_switch_changed}" = "1" ] && sed -i "s:^[ ]*wan2_udpxy_switch=${local_wan2_udpxy_switch}:wan2_udpxy_switch=${local_ini_wan2_udpxy_switch}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-	[ "${local_wan2_udpxy_port_changed}" = "1" ] && sed -i "s:^[ ]*wan2_udpxy_port=${local_wan2_udpxy_port}:wan2_udpxy_port=${local_ini_wan2_udpxy_port}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-	[ "${local_wan2_udpxy_buffer_changed}" = "1" ] && sed -i "s:^[ ]*wan2_udpxy_buffer=${local_wan2_udpxy_buffer}:wan2_udpxy_buffer=${local_ini_wan2_udpxy_buffer}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-	[ "${local_wan2_udpxy_client_num_changed}" = "1" ] && sed -i "s:^[ ]*wan2_udpxy_client_num=${local_wan2_udpxy_client_num}:wan2_udpxy_client_num=${local_ini_wan2_udpxy_client_num}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-	[ "${local_udpxy_used_changed}" = "1" ] && sed -i "s:^[ ]*udpxy_used=${local_udpxy_used:}udpxy_used=${local_ini_udpxy_used}:" "${PATH_FUNC}/lz_define_global_variables.sh" > /dev/null 2>&1
+    [ "${local_iptv_igmp_switch_changed}" = "1" ] && sed -i "s:^[ ]*iptv_igmp_switch=${local_iptv_igmp_switch}:iptv_igmp_switch=${local_ini_iptv_igmp_switch}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_igmp_version_changed}" = "1" ] && sed -i "s:^[ ]*igmp_version=${local_igmp_version}:igmp_version=${local_ini_igmp_version}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_hnd_br0_bcmmcast_mode_changed}" = "1" ] && sed -i "s:^[ ]*hnd_br0_bcmmcast_mode=${local_hnd_br0_bcmmcast_mode}:hnd_br0_bcmmcast_mode=${local_ini_hnd_br0_bcmmcast_mode}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_iptv_access_mode_changed}" = "1" ] && sed -i "s:^[ ]*iptv_access_mode=${local_iptv_access_mode}:iptv_access_mode=${local_ini_iptv_access_mode}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_iptv_box_ip_lst_file_changed}" = "1" ] && sed -i "s:^[ ]*iptv_box_ip_lst_file=${local_iptv_box_ip_lst_file}:iptv_box_ip_lst_file=${local_ini_iptv_box_ip_lst_file}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_iptv_isp_ip_lst_file_changed}" = "1" ] && sed -i "s:^[ ]*iptv_isp_ip_lst_file=${local_iptv_isp_ip_lst_file}:iptv_isp_ip_lst_file=${local_ini_iptv_isp_ip_lst_file}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan1_iptv_mode_changed}" = "1" ] && sed -i "s:^[ ]*wan1_iptv_mode=${local_wan1_iptv_mode}:wan1_iptv_mode=${local_ini_wan1_iptv_mode}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan1_udpxy_switch_changed}" = "1" ] && sed -i "s:^[ ]*wan1_udpxy_switch=${local_wan1_udpxy_switch}:wan1_udpxy_switch=${local_ini_wan1_udpxy_switch}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan1_udpxy_port_changed}" = "1" ] && sed -i "s:^[ ]*wan1_udpxy_port=${local_wan1_udpxy_port}:wan1_udpxy_port=${local_ini_wan1_udpxy_port}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan1_udpxy_buffer_changed}" = "1" ] && sed -i "s:^[ ]*wan1_udpxy_buffer=${local_wan1_udpxy_buffer}:wan1_udpxy_buffer=${local_ini_wan1_udpxy_buffer}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan1_udpxy_client_num_changed}" = "1" ] && sed -i "s:^[ ]*wan1_udpxy_client_num=${local_wan1_udpxy_client_num}:wan1_udpxy_client_num=${local_ini_wan1_udpxy_client_num}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan2_iptv_mode_changed}" = "1" ] && sed -i "s:^[ ]*wan2_iptv_mode=${local_wan2_iptv_mode}:wan2_iptv_mode=${local_ini_wan2_iptv_mode}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan2_udpxy_switch_changed}" = "1" ] && sed -i "s:^[ ]*wan2_udpxy_switch=${local_wan2_udpxy_switch}:wan2_udpxy_switch=${local_ini_wan2_udpxy_switch}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan2_udpxy_port_changed}" = "1" ] && sed -i "s:^[ ]*wan2_udpxy_port=${local_wan2_udpxy_port}:wan2_udpxy_port=${local_ini_wan2_udpxy_port}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan2_udpxy_buffer_changed}" = "1" ] && sed -i "s:^[ ]*wan2_udpxy_buffer=${local_wan2_udpxy_buffer}:wan2_udpxy_buffer=${local_ini_wan2_udpxy_buffer}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan2_udpxy_client_num_changed}" = "1" ] && sed -i "s:^[ ]*wan2_udpxy_client_num=${local_wan2_udpxy_client_num}:wan2_udpxy_client_num=${local_ini_wan2_udpxy_client_num}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_udpxy_used_changed}" = "1" ] && sed -i "s:^[ ]*udpxy_used=${local_udpxy_used:}udpxy_used=${local_ini_udpxy_used}:" "${PATH_FUNC}/lz_define_global_variables.sh" > /dev/null 2>&1
 
-	[ "${local_regularly_update_ispip_data_enable_changed}" = "1" ] && sed -i "s:^[ ]*regularly_update_ispip_data_enable=${local_regularly_update_ispip_data_enable}:regularly_update_ispip_data_enable=${local_ini_regularly_update_ispip_data_enable}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-	[ "${local_ruid_interval_day_changed}" = "1" ] && sed -i "s:^[ ]*ruid_interval_day=.*$:ruid_interval_day=${local_ini_ruid_interval_day}  ## 间隔天数（1~31）；\"ruid_interval_day=5\"表示每隔5天。:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-	[ "${local_ruid_timer_hour_changed}" = "1" ] && sed -i "s:^[ ]*ruid_timer_hour=.*$:ruid_timer_hour=${local_ini_ruid_timer_hour}    ## 时间小时数（0~23，\*表示由系统指定）；\"ruid_timer_hour=3\"表示更新当天的凌晨3点。:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-	[ "${local_ruid_timer_min_changed}" = "1" ] && sed -i "s:^[ ]*ruid_timer_min=.*$:ruid_timer_min=${local_ini_ruid_timer_min}    ## 时间分钟数（0~59，\*表示由系统指定）；\"ruid_timer_min=18\"表示更新当天的凌晨3点18分。:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-	[ "${local_ruid_retry_num_changed}" = "1" ] && sed -i "s:^[ ]*ruid_retry_num=${local_ruid_retry_num}:ruid_retry_num=${local_ini_ruid_retry_num}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_regularly_update_ispip_data_enable_changed}" = "1" ] && sed -i "s:^[ ]*regularly_update_ispip_data_enable=${local_regularly_update_ispip_data_enable}:regularly_update_ispip_data_enable=${local_ini_regularly_update_ispip_data_enable}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_ruid_interval_day_changed}" = "1" ] && sed -i "s:^[ ]*ruid_interval_day=.*$:ruid_interval_day=${local_ini_ruid_interval_day}  ## 间隔天数（1~31）；\"ruid_interval_day=5\"表示每隔5天。:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_ruid_timer_hour_changed}" = "1" ] && sed -i "s:^[ ]*ruid_timer_hour=.*$:ruid_timer_hour=${local_ini_ruid_timer_hour}    ## 时间小时数（0~23，\*表示由系统指定）；\"ruid_timer_hour=3\"表示更新当天的凌晨3点。:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_ruid_timer_min_changed}" = "1" ] && sed -i "s:^[ ]*ruid_timer_min=.*$:ruid_timer_min=${local_ini_ruid_timer_min}    ## 时间分钟数（0~59，\*表示由系统指定）；\"ruid_timer_min=18\"表示更新当天的凌晨3点18分。:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_ruid_retry_num_changed}" = "1" ] && sed -i "s:^[ ]*ruid_retry_num=${local_ruid_retry_num}:ruid_retry_num=${local_ini_ruid_retry_num}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
 
-	[ "${local_custom_config_scripts_changed}" = "1" ] && sed -i "s:^[ ]*custom_config_scripts=${local_custom_config_scripts}:custom_config_scripts=${local_ini_custom_config_scripts}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-	[ "${local_custom_config_scripts_filename_changed}" = "1" ] && sed -i "s:^[ ]*custom_config_scripts_filename=${local_custom_config_scripts_filename}:custom_config_scripts_filename=${local_ini_custom_config_scripts_filename}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-	[ "${local_custom_dualwan_scripts_changed}" = "1" ] && sed -i "s:^[ ]*custom_dualwan_scripts=${local_custom_dualwan_scripts}:custom_dualwan_scripts=${local_ini_custom_dualwan_scripts}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-	[ "${local_custom_dualwan_scripts_filename_changed}" = "1" ] && sed -i "s:^[ ]*custom_dualwan_scripts_filename=${local_custom_dualwan_scripts_filename}:custom_dualwan_scripts_filename=${local_ini_custom_dualwan_scripts_filename}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-	[ "${local_custom_clear_scripts_changed}" = "1" ] && sed -i "s:^[ ]*custom_clear_scripts=${local_custom_clear_scripts}:custom_clear_scripts=${local_ini_custom_clear_scripts}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-	[ "${local_custom_clear_scripts_filename_changed}" = "1" ] && sed -i "s:^[ ]*custom_clear_scripts_filename=${local_custom_clear_scripts_filename}:custom_clear_scripts_filename=${local_ini_custom_clear_scripts_filename}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_custom_config_scripts_changed}" = "1" ] && sed -i "s:^[ ]*custom_config_scripts=${local_custom_config_scripts}:custom_config_scripts=${local_ini_custom_config_scripts}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_custom_config_scripts_filename_changed}" = "1" ] && sed -i "s:^[ ]*custom_config_scripts_filename=${local_custom_config_scripts_filename}:custom_config_scripts_filename=${local_ini_custom_config_scripts_filename}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_custom_dualwan_scripts_changed}" = "1" ] && sed -i "s:^[ ]*custom_dualwan_scripts=${local_custom_dualwan_scripts}:custom_dualwan_scripts=${local_ini_custom_dualwan_scripts}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_custom_dualwan_scripts_filename_changed}" = "1" ] && sed -i "s:^[ ]*custom_dualwan_scripts_filename=${local_custom_dualwan_scripts_filename}:custom_dualwan_scripts_filename=${local_ini_custom_dualwan_scripts_filename}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_custom_clear_scripts_changed}" = "1" ] && sed -i "s:^[ ]*custom_clear_scripts=${local_custom_clear_scripts}:custom_clear_scripts=${local_ini_custom_clear_scripts}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_custom_clear_scripts_filename_changed}" = "1" ] && sed -i "s:^[ ]*custom_clear_scripts_filename=${local_custom_clear_scripts_filename}:custom_clear_scripts_filename=${local_ini_custom_clear_scripts_filename}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
 }
 
 ## 将当前配置优化至IPTV配置函数
@@ -2814,138 +2814,138 @@ lz_restore_config() {
 ## 返回值：无
 lz_optimize_to_iptv() {
 
-	[ "${1}" != "iptv" ] && return
+    [ "${1}" != "iptv" ] && return
 
-	## 格式化读取文件缓冲区
-	## 输入项：
-	##     $1--数据文件全路径文件名
-	## 返回值：
-	##     数据文件缓冲区内容
-	local_file_cache="$( lz_read_file_cache_buffer "${PATH_CONFIGS}/lz_rule_config.box" )"
+    ## 格式化读取文件缓冲区
+    ## 输入项：
+    ##     $1--数据文件全路径文件名
+    ## 返回值：
+    ##     数据文件缓冲区内容
+    local_file_cache="$( lz_read_file_cache_buffer "${PATH_CONFIGS}/lz_rule_config.box" )"
 
-	## 读取box文件中的运行模式参数
-	## 读取文件缓冲区数据项
-	## 输入项：
-	##     $1--数据项名称
-	##     $2--数据项缺省值
-	##     local_file_cache--数据文件缓冲区
-	##     全局常量
-	## 返回值：
-	##     0--数据项不存在，或数据项值缺失，均以数据项缺省值输出
-	##     非0--数据项读取成功
-	local_ini_all_foreign_wan_port="$( lz_get_file_cache_data "lz_config_all_foreign_wan_port" "0" )"
-	[ "${local_ini_all_foreign_wan_port}" != "0" ] && {
-		local_all_foreign_wan_port="0"
-		sed -i "s:^[ ]*lz_config_all_foreign_wan_port=${local_ini_all_foreign_wan_port}:lz_config_all_foreign_wan_port=${local_all_foreign_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.box" > /dev/null 2>&1
-		sed -i "s:^[ ]*all_foreign_wan_port=${local_ini_all_foreign_wan_port}:all_foreign_wan_port=${local_all_foreign_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-		local_ini_all_foreign_wan_port="${local_all_foreign_wan_port}"
-	}
+    ## 读取box文件中的运行模式参数
+    ## 读取文件缓冲区数据项
+    ## 输入项：
+    ##     $1--数据项名称
+    ##     $2--数据项缺省值
+    ##     local_file_cache--数据文件缓冲区
+    ##     全局常量
+    ## 返回值：
+    ##     0--数据项不存在，或数据项值缺失，均以数据项缺省值输出
+    ##     非0--数据项读取成功
+    local_ini_all_foreign_wan_port="$( lz_get_file_cache_data "lz_config_all_foreign_wan_port" "0" )"
+    [ "${local_ini_all_foreign_wan_port}" != "0" ] && {
+        local_all_foreign_wan_port="0"
+        sed -i "s:^[ ]*lz_config_all_foreign_wan_port=${local_ini_all_foreign_wan_port}:lz_config_all_foreign_wan_port=${local_all_foreign_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.box" > /dev/null 2>&1
+        sed -i "s:^[ ]*all_foreign_wan_port=${local_ini_all_foreign_wan_port}:all_foreign_wan_port=${local_all_foreign_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+        local_ini_all_foreign_wan_port="${local_all_foreign_wan_port}"
+    }
 
-	local_ini_chinatelecom_wan_port="$( lz_get_file_cache_data "lz_config_chinatelecom_wan_port" "0" )"
-	[ "$local_ini_chinatelecom_wan_port" != "0" ] && {
-		local_chinatelecom_wan_port="0"
-		sed -i "s:^[ ]*lz_config_chinatelecom_wan_port=${local_ini_chinatelecom_wan_port}:lz_config_chinatelecom_wan_port=${local_chinatelecom_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.box" > /dev/null 2>&1
-		sed -i "s:^[ ]*chinatelecom_wan_port=${local_ini_chinatelecom_wan_port}:chinatelecom_wan_port=${local_chinatelecom_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-		local_ini_chinatelecom_wan_port="$local_chinatelecom_wan_port"
-	}
+    local_ini_chinatelecom_wan_port="$( lz_get_file_cache_data "lz_config_chinatelecom_wan_port" "0" )"
+    [ "$local_ini_chinatelecom_wan_port" != "0" ] && {
+        local_chinatelecom_wan_port="0"
+        sed -i "s:^[ ]*lz_config_chinatelecom_wan_port=${local_ini_chinatelecom_wan_port}:lz_config_chinatelecom_wan_port=${local_chinatelecom_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.box" > /dev/null 2>&1
+        sed -i "s:^[ ]*chinatelecom_wan_port=${local_ini_chinatelecom_wan_port}:chinatelecom_wan_port=${local_chinatelecom_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+        local_ini_chinatelecom_wan_port="$local_chinatelecom_wan_port"
+    }
 
-	local_ini_unicom_cnc_wan_port="$( lz_get_file_cache_data "lz_config_unicom_cnc_wan_port" "0" )"
-	[ "$local_ini_unicom_cnc_wan_port" != "0" ] && {
-		local_unicom_cnc_wan_port="0"
-		sed -i "s:^[ ]*lz_config_unicom_cnc_wan_port=${local_ini_unicom_cnc_wan_port}:lz_config_unicom_cnc_wan_port=${local_unicom_cnc_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.box" > /dev/null 2>&1
-		sed -i "s:^[ ]*unicom_cnc_wan_port=${local_ini_unicom_cnc_wan_port}:unicom_cnc_wan_port=${local_unicom_cnc_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-		local_ini_unicom_cnc_wan_port="${local_unicom_cnc_wan_port}"
-	}
+    local_ini_unicom_cnc_wan_port="$( lz_get_file_cache_data "lz_config_unicom_cnc_wan_port" "0" )"
+    [ "$local_ini_unicom_cnc_wan_port" != "0" ] && {
+        local_unicom_cnc_wan_port="0"
+        sed -i "s:^[ ]*lz_config_unicom_cnc_wan_port=${local_ini_unicom_cnc_wan_port}:lz_config_unicom_cnc_wan_port=${local_unicom_cnc_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.box" > /dev/null 2>&1
+        sed -i "s:^[ ]*unicom_cnc_wan_port=${local_ini_unicom_cnc_wan_port}:unicom_cnc_wan_port=${local_unicom_cnc_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+        local_ini_unicom_cnc_wan_port="${local_unicom_cnc_wan_port}"
+    }
 
-	local_ini_cmcc_wan_port="$( lz_get_file_cache_data "lz_config_cmcc_wan_port" "1" )"
-	[ "$local_ini_cmcc_wan_port" != "0" ] && {
-		local_cmcc_wan_port="0"
-		sed -i "s:^[ ]*lz_config_cmcc_wan_port=${local_ini_cmcc_wan_port}:lz_config_cmcc_wan_port=${local_cmcc_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.box" > /dev/null 2>&1
-		sed -i "s:^[ ]*cmcc_wan_port=${local_ini_cmcc_wan_port}:cmcc_wan_port=${local_cmcc_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-		local_ini_cmcc_wan_port="${local_cmcc_wan_port}"
-	}
+    local_ini_cmcc_wan_port="$( lz_get_file_cache_data "lz_config_cmcc_wan_port" "1" )"
+    [ "$local_ini_cmcc_wan_port" != "0" ] && {
+        local_cmcc_wan_port="0"
+        sed -i "s:^[ ]*lz_config_cmcc_wan_port=${local_ini_cmcc_wan_port}:lz_config_cmcc_wan_port=${local_cmcc_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.box" > /dev/null 2>&1
+        sed -i "s:^[ ]*cmcc_wan_port=${local_ini_cmcc_wan_port}:cmcc_wan_port=${local_cmcc_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+        local_ini_cmcc_wan_port="${local_cmcc_wan_port}"
+    }
 
-	local_ini_crtc_wan_port="$( lz_get_file_cache_data "lz_config_crtc_wan_port" "1" )"
-	[ "$local_ini_crtc_wan_port" != "0" ] && {
-		local_crtc_wan_port="0"
-		sed -i "s:^[ ]*lz_config_crtc_wan_port=${local_ini_crtc_wan_port}:lz_config_crtc_wan_port=${local_crtc_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.box" > /dev/null 2>&1
-		sed -i "s:^[ ]*crtc_wan_port=${local_ini_crtc_wan_port}:crtc_wan_port=${local_crtc_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-		local_ini_crtc_wan_port="${local_crtc_wan_port}"
-	}
+    local_ini_crtc_wan_port="$( lz_get_file_cache_data "lz_config_crtc_wan_port" "1" )"
+    [ "$local_ini_crtc_wan_port" != "0" ] && {
+        local_crtc_wan_port="0"
+        sed -i "s:^[ ]*lz_config_crtc_wan_port=${local_ini_crtc_wan_port}:lz_config_crtc_wan_port=${local_crtc_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.box" > /dev/null 2>&1
+        sed -i "s:^[ ]*crtc_wan_port=${local_ini_crtc_wan_port}:crtc_wan_port=${local_crtc_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+        local_ini_crtc_wan_port="${local_crtc_wan_port}"
+    }
 
-	local_ini_cernet_wan_port="$( lz_get_file_cache_data "lz_config_cernet_wan_port" "1" )"
-	[ "$local_ini_cernet_wan_port" != "0" ] && {
-		local_cernet_wan_port="0"
-		sed -i "s:^[ ]*lz_config_cernet_wan_port=${local_ini_cernet_wan_port}:lz_config_cernet_wan_port=${local_cernet_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.box" > /dev/null 2>&1
-		sed -i "s:^[ ]*cernet_wan_port=${local_ini_cernet_wan_port}:cernet_wan_port=${local_cernet_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-		local_ini_cernet_wan_port="${local_cernet_wan_port}"
-	}
+    local_ini_cernet_wan_port="$( lz_get_file_cache_data "lz_config_cernet_wan_port" "1" )"
+    [ "$local_ini_cernet_wan_port" != "0" ] && {
+        local_cernet_wan_port="0"
+        sed -i "s:^[ ]*lz_config_cernet_wan_port=${local_ini_cernet_wan_port}:lz_config_cernet_wan_port=${local_cernet_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.box" > /dev/null 2>&1
+        sed -i "s:^[ ]*cernet_wan_port=${local_ini_cernet_wan_port}:cernet_wan_port=${local_cernet_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+        local_ini_cernet_wan_port="${local_cernet_wan_port}"
+    }
 
-	local_ini_gwbn_wan_port="$( lz_get_file_cache_data "lz_config_gwbn_wan_port" "1" )"
-	[ "$local_ini_gwbn_wan_port" != "0" ] && {
-		local_gwbn_wan_port="0"
-		sed -i "s:^[ ]*lz_config_gwbn_wan_port=${local_ini_gwbn_wan_port}:lz_config_gwbn_wan_port=${local_gwbn_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.box" > /dev/null 2>&1
-		sed -i "s:^[ ]*gwbn_wan_port=${local_ini_gwbn_wan_port}:gwbn_wan_port=${local_gwbn_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-		local_ini_gwbn_wan_port="${local_gwbn_wan_port}"
-	}
+    local_ini_gwbn_wan_port="$( lz_get_file_cache_data "lz_config_gwbn_wan_port" "1" )"
+    [ "$local_ini_gwbn_wan_port" != "0" ] && {
+        local_gwbn_wan_port="0"
+        sed -i "s:^[ ]*lz_config_gwbn_wan_port=${local_ini_gwbn_wan_port}:lz_config_gwbn_wan_port=${local_gwbn_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.box" > /dev/null 2>&1
+        sed -i "s:^[ ]*gwbn_wan_port=${local_ini_gwbn_wan_port}:gwbn_wan_port=${local_gwbn_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+        local_ini_gwbn_wan_port="${local_gwbn_wan_port}"
+    }
 
-	local_ini_othernet_wan_port="$( lz_get_file_cache_data "lz_config_othernet_wan_port" "0" )"
-	[ "$local_ini_othernet_wan_port" != "0" ] && {
-		local_othernet_wan_port="0"
-		sed -i "s:^[ ]*lz_config_othernet_wan_port=${local_ini_othernet_wan_port}:lz_config_othernet_wan_port=${local_othernet_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.box" > /dev/null 2>&1
-		sed -i "s:^[ ]*othernet_wan_port=${local_ini_othernet_wan_port}:othernet_wan_port=${local_othernet_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-		local_ini_othernet_wan_port="${local_othernet_wan_port}"
-	}
+    local_ini_othernet_wan_port="$( lz_get_file_cache_data "lz_config_othernet_wan_port" "0" )"
+    [ "$local_ini_othernet_wan_port" != "0" ] && {
+        local_othernet_wan_port="0"
+        sed -i "s:^[ ]*lz_config_othernet_wan_port=${local_ini_othernet_wan_port}:lz_config_othernet_wan_port=${local_othernet_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.box" > /dev/null 2>&1
+        sed -i "s:^[ ]*othernet_wan_port=${local_ini_othernet_wan_port}:othernet_wan_port=${local_othernet_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+        local_ini_othernet_wan_port="${local_othernet_wan_port}"
+    }
 
-	local_ini_hk_wan_port="$( lz_get_file_cache_data "lz_config_hk_wan_port" "0" )"
-	[ "$local_ini_hk_wan_port" != "0" ] && {
-		local_hk_wan_port="0"
-		sed -i "s:^[ ]*lz_config_hk_wan_port=${local_ini_hk_wan_port}:lz_config_hk_wan_port=${local_hk_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.box" > /dev/null 2>&1
-		sed -i "s:^[ ]*hk_wan_port=${local_ini_hk_wan_port}:hk_wan_port=${local_hk_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-		local_ini_hk_wan_port="${local_hk_wan_port}"
-	}
+    local_ini_hk_wan_port="$( lz_get_file_cache_data "lz_config_hk_wan_port" "0" )"
+    [ "$local_ini_hk_wan_port" != "0" ] && {
+        local_hk_wan_port="0"
+        sed -i "s:^[ ]*lz_config_hk_wan_port=${local_ini_hk_wan_port}:lz_config_hk_wan_port=${local_hk_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.box" > /dev/null 2>&1
+        sed -i "s:^[ ]*hk_wan_port=${local_ini_hk_wan_port}:hk_wan_port=${local_hk_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+        local_ini_hk_wan_port="${local_hk_wan_port}"
+    }
 
-	local_ini_mo_wan_port="$( lz_get_file_cache_data "lz_config_mo_wan_port" "0" )"
-	[ "$local_ini_mo_wan_port" != "0" ] && {
-		local_mo_wan_port="0"
-		sed -i "s:^[ ]*lz_config_mo_wan_port=${local_ini_mo_wan_port}:lz_config_mo_wan_port=${local_mo_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.box" > /dev/null 2>&1
-		sed -i "s:^[ ]*mo_wan_port=${local_ini_mo_wan_port}:mo_wan_port=${local_mo_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-		local_ini_mo_wan_port="${local_mo_wan_port}"
-	}
+    local_ini_mo_wan_port="$( lz_get_file_cache_data "lz_config_mo_wan_port" "0" )"
+    [ "$local_ini_mo_wan_port" != "0" ] && {
+        local_mo_wan_port="0"
+        sed -i "s:^[ ]*lz_config_mo_wan_port=${local_ini_mo_wan_port}:lz_config_mo_wan_port=${local_mo_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.box" > /dev/null 2>&1
+        sed -i "s:^[ ]*mo_wan_port=${local_ini_mo_wan_port}:mo_wan_port=${local_mo_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+        local_ini_mo_wan_port="${local_mo_wan_port}"
+    }
 
-	local_ini_tw_wan_port="$( lz_get_file_cache_data "lz_config_tw_wan_port" "0" )"
-	[ "$local_ini_tw_wan_port" != "0" ] && {
-		local_tw_wan_port="0"
-		sed -i "s:^[ ]*lz_config_tw_wan_port=${local_ini_tw_wan_port}:lz_config_tw_wan_port=${local_tw_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.box" > /dev/null 2>&1
-		sed -i "s:^[ ]*tw_wan_port=${local_ini_tw_wan_port}:tw_wan_port=${local_tw_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-		local_ini_tw_wan_port="${local_tw_wan_port}"
-	}
+    local_ini_tw_wan_port="$( lz_get_file_cache_data "lz_config_tw_wan_port" "0" )"
+    [ "$local_ini_tw_wan_port" != "0" ] && {
+        local_tw_wan_port="0"
+        sed -i "s:^[ ]*lz_config_tw_wan_port=${local_ini_tw_wan_port}:lz_config_tw_wan_port=${local_tw_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.box" > /dev/null 2>&1
+        sed -i "s:^[ ]*tw_wan_port=${local_ini_tw_wan_port}:tw_wan_port=${local_tw_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+        local_ini_tw_wan_port="${local_tw_wan_port}"
+    }
 
-	local_ini_iptv_igmp_switch="$( lz_get_file_cache_data "lz_config_iptv_igmp_switch" "5" )"
-	[ "$local_ini_iptv_igmp_switch" != "1" ] && {
-		local_iptv_igmp_switch="1"
-		sed -i "s:^[ ]*lz_config_iptv_igmp_switch=${local_ini_iptv_igmp_switch}:lz_config_iptv_igmp_switch=${local_iptv_igmp_switch}:" "${PATH_CONFIGS}/lz_rule_config.box" > /dev/null 2>&1
-		sed -i "s:^[ ]*iptv_igmp_switch=${local_ini_iptv_igmp_switch}:iptv_igmp_switch=${local_iptv_igmp_switch}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-		local_ini_iptv_igmp_switch="1"
-	}
+    local_ini_iptv_igmp_switch="$( lz_get_file_cache_data "lz_config_iptv_igmp_switch" "5" )"
+    [ "$local_ini_iptv_igmp_switch" != "1" ] && {
+        local_iptv_igmp_switch="1"
+        sed -i "s:^[ ]*lz_config_iptv_igmp_switch=${local_ini_iptv_igmp_switch}:lz_config_iptv_igmp_switch=${local_iptv_igmp_switch}:" "${PATH_CONFIGS}/lz_rule_config.box" > /dev/null 2>&1
+        sed -i "s:^[ ]*iptv_igmp_switch=${local_ini_iptv_igmp_switch}:iptv_igmp_switch=${local_iptv_igmp_switch}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+        local_ini_iptv_igmp_switch="1"
+    }
 
-	local_ini_wan1_udpxy_switch="$( lz_get_file_cache_data "lz_config_wan1_udpxy_switch" "5" )"
-	[ "$local_ini_wan1_udpxy_switch" = "0" ] && {
-		local_wan1_udpxy_switch="5"
-		sed -i "s:^[ ]*lz_config_wan1_udpxy_switch=${local_ini_wan1_udpxy_switch}:lz_config_wan1_udpxy_switch=${local_wan1_udpxy_switch}:" "${PATH_CONFIGS}/lz_rule_config.box" > /dev/null 2>&1
-		sed -i "s:^[ ]*wan1_udpxy_switch=${local_ini_wan1_udpxy_switch}:wan1_udpxy_switch=${local_wan1_udpxy_switch}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-		local_ini_wan1_udpxy_switch="5"
-	}
+    local_ini_wan1_udpxy_switch="$( lz_get_file_cache_data "lz_config_wan1_udpxy_switch" "5" )"
+    [ "$local_ini_wan1_udpxy_switch" = "0" ] && {
+        local_wan1_udpxy_switch="5"
+        sed -i "s:^[ ]*lz_config_wan1_udpxy_switch=${local_ini_wan1_udpxy_switch}:lz_config_wan1_udpxy_switch=${local_wan1_udpxy_switch}:" "${PATH_CONFIGS}/lz_rule_config.box" > /dev/null 2>&1
+        sed -i "s:^[ ]*wan1_udpxy_switch=${local_ini_wan1_udpxy_switch}:wan1_udpxy_switch=${local_wan1_udpxy_switch}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+        local_ini_wan1_udpxy_switch="5"
+    }
 
-	local_ini_wan2_udpxy_switch="$( lz_get_file_cache_data "lz_config_wan2_udpxy_switch" "5" )"
-	[ "$local_ini_wan2_udpxy_switch" != "0" ] && {
-		local_wan2_udpxy_switch="0"
-		sed -i "s:^[ ]*lz_config_wan2_udpxy_switch=${local_ini_wan2_udpxy_switch}:lz_config_wan2_udpxy_switch=${local_wan2_udpxy_switch}:" "${PATH_CONFIGS}/lz_rule_config.box" > /dev/null 2>&1
-		sed -i "s:^[ ]*wan2_udpxy_switch=${local_ini_wan2_udpxy_switch}:wan2_udpxy_switch=${local_wan2_udpxy_switch}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-		local_ini_wan2_udpxy_switch="0"
-	}
+    local_ini_wan2_udpxy_switch="$( lz_get_file_cache_data "lz_config_wan2_udpxy_switch" "5" )"
+    [ "$local_ini_wan2_udpxy_switch" != "0" ] && {
+        local_wan2_udpxy_switch="0"
+        sed -i "s:^[ ]*lz_config_wan2_udpxy_switch=${local_ini_wan2_udpxy_switch}:lz_config_wan2_udpxy_switch=${local_wan2_udpxy_switch}:" "${PATH_CONFIGS}/lz_rule_config.box" > /dev/null 2>&1
+        sed -i "s:^[ ]*wan2_udpxy_switch=${local_ini_wan2_udpxy_switch}:wan2_udpxy_switch=${local_wan2_udpxy_switch}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+        local_ini_wan2_udpxy_switch="0"
+    }
 
-	unset local_file_cache
+    unset local_file_cache
 }
 
 ## 将当前配置优化至静态分流模式HD配置函数
@@ -2955,34 +2955,34 @@ lz_optimize_to_iptv() {
 ## 返回值：无
 lz_optimize_to_hd() {
 
-	[ "${1}" != "hd" ] && [ "${1}" != "iptv" ] && return
+    [ "${1}" != "hd" ] && [ "${1}" != "iptv" ] && return
 
-	## 格式化读取文件缓冲区
-	## 输入项：
-	##     $1--数据文件全路径文件名
-	## 返回值：
-	##     数据文件缓冲区内容
-	local_file_cache="$( lz_read_file_cache_buffer "${PATH_CONFIGS}/lz_rule_config.box" )"
+    ## 格式化读取文件缓冲区
+    ## 输入项：
+    ##     $1--数据文件全路径文件名
+    ## 返回值：
+    ##     数据文件缓冲区内容
+    local_file_cache="$( lz_read_file_cache_buffer "${PATH_CONFIGS}/lz_rule_config.box" )"
 
-	## 读取box文件中的运行模式参数
-	## 读取文件缓冲区数据项
-	## 输入项：
-	##     $1--数据项名称
-	##     $2--数据项缺省值
-	##     local_file_cache--数据文件缓冲区
-	##     全局常量
-	## 返回值：
-	##     0--数据项不存在，或数据项值缺失，均以数据项缺省值输出
-	##     非0--数据项读取成功
-	local_ini_usage_mode="$( lz_get_file_cache_data "lz_config_usage_mode" "0" )"
-	if [ "${local_ini_usage_mode}" != "1" ]; then
-		local_usage_mode="1"
-		sed -i "s:^[ ]*lz_config_usage_mode=${local_ini_usage_mode}:lz_config_usage_mode=${local_usage_mode}:" "${PATH_CONFIGS}/lz_rule_config.box" > /dev/null 2>&1
-		sed -i "s:^[ ]*usage_mode=${local_ini_usage_mode}:usage_mode=${local_usage_mode}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-		local_ini_usage_mode="${local_usage_mode}"
-	fi
+    ## 读取box文件中的运行模式参数
+    ## 读取文件缓冲区数据项
+    ## 输入项：
+    ##     $1--数据项名称
+    ##     $2--数据项缺省值
+    ##     local_file_cache--数据文件缓冲区
+    ##     全局常量
+    ## 返回值：
+    ##     0--数据项不存在，或数据项值缺失，均以数据项缺省值输出
+    ##     非0--数据项读取成功
+    local_ini_usage_mode="$( lz_get_file_cache_data "lz_config_usage_mode" "0" )"
+    if [ "${local_ini_usage_mode}" != "1" ]; then
+        local_usage_mode="1"
+        sed -i "s:^[ ]*lz_config_usage_mode=${local_ini_usage_mode}:lz_config_usage_mode=${local_usage_mode}:" "${PATH_CONFIGS}/lz_rule_config.box" > /dev/null 2>&1
+        sed -i "s:^[ ]*usage_mode=${local_ini_usage_mode}:usage_mode=${local_usage_mode}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+        local_ini_usage_mode="${local_usage_mode}"
+    fi
 
-	unset local_file_cache
+    unset local_file_cache
 }
 
 ## 将当前配置恢复至动态分流模式RN配置函数
@@ -2992,34 +2992,34 @@ lz_optimize_to_hd() {
 ## 返回值：无
 lz_restore_to_rn() {
 
-	[ "$1" != "rn" ] && return
+    [ "$1" != "rn" ] && return
 
-	## 格式化读取文件缓冲区
-	## 输入项：
-	##     $1--数据文件全路径文件名
-	## 返回值：
-	##     数据文件缓冲区内容
-	local_file_cache="$( lz_read_file_cache_buffer "${PATH_CONFIGS}/lz_rule_config.box" )"
+    ## 格式化读取文件缓冲区
+    ## 输入项：
+    ##     $1--数据文件全路径文件名
+    ## 返回值：
+    ##     数据文件缓冲区内容
+    local_file_cache="$( lz_read_file_cache_buffer "${PATH_CONFIGS}/lz_rule_config.box" )"
 
-	## 读取box文件中的运行模式参数
-	## 读取文件缓冲区数据项
-	## 输入项：
-	##     $1--数据项名称
-	##     $2--数据项缺省值
-	##     local_file_cache--数据文件缓冲区
-	##     全局常量
-	## 返回值：
-	##     0--数据项不存在，或数据项值缺失，均以数据项缺省值输出
-	##     非0--数据项读取成功
-	local_ini_usage_mode="$( lz_get_file_cache_data "lz_config_usage_mode" "0" )"
-	if [ "${local_ini_usage_mode}" != "0" ]; then
-		local_usage_mode="0"
-		sed -i "s:^[ ]*lz_config_usage_mode=${local_ini_usage_mode}:lz_config_usage_mode=${local_usage_mode}:" "${PATH_CONFIGS}/lz_rule_config.box" > /dev/null 2>&1
-		sed -i "s:^[ ]*usage_mode=$local_ini_usage_mode:usage_mode=${local_usage_mode}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-		local_ini_usage_mode="${local_usage_mode}"
-	fi
+    ## 读取box文件中的运行模式参数
+    ## 读取文件缓冲区数据项
+    ## 输入项：
+    ##     $1--数据项名称
+    ##     $2--数据项缺省值
+    ##     local_file_cache--数据文件缓冲区
+    ##     全局常量
+    ## 返回值：
+    ##     0--数据项不存在，或数据项值缺失，均以数据项缺省值输出
+    ##     非0--数据项读取成功
+    local_ini_usage_mode="$( lz_get_file_cache_data "lz_config_usage_mode" "0" )"
+    if [ "${local_ini_usage_mode}" != "0" ]; then
+        local_usage_mode="0"
+        sed -i "s:^[ ]*lz_config_usage_mode=${local_ini_usage_mode}:lz_config_usage_mode=${local_usage_mode}:" "${PATH_CONFIGS}/lz_rule_config.box" > /dev/null 2>&1
+        sed -i "s:^[ ]*usage_mode=$local_ini_usage_mode:usage_mode=${local_usage_mode}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+        local_ini_usage_mode="${local_usage_mode}"
+    fi
 
-	unset local_file_cache
+    unset local_file_cache
 }
 
 ## 初始化变量
@@ -3036,21 +3036,21 @@ local_reinstall="$( grep -c "QnkgTFog5aaZ5aaZ5ZGc77yI6Juk6J+G5aKp5YS/77yJ" "${PA
 ##     全局常量
 ## 返回值：无
 if [ ! -f "${PATH_CONFIGS}/lz_rule_config.sh" ]; then
-	lz_restore_default_config
-	let local_reinstall++
+    lz_restore_default_config
+    let local_reinstall++
 fi
 
 if [ "${1}" = "default" ]; then
-	## 恢复缺省设置
-	## 恢复缺省配置数据文件
-	## 输入项：
-	##     全局常量
-	## 返回值：无
-	lz_restore_default_config
+    ## 恢复缺省设置
+    ## 恢复缺省配置数据文件
+    ## 输入项：
+    ##     全局常量
+    ## 返回值：无
+    lz_restore_default_config
 
-	if [ -f "${PATH_CONFIGS}/lz_rule_config.box" ]; then
-		rm "${PATH_CONFIGS}/lz_rule_config.box" > /dev/null 2>&1
-	fi
+    if [ -f "${PATH_CONFIGS}/lz_rule_config.box" ]; then
+        rm "${PATH_CONFIGS}/lz_rule_config.box" > /dev/null 2>&1
+    fi
 fi
 
 ## 读取配置参数
@@ -3069,107 +3069,107 @@ lz_cfg_is_default
 local_default="${?}"
 
 if [ ! -f "${PATH_CONFIGS}/lz_rule_config.box" ]; then
-	## lz_rule_config.box不存在，属新安装脚本
-	## 更新主运行脚本和脚本配置文件中初始缺省的路径数据
-	if [ "${PATH_LZ}" != "/jffs/scripts/lz" ]; then
-		sed -i "s:/jffs/scripts/lz/:${PATH_LZ}/:g" "${PATH_LZ}/lz_rule.sh" > /dev/null 2>&1
-		sed -i "s:/jffs/scripts/lz/:${PATH_LZ}/:g" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-	fi
-	## 直接创建并填入lz_rule_config.sh中的配置参数
-	## 备份脚本配置参数
-	## 输入项：
-	##     全局常量及变量
-	## 返回值：无
-	lz_backup_config
+    ## lz_rule_config.box不存在，属新安装脚本
+    ## 更新主运行脚本和脚本配置文件中初始缺省的路径数据
+    if [ "${PATH_LZ}" != "/jffs/scripts/lz" ]; then
+        sed -i "s:/jffs/scripts/lz/:${PATH_LZ}/:g" "${PATH_LZ}/lz_rule.sh" > /dev/null 2>&1
+        sed -i "s:/jffs/scripts/lz/:${PATH_LZ}/:g" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    fi
+    ## 直接创建并填入lz_rule_config.sh中的配置参数
+    ## 备份脚本配置参数
+    ## 输入项：
+    ##     全局常量及变量
+    ## 返回值：无
+    lz_backup_config
 else
-	## 存在lz_rule_config.box，取出其中的配置参数
-	## 读取lz_rule_config.box中的配置参数
-	## 输入项：
-	##     全局常量及变量
-	## 返回值：无
-	lz_read_box_data
+    ## 存在lz_rule_config.box，取出其中的配置参数
+    ## 读取lz_rule_config.box中的配置参数
+    ## 输入项：
+    ##     全局常量及变量
+    ## 返回值：无
+    lz_read_box_data
 
-	## 通过比对lz_rule_config.box和lz_rule_config.sh中的配置参数判断文件是否发生改变
-	## 判断配置数据是否变更
-	## 输入项：
-	##     全局常量及变量
-	## 返回值：
-	##     1--已改变
-	##     0--未改变
-	lz_cfg_is_changed
-	local_changed="${?}"
+    ## 通过比对lz_rule_config.box和lz_rule_config.sh中的配置参数判断文件是否发生改变
+    ## 判断配置数据是否变更
+    ## 输入项：
+    ##     全局常量及变量
+    ## 返回值：
+    ##     1--已改变
+    ##     0--未改变
+    lz_cfg_is_changed
+    local_changed="${?}"
 
-	[ "${local_ini_udpxy_used}" != "${local_udpxy_used}" ] && local_udpxy_used_changed="1"
-	if [ "${local_udpxy_used_changed}" = "1" ]; then
-		sed -i "s:^[ ]*udpxy_used=${local_udpxy_used}:udpxy_used=${local_ini_udpxy_used}:" "${PATH_FUNC}/lz_define_global_variables.sh" > /dev/null 2>&1
-		local_udpxy_used="${local_ini_udpxy_used}"
-		local_udpxy_used_changed="0"
-	fi
+    [ "${local_ini_udpxy_used}" != "${local_udpxy_used}" ] && local_udpxy_used_changed="1"
+    if [ "${local_udpxy_used_changed}" = "1" ]; then
+        sed -i "s:^[ ]*udpxy_used=${local_udpxy_used}:udpxy_used=${local_ini_udpxy_used}:" "${PATH_FUNC}/lz_define_global_variables.sh" > /dev/null 2>&1
+        local_udpxy_used="${local_ini_udpxy_used}"
+        local_udpxy_used_changed="0"
+    fi
 
-	## 判断两个文件版本是否相同
-	if [ "${local_ini_version}" = "${local_version}" ]; then
-		## 同一个版本
-		if [ "${local_default}" = "0" ] && [ "${local_changed}" = "1" ]; then
-			## lz_rule_config.sh处于非缺省状态，两个文件中的参数值不全部相同
-			## 属于正常变更参数
-			## 用lz_rule_config.sh中的参数数值同步替换lz_rule_config.box中的参数值
-			## 备份脚本配置参数
-			## 输入项：
-			##     全局常量及变量
-			## 返回值：无
-			lz_backup_config
-		elif [ "${local_default}" = "1" ] && [ "${local_changed}" = "1" ]; then
-			## lz_rule_config.sh处于缺省状态，lz_rule_config.box中有变更过的参数
-			## 判断是否为同一版本重新安装
-			if [ "${local_reinstall}" -gt "0" ]; then
-				## 更新主运行脚本和脚本配置文件中初始缺省的路径数据
-				if [ "${PATH_LZ}" != "/jffs/scripts/lz" ]; then
-					sed -i "s:/jffs/scripts/lz/:${PATH_LZ}/:g" "${PATH_LZ}/lz_rule.sh" > /dev/null 2>&1
-					sed -i "s:/jffs/scripts/lz/:${PATH_LZ}/:g" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-				fi
-				## 属重新相同版本安装脚本，需要恢复原有配置数据
-				## 用lz_rule_config.box中的参数值替换lz_rule_config.sh中的配置参数
-				## 恢复原有配置数据
-				## 输入项：
-				##     全局常量及变量
-				## 返回值：无
-				lz_restore_config
-			else
-				## 属于正常变更参数
-				## 用lz_rule_config.sh中的参数数值同步替换lz_rule_config.box中的参数值
-				## 备份脚本配置参数
-				## 输入项：
-				##     全局常量及变量
-				## 返回值：无
-				lz_backup_config
-			fi
-		fi
-	else
-		## 版本不同
-		if [ "${local_default}" = "1" ] && [ "${local_changed}" = "1" ]; then
-			## lz_rule_config.sh处于缺省状态，lz_rule_config.box中有变更过的参数
-			## 更新主运行脚本和脚本配置文件中初始缺省的路径数据
-			if [ "${PATH_LZ}" != "/jffs/scripts/lz" ]; then
-				sed -i "s:/jffs/scripts/lz/:${PATH_LZ}/:g" "${PATH_LZ}/lz_rule.sh" > /dev/null 2>&1
-				sed -i "s:/jffs/scripts/lz/:${PATH_LZ}/:g" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-			fi
-			## 属新安装不同版本，需恢复原有配置数据
-			## 恢复原有配置数据
-			## 输入项：
-			##     全局常量及变量
-			## 返回值：无
-			lz_restore_config
-			## 更新lz_rule_config.box中的版本号
-			sed -i "s:^[ ]*lz_config_version=${local_ini_version}:lz_config_version=${local_version}:" "${PATH_CONFIGS}/lz_rule_config.box"
-		else
-			## 其它情况需用lz_rule_config.sh中的参数数值同步替换lz_rule_config.box中的参数值
-			## 备份脚本配置参数
-			## 输入项：
-			##     全局常量及变量
-			## 返回值：无
-			lz_backup_config
-		fi
-	fi
+    ## 判断两个文件版本是否相同
+    if [ "${local_ini_version}" = "${local_version}" ]; then
+        ## 同一个版本
+        if [ "${local_default}" = "0" ] && [ "${local_changed}" = "1" ]; then
+            ## lz_rule_config.sh处于非缺省状态，两个文件中的参数值不全部相同
+            ## 属于正常变更参数
+            ## 用lz_rule_config.sh中的参数数值同步替换lz_rule_config.box中的参数值
+            ## 备份脚本配置参数
+            ## 输入项：
+            ##     全局常量及变量
+            ## 返回值：无
+            lz_backup_config
+        elif [ "${local_default}" = "1" ] && [ "${local_changed}" = "1" ]; then
+            ## lz_rule_config.sh处于缺省状态，lz_rule_config.box中有变更过的参数
+            ## 判断是否为同一版本重新安装
+            if [ "${local_reinstall}" -gt "0" ]; then
+                ## 更新主运行脚本和脚本配置文件中初始缺省的路径数据
+                if [ "${PATH_LZ}" != "/jffs/scripts/lz" ]; then
+                    sed -i "s:/jffs/scripts/lz/:${PATH_LZ}/:g" "${PATH_LZ}/lz_rule.sh" > /dev/null 2>&1
+                    sed -i "s:/jffs/scripts/lz/:${PATH_LZ}/:g" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+                fi
+                ## 属重新相同版本安装脚本，需要恢复原有配置数据
+                ## 用lz_rule_config.box中的参数值替换lz_rule_config.sh中的配置参数
+                ## 恢复原有配置数据
+                ## 输入项：
+                ##     全局常量及变量
+                ## 返回值：无
+                lz_restore_config
+            else
+                ## 属于正常变更参数
+                ## 用lz_rule_config.sh中的参数数值同步替换lz_rule_config.box中的参数值
+                ## 备份脚本配置参数
+                ## 输入项：
+                ##     全局常量及变量
+                ## 返回值：无
+                lz_backup_config
+            fi
+        fi
+    else
+        ## 版本不同
+        if [ "${local_default}" = "1" ] && [ "${local_changed}" = "1" ]; then
+            ## lz_rule_config.sh处于缺省状态，lz_rule_config.box中有变更过的参数
+            ## 更新主运行脚本和脚本配置文件中初始缺省的路径数据
+            if [ "${PATH_LZ}" != "/jffs/scripts/lz" ]; then
+                sed -i "s:/jffs/scripts/lz/:${PATH_LZ}/:g" "${PATH_LZ}/lz_rule.sh" > /dev/null 2>&1
+                sed -i "s:/jffs/scripts/lz/:${PATH_LZ}/:g" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+            fi
+            ## 属新安装不同版本，需恢复原有配置数据
+            ## 恢复原有配置数据
+            ## 输入项：
+            ##     全局常量及变量
+            ## 返回值：无
+            lz_restore_config
+            ## 更新lz_rule_config.box中的版本号
+            sed -i "s:^[ ]*lz_config_version=${local_ini_version}:lz_config_version=${local_version}:" "${PATH_CONFIGS}/lz_rule_config.box"
+        else
+            ## 其它情况需用lz_rule_config.sh中的参数数值同步替换lz_rule_config.box中的参数值
+            ## 备份脚本配置参数
+            ## 输入项：
+            ##     全局常量及变量
+            ## 返回值：无
+            lz_backup_config
+        fi
+    fi
 fi
 
 ## 将当前配置优化至IPTV配置
@@ -3194,8 +3194,8 @@ lz_optimize_to_hd "${1}"
 lz_restore_to_rn "${1}"
 
 if [ "${local_reinstall}" -gt "0" ]; then
-	## 删除重新安装标识
-	sed -i "/QnkgTFog5aaZ5aaZ5ZGc77yI6Juk6J+G5aKp5YS\/77yJ/d" "${PATH_FUNC}/lz_define_global_variables.sh" > /dev/null 2>&1
+    ## 删除重新安装标识
+    sed -i "/QnkgTFog5aaZ5aaZ5ZGc77yI6Juk6J+G5aKp5YS\/77yJ/d" "${PATH_FUNC}/lz_define_global_variables.sh" > /dev/null 2>&1
 fi
 
 ## 卸载变量

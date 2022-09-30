@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_define_global_variables.sh v3.7.4
+# lz_define_global_variables.sh v3.7.5
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 # QnkgTFog5aaZ5aaZ5ZGc77yI6Juk6J+G5aKp5YS/77yJ（首次运行标识，切勿修改）
 
@@ -69,9 +69,9 @@ ISP_TOTAL="10"
 local_index="0"
 until [ "${local_index}" -gt "${ISP_TOTAL}" ]
 do
-	## ISP网络运营商CIDR网段数据条目数
-	eval "isp_data_${local_index}_item_total=0"
-	let local_index++
+    ## ISP网络运营商CIDR网段数据条目数
+    eval "isp_data_${local_index}_item_total=0"
+    let local_index++
 done
 unset local_index
 

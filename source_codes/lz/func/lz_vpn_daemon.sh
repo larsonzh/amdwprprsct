@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_vpn_daemon.sh v3.7.4
+# lz_vpn_daemon.sh v3.7.5
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 虚拟专网客户端路由刷新处理后台守护进程脚本
@@ -47,40 +47,40 @@ while [ -n "$( ipset -q -n list ${VPN_CLIENT_DAEMON_IP_SET_LOCK} )" ]
 do
     [ ! -f "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}" ] && break
 
-	if [ "${lz_pptpd_enable}" = "1" ]; then
-		lz_pptpd_enable="$( nvram get "pptpd_enable" )"
-		if [ "${lz_pptpd_enable}" != "1" ]; then
-		    [ ! -f "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}" ] && \
-				/bin/sh "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}"
-		else
-			lz_vpn_client=""
-			lz_vpn_client_list="$( ip route list | awk '/pptp/ {print $1}' )"
-			if [ -n "${lz_vpn_client_list}" ]; then
-				lz_vpn_client_sub_list="$( ip route list table "${WAN0}" | awk '/pptp/ {print $1}' )"
-				if [ -n "${lz_vpn_client_sub_list}" ]; then
-					for lz_vpn_client in ${lz_vpn_client_list}
-					do
-						lz_vpn_client="$( echo "${lz_vpn_client_sub_list}" | grep "${lz_vpn_client}" )"
-						[ -z "$lz_vpn_client" ] && break
-					done
-					if [ -n "${lz_vpn_client}" ]; then
-						lz_vpn_client_sub_list="$( ip route list table "${WAN1}" | awk '/pptp/ {print $1}' )"
-						if [ -n "${lz_vpn_client_sub_list}" ]; then
-							for lz_vpn_client in ${lz_vpn_client_list}
-							do
-								lz_vpn_client="$( echo "${lz_vpn_client_sub_list}" | grep "${lz_vpn_client}" )"
-								[ -z "${lz_vpn_client}" ] && break
-							done
-						else
-							lz_vpn_client=""
-						fi
-					fi
-				fi
-				if [ -z "${lz_vpn_client}" ]; then
-					[ ! -f "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}" ] && 、
-						/bin/sh "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}"
-				else
-					for lz_vpn_client in $( ipset -q list "${PPTP_CLIENT_IP_SET}" | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}' )
+    if [ "${lz_pptpd_enable}" = "1" ]; then
+        lz_pptpd_enable="$( nvram get "pptpd_enable" )"
+        if [ "${lz_pptpd_enable}" != "1" ]; then
+            [ ! -f "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}" ] && \
+                /bin/sh "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}"
+        else
+            lz_vpn_client=""
+            lz_vpn_client_list="$( ip route list | awk '/pptp/ {print $1}' )"
+            if [ -n "${lz_vpn_client_list}" ]; then
+                lz_vpn_client_sub_list="$( ip route list table "${WAN0}" | awk '/pptp/ {print $1}' )"
+                if [ -n "${lz_vpn_client_sub_list}" ]; then
+                    for lz_vpn_client in ${lz_vpn_client_list}
+                    do
+                        lz_vpn_client="$( echo "${lz_vpn_client_sub_list}" | grep "${lz_vpn_client}" )"
+                        [ -z "$lz_vpn_client" ] && break
+                    done
+                    if [ -n "${lz_vpn_client}" ]; then
+                        lz_vpn_client_sub_list="$( ip route list table "${WAN1}" | awk '/pptp/ {print $1}' )"
+                        if [ -n "${lz_vpn_client_sub_list}" ]; then
+                            for lz_vpn_client in ${lz_vpn_client_list}
+                            do
+                                lz_vpn_client="$( echo "${lz_vpn_client_sub_list}" | grep "${lz_vpn_client}" )"
+                                [ -z "${lz_vpn_client}" ] && break
+                            done
+                        else
+                            lz_vpn_client=""
+                        fi
+                    fi
+                fi
+                if [ -z "${lz_vpn_client}" ]; then
+                    [ ! -f "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}" ] && 、
+                        /bin/sh "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}"
+                else
+                    for lz_vpn_client in $( ipset -q list "${PPTP_CLIENT_IP_SET}" | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}' )
                     do
                         if ! echo "${lz_vpn_client_list}" | grep -q "${lz_vpn_client}"; then
                             [ -f "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}" ] && \
@@ -88,18 +88,18 @@ do
                             break
                         fi
                     done
-				fi
-			else
+                fi
+            else
                 if ipset -q list "${PPTP_CLIENT_IP_SET}" | grep -qEo '([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}'; then
                     [ -f "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}" ] && \
                         /bin/sh "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}"
                 fi
-			fi
-		fi
-	fi
+            fi
+        fi
+    fi
 
-	if [ "${lz_ipsec_server_enable}" = "1" ]; then
-		lz_ipsec_server_enable="$( nvram get "ipsec_server_enable")"
+    if [ "${lz_ipsec_server_enable}" = "1" ]; then
+        lz_ipsec_server_enable="$( nvram get "ipsec_server_enable")"
         if [ "${lz_ipsec_server_enable}" != "1" ]; then
             [ -f "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}" ] && \
                 /bin/sh "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}"
@@ -109,9 +109,9 @@ do
             /bin/sh "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}"
     fi
 
-	[ "${lz_pptpd_enable}" != "1" ] && [ "${lz_ipsec_server_enable}" != "1" ] && break
+    [ "${lz_pptpd_enable}" != "1" ] && [ "${lz_ipsec_server_enable}" != "1" ] && break
 
-	eval sleep "${lz_polling_time}"
+    eval sleep "${lz_polling_time}"
 done
 
 ipset -q destroy "${VPN_CLIENT_DAEMON_IP_SET_LOCK}"
