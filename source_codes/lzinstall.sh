@@ -4,8 +4,8 @@
 
 # LZ script for asuswrt/merlin based router
 
-# JFFS partition:			./lzinstall.sh
-# the Entware of USB disk:	./lzinstall.sh entware
+# JFFS partition:           ./lzinstall.sh
+# the Entware of USB disk:  ./lzinstall.sh entware
 
 #BEIGIN
 

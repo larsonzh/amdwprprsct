@@ -264,7 +264,7 @@ lz_check_instance() {
     local local_instance="$( grep 'lz_' "${INSTANCE_LIST}" 2> /dev/null | sed -n 1p | sed -e 's/^[ ]*//g' -e 's/[ ]*$//g' )"
     if [ "${local_instance}" != "lz_${1}" ] || [ "${local_instance}" = "lz_${SHOW_STATUS}" ] \
         || [ "${local_instance}" = "lz_${ADDRESS_QUERY}" ]; then
-        return 
+        return 1
     fi
     echo "$(lzdate)" [$$]: The policy routing service is being started by another instance. | tee -ai "${SYSLOG}" 2> /dev/null
     return 0
