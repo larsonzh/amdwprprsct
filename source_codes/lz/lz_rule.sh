@@ -671,7 +671,7 @@ if lz_project_file_management "${1}"; then
             ## 删除进程间同步用临时规则，要与脚本开始时的添加命令一致
             until [ "$( ip rule show from "168.168.168.168" to "169.169.169.169" 2> /dev/null | wc -l )" -le "0" ]
             do
-                ip rule show  from "168.168.168.168" to "169.169.169.169" 2> /dev/null | \
+                ip rule show from "168.168.168.168" to "169.169.169.169" 2> /dev/null | \
                     awk -F: '{system("ip rule del prio "$1" > /dev/null 2>&1")}'
                 ip route flush cache > /dev/null 2>&1
             done
