@@ -3030,6 +3030,12 @@ lz_variable_initialize
 ## 获取重新安装标识
 local_reinstall="$( grep -c "QnkgTFog5aaZ5aaZ5ZGc77yI6Juk6J+G5aKp5YS/77yJ" "${PATH_FUNC}/lz_define_global_variables.sh" )"
 
+## 新安装的脚本，更新主运行脚本和脚本配置文件中初始缺省的路径数据
+if [ "${local_reinstall}" -gt "0" ] && [ "${PATH_LZ}" != "/jffs/scripts/lz" ]; then
+    sed -i "s:/jffs/scripts/lz/:${PATH_LZ}/:g" "${PATH_LZ}/lz_rule.sh" > /dev/null 2>&1
+    [ -f "${PATH_CONFIGS}/lz_rule_config.sh" ] && sed -i "s:/jffs/scripts/lz/:${PATH_LZ}/:g" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+fi
+
 ## 若lz_rule_config.sh不存在，则重新生成一个
 ## 恢复缺省配置数据文件
 ## 输入项：
@@ -3070,11 +3076,6 @@ local_default="${?}"
 
 if [ ! -f "${PATH_CONFIGS}/lz_rule_config.box" ]; then
     ## lz_rule_config.box不存在，属新安装脚本
-    ## 更新主运行脚本和脚本配置文件中初始缺省的路径数据
-    if [ "${PATH_LZ}" != "/jffs/scripts/lz" ]; then
-        sed -i "s:/jffs/scripts/lz/:${PATH_LZ}/:g" "${PATH_LZ}/lz_rule.sh" > /dev/null 2>&1
-        sed -i "s:/jffs/scripts/lz/:${PATH_LZ}/:g" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    fi
     ## 直接创建并填入lz_rule_config.sh中的配置参数
     ## 备份脚本配置参数
     ## 输入项：
@@ -3122,11 +3123,6 @@ else
             ## lz_rule_config.sh处于缺省状态，lz_rule_config.box中有变更过的参数
             ## 判断是否为同一版本重新安装
             if [ "${local_reinstall}" -gt "0" ]; then
-                ## 更新主运行脚本和脚本配置文件中初始缺省的路径数据
-                if [ "${PATH_LZ}" != "/jffs/scripts/lz" ]; then
-                    sed -i "s:/jffs/scripts/lz/:${PATH_LZ}/:g" "${PATH_LZ}/lz_rule.sh" > /dev/null 2>&1
-                    sed -i "s:/jffs/scripts/lz/:${PATH_LZ}/:g" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-                fi
                 ## 属重新相同版本安装脚本，需要恢复原有配置数据
                 ## 用lz_rule_config.box中的参数值替换lz_rule_config.sh中的配置参数
                 ## 恢复原有配置数据
@@ -3148,11 +3144,6 @@ else
         ## 版本不同
         if [ "${local_default}" = "1" ] && [ "${local_changed}" = "1" ]; then
             ## lz_rule_config.sh处于缺省状态，lz_rule_config.box中有变更过的参数
-            ## 更新主运行脚本和脚本配置文件中初始缺省的路径数据
-            if [ "${PATH_LZ}" != "/jffs/scripts/lz" ]; then
-                sed -i "s:/jffs/scripts/lz/:${PATH_LZ}/:g" "${PATH_LZ}/lz_rule.sh" > /dev/null 2>&1
-                sed -i "s:/jffs/scripts/lz/:${PATH_LZ}/:g" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-            fi
             ## 属新安装不同版本，需恢复原有配置数据
             ## 恢复原有配置数据
             ## 输入项：

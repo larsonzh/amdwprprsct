@@ -187,8 +187,10 @@ find "${CURRENT_PATH}/lz/data" -name "*_cidr.txt" -print0 2> /dev/null | xargs -
 chmod 775 "${PATH_LZ}/lz_rule.sh" > /dev/null 2>&1
 chmod -R 775 "${PATH_LZ}" > /dev/null 2>&1
 
-sed -i "s:/jffs/scripts/lz/:${PATH_LZ}/:g" "${PATH_LZ}/lz_rule.sh" > /dev/null 2>&1
-sed -i "s:/jffs/scripts/lz/:${PATH_LZ}/:g" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+if [ "${PATH_LZ}" != "/jffs/scripts/lz" ]; then
+    sed -i "s:/jffs/scripts/lz/:${PATH_LZ}/:g" "${PATH_LZ}/lz_rule.sh" > /dev/null 2>&1
+    sed -i "s:/jffs/scripts/lz/:${PATH_LZ}/:g" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+fi
 
 {
     echo -----------------------------------------------------------
