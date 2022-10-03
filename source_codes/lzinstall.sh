@@ -49,29 +49,18 @@ fi
 AVAL_SPACE=
 if [ "${1}" = "entware" ]; then
     if which opkg > /dev/null 2>&1; then
-        if  df | awk '$1 ~ /^\/dev\/sda$/ {system("ls -al "$6" 2> /dev/null")}' | grep -qwo "entware"; then
-            AVAL_SPACE="$( df | awk '$1 ~ /^\/dev\/sda$/ {print $4}' )"
-            if which opkg 2> /dev/null | grep -qwo '^[\/]opt' && [ -d "/opt/home" ]; then
-                PATH_BASE="/opt/home"
-            else
-                PATH_BASE="$( df | awk '$1 ~ /^\/dev\/sda$/ {print $6}' )/entware/home"
-            fi
-        else
-            index="0"
-            while [ "${index}" -le "$( df | grep -c "^/dev/sda[0-9]" )" ]
-            do
-                if df | awk '$1 ~ "'"^\/dev\/sda${index}$"'" {system("ls -al "$6" 2> /dev/null")}' | grep -qwo "entware"; then
-                    AVAL_SPACE="$( df | awk '$1 ~ "'"^\/dev\/sda${index}$"'" {print $4}' )"
-                    if which opkg 2> /dev/null | grep -qwo '^[\/]opt' && [ -d "/opt/home" ]; then
-                        PATH_BASE="/opt/home"
-                    else
-                        PATH_BASE="$( df | awk '$1 ~ "'"^\/dev\/sda${index}$"'" {print $6}' )/entware/home"
-                    fi
-                    break
+        for sditem in $( df | awk '$1 ~ /^\/dev\/sd/ {print $1":-"$4":-"$6}' )
+        do
+            if  ls "${sditem##*:-}/entware" > /dev/null 2>&1; then
+                AVAL_SPACE="${sditem#*:-}"; AVAL_SPACE="${AVAL_SPACE%:-*}";
+                if which opkg 2> /dev/null | grep -qw '^[\/]opt' && [ -d "/opt/home" ]; then
+                    PATH_BASE="/opt/home"
+                else
+                    PATH_BASE="${sditem##*:-}/entware/home"
                 fi
-                let index++
-            done
-        fi
+                break
+            fi
+        done
     fi
     if [ -z "${AVAL_SPACE}" ]; then
         {

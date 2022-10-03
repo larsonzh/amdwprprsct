@@ -152,10 +152,10 @@ if [ "${1}" != "${FORCED_UNLOCKING}" ]; then
     flock -x "$LOCK_FILE_ID" > /dev/null 2>&1
     ## 运行实例处理
     sed -i -e '/^$/d' -e '/^[ ]*$/d' -e '1d' "${INSTANCE_LIST}" > /dev/null 2>&1
-    if [ "$( grep -c 'lz_' "${INSTANCE_LIST}" 2> /dev/null )" -gt "0" ]; then
-        local_instance=$( grep 'lz_' ${INSTANCE_LIST} 2> /dev/null | sed -n 1p | sed -e 's/^[ ]*//g' -e 's/[ ]*$//g' )
-        if [ "${local_instance}" = "lz_${1}" ] \
-            && [ "${local_instance}" != "lz_${SHOW_STATUS}" ] && [ "${local_instance}" != "lz_${ADDRESS_QUERY}" ]; then
+    if grep -q 'lz_' "${INSTANCE_LIST}" 2> /dev/null; then
+        local_instance=$( grep 'lz_' ${INSTANCE_LIST} | sed -n 1p | sed -e 's/^[ ]*//g' -e 's/[ ]*$//g' )
+        if [ "${local_instance}" = "lz_${1}" ] && [ "${local_instance}" != "lz_${SHOW_STATUS}" ] \
+            && [ "${local_instance}" != "lz_${ADDRESS_QUERY}" ]; then
             unset local_instance
             echo "$(lzdate)" [$$]: The policy routing service is being started by another instance.
             echo "$(lzdate)" [$$]: ----------------------------------------
@@ -260,8 +260,8 @@ lz_project_file_management() {
 ##     0--有新实例开始运行
 ##     1--无新实例开始运行
 lz_check_instance() {
-    [ "$( grep -c 'lz_' "${INSTANCE_LIST}" 2> /dev/null )" -le "0" ] && return 1
-    local local_instance="$( grep 'lz_' "${INSTANCE_LIST}" 2> /dev/null | sed -n 1p | sed -e 's/^[ ]*//g' -e 's/[ ]*$//g' )"
+    ! grep -q 'lz_' "${INSTANCE_LIST}" 2> /dev/null && return 1
+    local local_instance="$( grep 'lz_' "${INSTANCE_LIST}" | sed -n 1p | sed -e 's/^[ ]*//g' -e 's/[ ]*$//g' )"
     if [ "${local_instance}" != "lz_${1}" ] || [ "${local_instance}" = "lz_${SHOW_STATUS}" ] \
         || [ "${local_instance}" = "lz_${ADDRESS_QUERY}" ]; then
         return 1
@@ -275,7 +275,8 @@ lz_check_instance() {
 ##     全局变量及常量
 ## 返回值：无
 lz_instance_exit() {
-    [ "$( grep -c 'lz_' "${INSTANCE_LIST}" 2> /dev/null )" -le "0" ] && rm -f "${INSTANCE_LIST}" > /dev/null 2>&1
+    [ -f "${INSTANCE_LIST}" ] && ! grep -q 'lz_' "${INSTANCE_LIST}" && rm -f "${INSTANCE_LIST}" > /dev/null 2>&1
+    [ -f "${LOCK_FILE}" ] && flock -u "${LOCK_FILE_ID}" > /dev/null 2>&1
 }
 
 ## ---------------------主执行脚本---------------------
@@ -660,8 +661,6 @@ if lz_project_file_management "${1}"; then
                 ## 返回值：无
                 lz_instance_exit
 
-                ## 解除文件同步锁
-                flock -u "${LOCK_FILE_ID}" > /dev/null 2>&1
                 exit
             fi
 
@@ -697,10 +696,6 @@ else
     echo "$(lzdate)" [$$]:
 fi
 
-[ "${1}" != "${FORCED_UNLOCKING}" ] && {
-    lz_instance_exit
-    ## 解除文件同步锁
-    flock -u "${LOCK_FILE_ID}" > /dev/null 2>&1
-}
+lz_instance_exit
 
 #END

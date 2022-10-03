@@ -1599,8 +1599,8 @@ lz_is_auto_traffic_status() {
 ##     全局常量及变量
 ## 返回值：无
 lz_output_dport_policy_info_status() {
-    [ "$( iptables -t mangle -L PREROUTING | grep -c "${STATUS_CUSTOM_PREROUTING_CHAIN}" )" -le "0" ] && return
-    [ "$( iptables -t mangle -L "${STATUS_CUSTOM_PREROUTING_CHAIN}" | grep -c "${STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN}" )" -le "0" ] && return
+    ! iptables -t mangle -L PREROUTING | grep -q "${STATUS_CUSTOM_PREROUTING_CHAIN}" && return
+    ! iptables -t mangle -L "${STATUS_CUSTOM_PREROUTING_CHAIN}" | grep -q "${STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN}" && return
     local local_item_exist="0"
     local local_dports="$( iptables -t mangle -L "${STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN}" -v -n --line-numbers | grep "MARK set ${STATUS_DEST_PORT_FWMARK_0}" | grep "tcp" | awk -F "dports " '{print $2}' | awk '{print $1}' )"
     [ -n "${local_dports}" ] && local_item_exist="1" && {
