@@ -3700,8 +3700,8 @@ lz_vpn_support() {
         [ "${ovs_client_wan_port}" = "1" ] && local_vpn_client_wan_port="Secondary WAN"
 
         ## 更新出口路由表
-        echo "${local_route_list}" | awk '{system("ip route add "$0" table ${WAN0} > /dev/null 2>&1")}'
-        echo "${local_route_list}" | awk '{system("ip route add "$0" table ${WAN1} > /dev/null 2>&1")}'
+        echo "${local_route_list}" | awk '{system("ip route add "$0"'" table ${WAN0} > /dev/null 2>&1"'")}'
+        echo "${local_route_list}" | awk '{system("ip route add "$0"'" table ${WAN1} > /dev/null 2>&1"'")}'
 
         ## 虚拟专网客户端路由出口规则添加及分流数据集更新处理函数
         ## 输入项：
@@ -3712,26 +3712,26 @@ lz_vpn_support() {
             if [ "${ovs_client_wan_port}" = "0" ] || [ "${ovs_client_wan_port}" = "1" ]; then
                 local local_ovs_client_wan="${WAN0}"
                 [ "${ovs_client_wan_port}" = "1" ] && local_ovs_client_wan="${WAN1}"
-                echo "${1}" | awk '{system("ip rule add from "$1" table ${local_ovs_client_wan} prio ${IP_RULE_PRIO_VPN} > /dev/null 2>&1")}'
+                echo "${1}" | awk '{system("ip rule add from "$1"'" table ${local_ovs_client_wan} prio ${IP_RULE_PRIO_VPN} > /dev/null 2>&1"'")}'
                 [ -n "$( ipset -q -n list "${BALANCE_IP_SET}" )" ] && {
-                    echo "${1}" | awk '{print "-! del ${BALANCE_IP_SET} "$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
-                    echo "${1}" | awk '{print "-! add ${BALANCE_IP_SET} "$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
+                    echo "${1}" | awk '{print "'"-! del ${BALANCE_IP_SET} "'"$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
+                    echo "${1}" | awk '{print "'"-! add ${BALANCE_IP_SET} "'"$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
                 }
             elif [ "${usage_mode}" != "0" ]; then
                 [ -n "$( ipset -q -n list "${BALANCE_IP_SET}" )" ] && {
-                    echo "${1}" | awk '{print "-! del ${BALANCE_IP_SET} "$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
-                    echo "${1}" | awk '{print "-! add ${BALANCE_IP_SET} "$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
+                    echo "${1}" | awk '{print "'"-! del ${BALANCE_IP_SET} "'"$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
+                    echo "${1}" | awk '{print "'"-! add ${BALANCE_IP_SET} "'"$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
                 }
             fi
             [ -n "$( ipset -q -n list "${LOCAL_IP_SET}" )" ] && {
-                echo "${1}" | awk '{print "-! del ${LOCAL_IP_SET} "$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
+                echo "${1}" | awk '{print "'"-! del ${LOCAL_IP_SET} "'"$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
                 if [ "${ovs_client_wan_port}" = "0" ] || [ "${ovs_client_wan_port}" = "1" ]; then
-                    echo "${1}" | awk '{print "-! add ${LOCAL_IP_SET} "$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
+                    echo "${1}" | awk '{print "'"-! add ${LOCAL_IP_SET} "'"$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
                 fi
             }
             [ -n "$( ipset -q -n list "${BALANCE_GUARD_IP_SET}" )" ] && {
-                echo "${1}" | awk '{print "-! del ${BALANCE_GUARD_IP_SET} "$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
-                echo "${1}" | awk '{print "-! add ${BALANCE_GUARD_IP_SET} "$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
+                echo "${1}" | awk '{print "'"-! del ${BALANCE_GUARD_IP_SET} "'"$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
+                echo "${1}" | awk '{print "'"-! add ${BALANCE_GUARD_IP_SET} "'"$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
             }
         }
 
@@ -3749,12 +3749,12 @@ lz_vpn_support() {
             ## 创建Open虚拟专网子网网段地址列表数据集
             ipset -q create "${OPENVPN_SUBNET_IP_SET}" nethash
             ipset -q flush "${OPENVPN_SUBNET_IP_SET}"
-            echo "${local_route_list}" | awk -v var=0 '/tap|tun/ {print "-! add ${OPENVPN_SUBNET_IP_SET} "$1; var++} END{if (var != 0) print "COMMIT"}' | ipset restore > /dev/null 2>&1
+            echo "${local_route_list}" | awk -v var=0 '/tap|tun/ {print "'"-! add ${OPENVPN_SUBNET_IP_SET} "'"$1; var++} END{if (var != 0) print "COMMIT"}' | ipset restore > /dev/null 2>&1
 
             ## 创建PPTP虚拟专网客户端本地地址列表数据集
             ipset -q create "${PPTP_CLIENT_IP_SET}" nethash
             ipset -q flush "${PPTP_CLIENT_IP_SET}"
-            echo "${local_route_list}" | awk -v var=0 '/pptp/ {print "-! add ${OPENVPN_SUBNET_IP_SET} "$1; var++} END{if (var != 0) print "COMMIT"}' | ipset restore > /dev/null 2>&1
+            echo "${local_route_list}" | awk -v var=0 '/pptp/ {print "'"-! add ${OPENVPN_SUBNET_IP_SET} "'"$1; var++} END{if (var != 0) print "COMMIT"}' | ipset restore > /dev/null 2>&1
 
             ## 输出显示Open虚拟专网服务器及客户端状态信息
             for local_vpn_item in $( echo "${local_route_list}" | awk '/tap|tun/ {print $3":"$1}' )
@@ -3811,7 +3811,7 @@ lz_vpn_support() {
             ## 创建IPSec虚拟专网子网网段地址列表数据集
             ipset -q create "${IPSEC_SUBNET_IP_SET}" nethash
             ipset -q flush "${IPSEC_SUBNET_IP_SET}"
-            [ -n "${local_vpn_item}" ] && echo "${local_vpn_item}" | awk '{print "-! add ${IPSEC_SUBNET_IP_SET} "$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
+            [ -n "${local_vpn_item}" ] && echo "${local_vpn_item}" | awk '{print "'"-! add ${IPSEC_SUBNET_IP_SET} "'"$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
         fi
     fi
 
