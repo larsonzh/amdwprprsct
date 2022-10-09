@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v3.7.5
+# lz_rule_func.sh v3.7.6
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 #BEIGIN
@@ -3386,7 +3386,7 @@ if ip route list | grep -q nexthop; then
     if [ -n "\${lz_route_list}" ]; then
         echo "\${lz_route_list}" | awk 'NF!=0 {system("ip route add "\$0" table ${WAN0} > /dev/null 2>&1")}'
         echo "\${lz_route_list}" | awk 'NF!=0 {system("ip route add "\$0" table ${WAN1} > /dev/null 2>&1")}'
-        if ip route show table "${LZ_IPTV}" | -q grep "default"; then
+        if ip route show table "${LZ_IPTV}" | grep -q "default"; then
             echo "\${lz_route_list}" | awk 'NF!=0 {system("ip route add "\$0" table ${LZ_IPTV} > /dev/null 2>&1")}'
         fi
         lz_route_vpn_list="\$( echo "\${lz_route_list}" | awk '/pptp|tap|tun/ {print \$1}' )"
