@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_initialize_config.sh v3.7.6
+# lz_initialize_config.sh v3.7.7
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 初始化脚本配置
@@ -2842,15 +2842,15 @@ lz_optimize_to_iptv() {
     }
 
     local_ini_chinatelecom_wan_port="$( lz_get_file_cache_data "lz_config_chinatelecom_wan_port" "0" )"
-    [ "$local_ini_chinatelecom_wan_port" != "0" ] && {
+    [ "${local_ini_chinatelecom_wan_port}" != "0" ] && {
         local_chinatelecom_wan_port="0"
         sed -i "s:^[ ]*lz_config_chinatelecom_wan_port=${local_ini_chinatelecom_wan_port}:lz_config_chinatelecom_wan_port=${local_chinatelecom_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.box" > /dev/null 2>&1
         sed -i "s:^[ ]*chinatelecom_wan_port=${local_ini_chinatelecom_wan_port}:chinatelecom_wan_port=${local_chinatelecom_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-        local_ini_chinatelecom_wan_port="$local_chinatelecom_wan_port"
+        local_ini_chinatelecom_wan_port="${local_chinatelecom_wan_port}"
     }
 
     local_ini_unicom_cnc_wan_port="$( lz_get_file_cache_data "lz_config_unicom_cnc_wan_port" "0" )"
-    [ "$local_ini_unicom_cnc_wan_port" != "0" ] && {
+    [ "${local_ini_unicom_cnc_wan_port}" != "0" ] && {
         local_unicom_cnc_wan_port="0"
         sed -i "s:^[ ]*lz_config_unicom_cnc_wan_port=${local_ini_unicom_cnc_wan_port}:lz_config_unicom_cnc_wan_port=${local_unicom_cnc_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.box" > /dev/null 2>&1
         sed -i "s:^[ ]*unicom_cnc_wan_port=${local_ini_unicom_cnc_wan_port}:unicom_cnc_wan_port=${local_unicom_cnc_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
@@ -2858,7 +2858,7 @@ lz_optimize_to_iptv() {
     }
 
     local_ini_cmcc_wan_port="$( lz_get_file_cache_data "lz_config_cmcc_wan_port" "1" )"
-    [ "$local_ini_cmcc_wan_port" != "0" ] && {
+    [ "${local_ini_cmcc_wan_port}" != "0" ] && {
         local_cmcc_wan_port="0"
         sed -i "s:^[ ]*lz_config_cmcc_wan_port=${local_ini_cmcc_wan_port}:lz_config_cmcc_wan_port=${local_cmcc_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.box" > /dev/null 2>&1
         sed -i "s:^[ ]*cmcc_wan_port=${local_ini_cmcc_wan_port}:cmcc_wan_port=${local_cmcc_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
@@ -2866,7 +2866,7 @@ lz_optimize_to_iptv() {
     }
 
     local_ini_crtc_wan_port="$( lz_get_file_cache_data "lz_config_crtc_wan_port" "1" )"
-    [ "$local_ini_crtc_wan_port" != "0" ] && {
+    [ "${local_ini_crtc_wan_port}" != "0" ] && {
         local_crtc_wan_port="0"
         sed -i "s:^[ ]*lz_config_crtc_wan_port=${local_ini_crtc_wan_port}:lz_config_crtc_wan_port=${local_crtc_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.box" > /dev/null 2>&1
         sed -i "s:^[ ]*crtc_wan_port=${local_ini_crtc_wan_port}:crtc_wan_port=${local_crtc_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
@@ -2874,7 +2874,7 @@ lz_optimize_to_iptv() {
     }
 
     local_ini_cernet_wan_port="$( lz_get_file_cache_data "lz_config_cernet_wan_port" "1" )"
-    [ "$local_ini_cernet_wan_port" != "0" ] && {
+    [ "${local_ini_cernet_wan_port}" != "0" ] && {
         local_cernet_wan_port="0"
         sed -i "s:^[ ]*lz_config_cernet_wan_port=${local_ini_cernet_wan_port}:lz_config_cernet_wan_port=${local_cernet_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.box" > /dev/null 2>&1
         sed -i "s:^[ ]*cernet_wan_port=${local_ini_cernet_wan_port}:cernet_wan_port=${local_cernet_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
@@ -2882,7 +2882,7 @@ lz_optimize_to_iptv() {
     }
 
     local_ini_gwbn_wan_port="$( lz_get_file_cache_data "lz_config_gwbn_wan_port" "1" )"
-    [ "$local_ini_gwbn_wan_port" != "0" ] && {
+    [ "${local_ini_gwbn_wan_port}" != "0" ] && {
         local_gwbn_wan_port="0"
         sed -i "s:^[ ]*lz_config_gwbn_wan_port=${local_ini_gwbn_wan_port}:lz_config_gwbn_wan_port=${local_gwbn_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.box" > /dev/null 2>&1
         sed -i "s:^[ ]*gwbn_wan_port=${local_ini_gwbn_wan_port}:gwbn_wan_port=${local_gwbn_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
@@ -2890,7 +2890,7 @@ lz_optimize_to_iptv() {
     }
 
     local_ini_othernet_wan_port="$( lz_get_file_cache_data "lz_config_othernet_wan_port" "0" )"
-    [ "$local_ini_othernet_wan_port" != "0" ] && {
+    [ "${local_ini_othernet_wan_port}" != "0" ] && {
         local_othernet_wan_port="0"
         sed -i "s:^[ ]*lz_config_othernet_wan_port=${local_ini_othernet_wan_port}:lz_config_othernet_wan_port=${local_othernet_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.box" > /dev/null 2>&1
         sed -i "s:^[ ]*othernet_wan_port=${local_ini_othernet_wan_port}:othernet_wan_port=${local_othernet_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
@@ -2898,7 +2898,7 @@ lz_optimize_to_iptv() {
     }
 
     local_ini_hk_wan_port="$( lz_get_file_cache_data "lz_config_hk_wan_port" "0" )"
-    [ "$local_ini_hk_wan_port" != "0" ] && {
+    [ "${local_ini_hk_wan_port}" != "0" ] && {
         local_hk_wan_port="0"
         sed -i "s:^[ ]*lz_config_hk_wan_port=${local_ini_hk_wan_port}:lz_config_hk_wan_port=${local_hk_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.box" > /dev/null 2>&1
         sed -i "s:^[ ]*hk_wan_port=${local_ini_hk_wan_port}:hk_wan_port=${local_hk_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
@@ -2906,7 +2906,7 @@ lz_optimize_to_iptv() {
     }
 
     local_ini_mo_wan_port="$( lz_get_file_cache_data "lz_config_mo_wan_port" "0" )"
-    [ "$local_ini_mo_wan_port" != "0" ] && {
+    [ "${local_ini_mo_wan_port}" != "0" ] && {
         local_mo_wan_port="0"
         sed -i "s:^[ ]*lz_config_mo_wan_port=${local_ini_mo_wan_port}:lz_config_mo_wan_port=${local_mo_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.box" > /dev/null 2>&1
         sed -i "s:^[ ]*mo_wan_port=${local_ini_mo_wan_port}:mo_wan_port=${local_mo_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
@@ -2914,7 +2914,7 @@ lz_optimize_to_iptv() {
     }
 
     local_ini_tw_wan_port="$( lz_get_file_cache_data "lz_config_tw_wan_port" "0" )"
-    [ "$local_ini_tw_wan_port" != "0" ] && {
+    [ "${local_ini_tw_wan_port}" != "0" ] && {
         local_tw_wan_port="0"
         sed -i "s:^[ ]*lz_config_tw_wan_port=${local_ini_tw_wan_port}:lz_config_tw_wan_port=${local_tw_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.box" > /dev/null 2>&1
         sed -i "s:^[ ]*tw_wan_port=${local_ini_tw_wan_port}:tw_wan_port=${local_tw_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
@@ -2922,7 +2922,7 @@ lz_optimize_to_iptv() {
     }
 
     local_ini_iptv_igmp_switch="$( lz_get_file_cache_data "lz_config_iptv_igmp_switch" "5" )"
-    [ "$local_ini_iptv_igmp_switch" != "1" ] && {
+    [ "${local_ini_iptv_igmp_switch}" != "1" ] && {
         local_iptv_igmp_switch="1"
         sed -i "s:^[ ]*lz_config_iptv_igmp_switch=${local_ini_iptv_igmp_switch}:lz_config_iptv_igmp_switch=${local_iptv_igmp_switch}:" "${PATH_CONFIGS}/lz_rule_config.box" > /dev/null 2>&1
         sed -i "s:^[ ]*iptv_igmp_switch=${local_ini_iptv_igmp_switch}:iptv_igmp_switch=${local_iptv_igmp_switch}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
@@ -2930,7 +2930,7 @@ lz_optimize_to_iptv() {
     }
 
     local_ini_wan1_udpxy_switch="$( lz_get_file_cache_data "lz_config_wan1_udpxy_switch" "5" )"
-    [ "$local_ini_wan1_udpxy_switch" = "0" ] && {
+    [ "${local_ini_wan1_udpxy_switch}" = "0" ] && {
         local_wan1_udpxy_switch="5"
         sed -i "s:^[ ]*lz_config_wan1_udpxy_switch=${local_ini_wan1_udpxy_switch}:lz_config_wan1_udpxy_switch=${local_wan1_udpxy_switch}:" "${PATH_CONFIGS}/lz_rule_config.box" > /dev/null 2>&1
         sed -i "s:^[ ]*wan1_udpxy_switch=${local_ini_wan1_udpxy_switch}:wan1_udpxy_switch=${local_wan1_udpxy_switch}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
@@ -2938,7 +2938,7 @@ lz_optimize_to_iptv() {
     }
 
     local_ini_wan2_udpxy_switch="$( lz_get_file_cache_data "lz_config_wan2_udpxy_switch" "5" )"
-    [ "$local_ini_wan2_udpxy_switch" != "0" ] && {
+    [ "${local_ini_wan2_udpxy_switch}" != "0" ] && {
         local_wan2_udpxy_switch="0"
         sed -i "s:^[ ]*lz_config_wan2_udpxy_switch=${local_ini_wan2_udpxy_switch}:lz_config_wan2_udpxy_switch=${local_wan2_udpxy_switch}:" "${PATH_CONFIGS}/lz_rule_config.box" > /dev/null 2>&1
         sed -i "s:^[ ]*wan2_udpxy_switch=${local_ini_wan2_udpxy_switch}:wan2_udpxy_switch=${local_wan2_udpxy_switch}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
@@ -3015,7 +3015,7 @@ lz_restore_to_rn() {
     if [ "${local_ini_usage_mode}" != "0" ]; then
         local_usage_mode="0"
         sed -i "s:^[ ]*lz_config_usage_mode=${local_ini_usage_mode}:lz_config_usage_mode=${local_usage_mode}:" "${PATH_CONFIGS}/lz_rule_config.box" > /dev/null 2>&1
-        sed -i "s:^[ ]*usage_mode=$local_ini_usage_mode:usage_mode=${local_usage_mode}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+        sed -i "s:^[ ]*usage_mode=${local_ini_usage_mode}:usage_mode=${local_usage_mode}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
         local_ini_usage_mode="${local_usage_mode}"
     fi
 

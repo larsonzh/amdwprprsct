@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_address_query.sh v3.7.6
+# lz_rule_address_query.sh v3.7.7
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 网址信息查询脚本
@@ -680,7 +680,7 @@ lz_query_address() {
                 if [ "${local_isp_no}" = "0" ]; then
                     [ "$( lz_aq_get_ipv4_data_file_item_total "${aq_private_ipsets_file}" )" -gt "0" ] && {
                         lz_aq_add_net_address_sets "${aq_private_ipsets_file}" lz_aq_ispip_tmp_sets "1" "0"
-                        ipset -q test lz_aq_ispip_tmp_sets "$local_net_ip" && local_isp_no="$(( AQ_ISP_TOTAL + 4 ))"
+                        ipset -q test lz_aq_ispip_tmp_sets "${local_net_ip}" && local_isp_no="$(( AQ_ISP_TOTAL + 4 ))"
                     }
                 fi
             fi
@@ -703,7 +703,7 @@ lz_query_address() {
         ##     全局常量及变量
         ## 返回值：
         ##     显示网址信息
-        lz_show_address_info "${local_net_ip}" "${2}" "${local_isp_no}" "${local_isp_wan_no}" "$( eval "echo \$local_isp_name_${local_isp_no}" )" "${local_domain_name}" "${local_dns_server_ip}" "${local_dns_server_name}" "${local_ip_item_total}" "0"
+        lz_show_address_info "${local_net_ip}" "${2}" "${local_isp_no}" "${local_isp_wan_no}" "$( eval "echo \${local_isp_name_${local_isp_no}}" )" "${local_domain_name}" "${local_dns_server_ip}" "${local_dns_server_name}" "${local_ip_item_total}" "0"
 
     else
         local local_index="1"
@@ -729,7 +729,7 @@ lz_query_address() {
                 loacal_isp_data_item_total="$( lz_aq_get_isp_data_item_total_variable "${local_index}" )"
                 [ "${loacal_isp_data_item_total}" -gt "0" ] && {
                     if [ "${2}" != "0" ]; then
-                        [ "$( eval "echo \$lz_aq_ispip_tmp_${local_index}_sets_loaded" )" = "0" ] && {
+                        [ "$( eval "echo \${lz_aq_ispip_tmp_${local_index}_sets_loaded}" )" = "0" ] && {
                             lz_aq_add_net_address_sets "$( lz_aq_get_isp_data_filename "${local_index}" )" "lz_aq_ispip_tmp_${local_index}_sets" "1" "0"
                             eval "lz_aq_ispip_tmp_${local_index}_sets_loaded=1"
                         }
@@ -740,7 +740,7 @@ lz_query_address() {
                     else
                         local_isp_wan_port="$( lz_aq_get_isp_wan_port "${local_index}" )"
                         if [ "${local_isp_wan_port}" = "2" ] || [ "${local_isp_wan_port}" = "3" ]; then
-                            [ "$( eval "echo \$lz_aq_ispip_tmp_${local_index}_1_sets_loaded" )" = "0" ] && {
+                            [ "$( eval "echo \${lz_aq_ispip_tmp_${local_index}_1_sets_loaded}" )" = "0" ] && {
                                 lz_aq_add_ed_net_address_sets "$( lz_aq_get_isp_data_filename "${local_index}" )" "lz_aq_ispip_tmp_${local_index}_1_sets 1" "0" "${loacal_isp_data_item_total}" "0"
                                 eval "lz_aq_ispip_tmp_${local_index}_1_sets_loaded=1"
                             }
@@ -750,7 +750,7 @@ lz_query_address() {
                                 break
                             }
                             if [ "${loacal_isp_data_item_total}" -gt "1" ]; then
-                                [ "$( eval "echo \$lz_aq_ispip_tmp_${local_index}_2_sets_loaded" )" = "0" ] && {
+                                [ "$( eval "echo \${lz_aq_ispip_tmp_${local_index}_2_sets_loaded}" )" = "0" ] && {
                                     lz_aq_add_ed_net_address_sets "$( lz_aq_get_isp_data_filename "${local_index}" )" "lz_aq_ispip_tmp_${local_index}_2_sets" "1" "0" "${loacal_isp_data_item_total}" "1"
                                     eval "lz_aq_ispip_tmp_${local_index}_2_sets_loaded=1"
                                 }
@@ -761,7 +761,7 @@ lz_query_address() {
                                 }
                             fi
                         else
-                            [ "$( eval "echo \$lz_aq_ispip_tmp_${local_index}_sets_loaded" )" = "0" ] && {
+                            [ "$( eval "echo \${lz_aq_ispip_tmp_${local_index}_sets_loaded}" )" = "0" ] && {
                                 lz_aq_add_net_address_sets "$( lz_aq_get_isp_data_filename "${local_index}" )" "lz_aq_ispip_tmp_${local_index}_sets" "1" "0"
                                 eval "lz_aq_ispip_tmp_${local_index}_sets_loaded=1"
                             }
@@ -792,7 +792,7 @@ lz_query_address() {
             ##     全局常量及变量
             ## 返回值：
             ##     显示网址信息
-            lz_show_address_info "${local_net_ip}" "${2}" "${local_isp_no}" "${local_isp_wan_no}" "$( eval "echo \$local_isp_name_${local_isp_no}" )" "${local_domain_name}" "${local_dns_server_ip}" "${local_dns_server_name}" "${local_ip_item_total}" "${local_ip_counter}"
+            lz_show_address_info "${local_net_ip}" "${2}" "${local_isp_no}" "${local_isp_wan_no}" "$( eval "echo \${local_isp_name_${local_isp_no}}" )" "${local_domain_name}" "${local_dns_server_ip}" "${local_dns_server_name}" "${local_ip_item_total}" "${local_ip_counter}"
         done
 
         local_index="1"

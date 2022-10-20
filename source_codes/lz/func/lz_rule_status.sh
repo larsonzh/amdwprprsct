@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_status.sh v3.7.6
+# lz_rule_status.sh v3.7.7
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 显示脚本运行状态脚本
@@ -518,7 +518,7 @@ lz_get_isp_data_item_total_status_variable() {
 ##     1--当前为非双线路状态
 lz_get_policy_mode_status() {
 
-    ! ip route | grep -q nexthop && status_policy_mode="5" && return 1
+    ! ip route show | grep -q nexthop && status_policy_mode="5" && return 1
     [ "${status_usage_mode}" = "0" ] && status_policy_mode="5" && return 1
 
     local_wan1_isp_addr_total="0"
@@ -661,7 +661,7 @@ lz_get_route_status_info() {
     if [ "${status_route_os_name}" = "Merlin-Koolshare" ]; then
         ## 输出显示路由器固件版本号
         local local_firmware_version="$( nvram get "extendno" | cut -d "X" -f2 | cut -d "-" -f1 | cut -d "_" -f1 )"
-        [ -z "$local_firmware_version" ] && local_firmware_version="Unknown"
+        [ -z "${local_firmware_version}" ] && local_firmware_version="Unknown"
         echo "$(lzdate)" [$$]: "   Firmware Version: ${local_firmware_version}"
     else
         local local_firmware_version="$( nvram get "firmver" )"
@@ -849,7 +849,7 @@ lz_get_route_status_info() {
     echo "$(lzdate)" [$$]: "   Route Local Bcast: ${local_route_local_bcast_ip}"
     echo "$(lzdate)" [$$]: "   Route Local Mask: ${status_route_local_ip_mask}"
 
-    if ip route | grep -q nexthop; then
+    if ip route show | grep -q nexthop; then
         if [ "${status_usage_mode}" = "0" ]; then
             echo "$(lzdate)" [$$]: "   Route Usage Mode: Dynamic Policy"
         else
@@ -893,7 +893,7 @@ lz_get_route_status_info() {
 lz_show_regularly_update_ispip_data_task() {
     local local_regularly_update_ispip_data_info="$( cru l | grep "#${STATUS_UPDATE_ISPIP_DATA_TIMEER_ID}#" )"
     [ -z "${local_regularly_update_ispip_data_info}" ] && return
-    local local_ruid_min="$( echo "${local_regularly_update_ispip_data_info}" | awk -F " " '{print $1}' | cut -d '/' -f1 )"
+    local local_ruid_min="$( echo "${local_regularly_update_ispip_data_info}" | awk -F " " '{print $1}' | cut -d '/' -f1 | sed 's/^[0-9]$/0&/g' )"
     local local_ruid_hour="$( echo "${local_regularly_update_ispip_data_info}" | awk -F " " '{print $2}' | cut -d '/' -f1 )"
     local local_ruid_day="$( echo "${local_regularly_update_ispip_data_info}" | awk -F " " '{print $3}' | cut -d '/' -f2 )"
     [ -n "${local_ruid_day}" ] && {
@@ -938,7 +938,7 @@ lz_show_vpn_support_status() {
     local local_vpn_client_wan_port="by Policy"
     [ "${status_ovs_client_wan_port}" = "0" ] && local_vpn_client_wan_port="Primary WAN"
     [ "${status_ovs_client_wan_port}" = "1" ] && local_vpn_client_wan_port="Secondary WAN"
-    local local_route_list="$( ip route | grep -Ev 'default|nexthop' )"
+    local local_route_list="$( ip route show | grep -Ev 'default|nexthop' )"
     local local_vpn_item=
     local local_index="0"
     for local_vpn_item in $( echo "${local_route_list}" | grep -E 'tap|tun' | awk '{print $3":"$1}' )
@@ -1043,20 +1043,13 @@ lz_get_wan_pub_ip_status() {
     local local_wan_dev="$( ip route show table "${1}" | awk '/default/ && /ppp[0-9]*/ {print $5}' | sed -n 1p )"
     if [ -z "${local_wan_dev}" ]; then
         local_wan_dev="$( ip route show table "${1}" | awk '/default/ {print $5}' | sed -n 1p )"
-    else
-        local_public_ip_enable="1"
     fi
-
     if [ -n "${local_wan_dev}" ]; then
         local_wan_ip="$( curl -s --connect-timeout 20 --interface "${local_wan_dev}" "whatismyip.akamai.com" | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}' )"
-        if [ "${local_public_ip_enable}" = "1" ] && [ -n "${local_wan_ip}" ]; then
-            local_local_wan_ip="$( ip -o -4 addr list | awk '$2 ~ "'"${local_wan_dev}"'" {print $4}' | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}' )"
-            [ "${local_wan_ip}" != "${local_local_wan_ip}" ] && local_public_ip_enable="0"
-        else
-            local_public_ip_enable="0"
-        fi
+        [ -n "${local_wan_ip}" ] && local_public_ip_enable="1"
+        local_local_wan_ip="$( ip -o -4 addr list | awk '$2 ~ "'"${local_wan_dev}"'" {print $4}' | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}' )"
+        [ "${local_wan_ip}" != "${local_local_wan_ip}" ] && local_public_ip_enable="0"
     fi
-
     echo "${local_wan_ip}:-${local_local_wan_ip}:-${local_public_ip_enable}"
 }
 
@@ -1162,7 +1155,7 @@ lz_get_wan_isp_info_staus() {
         }
     fi
 
-    [ -z "${local_wan1_isp}" ] && local_wan1_isp="Unknown"
+    [ -z "${local_wan1_isp}" ] && local_wan1_isp="Local Area Network"
 
     ## WAN0
     local_wan0_isp=""
@@ -1226,7 +1219,7 @@ lz_get_wan_isp_info_staus() {
         }
     fi
 
-    [ -z "${local_wan0_isp}" ] && local_wan0_isp="Unknown"
+    [ -z "${local_wan0_isp}" ] && local_wan0_isp="Local Area Network"
 
     local_no="${STATUS_ISP_TOTAL}"
     until [ "${local_no}" = "0" ]
@@ -1269,24 +1262,28 @@ lz_output_ispip_status_info() {
     ## 输出WAN出口接入的ISP运营商信息
     echo "$(lzdate)" [$$]: ----------------------------------------
     echo "$(lzdate)" [$$]: "   Primary WAN     ${1}"
-    [ "${1}" != "Unknown" ] && {
+    if [ "${1}" != "Local Area Network" ]; then
         if [ "${local_wan0_pub_ip}" = "${local_wan0_local_ip}" ]; then
             echo "$(lzdate)" [$$]: "                         ${local_wan0_pub_ip}"
         else
             echo "$(lzdate)" [$$]: "                         ${local_wan0_local_ip}"
             echo "$(lzdate)" [$$]: "                   Pub   ${local_wan0_pub_ip}"
         fi
-    }
+    elif [ -n "${local_wan0_local_ip}" ]; then
+        echo "$(lzdate)" [$$]: "                         ${local_wan0_local_ip}"
+    fi
     echo "$(lzdate)" [$$]: ----------------------------------------
     echo "$(lzdate)" [$$]: "   Secondary WAN   ${2}"
-    [ "${2}" != "Unknown" ] && {
+    if [ "${2}" != "Local Area Network" ]; then
         if [ "${local_wan1_pub_ip}" = "${local_wan1_local_ip}" ]; then
             echo "$(lzdate)" [$$]: "                         ${local_wan1_pub_ip}"
         else
             echo "$(lzdate)" [$$]: "                         ${local_wan1_local_ip}"
             echo "$(lzdate)" [$$]: "                   Pub   ${local_wan1_pub_ip}"
         fi
-    }
+    elif [ -n "${local_wan1_local_ip}" ]; then
+        echo "$(lzdate)" [$$]: "                         ${local_wan1_local_ip}"
+    fi
     echo "$(lzdate)" [$$]: ----------------------------------------
 
     local local_hd=""
@@ -1356,12 +1353,12 @@ lz_output_ispip_status_info() {
             [ "${local_index}" = "8" ] && local_isp_name="Hongkong      "
             [ "${local_index}" = "9" ] && local_isp_name="Macao         "
             [ "${local_index}" = "10" ] && local_isp_name="Taiwan        "
-            echo "$(lzdate)" [$$]: "   $local_isp_name  $( lz_get_ispip_status_info "$( lz_get_isp_wan_port_status "${local_index}" )" )${local_hd}"
+            echo "$(lzdate)" [$$]: "   ${local_isp_name}  $( lz_get_ispip_status_info "$( lz_get_isp_wan_port_status "${local_index}" )" )${local_hd}"
             local_exist="1"
         }
         let local_index++
     done
-    [ "$local_exist" = "1" ] && {
+    [ "${local_exist}" = "1" ] && {
         echo "$(lzdate)" [$$]: ----------------------------------------
     }
     local_exist="0"
@@ -1475,7 +1472,7 @@ lz_output_ispip_status_info() {
         local_item_num=$( lz_get_ipv4_data_file_item_total_status "${status_high_wan_2_client_src_addr_file}" )
         [ "${local_item_num}" -gt "0" ] && {
             local_hd=""
-            if [ "$3" = "1" ]; then
+            if [ "${3}" = "1" ]; then
                 local_hd="${local_secondary_wan_hd}"
             else
                 if [ "${local_item_num}" -gt "${status_list_mode_threshold}" ]; then
@@ -1560,8 +1557,8 @@ lz_get_iptables_fwmark_item_total_number_status() {
 ##     0--已启用
 ##     1--未启用
 lz_get_netfilter_used_status() {
-    ! iptables -t mangle -L PREROUTING 2> /dev/null | grep -q "$STATUS_CUSTOM_PREROUTING_CHAIN" && return 1
-    ! iptables -t mangle -L "${STATUS_CUSTOM_PREROUTING_CHAIN}" 2> /dev/null | grep -q "$STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN" && return 1
+    ! iptables -t mangle -L PREROUTING 2> /dev/null | grep -q "${STATUS_CUSTOM_PREROUTING_CHAIN}" && return 1
+    ! iptables -t mangle -L "${STATUS_CUSTOM_PREROUTING_CHAIN}" 2> /dev/null | grep -q "${STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN}" && return 1
     [ "$( lz_get_iptables_fwmark_item_total_number_status "${STATUS_FOREIGN_FWMARK}" "${STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN}" )" -gt "0" ] && return 0
     [ "$( lz_get_iptables_fwmark_item_total_number_status "${STATUS_FWMARK0}" "${STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN}" )" -gt "0" ] && return 0
     [ "$( lz_get_iptables_fwmark_item_total_number_status "${STATUS_PROTOCOLS_FWMARK_0}" "${STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN}" )" -gt "0" ] && return 0
@@ -1685,7 +1682,7 @@ lz_show_iptv_function_status() {
     [ "${status_wan2_udpxy_switch}" = "0" ] && local_wan2_udpxy_start="1"
 
     local local_igmp_proxy_conf_name="$( echo "${STATUS_IGMP_PROXY_CONF_NAME}" | sed 's/[\.]conf.*$//' )"
-    local local_igmp_proxy_started="$( ps | grep "\/usr\/sbin\/igmpproxy" | grep "${STATUS_PATH_TMP}\/$local_igmp_proxy_conf_name" )"
+    local local_igmp_proxy_started="$( ps | grep "\/usr\/sbin\/igmpproxy" | grep "${STATUS_PATH_TMP}\/${local_igmp_proxy_conf_name}" )"
     local local_udpxy_wan1_started="$( ps | grep "\/usr\/sbin\/udpxy" | grep "\-m ${local_udpxy_wan1_dev} \-p ${status_wan1_udpxy_port} \-B ${status_wan1_udpxy_buffer} \-c ${status_wan1_udpxy_client_num}" )"
     local local_udpxy_wan2_started="$( ps | grep "\/usr\/sbin\/udpxy" | grep "\-m ${local_udpxy_wan2_dev} \-p ${status_wan2_udpxy_port} \-B ${status_wan2_udpxy_buffer} \-c ${status_wan2_udpxy_client_num}" )"
     [ "${local_wan1_igmp_start}" = "1" ] && {
@@ -1881,8 +1878,8 @@ lz_show_single_net_iptv_status() {
 
     if [ "${status_iptv_igmp_switch}" = "0" ] || [ "${status_iptv_igmp_switch}" = "1" ]; then
         if [ "${iptv_get_ip_mode}" = "0" ]; then
-            iptv_interface_id="$( ip route | grep default | grep -o 'ppp[0-9]*' | sed -n 1p )"
-            iptv_getway_ip="$( ip route | awk '/default/ && $0 ~ "'"${iptv_interface_id}"'" {print $3}' | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}' | sed -n 1p )"
+            iptv_interface_id="$( ip route show | grep default | grep -o 'ppp[0-9]*' | sed -n 1p )"
+            iptv_getway_ip="$( ip route show | awk '/default/ && $0 ~ "'"${iptv_interface_id}"'" {print $3}' | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}' | sed -n 1p )"
             if [ -z "${iptv_interface_id}" ] || [ -z "${iptv_getway_ip}" ]; then
                 if [ "${status_iptv_igmp_switch}" = "0" ]; then
                     iptv_interface_id="${iptv_wan0_ifname}"
@@ -1973,7 +1970,7 @@ lz_single_ip_rule_output_syslog_status() {
     ## 读取所有符合本方案所用优先级数值的规则条目数并输出至系统记录
     status_ip_rule_exist="0"
     local local_ip_rule_prio_no="${1}"
-    status_ip_rule_exist="$( ip rule show prio "${local_ip_rule_prio_no}" | wc -l )"
+    status_ip_rule_exist="$( ip rule show | grep -c "^${local_ip_rule_prio_no}:" )"
     [ "${status_ip_rule_exist}" -gt "0" ] && {
         echo "$(lzdate)" [$$]: "   ip_rule_iptv_${local_ip_rule_prio_no} = ${status_ip_rule_exist}"
     }
@@ -1992,7 +1989,7 @@ lz_ip_rule_output_syslog_status() {
     local local_ip_rule_prio_no="${1}"
     until [ "${local_ip_rule_prio_no}" -gt "${2}" ]
     do
-        local_ip_rule_exist="$( ip rule show prio "${local_ip_rule_prio_no}" | wc -l )"
+        local_ip_rule_exist="$( ip rule show | grep -c "^${local_ip_rule_prio_no}:" )"
         [ "${local_ip_rule_exist}" -gt "0" ] && {
             echo "$(lzdate)" [$$]: "   ip_rule_prio_${local_ip_rule_prio_no} = ${local_ip_rule_exist}"
             local_statistics_show="1"
@@ -2098,7 +2095,7 @@ __status_main() {
     lz_show_regularly_update_ispip_data_task
 
     ## 双线路
-    if ip route | grep -q nexthop && [ -n "${status_route_local_ip}" ]; then
+    if ip route show | grep -q nexthop && [ -n "${status_route_local_ip}" ]; then
         echo "$(lzdate)" [$$]: The router has successfully joined into two WANs.
         echo "$(lzdate)" [$$]: Policy routing service has been started.
 
@@ -2139,7 +2136,7 @@ __status_main() {
         lz_ss_support_status
 
     ## 单线路
-    elif ip route | grep -q default; then
+    elif ip route show | grep -q default; then
         echo "$(lzdate)" [$$]: The router is connected to only one WAN.
         echo "$(lzdate)" [$$]: ----------------------------------------
 
@@ -2165,7 +2162,7 @@ __status_main() {
         ## 返回值：无
         lz_ip_rule_output_syslog_status "${STATUS_IP_RULE_PRIO_TOPEST}" "${STATUS_IP_RULE_PRIO}"
 
-        if [ "$( ip rule show prio "${STATUS_IP_RULE_PRIO_IPTV}" | wc -l )" -gt "0" ]; then
+		if [ "$( ip rule show | grep -c "^${STATUS_IP_RULE_PRIO_IPTV}:" )" -gt "0" ]; then
             echo "$(lzdate)" [$$]: Only IPTV rules is running.
         else
             echo "$(lzdate)" [$$]: The policy routing service isn\'t running.

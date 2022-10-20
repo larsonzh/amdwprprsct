@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_vpn_daemon.sh v3.7.6
+# lz_vpn_daemon.sh v3.7.7
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 虚拟专网客户端路由刷新处理后台守护进程脚本
@@ -54,17 +54,17 @@ do
                 /bin/sh "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}"
         else
             lz_vpn_client=""
-            lz_vpn_client_list="$( ip route list | awk '/pptp/ {print $1}' )"
+            lz_vpn_client_list="$( ip route show | awk '/pptp/ {print $1}' )"
             if [ -n "${lz_vpn_client_list}" ]; then
-                lz_vpn_client_sub_list="$( ip route list table "${WAN0}" | awk '/pptp/ {print $1}' )"
+                lz_vpn_client_sub_list="$( ip route show table "${WAN0}" | awk '/pptp/ {print $1}' )"
                 if [ -n "${lz_vpn_client_sub_list}" ]; then
                     for lz_vpn_client in ${lz_vpn_client_list}
                     do
                         lz_vpn_client="$( echo "${lz_vpn_client_sub_list}" | grep "${lz_vpn_client}" )"
-                        [ -z "$lz_vpn_client" ] && break
+                        [ -z "${lz_vpn_client}" ] && break
                     done
                     if [ -n "${lz_vpn_client}" ]; then
-                        lz_vpn_client_sub_list="$( ip route list table "${WAN1}" | awk '/pptp/ {print $1}' )"
+                        lz_vpn_client_sub_list="$( ip route show table "${WAN1}" | awk '/pptp/ {print $1}' )"
                         if [ -n "${lz_vpn_client_sub_list}" ]; then
                             for lz_vpn_client in ${lz_vpn_client_list}
                             do

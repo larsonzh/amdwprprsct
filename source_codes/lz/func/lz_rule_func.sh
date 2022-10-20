@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v3.7.6
+# lz_rule_func.sh v3.7.7
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 #BEIGIN
@@ -175,7 +175,7 @@ lz_get_policy_mode() {
     ##     条目数--全局变量
     lz_get_all_isp_data_item_total
 
-    ! ip route list | grep -q nexthop && policy_mode="5" && return 1
+    ! ip route show | grep -q nexthop && policy_mode="5" && return 1
     [ "${usage_mode}" = "0" ] && policy_mode="5" && return 1
 
     local_wan1_isp_addr_total="0"
@@ -229,8 +229,8 @@ lz_get_policy_mode() {
         [ "${local_isp_wan_port}" = "3" ] && llz_cal_equal_division "${1}" "1"
     }
 
-#	[ "${isp_wan_port_0}" = "0" ] && let local_wan1_isp_addr_total+="$isp_data_0_item_total"
-#	[ "${isp_wan_port_0}" = "1" ] && let local_wan2_isp_addr_total+="$isp_data_0_item_total"
+#	[ "${isp_wan_port_0}" = "0" ] && let local_wan1_isp_addr_total+="${isp_data_0_item_total}"
+#	[ "${isp_wan_port_0}" = "1" ] && let local_wan2_isp_addr_total+="${isp_data_0_item_total}"
 
     local local_index="1"
     until [ "${local_index}" -gt "${ISP_TOTAL}" ]
@@ -277,7 +277,7 @@ lz_get_policy_mode() {
 lz_get_route_info() {
     echo "$(lzdate)" [$$]: ---------------------------------------- | tee -ai "${SYSLOG}" 2> /dev/null
     ## 匹配设置iptables操作符及输出显示路由器硬件类型
-    case $route_hardware_type in
+    case ${route_hardware_type} in
         armv7l)
             MATCH_SET='--match-set'
         ;;
@@ -367,7 +367,7 @@ lz_get_route_info() {
 
     ## 输出显示路由器CFE固件版本信息
     local local_bootloader_cfe="$( nvram get "bl_version" 2> /dev/null | sed -n 1p )"
-    [ -n "$local_bootloader_cfe" ] && {
+    [ -n "${local_bootloader_cfe}" ] && {
         echo "$(lzdate)" [$$]: "   Bootloader (CFE): ${local_bootloader_cfe}" | tee -ai "${SYSLOG}" 2> /dev/null
     }
 
@@ -411,7 +411,7 @@ lz_get_route_info() {
         local local_interface_5g1_power_max="$( wl -i "${local_interface_5g1}" "txpwr1" 2> /dev/null | awk 'NR==1 {print " ("$5" dBm \/ "$7" mW)"}' )"
         [ -n "${local_interface_5g1_power}" ] && local_wl_txpwr_5g1="${local_interface_5g1_power} dBm / $( awk -v x="${local_interface_5g1_power}" 'BEGIN {printf "%.2f\n", 10^(x/10)}' ) mW${local_interface_5g1_power_max}"
     }
-    [ -n "$local_interface_5g2" ] && {
+    [ -n "${local_interface_5g2}" ] && {
         local_interface_5g2_temperature="$( wl -i "${local_interface_5g2}" "phy_tempsense" 2> /dev/null | awk 'NR==1 {print $1/2+20" degrees C"}' )"
         local_interface_5g2_power="$( wl -i "${local_interface_5g2}" "txpwr_target_max" 2> /dev/null | awk 'NR==1 {print $NF}' )"
         local local_interface_5g2_power_max="$( wl -i "${local_interface_5g2}" "txpwr1" 2> /dev/null | awk 'NR==1 {print " ("$5" dBm \/ "$7" mW)"}' )"
@@ -461,7 +461,7 @@ lz_get_route_info() {
     ## 由于不同系统中ifconfig返回信息的格式有一定差别，需分开处理
     ## Linux的其他版本的格式暂不掌握，做框架性预留处理
     local local_route_local_info=
-    case $local_route_Kernel_name in
+    case ${local_route_Kernel_name} in
         Linux)
             local_route_local_info="$( /sbin/ifconfig br0 )"
         ;;
@@ -521,7 +521,7 @@ lz_get_route_info() {
         echo "$(lzdate)" [$$]: "   Route Local Mask: ${route_local_ip_mask}"
     } | tee -ai "${SYSLOG}" 2> /dev/null
 
-    if ip route | grep -q nexthop; then
+    if ip route show | grep -q nexthop; then
         if [ "${usage_mode}" = "0" ]; then
             echo "$(lzdate)" [$$]: "   Route Usage Mode: Dynamic Policy" | tee -ai "${SYSLOG}" 2> /dev/null
         else
@@ -560,7 +560,7 @@ lz_get_route_info() {
 
 ## 处理系统负载均衡分流策略规则函数
 ## 输入项：
-##     $1--规则优先级（$IP_RULE_PRIO_BALANCE--ASUS原始；$IP_RULE_PRIO + 1--脚本定义）
+##     $1--规则优先级（${IP_RULE_PRIO_BALANCE}--ASUS原始；${IP_RULE_PRIO} + 1--脚本定义）
 ##     全局常量
 ## 返回值：无
 lz_sys_load_balance_control() {
@@ -585,13 +585,13 @@ lz_sys_load_balance_control() {
     ## 调整策略规则路由数据库中负载均衡策略规则条目的优先级
     ## 仅对位于IP_RULE_PRIO_TOPEST--IP_RULE_PRIO范围之外的负载均衡策略规则条目进行优先级调整
     ## a.对固件系统中第一WAN口的负载均衡分流策略
-    local local_sys_load_balance_wan0_exist="$( ip rule show from all fwmark "0x80000000/0xf0000000" | wc -l )"
+    local local_sys_load_balance_wan0_exist="$( ip rule show | grep -ci "from all fwmark 0x80000000/0xf0000000" )"
     if [ "${local_sys_load_balance_wan0_exist}" -gt "0" ]; then
         until [ "${local_sys_load_balance_wan0_exist}" = "0" ]
         do
-            ip rule show from all fwmark "0x80000000/0xf0000000" | \
+            ip rule show | grep -i "from all fwmark 0x80000000/0xf0000000" | \
                 awk -F: '{system("ip rule del prio "$1" > /dev/null 2>&1")}'
-            local_sys_load_balance_wan0_exist="$( ip rule show from all fwmark "0x80000000/0xf0000000" | wc -l )"
+            local_sys_load_balance_wan0_exist="$( ip rule show | grep -ci "from all fwmark 0x80000000/0xf0000000" )"
         done
         ## 不清除系统负载均衡策略中的分流功能，但降低其执行优先级，防止先于自定义分流规则执行
         ip rule add from all fwmark "0x80000000/0xf0000000" table "${WAN0}" prio "${1}" > /dev/null 2>&1
@@ -599,13 +599,13 @@ lz_sys_load_balance_control() {
     fi
 
     ## b.对固件系统中第二WAN口的负载均衡分流策略
-    local local_sys_load_balance_wan1_exist="$( ip rule show from all fwmark "0x90000000/0xf0000000" | wc -l )"
+    local local_sys_load_balance_wan1_exist="$( ip rule show | grep -ci "from all fwmark 0x90000000/0xf0000000" )"
     if [ "${local_sys_load_balance_wan1_exist}" -gt "0" ]; then
         until [ "${local_sys_load_balance_wan1_exist}" = "0" ]
         do
-            ip rule show from all fwmark "0x90000000/0xf0000000" | \
+            ip rule show | grep -i "from all fwmark 0x90000000/0xf0000000" | \
                 awk -F: '{system("ip rule del prio "$1" > /dev/null 2>&1")}'
-            local_sys_load_balance_wan1_exist="$( ip rule show from all fwmark "0x90000000/0xf0000000" | wc -l )"
+            local_sys_load_balance_wan1_exist="$( ip rule show | grep -ci "from all fwmark 0x90000000/0xf0000000" )"
         done
         ## 不清除系统负载均衡策略中的分流功能，但降低其执行优先级，防止先于自定义分流规则执行
         ip rule add from all fwmark "0x90000000/0xf0000000" table "${WAN1}" prio "${1}" > /dev/null 2>&1
@@ -620,7 +620,7 @@ lz_sys_load_balance_control() {
 ## 返回值：
 ##     ip_rule_exist--已删除的条目数，全局变量
 lz_del_iptv_rule() {
-    ip_rule_exist="$( ip rule show prio "${IP_RULE_PRIO_IPTV}" | wc -l )"
+    ip_rule_exist="$( ip rule show | grep -c "^${IP_RULE_PRIO_IPTV}:" )"
     local local_ip_rule_exist="${ip_rule_exist}"
     if [ "${local_ip_rule_exist}" -gt "0" ]; then
         if [ "${1}" = "1" ]; then
@@ -628,8 +628,8 @@ lz_del_iptv_rule() {
         fi
         until [ "${local_ip_rule_exist}" = "0" ]
         do
-            ip rule show prio "${IP_RULE_PRIO_IPTV}" | awk -F: '{system("ip rule del prio "$1" > /dev/null 2>&1")}'
-            local_ip_rule_exist="$( ip rule show prio "${IP_RULE_PRIO_IPTV}" | wc -l )"
+            ip rule show | grep "^${IP_RULE_PRIO_IPTV}:" | awk -F: '{system("ip rule del prio "$1" > /dev/null 2>&1")}'
+            local_ip_rule_exist="$( ip rule show | grep -c "^${IP_RULE_PRIO_IPTV}:" )"
         done
         ip route flush cache > /dev/null 2>&1
     fi
@@ -640,7 +640,7 @@ lz_del_iptv_rule() {
 ##     全局常量
 ## 返回值：无
 lz_clear_iptv_route() {
-    ip route list table "${LZ_IPTV}" | awk '{system("ip route del "$0"'" table ${LZ_IPTV} > /dev/null 2>&1"'")}'
+    ip route show table "${LZ_IPTV}" | awk '{system("ip route del "$0"'" table ${LZ_IPTV} > /dev/null 2>&1"'")}'
     ip route flush cache > /dev/null 2>&1
 }
 
@@ -657,14 +657,14 @@ lz_delete_ip_rule_output_syslog() {
     local local_ip_rule_prio_no="${1}"
     until [ "${local_ip_rule_prio_no}" -gt "${2}" ]
     do
-        ip_rule_exist="$( ip rule show prio "${local_ip_rule_prio_no}" | wc -l )"
+        ip_rule_exist="$( ip rule show | grep -c "^${local_ip_rule_prio_no}:" )"
         if [ "${ip_rule_exist}" -gt "0" ]; then
             echo "$(lzdate)" [$$]: "   ip_rule_prio_${local_ip_rule_prio_no} = ${ip_rule_exist}" | tee -ai "${SYSLOG}" 2> /dev/null
             local_statistics_show="1"
             until [ "${ip_rule_exist}" = "0" ]
             do
-                ip rule show prio "${local_ip_rule_prio_no}" | awk -F: '{system("ip rule del prio "$1" > /dev/null 2>&1")}'
-                ip_rule_exist="$( ip rule show prio "${local_ip_rule_prio_no}" | wc -l )"
+                ip rule show | grep "^${local_ip_rule_prio_no}:" | awk -F: '{system("ip rule del prio "$1" > /dev/null 2>&1")}'
+                ip_rule_exist="$( ip rule show | grep -c "^${local_ip_rule_prio_no}:" )"
             done
         fi
         let local_ip_rule_prio_no++
@@ -754,7 +754,7 @@ lz_delete_iptables_custom_prerouting_chain() {
         iptables -t mangle -F "${2}" > /dev/null 2>&1
         iptables -t mangle -X "${2}" > /dev/null 2>&1
     fi
-    for local_number in $local_custom_number
+    for local_number in ${local_custom_number}
     do
         iptables -t mangle -D PREROUTING "${local_number}" > /dev/null 2>&1
     done
@@ -772,14 +772,14 @@ lz_delete_iptables_custom_output_chain() {
     local local_custom_number="$( iptables -t mangle -L OUTPUT -v -n --line-numbers 2> /dev/null | grep "${1}" | cut -d " " -f 1 | sort -nr )"
     local local_number=
     if [ -n "${local_custom_number}" ] && [ -n "${2}" ]; then
-        for local_number in $( iptables -t mangle -L "$1" -v -n --line-numbers 2> /dev/null | grep "${2}" | cut -d " " -f 1 | sort -nr )
+        for local_number in $( iptables -t mangle -L "${1}" -v -n --line-numbers 2> /dev/null | grep "${2}" | cut -d " " -f 1 | sort -nr )
         do
             iptables -t mangle -D "${1}" "${local_number}" > /dev/null 2>&1
         done
         iptables -t mangle -F "${2}" > /dev/null 2>&1
         iptables -t mangle -X "${2}" > /dev/null 2>&1
     fi
-    for local_number in $local_custom_number
+    for local_number in ${local_custom_number}
     do
         iptables -t mangle -D OUTPUT "${local_number}" > /dev/null 2>&1
     done
@@ -905,8 +905,8 @@ lz_destroy_ipset() {
 ## 返回值：无
 lz_clear_vpn_support() {
     ## 清理Open虚拟专网服务支持（TAP及TUN接口类型）中出口路由表添加项
-    ip route list table "${WAN0}" | awk '/pptp|tap|tun/ {system("ip route del "$0"'" table ${WAN0} > /dev/null 2>&1"'")}'
-    ip route list table "${WAN1}" | awk '/pptp|tap|tun/ {system("ip route del "$0"'" table ${WAN1} > /dev/null 2>&1"'")}'
+    ip route show table "${WAN0}" | awk '/pptp|tap|tun/ {system("ip route del "$0"'" table ${WAN0} > /dev/null 2>&1"'")}'
+    ip route show table "${WAN1}" | awk '/pptp|tap|tun/ {system("ip route del "$0"'" table ${WAN1} > /dev/null 2>&1"'")}'
     ip route flush cache > /dev/null 2>&1
 
     ## 清除Open虚拟专网子网网段地址列表文件（保留，用于兼容v3.7.0及之前版本）
@@ -934,7 +934,7 @@ lz_clear_vpn_support() {
 lz_set_udpxy_used_value() {
     [ "${1}" != "0" ] && [ "${1}" != "5" ] && return
     [ "${udpxy_used}" != "${1}" ] && {
-        sed -i "s:^lz_config_udpxy_used=${udpxy_used}:lz_config_udpxy_used=$1:" "${PATH_CONFIGS}/lz_rule_config.box" > /dev/null 2>&1
+        sed -i "s:^lz_config_udpxy_used=${udpxy_used}:lz_config_udpxy_used=${1}:" "${PATH_CONFIGS}/lz_rule_config.box" > /dev/null 2>&1
         sed -i "s:^udpxy_used=${udpxy_used}:udpxy_used=${1}:" "${PATH_FUNC}/lz_define_global_variables.sh" > /dev/null 2>&1
         udpxy_used="${1}"
     }
@@ -961,7 +961,7 @@ lz_set_hnd_bcmmcast_if() {
                 bcmmcastctl mode -i "${1}" -p 2 -m "${3}" > /dev/null 2>&1 && let reval++
             fi
         }
-        bcmmcastctl show 2> /dev/null | grep -w "$1:" | grep -q IGMP && {
+        bcmmcastctl show 2> /dev/null | grep -w "${1}:" | grep -q IGMP && {
             if [ "${2}" = "0" ] || [ "${2}" = "1" ]; then
                 bcmmcastctl rate -i "${1}" -p 1 -r 0  > /dev/null 2>&1
                 bcmmcastctl l2l -i "${1}" -p 1 -e 1  > /dev/null 2>&1
@@ -1172,7 +1172,7 @@ lz_single_ip_rule_output_syslog() {
     ## 读取所有符合本方案所用优先级数值的规则条目数并输出至系统记录
     ip_rule_exist="0"
     local local_ip_rule_prio_no="${1}"
-    ip_rule_exist="$( ip rule show prio "${local_ip_rule_prio_no}" | wc -l )"
+    ip_rule_exist="$( ip rule show | grep -c "^${local_ip_rule_prio_no}:" )"
     [ "${ip_rule_exist}" -gt "0" ] && \
         echo "$(lzdate)" [$$]: "   ip_rule_iptv_${local_ip_rule_prio_no} = ${ip_rule_exist}" | tee -ai "${SYSLOG}" 2> /dev/null
 }
@@ -1190,7 +1190,7 @@ lz_ip_rule_output_syslog() {
     local local_ip_rule_prio_no="${1}"
     until [ "${local_ip_rule_prio_no}" -gt "${2}" ]
     do
-        local_ip_rule_exist="$( ip rule show prio "${local_ip_rule_prio_no}" | wc -l )"
+        local_ip_rule_exist="$( ip rule show | grep -c "^${local_ip_rule_prio_no}:" )"
         [ "${local_ip_rule_exist}" -gt "0" ] && {
             echo "$(lzdate)" [$$]: "   ip_rule_prio_${local_ip_rule_prio_no} = ${local_ip_rule_exist}" | tee -ai "${SYSLOG}" 2> /dev/null
             local_statistics_show="1"
@@ -1231,7 +1231,7 @@ lz_clear_openvpn_event_command() {
 ## 返回值：无
 lz_clear_openvpn_rule() {
     ## 清空策略优先级为IP_RULE_PRIO_VPN的出口规则
-    ip rule show prio "${IP_RULE_PRIO_VPN}" | awk -F: '{system("ip rule del prio "$1" > /dev/null 2>&1")}'
+    ip rule show | grep "^${IP_RULE_PRIO_VPN}:" | awk -F: '{system("ip rule del prio "$1" > /dev/null 2>&1")}'
     ip route flush cache > /dev/null 2>&1
 }
 
@@ -1327,24 +1327,30 @@ lz_clear_interface_scripts() {
 ##     0--成功
 ##     1--失败
 lz_create_event_interface() {
-    [ ! -d "${PATH_BOOTLOADER}" ] && mkdir -p "${PATH_BOOTLOADER}" > /dev/null 2>&1
+    [ ! -d "${PATH_BOOTLOADER}" ] && mkdir -p "${PATH_BOOTLOADER}"
     if [ ! -f "${PATH_BOOTLOADER}/${1}" ]; then
         cat > "${PATH_BOOTLOADER}/${1}" 2> /dev/null <<EOF_INTERFACE
 #!/bin/sh
 EOF_INTERFACE
     fi
     [ ! -f "${PATH_BOOTLOADER}/${1}" ] && return 1
-    if ! grep -m 1 '.' "${PATH_BOOTLOADER}/${1}" | grep -q "#!/bin/sh"; then
-        sed -i '1i #!\/bin\/sh' "${PATH_BOOTLOADER}/${1}" > /dev/null 2>&1
+    if ! grep -m 1 '^.*$' "${PATH_BOOTLOADER}/${1}" | grep -q "#!/bin/sh"; then
+        if [ "$( grep -c '^.*$' "${PATH_BOOTLOADER}/${1}" )" = "0" ]; then
+            echo "#!/bin/sh" >> "${PATH_BOOTLOADER}/${1}"
+        elif grep '^.*$' "${PATH_BOOTLOADER}/${1}" | grep -q "#!/bin/sh"; then
+            sed -i -e '/!\/bin\/sh/d' -e '1i #!\/bin\/sh' "${PATH_BOOTLOADER}/${1}"
+        else
+            sed -i '1i #!\/bin\/sh' "${PATH_BOOTLOADER}/${1}"
+        fi
     else
-        ! grep -m 1 '.' "${PATH_BOOTLOADER}/${1}" | grep -q "^#!/bin/sh" \
-            && sed -i 'l1 s:^.*\(#!/bin/sh.*$\):\1/g' "${PATH_BOOTLOADER}/${1}" > /dev/null 2>&1
+        ! grep -m 1 '^.*$' "${PATH_BOOTLOADER}/${1}" | grep -q "^#!/bin/sh" \
+            && sed -i 'l1 s:^.*\(#!/bin/sh.*$\):\1/g' "${PATH_BOOTLOADER}/${1}"
     fi
     if ! grep -q "${2}/${3}" "${PATH_BOOTLOADER}/${1}"; then
-        sed -i "/${3}/d" "${PATH_BOOTLOADER}/${1}" > /dev/null 2>&1
-        sed -i "\$a ${2}/${3} # Added by LZ" "${PATH_BOOTLOADER}/${1}" > /dev/null 2>&1
+        sed -i "/${3}/d" "${PATH_BOOTLOADER}/${1}"
+        sed -i "\$a ${2}/${3} # Added by LZ" "${PATH_BOOTLOADER}/${1}"
     fi
-    chmod +x "${PATH_BOOTLOADER}/${1}" > /dev/null 2>&1
+    chmod +x "${PATH_BOOTLOADER}/${1}"
     ! grep -q "${2}/${3}" "${PATH_BOOTLOADER}/${1}" && return 1
     return 0
 }
@@ -1555,7 +1561,7 @@ lz_establish_regularly_update_ispip_data_task() {
                     || [ "${local_month}" != "${local_ruid_month}" ] || [ "${local_week}" != "${local_ruid_week}" ] \
                     || [ "${local_ruid_min}" = "*" ] || [ "${local_ruid_hour}" = "*" ]; then
                     local_hour="$( date +"%H" )"
-                    echo "$local_hour" | grep -q "^[0][0-9]" && local_hour="$( echo "$local_hour" | awk -F "0" '{print $2}' )"
+                    echo "${local_hour}" | grep -q "^[0][0-9]" && local_hour="$( echo "${local_hour}" | awk -F "0" '{print $2}' )"
                     ## 计划发生变化，修改既有定时任务
                     cru a "${UPDATE_ISPIP_DATA_TIMEER_ID}" "${local_min} ${local_hour} ${local_day} ${local_month} ${local_week} /bin/sh ${PATH_LZ}/${UPDATE_FILENAME}" > /dev/null 2>&1
                 fi
@@ -1574,7 +1580,7 @@ lz_establish_regularly_update_ispip_data_task() {
     ## 检测定时任务设置结果并输出至系统记录
     local_regularly_update_ispip_data_info="$( cru l | grep "#${UPDATE_ISPIP_DATA_TIMEER_ID}#" )"
     if [ -n "${local_regularly_update_ispip_data_info}" ]; then
-        local_ruid_min="$( echo "${local_regularly_update_ispip_data_info}" | awk '{print $1}' | cut -d '/' -f1 )"
+        local_ruid_min="$( echo "${local_regularly_update_ispip_data_info}" | awk '{print $1}' | cut -d '/' -f1 | sed 's/^[0-9]$/0&/g' )"
         local_ruid_hour="$( echo "${local_regularly_update_ispip_data_info}" | awk '{print $2}' | cut -d '/' -f1 )"
         local_ruid_day="$( echo "${local_regularly_update_ispip_data_info}" | awk '{print $3}' | cut -d '/' -f2 )"
         local_ruid_month="$( echo "${local_regularly_update_ispip_data_info}" | awk '{print $4}' )"
@@ -1620,7 +1626,7 @@ lz_create_update_ispip_data_file() {
                     lz_create_update_ispip_data_scripts_file
                 else
                     ## 定时更新失败后重试次数改变
-                    local_write_scripts="$( grep "retry_limit=\$(( \$retry_count + $ruid_retry_num ))" "${PATH_LZ}/${UPDATE_FILENAME}" )"
+                    local_write_scripts="$( grep "retry_limit=\$(( retry_count + ${ruid_retry_num} ))" "${PATH_LZ}/${UPDATE_FILENAME}" )"
                     if [ -z "${local_write_scripts}" ]; then
                         lz_create_update_ispip_data_scripts_file
                     fi
@@ -1634,7 +1640,7 @@ lz_create_update_ispip_data_file() {
     ##     $1--主执行脚本运行输入参数
     ##     全局变量及常量
     ## 返回值：无
-    lz_establish_regularly_update_ispip_data_task "$1"
+    lz_establish_regularly_update_ispip_data_task "${1}"
 }
 
 ## 计算8位掩码数的位数函数
@@ -1696,7 +1702,7 @@ lz_cal_ipv4_cidr_mask() {
         ## 返回值：
         ##     0~8--8位掩码数的位数
         lz_cal_8bit_mask_bit_counter "${local_ip_mask_2}"
-        local_cidr_mask="$(( local_cidr_mask + $? ))"
+        local_cidr_mask="$(( local_cidr_mask + ${?} ))"
         if [ "${local_cidr_mask}" -ge "16" ]; then
             ## 计算8位掩码数的位数
             ## 输入项：
@@ -1704,7 +1710,7 @@ lz_cal_ipv4_cidr_mask() {
             ## 返回值：
             ##     0~8--8位掩码数的位数
             lz_cal_8bit_mask_bit_counter "${local_ip_mask_3}"
-            local_cidr_mask="$(( local_cidr_mask + $? ))"
+            local_cidr_mask="$(( local_cidr_mask + ${?} ))"
             if [ "${local_cidr_mask}" -ge "24" ]; then
                 ## 计算8位掩码数的位数
                 ## 输入项：
@@ -1712,7 +1718,7 @@ lz_cal_ipv4_cidr_mask() {
                 ## 返回值：
                 ##     0~8--8位掩码数的位数
                 lz_cal_8bit_mask_bit_counter "${local_ip_mask_4}"
-                local_cidr_mask="$(( local_cidr_mask + $? ))"
+                local_cidr_mask="$(( local_cidr_mask + ${?} ))"
             fi
         fi
     fi
@@ -1729,7 +1735,7 @@ lz_netmask2cdr() {
     local x="${1##*255.}"
     set -- "0^^^128^192^224^240^248^252^254^" "$(( (${#1} - ${#x})*2 ))" "${x%%.*}"
     x="${1%%"${3}"*}"
-    echo "$(( $2 + (${#x}/4) ))"
+    echo "$(( ${2} + (${#x}/4) ))"
 }
 
 ## ipv4网络掩码位转换至掩码函数
@@ -1974,7 +1980,7 @@ lz_add_ed_ipv4_dst_addr_list_binding_wan() {
             -e '/[3-9][0-9][0-9]/d' -e '/[2][6-9][0-9]/d' -e '/[2][5][6-9]/d' -e '/[\/][4-9][0-9]/d' \
             -e '/[\/][3][3-9]/d' \
             -e "s/^LZ\(.*\)LZ$/\1/g" "${1}" | \
-            grep -m "$local_ed_num" '^.*$' 2> /dev/null | \
+            grep -m "${local_ed_num}" '^.*$' 2> /dev/null | \
             sed -e "s/^.*$/ip rule add from all to & table ${2} prio ${3}/g" \
             -e '/^[^i]/d' \
             -e '/^[i][^p]/d' | \
@@ -3380,9 +3386,9 @@ if [ "\$( nvram get "ipsec_server_enable" )" = "1" ]; then
     lz_nvram_ipsec_subnet_list="\$( nvram get "ipsec_profile_1" | sed 's/>/\n/g' | sed -n 15p | grep -Eo '([0-9]{1,3}[\.]){2}[0-9]{1,3}' | sed 's/^.*\$/&\.0\/24/' )"
     [ -z "\${lz_nvram_ipsec_subnet_list}" ] && lz_nvram_ipsec_subnet_list="\$( nvram get "ipsec_profile_2" | sed 's/>/\n/g' | sed -n 15p | grep -Eo '([0-9]{1,3}[\.]){2}[0-9]{1,3}' | sed 's/^.*\$/&\.0\/24/' )"
 fi
-ip rule show prio "${IP_RULE_PRIO_VPN}" | awk -F: 'NF!=0 {system("ip rule del prio "\$1" > /dev/null 2>&1")}'
-if ip route list | grep -q nexthop; then
-    lz_route_list="\$( ip route list | grep -Ev 'default|nexthop' )"
+ip rule show | grep "^${IP_RULE_PRIO_VPN}:" | awk -F: 'NF!=0 {system("ip rule del prio "\$1" > /dev/null 2>&1")}'
+if ip route show | grep -q nexthop; then
+    lz_route_list="\$( ip route show | grep -Ev 'default|nexthop' )"
     if [ -n "\${lz_route_list}" ]; then
         echo "\${lz_route_list}" | awk 'NF!=0 {system("ip route add "\$0" table ${WAN0} > /dev/null 2>&1")}'
         echo "\${lz_route_list}" | awk 'NF!=0 {system("ip route add "\$0" table ${WAN1} > /dev/null 2>&1")}'
@@ -3519,11 +3525,17 @@ lz_create_openvpn_event_command() {
 #!/bin/sh
 EOF_OVPN_SCRIPTS_A
     fi
-    if ! grep -m 1 '.' "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}" | grep -q "#!/bin/sh"; then
-        sed -i '1i #!/bin/sh' "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}" > /dev/null 2>&1
+    if ! grep -m 1 '^.*$' "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}" | grep -q "#!/bin/sh"; then
+        if [ "$( grep -c '^.*$' "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}" )" = "0" ]; then
+            echo "#!/bin/sh" >> "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}"
+        elif grep '^.*$' "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}" | grep -q "#!/bin/sh"; then
+            sed -i -e '/!\/bin\/sh/d' -e '1i #!\/bin\/sh' "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}"
+        else
+            sed -i '1i #!\/bin\/sh' "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}"
+        fi
     else
-        ! grep -m 1 '.' "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}" | grep -q "^#!/bin/sh" \
-            && sed -i 'l1 s:^.*\(#!/bin/sh.*$\):\1/g' "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}" > /dev/null 2>&1
+        ! grep -m 1 '^.*$' "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}" | grep -q "^#!/bin/sh" \
+            && sed -i 'l1 s:^.*\(#!/bin/sh.*$\):\1/g' "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}"
     fi
 
     ## 更新openvpn-event事件触发脚本函数
@@ -3589,7 +3601,7 @@ EOF_OVPN_SCRIPTS_A
 
             if [ "${usage_mode}" != "0" ]; then
                 ## 静态模式时，需要阻止系统负载均衡为虚拟专网客户端分配访问外网出口
-                if ! echo "${local_openvpn_event_interface_scripts}" | grep -q "ipset -q -n list \"$BALANCE_IP_SET\""; then
+                if ! echo "${local_openvpn_event_interface_scripts}" | grep -q "ipset -q -n list \"${BALANCE_IP_SET}\""; then
                     llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
                     break
                 fi
@@ -3691,7 +3703,7 @@ lz_vpn_support() {
     ## 在出口路由表中添加TUN及PPTP接口路由项条目
     ## 在策略路由库中添加虚拟专网客户端策略优先级为IP_RULE_PRIO_VPN的出口规则
     ## 输出显示虚拟专网服务器及客户端的状态信息
-    local local_route_list="$( ip route list | grep -Ev 'default|nexthop' )"
+    local local_route_list="$( ip route show | grep -Ev 'default|nexthop' )"
     if [ -n "${local_route_list}" ]; then
         local local_vpn_item=
         local local_index="0"
@@ -3835,20 +3847,13 @@ lz_get_wan_pub_ip() {
     local local_wan_dev="$( ip route show table "${1}" | awk '/default/ && /ppp[0-9]*/ {print $5}' | sed -n 1p )"
     if [ -z "${local_wan_dev}" ]; then
         local_wan_dev="$( ip route show table "${1}" | awk '/default/ {print $5}' | sed -n 1p )"
-    else
-        local_public_ip_enable="1"
     fi
-
     if [ -n "${local_wan_dev}" ]; then
         local_wan_ip="$( curl -s --connect-timeout 20 --interface "${local_wan_dev}" "whatismyip.akamai.com" | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}' )"
-        if [ "${local_public_ip_enable}" = "1" ] && [ -n "${local_wan_ip}" ]; then
-            local_local_wan_ip="$( ip -o -4 addr list | awk '$2 ~ "'"${local_wan_dev}"'" {print $4}' | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}' )"
-            [ "${local_wan_ip}" != "${local_local_wan_ip}" ] && local_public_ip_enable="0"
-        else
-            local_public_ip_enable="0"
-        fi
+        [ -n "${local_wan_ip}" ] && local_public_ip_enable="1"
+        local_local_wan_ip="$( ip -o -4 addr list | awk '$2 ~ "'"${local_wan_dev}"'" {print $4}' | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}' )"
+        [ "${local_wan_ip}" != "${local_local_wan_ip}" ] && local_public_ip_enable="0"
     fi
-
     echo "${local_wan_ip}:-${local_local_wan_ip}:-${local_public_ip_enable}"
 }
 
@@ -3940,21 +3945,21 @@ lz_get_wan_isp_info() {
             ipset -q test lz_ispip_tmp_7 "${local_wan1_pub_ip}" \
                 && local_wan1_isp="Other${local_mark_str}     ${local_wan_ip_type}"
         }
-        [ -z "${local_wan1_isp}" ] && [ "$isp_data_8_item_total" -gt "0" ] && {
+        [ -z "${local_wan1_isp}" ] && [ "${isp_data_8_item_total}" -gt "0" ] && {
             ipset -q test lz_ispip_tmp_8 "${local_wan1_pub_ip}" \
                 && local_wan1_isp="Hongkong${local_mark_str}  ${local_wan_ip_type}"
         }
-        [ -z "${local_wan1_isp}" ] && [ "$isp_data_9_item_total" -gt "0" ] && {
+        [ -z "${local_wan1_isp}" ] && [ "${isp_data_9_item_total}" -gt "0" ] && {
             ipset -q test lz_ispip_tmp_9 "${local_wan1_pub_ip}" \
                 && local_wan1_isp="Macao${local_mark_str}     ${local_wan_ip_type}"
         }
-        [ -z "${local_wan1_isp}" ] && [ "$isp_data_10_item_total" -gt "0" ] && {
+        [ -z "${local_wan1_isp}" ] && [ "${isp_data_10_item_total}" -gt "0" ] && {
             ipset -q test lz_ispip_tmp_10 "${local_wan1_pub_ip}" \
                 && local_wan1_isp="Taiwan${local_mark_str}    ${local_wan_ip_type}"
         }
     fi
 
-    [ -z "${local_wan1_isp}" ] && local_wan1_isp="Unknown"
+    [ -z "${local_wan1_isp}" ] && local_wan1_isp="Local Area Network"
 
     ## WAN0
     local_wan0_isp=""
@@ -3976,49 +3981,49 @@ lz_get_wan_isp_info() {
         local_mark_str="*"
     fi
     if [ -n "${local_wan0_pub_ip}" ]; then
-        [ -z "${local_wan0_isp}" ] && [ "$isp_data_1_item_total" -gt "0" ] && {
+        [ -z "${local_wan0_isp}" ] && [ "${isp_data_1_item_total}" -gt "0" ] && {
             ipset -q test lz_ispip_tmp_1 "${local_wan0_pub_ip}" \
                 && local_wan0_isp="CTCC${local_mark_str}      ${local_wan_ip_type}"
         }
-        [ -z "${local_wan0_isp}" ] && [ "$isp_data_2_item_total" -gt "0" ] && {
+        [ -z "${local_wan0_isp}" ] && [ "${isp_data_2_item_total}" -gt "0" ] && {
             ipset -q test lz_ispip_tmp_2 "${local_wan0_pub_ip}" \
                 && local_wan0_isp="CUCC/CNC${local_mark_str}  ${local_wan_ip_type}"
         }
-        [ -z "${local_wan0_isp}" ] && [ "$isp_data_3_item_total" -gt "0" ] && {
+        [ -z "${local_wan0_isp}" ] && [ "${isp_data_3_item_total}" -gt "0" ] && {
             ipset -q test lz_ispip_tmp_3 "${local_wan0_pub_ip}" \
                 && local_wan0_isp="CMCC${local_mark_str}      ${local_wan_ip_type}"
         }
-        [ -z "${local_wan0_isp}" ] && [ "$isp_data_4_item_total" -gt "0" ] && {
+        [ -z "${local_wan0_isp}" ] && [ "${isp_data_4_item_total}" -gt "0" ] && {
             ipset -q test lz_ispip_tmp_4 "${local_wan0_pub_ip}" \
                 && local_wan0_isp="CRTC${local_mark_str}      ${local_wan_ip_type}"
         }
-        [ -z "${local_wan0_isp}" ] && [ "$isp_data_5_item_total" -gt "0" ] && {
+        [ -z "${local_wan0_isp}" ] && [ "${isp_data_5_item_total}" -gt "0" ] && {
             ipset -q test lz_ispip_tmp_5 "${local_wan0_pub_ip}" \
                 && local_wan0_isp="CERNET${local_mark_str}    ${local_wan_ip_type}"
         }
-        [ -z "${local_wan0_isp}" ] && [ "$isp_data_6_item_total" -gt "0" ] && {
+        [ -z "${local_wan0_isp}" ] && [ "${isp_data_6_item_total}" -gt "0" ] && {
             ipset -q test lz_ispip_tmp_6 "${local_wan0_pub_ip}" \
                 && local_wan0_isp="GWBN${local_mark_str}      ${local_wan_ip_type}"
         }
-        [ -z "${local_wan0_isp}" ] && [ "$isp_data_7_item_total" -gt "0" ] && {
+        [ -z "${local_wan0_isp}" ] && [ "${isp_data_7_item_total}" -gt "0" ] && {
             ipset -q test lz_ispip_tmp_7 "${local_wan0_pub_ip}" \
                 && local_wan0_isp="Other${local_mark_str}     ${local_wan_ip_type}"
         }
-        [ -z "${local_wan0_isp}" ] && [ "$isp_data_8_item_total" -gt "0" ] && {
+        [ -z "${local_wan0_isp}" ] && [ "${isp_data_8_item_total}" -gt "0" ] && {
             ipset -q test lz_ispip_tmp_8 "${local_wan0_pub_ip}" \
                 && local_wan0_isp="Hongkong${local_mark_str}  ${local_wan_ip_type}"
         }
-        [ -z "${local_wan0_isp}" ] && [ "$isp_data_9_item_total" -gt "0" ] && {
+        [ -z "${local_wan0_isp}" ] && [ "${isp_data_9_item_total}" -gt "0" ] && {
             ipset -q test lz_ispip_tmp_9 "${local_wan0_pub_ip}" \
                 && local_wan0_isp="Macao${local_mark_str}     ${local_wan_ip_type}"
         }
-        [ -z "${local_wan0_isp}" ] && [ "$isp_data_10_item_total" -gt "0" ] && {
+        [ -z "${local_wan0_isp}" ] && [ "${isp_data_10_item_total}" -gt "0" ] && {
             ipset -q test lz_ispip_tmp_10 "${local_wan0_pub_ip}" \
                 && local_wan0_isp="Taiwan${local_mark_str}    ${local_wan_ip_type}"
         }
     fi
 
-    [ -z "${local_wan0_isp}" ] && local_wan0_isp="Unknown"
+    [ -z "${local_wan0_isp}" ] && local_wan0_isp="Local Area Network"
 
     local_no="${ISP_TOTAL}"
     until [ "${local_no}" = "0" ]
@@ -4064,7 +4069,7 @@ lz_output_ispip_info_to_system_records() {
         echo "$(lzdate)" [$$]: ----------------------------------------
         echo "$(lzdate)" [$$]: "   Primary WAN     ${2}"
     } | tee -ai "${SYSLOG}" 2> /dev/null
-    [ "${2}" != "Unknown" ] && {
+    if [ "${2}" != "Local Area Network" ]; then
         if [ "${local_wan0_pub_ip}" = "${local_wan0_local_ip}" ]; then
             echo "$(lzdate)" [$$]: "                         ${local_wan0_pub_ip}" | tee -ai "${SYSLOG}" 2> /dev/null
         else
@@ -4073,12 +4078,14 @@ lz_output_ispip_info_to_system_records() {
                 echo "$(lzdate)" [$$]: "                   Pub   ${local_wan0_pub_ip}"
             } | tee -ai "${SYSLOG}" 2> /dev/null
         fi
-    }
+    elif [ -n "${local_wan0_local_ip}" ]; then
+        echo "$(lzdate)" [$$]: "                         ${local_wan0_local_ip}" | tee -ai "${SYSLOG}" 2> /dev/null
+    fi
     {
         echo "$(lzdate)" [$$]: ----------------------------------------
         echo "$(lzdate)" [$$]: "   Secondary WAN   ${3}"
     } | tee -ai "${SYSLOG}" 2> /dev/null
-    [ "${3}" != "Unknown" ] && {
+    if [ "${3}" != "Local Area Network" ]; then
         if [ "${local_wan1_pub_ip}" = "${local_wan1_local_ip}" ]; then
             echo "$(lzdate)" [$$]: "                         ${local_wan1_pub_ip}" | tee -ai "${SYSLOG}" 2> /dev/null
         else
@@ -4087,7 +4094,9 @@ lz_output_ispip_info_to_system_records() {
                 echo "$(lzdate)" [$$]: "                   Pub   ${local_wan1_pub_ip}"
             } | tee -ai "${SYSLOG}" 2> /dev/null
         fi
-    }
+    elif [ -n "${local_wan1_local_ip}" ]; then
+        echo "$(lzdate)" [$$]: "                         ${local_wan1_local_ip}" | tee -ai "${SYSLOG}" 2> /dev/null
+    fi
     echo "$(lzdate)" [$$]: ---------------------------------------- | tee -ai "${SYSLOG}" 2> /dev/null
 
     local local_hd=""
@@ -4153,7 +4162,7 @@ lz_output_ispip_info_to_system_records() {
             [ "${local_index}" = "8" ] && local_isp_name="Hongkong      "
             [ "${local_index}" = "9" ] && local_isp_name="Macao         "
             [ "${local_index}" = "10" ] && local_isp_name="Taiwan        "
-            echo "$(lzdate)" [$$]: "   $local_isp_name  $( lz_get_ispip_info "$( lz_get_isp_wan_port "${local_index}" )" )${local_hd}" | tee -ai "${SYSLOG}" 2> /dev/null
+            echo "$(lzdate)" [$$]: "   ${local_isp_name}  $( lz_get_ispip_info "$( lz_get_isp_wan_port "${local_index}" )" )${local_hd}" | tee -ai "${SYSLOG}" 2> /dev/null
             local_exist="1"
         }
         let local_index++
@@ -4382,7 +4391,7 @@ lz_output_dport_policy_info_to_system_records() {
     [ -n "${local_dports}" ] && {
         echo "$(lzdate)" [$$]: "   Secondary WAN   SCTP:${local_dports}" | tee -ai "${SYSLOG}" 2> /dev/null
     }
-    [ "$local_item_exist" = "1" ] && {
+    [ "${local_item_exist}" = "1" ] && {
         echo "$(lzdate)" [$$]: ---------------------------------------- | tee -ai "${SYSLOG}" 2> /dev/null
     }
 }
@@ -4435,7 +4444,7 @@ lz_start_igmp_proxy_conf() {
     if [ -z "${1}" ] || [ -z "${2}" ] || [ -z "${3}" ]; then return 255; fi;
     [ ! -d "${1}" ] && mkdir -p "${1}"
     cat > "${1}/${2}" <<EOF
-phyint $3 upstream ratelimit 0 threshold 1 altnet 0.0.0.0/0
+phyint ${3} upstream ratelimit 0 threshold 1 altnet 0.0.0.0/0
 phyint br0 downstream ratelimit 0 threshold 1
 EOF
     [ ! -f "${1}/${2}" ] && return 255
@@ -4540,7 +4549,7 @@ lz_add_src_sets_to_dst_ip_rules() {
 ##     全局变量及常量
 ## 返回值：无
 lz_start_iptv_box_services() {
-    if [ -z "$1" ] || [ -z "$2" ]; then return; fi;
+    if [ -z "${1}" ] || [ -z "${2}" ]; then return; fi;
     ## 向系统策略路由库中添加双向访问网络路径规则
     ## 输入项：
     ##     $1--IPv4网址/网段地址列表全路径文件名
@@ -4575,7 +4584,7 @@ lz_start_iptv_box_services() {
             ##     $1--IPv4网址/网段地址列表全路径文件名
             ## 返回值：
             ##     数据列表
-            for ip_list_item in $( lz_get_ipv4_list_from_data_file "$iptv_box_ip_lst_file" )
+            for ip_list_item in $( lz_get_ipv4_list_from_data_file "${iptv_box_ip_lst_file}" )
             do
                 ## 添加从源地址列表到目标地址访问网络路径规则
                 ## 输入项：
@@ -4595,7 +4604,7 @@ lz_start_iptv_box_services() {
     ! ip rule show | grep -q "^${IP_RULE_PRIO_IPTV}:" && return
 
     ## 向IPTV路由表中添加路由项
-    ip route | awk '!/default|nexthop/ && NF!=0 {system("ip route add "$0"'" table ${LZ_IPTV} > /dev/null 2>&1"'")}'
+    ip route show | awk '!/default|nexthop/ && NF!=0 {system("ip route add "$0"'" table ${LZ_IPTV} > /dev/null 2>&1"'")}'
     ip route add default via "${2}" dev "${1}" table "${LZ_IPTV}" > /dev/null 2>&1
 
     ## 刷新路由器路由表缓存
@@ -4769,7 +4778,7 @@ lz_deployment_routing_policy() {
     if [ "${wan_access_port}" = "0" ] || [ "${wan_access_port}" = "1" ]; then
         local local_access_wan="${WAN0}"
         [ "${wan_access_port}" = "1" ] && local_access_wan="${WAN1}"
-    #	ip rule add to 103.10.4.108 table $local_access_wan prio $IP_RULE_PRIO_INNER_ACCESS > /dev/null 2>&1
+    #	ip rule add to 103.10.4.108 table "${local_access_wan}" prio "${IP_RULE_PRIO_INNER_ACCESS}" > /dev/null 2>&1
         ip rule add from all to "${route_local_ip}" table "${local_access_wan}" prio "${IP_RULE_PRIO_INNER_ACCESS}" > /dev/null 2>&1
         ip rule add from "${route_local_ip}" table "${local_access_wan}" prio "${IP_RULE_PRIO_INNER_ACCESS}" > /dev/null 2>&1
     fi
@@ -4894,7 +4903,7 @@ lz_deployment_routing_policy() {
             ## 返回值：
             ##     0--成功
             ##     255--失败
-            if lz_start_igmp_proxy_conf "${PATH_TMP}" "${IGMP_PROXY_CONF_NAME}" "$local_udpxy_wan1_dev"; then
+            if lz_start_igmp_proxy_conf "${PATH_TMP}" "${IGMP_PROXY_CONF_NAME}" "${local_udpxy_wan1_dev}"; then
                 killall "igmpproxy" > /dev/null 2>&1
                 sleep "1s"
                 /usr/sbin/igmpproxy "${PATH_TMP}/${IGMP_PROXY_CONF_NAME}" > /dev/null 2>&1
@@ -5264,8 +5273,8 @@ lz_start_single_net_iptv_box_services() {
 
     if [ "${iptv_igmp_switch}" = "0" ] || [ "${iptv_igmp_switch}" = "1" ]; then
         if [ "${iptv_get_ip_mode}" = "0" ]; then
-            iptv_interface_id="$( ip route | grep "default" | grep -o 'ppp[0-9]*' | sed -n 1p )"
-            iptv_getway_ip="$( ip route | awk '/default/ && $0 ~ "'"${iptv_interface_id}"'" {print $3}' | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}' | sed -n 1p )"
+            iptv_interface_id="$( ip route show | grep "default" | grep -o 'ppp[0-9]*' | sed -n 1p )"
+            iptv_getway_ip="$( ip route show | awk '/default/ && $0 ~ "'"${iptv_interface_id}"'" {print $3}' | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}' | sed -n 1p )"
             if [ -z "${iptv_interface_id}" ] || [ -z "${iptv_getway_ip}" ]; then
                 if [ "${iptv_igmp_switch}" = "0" ]; then
                     iptv_interface_id="${iptv_wan0_ifname}"
@@ -5293,7 +5302,7 @@ lz_start_single_net_iptv_box_services() {
             ## 返回值：
             ##     0--成功
             ##     255--失败
-            if lz_start_igmp_proxy_conf "${PATH_TMP}" "${IGMP_PROXY_CONF_NAME}" "$iptv_interface_id"; then
+            if lz_start_igmp_proxy_conf "${PATH_TMP}" "${IGMP_PROXY_CONF_NAME}" "${iptv_interface_id}"; then
                 killall "igmpproxy" > /dev/null 2>&1
                 sleep "1s"
                 /usr/sbin/igmpproxy "${PATH_TMP}/${IGMP_PROXY_CONF_NAME}" > /dev/null 2>&1
@@ -5378,10 +5387,10 @@ lz_start_single_net_iptv_box_services() {
         ## 刷新路由器路由表缓存
         ip route flush cache > /dev/null 2>&1
 
-        if ip rule show prio "${IP_RULE_PRIO_IPTV}" | grep -q "^${IP_RULE_PRIO_IPTV}:"; then
+        if ip rule show  | grep -q "^${IP_RULE_PRIO_IPTV}:"; then
 
             ## 向IPTV路由表中添加路由项
-            ip route | awk '!/default|nexthop/ && NF!=0 {system("ip route add "$0"'" table ${LZ_IPTV} > /dev/null 2>&1"'")}'
+            ip route show | awk '!/default|nexthop/ && NF!=0 {system("ip route add "$0"'" table ${LZ_IPTV} > /dev/null 2>&1"'")}'
             ip route add default via "${iptv_getway_ip}" dev "${iptv_interface_id}" table "${LZ_IPTV}" > /dev/null 2>&1
 
             ## 刷新路由器路由表缓存

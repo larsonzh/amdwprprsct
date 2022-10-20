@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule.sh v3.7.6
+# lz_rule.sh v3.7.7
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # 本版本采用CIDR（无类别域间路由，Classless Inter-Domain Routing）技术
@@ -81,7 +81,7 @@
 ## -------------全局数据定义及初始化-------------------
 
 ## 版本号
-LZ_VERSION=v3.7.6
+LZ_VERSION=v3.7.7
 
 ## 运行状态查询命令
 SHOW_STATUS="status"
@@ -472,7 +472,7 @@ __lz_main() {
     lz_check_instance "${1}" && return
 
     ## 双线路
-    if ip route | grep -q nexthop && [ "${ip_rule_exist}" = "0" ]; then
+    if ip route show | grep -q nexthop && [ "${ip_rule_exist}" = "0" ]; then
         {
             echo "$(lzdate)" [$$]: The router has successfully joined into two WANs.
             echo "$(lzdate)" [$$]: Policy routing service is being started......
@@ -510,7 +510,7 @@ __lz_main() {
         lz_ss_support
 
     ## 单线路
-    elif ip route | grep -q default && [ "${ip_rule_exist}" = "0" ]; then
+    elif ip route show | grep -q default && [ "${ip_rule_exist}" = "0" ]; then
         {
             echo "$(lzdate)" [$$]: The router is connected to only one WAN.
             echo "$(lzdate)" [$$]: ----------------------------------------
@@ -598,10 +598,9 @@ if lz_project_file_management "${1}"; then
         ## 返回值：无
         llz_forced_unlocking() {
             local local_db_unlocked="0"
-            until [ "$( ip rule show from "168.168.168.168" to "169.169.169.169" 2> /dev/null | wc -l )" -le "0" ]
+			until [ "$( ip rule show | grep -c "from 168.168.168.168 to 169.169.169.169" )" -le "0" ]
             do
-                ip rule show from "168.168.168.168" to "169.169.169.169" 2> /dev/null | \
-                    awk -F: '{system("ip rule del prio "$1" > /dev/null 2>&1")}'
+                ip rule show | awk -F: '/from 168.168.168.168 to 169.169.169.169/ {system("ip rule del prio "$1" > /dev/null 2>&1")}'
                 ip route flush cache > /dev/null 2>&1
                 local_db_unlocked="1"
             done
@@ -633,7 +632,7 @@ if lz_project_file_management "${1}"; then
         ## 极限情况下文件锁偶有锁不住的情况发生，与预期不符。利用系统自带的策略路由数据库做进程间异步模式同步，
         ## 虽会降低些效率，代码也不好看，但作为同步过程中的二次防御手段还是很值得。一旦脚本执行过程中意外中断，
         ## 可通过手工删除垃圾规则条目或重启路由器清理策略路由库中的垃圾数据
-        if [ "$( ip rule show from "168.168.168.168" to "169.169.169.169" 2> /dev/null | wc -l )" = "0" ]; then
+        if [ "$( ip rule show | grep -c "from 168.168.168.168 to 169.169.169.169" )" = "0" ]; then
             ## 临时规则，用于进程间同步，防止启动时系统或其它应用同时调用和执行两个以上的lz脚本实例
             ## 如与系统中现有规则冲突，可酌情修改；高手们会用更好的方法，请教教我，谢啦！
             ip rule add from "168.168.168.168" to "169.169.169.169" > /dev/null 2>&1
@@ -643,7 +642,7 @@ if lz_project_file_management "${1}"; then
 
             sleep 1s
 
-            if [ "$( ip rule show from "168.168.168.168" to "169.169.169.169" 2> /dev/null | wc -l )" -gt "1" ]; then
+            if [ "$( ip rule show | grep -c "from 168.168.168.168 to 169.169.169.169" )" -gt "1" ]; then
                 ip rule del from "168.168.168.168" to "169.169.169.169" > /dev/null 2>&1
 
                 ip route flush cache > /dev/null 2>&1
@@ -668,10 +667,9 @@ if lz_project_file_management "${1}"; then
             __lz_main "${1}"
 
             ## 删除进程间同步用临时规则，要与脚本开始时的添加命令一致
-            until [ "$( ip rule show from "168.168.168.168" to "169.169.169.169" 2> /dev/null | wc -l )" -le "0" ]
+            until [ "$( ip rule show | grep -c "from 168.168.168.168 to 169.169.169.169" )" -le "0" ]
             do
-                ip rule show from "168.168.168.168" to "169.169.169.169" 2> /dev/null | \
-                    awk -F: '{system("ip rule del prio "$1" > /dev/null 2>&1")}'
+				ip rule show | awk -F: '/from 168.168.168.168 to 169.169.169.169/ {system("ip rule del prio "$1" > /dev/null 2>&1")}'
                 ip route flush cache > /dev/null 2>&1
             done
 
