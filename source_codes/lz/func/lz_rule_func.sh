@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v3.7.7
+# lz_rule_func.sh v3.7.8
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 #BEIGIN
@@ -452,7 +452,7 @@ lz_get_route_info() {
     fi
 
     ## 输出显示路由器NVRAM使用情况
-    local local_nvram_usage="$( nvram show 2>&1 | awk '/size: [0-9]* bytes \([0-9]* left\)/ {print $2" \/ "substr($4,2)+$2" bytes"}' | sed -n 1p )"
+    local local_nvram_usage="$( nvram show 2>&1 | grep -Eio 'size: [0-9]+ bytes \([0-9]+ left\)' | awk '{print $2" \/ "substr($4,2)+$2,$3}' | sed -n 1p )"
     if [ -n "${local_nvram_usage}" ]; then
         echo "$(lzdate)" [$$]: "   NVRAM usage: ${local_nvram_usage}" | tee -ai "${SYSLOG}" 2> /dev/null
     fi
