@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_define_global_variables.sh v3.7.8
+# lz_define_global_variables.sh v3.7.9
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 # QnkgTFog5aaZ5aaZ5ZGc77yI6Juk6J+G5aKp5YS/77yJ（首次运行标识，切勿修改）
 
@@ -22,6 +22,15 @@ BOOTLOADER_NAME="firewall-start"
 ## 项目标识及项目文件名：取自本主执行脚本文件名称且保持一致
 PROJECT_ID="lz_rule"
 PROJECT_FILENAME="${PROJECT_ID}.sh"
+
+## DNSMasq配置扩展全路径文件名
+DNSMASQ_CONF_ADD="/jffs/configs/dnsmasq.conf.add"
+
+## 第一WAN口域名地址配置文件名
+DOMAIN_WAN1_CONF="lz_wan1_domain.conf"
+
+## 第二WAN口域名地址配置文件名
+DOMAIN_WAN2_CONF="lz_wan2_domain.conf"
 
 ## 项目运行状态标识数据集锁名称
 ## 状态标识：不存在--项目未启动或处于终止运行STOP状态
@@ -96,6 +105,12 @@ ISPIP_SET_0="lz_ispip_0"
 
 ## 第二WAN口国内网段数据集名称
 ISPIP_SET_1="lz_ispip_1"
+
+## 第一WAN口域名地址数据集名称
+DOMAIN_SET_0="lz_domain_0"
+
+## 第二WAN口域名地址数据集名称
+DOMAIN_SET_1="lz_domain_1"
 
 ## 第一WAN口客户端及源网址/网段绑定列表数据集名称（保留，用于兼容v3.6.8及之前版本）
 CLIENT_SRC_SET_0="lz_client_src_addr_0"
@@ -190,13 +205,13 @@ HOST_FOREIGN_FWMARK="0xa1a1"
 ## 第一WAN口报文数据包标记
 FWMARK0="0x9999"
 
-## 第一WAN口主机报文数据包标记
+## 第一WAN口主机及域名报文数据包标记
 HOST_FWMARK0="0x9191"
 
 ## 第二WAN口报文数据包标记
 FWMARK1="0x8888"
 
-## 第二WAN口主机报文数据包标记
+## 第二WAN口主机及域名报文数据包标记
 HOST_FWMARK1="0x8181"
 
 ## 第一WAN口客户端及源网址/网段绑定列表分流报文数据包标记（保留，用于兼容v3.6.8及之前版本）
@@ -259,10 +274,10 @@ IP_RULE_PRIO_SECOND_WAN_DATA="$(( IP_RULE_PRIO_PREFERRDE_WAN_DATA - 1 ))"
 ## 国外运营商网段主机分流出口规则策略规则优先级--24995（IP_RULE_PRIO-5）
 IP_RULE_PRIO_HOST_FOREIGN_DATA="$(( IP_RULE_PRIO_SECOND_WAN_DATA - 1 ))"
 
-## 国内运营商网段主机第一WAN口分流出口规则策略规则优先级--24994（IP_RULE_PRIO-6）
+## 国内运营商网段主机及域名报文第一WAN口分流出口规则策略规则优先级--24994（IP_RULE_PRIO-6）
 IP_RULE_PRIO_HOST_PREFERRDE_WAN_DATA="$(( IP_RULE_PRIO_HOST_FOREIGN_DATA - 1 ))"
 
-## 国内运营商网段主机第二WAN口分流出口规则策略规则优先级--24993（IP_RULE_PRIO-7）
+## 国内运营商网段主机及域名报文第二WAN口分流出口规则策略规则优先级--24993（IP_RULE_PRIO-7）
 IP_RULE_PRIO_HOST_SECOND_WAN_DATA="$(( IP_RULE_PRIO_HOST_PREFERRDE_WAN_DATA - 1 ))"
 
 ## 第一WAN口客户端及源网址/网段绑定列表（总条目数大于条目阈值数）分流出口规则策略规则优先级--24992（IP_RULE_PRIO-8）

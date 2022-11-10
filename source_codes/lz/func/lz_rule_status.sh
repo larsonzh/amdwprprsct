@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_status.sh v3.7.8
+# lz_rule_status.sh v3.7.9
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 显示脚本运行状态脚本
@@ -862,6 +862,11 @@ lz_get_route_status_info() {
         else
             echo "$(lzdate)" [$$]: "   Route Policy Mode: Mode 3"
         fi
+        if [ "${status_usage_mode}" = "0" ] && dnsmasq -v 2> /dev/null | grep -w 'ipset' | grep -qvw "no\-ipset"; then
+            echo "$(lzdate)" [$$]: "   Route Domain Policy: Enable"
+        else
+            echo "$(lzdate)" [$$]: "   Route Domain Policy: Disable"
+        fi
         if [ "${status_wan_access_port}" = "1" ]; then
             echo "$(lzdate)" [$$]: "   Route Host Access Port: Secondary WAN"
         else
@@ -1416,6 +1421,14 @@ lz_output_ispip_status_info() {
             echo "$(lzdate)" [$$]: "   Custom-2        $( lz_get_ispip_status_info "${status_custom_data_wan_port_2}" )${local_hd}"
             local_exist="1"
         }
+    }
+    [ -n "$( ipset -q -n list "${DOMAIN_SET_0}" )" ] && {
+        echo "$(lzdate)" [$$]: "   DomainNmLst-1   Primary WAN"
+        local_exist="1"
+    }
+    [ -n "$( ipset -q -n list "${DOMAIN_SET_1}" )" ] && {
+        echo "$(lzdate)" [$$]: "   DomainNmLst-2   Secondary WAN"
+        local_exist="1"
     }
     [ "${status_wan_1_client_src_addr}" = "0" ] && {
         local_item_num=$( lz_get_ipv4_data_file_item_total_status "${status_wan_1_client_src_addr_file}" )

@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v3.7.8
+# lz_rule_func.sh v3.7.9
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 #BEIGIN
@@ -534,6 +534,11 @@ lz_get_route_info() {
         else
             echo "$(lzdate)" [$$]: "   Route Policy Mode: Mode 3" | tee -ai "${SYSLOG}" 2> /dev/null
         fi
+        if [ "${usage_mode}" = "0" ] && dnsmasq -v 2> /dev/null | grep -w 'ipset' | grep -qvw "no\-ipset"; then
+            echo "$(lzdate)" [$$]: "   Route Domain Policy: Enable" | tee -ai "${SYSLOG}" 2> /dev/null
+        else
+            echo "$(lzdate)" [$$]: "   Route Domain Policy: Disable" | tee -ai "${SYSLOG}" 2> /dev/null
+        fi
         if [ "${wan_access_port}" = "1" ]; then
             echo "$(lzdate)" [$$]: "   Route Host Access Port: Secondary WAN" | tee -ai "${SYSLOG}" 2> /dev/null
         else
@@ -841,9 +846,11 @@ lz_get_netfilter_used() {
     ! iptables -t mangle -L "${CUSTOM_PREROUTING_CHAIN}" 2> /dev/null | grep -q "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" && return 1
     [ "$( lz_get_iptables_fwmark_item_total_number "${FOREIGN_FWMARK}" "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" )" -gt "0" ] && return 0
     [ "$( lz_get_iptables_fwmark_item_total_number "${FWMARK0}" "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" )" -gt "0" ] && return 0
+    [ "$( lz_get_iptables_fwmark_item_total_number "${HOST_FWMARK0}" "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" )" -gt "0" ] && return 0
     [ "$( lz_get_iptables_fwmark_item_total_number "${PROTOCOLS_FWMARK_0}" "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" )" -gt "0" ] && return 0
     [ "$( lz_get_iptables_fwmark_item_total_number "${DEST_PORT_FWMARK_0}" "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" )" -gt "0" ] && return 0
     [ "$( lz_get_iptables_fwmark_item_total_number "${FWMARK1}" "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" )" -gt "0" ] && return 0
+    [ "$( lz_get_iptables_fwmark_item_total_number "${HOST_FWMARK1}" "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" )" -gt "0" ] && return 0
     [ "$( lz_get_iptables_fwmark_item_total_number "${PROTOCOLS_FWMARK_1}" "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" )" -gt "0" ] && return 0
     [ "$( lz_get_iptables_fwmark_item_total_number "${DEST_PORT_FWMARK_1}" "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" )" -gt "0" ] && return 0
     return 1
@@ -862,6 +869,12 @@ lz_destroy_ipset() {
 
     ## 第二WAN口国内网段数据集
     ipset -q flush "${ISPIP_SET_1}" && ipset -q destroy "${ISPIP_SET_1}"
+
+    ## 第一WAN口域名地址数据集名称
+    ipset -q flush "${DOMAIN_SET_0}" && ipset -q destroy "${DOMAIN_SET_0}"
+
+    ## 第二WAN口域名地址数据集名称
+    ipset -q flush "${DOMAIN_SET_1}" && ipset -q destroy "${DOMAIN_SET_1}"
 
     ## 第一WAN口客户端及源网址/网段绑定列表数据集（保留，用于兼容v3.6.8及之前版本）
     ipset -q flush "${CLIENT_SRC_SET_0}" && ipset -q destroy "${CLIENT_SRC_SET_0}"
@@ -983,7 +996,29 @@ lz_set_hnd_bcmmcast_if() {
 ##     全局常量
 ## 返回值：无
 lz_clear_ss_start_command() {
-    rm -f "${PATH_SS_PS}/${SS_INTERFACE_FILENAME}" > /dev/null 2>&1
+    [ -f "${PATH_SS_PS}/${SS_INTERFACE_FILENAME}" ] && rm -f "${PATH_SS_PS}/${SS_INTERFACE_FILENAME}" > /dev/null 2>&1
+}
+
+## 清除dnsmasq域名配置文件关联函数
+## 输入项：
+##     全局常量
+## 返回值：无
+lz_clear_dnsmasq_relation() {
+    [ -f "${DNSMASQ_CONF_ADD}" ] && sed -i '/^[^#]*conf[\-]dir=[^#]*[\/]lz[\/]tmp/d' "${DNSMASQ_CONF_ADD}" > /dev/null 2>&1
+    if [ -f "${PATH_TMP}/${DOMAIN_WAN1_CONF}" ]; then
+        if [ "${wan_1_domain}" = "0" ] && [ "${usage_mode}" = "0" ]; then
+            sed -i '1,$d' "${PATH_TMP}/${DOMAIN_WAN1_CONF}" > /dev/null 2>&1
+        else
+            rm -f "${PATH_TMP}/${DOMAIN_WAN1_CONF}" > /dev/null 2>&1
+        fi
+    fi
+    if [ -f "${PATH_TMP}/${DOMAIN_WAN2_CONF}" ]; then
+        if [ "${wan_2_domain}" = "0" ] && [ "${usage_mode}" = "0" ]; then
+            sed -i '1,$d' "${PATH_TMP}/${DOMAIN_WAN2_CONF}" > /dev/null 2>&1
+        else
+            rm -f "${PATH_TMP}/${DOMAIN_WAN2_CONF}" > /dev/null 2>&1
+        fi
+    fi
 }
 
 ## 数据清理函数
@@ -994,8 +1029,13 @@ lz_clear_ss_start_command() {
 ##     ip_rule_exist--删除后剩余条目数，正常为0，全局变量
 lz_data_cleaning() {
     ## 删除旧规则和使用过的数据集，防止重置后再次添加
-
     echo "$(lzdate)" [$$]: ---------------------------------------- | tee -ai "${SYSLOG}" 2> /dev/null
+    ## 清除dnsmasq域名配置文件关联
+    ## 输入项：
+    ##     全局常量
+    ## 返回值：无
+    lz_clear_dnsmasq_relation
+
     ## 清除系统策略路由库中已有IPTV规则
     ## 输入项：
     ##     $1--是否显示统计信息（1--显示；其它字符--不显示）
@@ -1052,6 +1092,9 @@ lz_data_cleaning() {
     ## 输入项：无
     ## 返回值：无
     lz_destroy_ipset
+
+    ## 重启dnsmasq服务
+    service restart_dnsmasq > /dev/null 2>&1
 
     ## 清除虚拟专网客户端路由刷新处理后台守护进程
     rm -f "${PATH_TMP}/${VPN_CLIENT_DAEMON_LOCK}" > /dev/null 2>&1	##（保留，用于兼容v3.7.0及之前版本）
@@ -1313,6 +1356,10 @@ lz_clear_interface_scripts() {
     ##     0--清除成功
     ##     1--未清除
     [ "${1}" = "STOP" ] && lz_clear_firewall_start_command && retval="0"
+
+    ## 清除域名地址配置文件
+    [ -f "${PATH_TMP}/${DOMAIN_WAN1_CONF}" ] && rm -f "${PATH_TMP}/${DOMAIN_WAN1_CONF}" > /dev/null 2>&1
+    [ -f "${PATH_TMP}/${DOMAIN_WAN2_CONF}" ] && rm -f "${PATH_TMP}/${DOMAIN_WAN2_CONF}" > /dev/null 2>&1
 
     return "${retval}"
 }
@@ -2444,6 +2491,86 @@ lz_add_src_to_dst_netfilter_mark() {
     fi
 }
 
+## 创建WAN口域名分流数据集函数
+## 输入项：
+##     $1--WAN口域名解析IPv4流量出口列表绑定参数
+##     $2--WAN口域名解析IPv4流量出口列表绑定数据文件名
+##     $3--WAN口域名地址数据集名称
+##     $4--WAN口域名地址配置文件名
+## 返回值：
+##     0--成功
+##     1--失败
+lz_create_domain_wan_set() {
+    local retval="1" buf=""
+    while true
+    do
+        [ "${1}" != "0" ] && break
+        [ ! -f "${2}" ] && break
+        buf="$( sed -e 's/[ \t][ \t]*/ /g' -e 's/^[ ]*//g' -e '/^[#]/d' -e 's/[#].*$//g' -e 's/^\([^ ]*\).*$/\1/g' -e 's/^[^ ]*[\:][\/][\/]//g' \
+                -e 's/^[^ ]\{0,6\}[\:]//g' -e 's/[\/]*$//g' -e 's/[ ]*$//g' -e '/^[\.]*$/d' -e '/^[\.]*[^\.]*$/d' -e '/^[ ]*$/d' "${2}" 2> /dev/null \
+                | tr '[:A-Z:]' '[:a-z:]' )"
+        [ -z "${buf}" ] && break
+        ipset -q create "${3}" hash:ip
+        ipset -q flush "${3}"
+        [ -z "$( ipset -q -n list "${3}" )" ] && break
+        echo "${buf}" | awk 'NF != "0" {print "ipset\=\/"$1"'"\/${3}"'"}' > "${4}" 2> /dev/null
+        if [ ! -f "${4}" ]; then
+            ipset -q destroy "${3}"
+            break
+        fi
+        retval="0"
+        break
+    done
+    return "${retval}"
+}
+
+## 设置域名分流策略函数
+## 输入项：
+##     $1--第一WAN口pppoe虚拟网卡标识
+##     $2--第一WAN口网卡标识
+##     $3--第二WAN口pppoe虚拟网卡标识
+##     $4--第二WAN口网卡标识
+## 返回值：无
+lz_setup_domain_policy() {
+    [ "${usage_mode}" != "0" ] && return
+    ## 第一WAN口
+    ## 创建WAN口域名分流数据集
+    ## 输入项：
+    ##     $1--WAN口域名解析IPv4流量出口列表绑定参数
+    ##     $2--WAN口域名解析IPv4流量出口列表绑定数据文件名
+    ##     $3--WAN口域名地址数据集名称
+    ##     $4--WAN口域名地址配置文件名
+    ## 返回值：
+    ##     0--成功
+    ##     1--失败
+    if lz_create_domain_wan_set "${wan_1_domain}" "${wan_1_domain_file}" "${DOMAIN_SET_0}" "${PATH_TMP}/${DOMAIN_WAN1_CONF}"; then
+        eval "iptables -t mangle -A ${CUSTOM_PREROUTING_CONNMARK_CHAIN} -m set ${MATCH_SET} ${DOMAIN_SET_0} dst -j CONNMARK --set-xmark ${HOST_FWMARK0}/${FWMARK_MASK} > /dev/null 2>&1"
+        iptables -t mangle -A "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" -m connmark --mark "${HOST_FWMARK0}/${HOST_FWMARK0}" -j RETURN > /dev/null 2>&1
+        iptables -t mangle -A "${CUSTOM_PREROUTING_CHAIN}" -m connmark --mark "${HOST_FWMARK0}/${HOST_FWMARK0}" -j CONNMARK --restore-mark --nfmask "${FWMARK_MASK}" --ctmask "${FWMARK_MASK}" > /dev/null 2>&1
+        [ -n "${2}" ] && iptables -t mangle -I "${CUSTOM_OUTPUT_CHAIN}" -o "${local_wan0_ifname}" -m connmark --mark "${HOST_FWMARK0}/${HOST_FWMARK0}" -j CONNMARK --restore-mark --nfmask "${FWMARK_MASK}" --ctmask "${FWMARK_MASK}" > /dev/null 2>&1
+        [ -n "${1}" ] && iptables -t mangle -I "${CUSTOM_OUTPUT_CHAIN}" -o "${local_wan0_pppoe_ifname}" -m connmark --mark "${HOST_FWMARK0}/${HOST_FWMARK0}" -j CONNMARK --restore-mark --nfmask "${FWMARK_MASK}" --ctmask "${FWMARK_MASK}" > /dev/null 2>&1
+        ip rule add from all fwmark "${HOST_FWMARK0}/${FWMARK_MASK}" table "${WAN0}" prio "${IP_RULE_PRIO_HOST_PREFERRDE_WAN_DATA}" > /dev/null 2>&1
+    fi
+    ## 第二WAN口
+    if lz_create_domain_wan_set "${wan_2_domain}" "${wan_2_domain_file}" "${DOMAIN_SET_1}" "${PATH_TMP}/${DOMAIN_WAN2_CONF}"; then
+        eval "iptables -t mangle -A ${CUSTOM_PREROUTING_CONNMARK_CHAIN} -m set ${MATCH_SET} ${DOMAIN_SET_1} dst -j CONNMARK --set-xmark ${HOST_FWMARK1}/${FWMARK_MASK} > /dev/null 2>&1"
+        iptables -t mangle -A "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" -m connmark --mark "${HOST_FWMARK1}/${HOST_FWMARK1}" -j RETURN > /dev/null 2>&1
+        iptables -t mangle -A "${CUSTOM_PREROUTING_CHAIN}" -m connmark --mark "${HOST_FWMARK1}/${HOST_FWMARK1}" -j CONNMARK --restore-mark --nfmask "${FWMARK_MASK}" --ctmask "${FWMARK_MASK}" > /dev/null 2>&1
+        [ -n "${4}" ] && iptables -t mangle -I "${CUSTOM_OUTPUT_CHAIN}" -o "${local_wan1_ifname}" -m connmark --mark "${HOST_FWMARK1}/${HOST_FWMARK1}" -j CONNMARK --restore-mark --nfmask "${FWMARK_MASK}" --ctmask "${FWMARK_MASK}" > /dev/null 2>&1
+        [ -n "${3}" ] && iptables -t mangle -I "${CUSTOM_OUTPUT_CHAIN}" -o "${local_wan1_pppoe_ifname}" -m connmark --mark "${HOST_FWMARK1}/${HOST_FWMARK1}" -j CONNMARK --restore-mark --nfmask "${FWMARK_MASK}" --ctmask "${FWMARK_MASK}" > /dev/null 2>&1
+        ip rule add from all fwmark "${HOST_FWMARK1}/${FWMARK_MASK}" table "${WAN1}" prio "${IP_RULE_PRIO_HOST_SECOND_WAN_DATA}" > /dev/null 2>&1
+    fi
+    ## 建立dnsmasq关联
+    if [ -n "$( ipset -q -n list "${DOMAIN_SET_0}" )" ] || [ -n "$( ipset -q -n list "${DOMAIN_SET_1}" )" ]; then
+        [ ! -d "/jffs/configs" ] && mkdir -p "/jffs/configs" > /dev/null 2>&1
+        chmod 775 "/jffs/configs" > /dev/null 2>&1
+        [ ! -f "${DNSMASQ_CONF_ADD}" ] && touch "${DNSMASQ_CONF_ADD}" > /dev/null 2>&1
+        echo "conf-dir=${PATH_TMP}" >> "${DNSMASQ_CONF_ADD}" 2> /dev/null
+        ## 重启dnsmasq服务
+        service restart_dnsmasq > /dev/null 2>&1
+    fi
+}
+
 ## 初始化各目标网址/网段数据访问路由策略函数
 ## 其中将定义所有网段的数据集名称（必须保证在系统中唯一）和输入数据文件名
 ## 输入项：
@@ -2807,6 +2934,15 @@ lz_initialize_ip_data_policy() {
     local local_wan0_ifname="$( nvram get "wan0_ifname" | grep -Eo 'eth[0-9]*|vlan[0-9]*' | sed -n 1p )"
     local local_wan1_pppoe_ifname="$( nvram get "wan1_pppoe_ifname" | grep -o 'ppp[0-9]*' | sed -n 1p )"
     local local_wan1_ifname="$( nvram get "wan1_ifname" | grep -Eo 'eth[0-9]*|vlan[0-9]*' | sed -n 1p )"
+
+    ## 设置域名分流策略
+    ## 输入项：
+    ##     $1--第一WAN口pppoe虚拟网卡标识
+    ##     $2--第一WAN口网卡标识
+    ##     $3--第二WAN口pppoe虚拟网卡标识
+    ##     $4--第二WAN口网卡标识
+    ## 返回值：无
+    lz_setup_domain_policy "${local_wan0_pppoe_ifname}" "${local_wan0_ifname}" "${local_wan1_pppoe_ifname}" "${local_wan1_ifname}"
 
     ## 设置第一WAN口国内网段数据集防火墙标记访问报文数据包过滤规则
     ## 获取IPSET数据集条目数
@@ -4226,6 +4362,14 @@ lz_output_ispip_info_to_system_records() {
             local_exist="1"
         }
     }
+    [ -n "$( ipset -q -n list "${DOMAIN_SET_0}" )" ] && {
+        echo "$(lzdate)" [$$]: "   DomainNmLst-1   Primary WAN" | tee -ai "${SYSLOG}" 2> /dev/null
+        local_exist="1"
+    }
+    [ -n "$( ipset -q -n list "${DOMAIN_SET_1}" )" ] && {
+        echo "$(lzdate)" [$$]: "   DomainNmLst-2   Secondary WAN" | tee -ai "${SYSLOG}" 2> /dev/null
+        local_exist="1"
+    }
     [ "${wan_1_client_src_addr}" = "0" ] && {
         local_item_num="$( lz_get_ipv4_data_file_item_total "${wan_1_client_src_addr_file}" )"
         [ "${local_item_num}" -gt "0" ] && {
@@ -4684,6 +4828,14 @@ lz_insert_custom_balance_rules() {
             ## 阻止对第一WAN口包地址匹配路由的网络流量进行负载均衡
             iptables -t mangle -I balance -m connmark --mark "${FWMARK0}/${FWMARK0}" -j RETURN > /dev/null 2>&1
         fi
+        if [ -n "$( ipset -q -n list "${DOMAIN_SET_1}" )" ]; then
+            ## 阻止对第二WAN口域名包地址匹配路由的网络流量进行负载均衡
+            iptables -t mangle -I balance -m connmark --mark "${HOST_FWMARK1}/${HOST_FWMARK1}" -j RETURN > /dev/null 2>&1
+        fi
+        if [ -n "$( ipset -q -n list "${DOMAIN_SET_0}" )" ]; then
+            ## 阻止对第一WAN口域名包地址匹配路由的网络流量进行负载均衡
+            iptables -t mangle -I balance -m connmark --mark "${HOST_FWMARK0}/${HOST_FWMARK0}" -j RETURN > /dev/null 2>&1
+        fi
         if echo "${wan0_dest_tcp_port}" | grep -q "[0-9]" || echo "${wan0_dest_udp_port}" | grep -q "[0-9]" \
             || echo "${wan0_dest_udplite_port}" | grep -q "[0-9]" || echo "${wan0_dest_sctp_port}" | grep -q "[0-9]"; then
             ## 阻止对第一WAN口端口分流的网络流量进行负载均衡
@@ -4726,6 +4878,12 @@ lz_remove_unused_ipset() {
 
     ## 第二WAN口国内网段数据集
     ipset -q destroy "${ISPIP_SET_1}"
+
+    ## 第一WAN口域名地址数据集名称
+    ipset -q destroy "${DOMAIN_SET_0}"
+
+    ## 第二WAN口域名地址数据集名称
+    ipset -q destroy "${DOMAIN_SET_1}"
 
     ## 本地内网网址/网段数据集
     ipset -q destroy "${LOCAL_IP_SET}"
