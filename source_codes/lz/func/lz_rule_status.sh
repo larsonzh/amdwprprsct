@@ -57,6 +57,9 @@ lz_define_status_constant() {
     STATUS_VPN_CLIENT_DAEMON="lz_vpn_daemon.sh"
     STATUS_START_DAEMON_TIMEER_ID="lz_start_daemon"
 
+    STATUS_DOMAIN_SET_0="lz_domain_0"
+    STATUS_DOMAIN_SET_1="lz_domain_1"
+
     STATUS_FOREIGN_FWMARK="0xabab"
     STATUS_FWMARK0="0x9999"
     STATUS_FWMARK1="0x8888"
@@ -75,6 +78,9 @@ lz_uninstall_status_constant() {
     unset STATUS_PROTOCOLS_FWMARK_1
     unset STATUS_DEST_PORT_FWMARK_0
     unset STATUS_DEST_PORT_FWMARK_1
+
+    unset STATUS_DOMAIN_SET_0
+    unset STATUS_DOMAIN_SET_1
 
     unset STATUS_START_DAEMON_TIMEER_ID
     unset STATUS_VPN_CLIENT_DAEMON
@@ -1422,11 +1428,11 @@ lz_output_ispip_status_info() {
             local_exist="1"
         }
     }
-    [ -n "$( ipset -q -n list "${DOMAIN_SET_0}" )" ] && {
+    [ -n "$( ipset -q -n list "${STATUS_DOMAIN_SET_0}" )" ] && {
         echo "$(lzdate)" [$$]: "   DomainNmLst-1   Primary WAN"
         local_exist="1"
     }
-    [ -n "$( ipset -q -n list "${DOMAIN_SET_1}" )" ] && {
+    [ -n "$( ipset -q -n list "${STATUS_DOMAIN_SET_1}" )" ] && {
         echo "$(lzdate)" [$$]: "   DomainNmLst-2   Secondary WAN"
         local_exist="1"
     }
