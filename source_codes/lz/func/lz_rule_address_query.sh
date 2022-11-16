@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_address_query.sh v3.7.9
+# lz_rule_address_query.sh v3.8.0
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 网址信息查询脚本
@@ -233,9 +233,10 @@ lz_aq_get_file_cache_data() {
 ## 返回值：无
 lz_aq_read_box_data() {
 
-    local_file_cache="$( grep  -E '^[ ]*[a-zA-Z0-9_-]+[=]' "${PATH_CONFIGS}/lz_rule_config.box" \
-            | sed -e 's/[#].*$//g' -e 's/^[ ]*//g' -e 's/^\([^=]*[=][^ =]*\).*$/\1/g' -e 's/^\(.*[=][^\"][^\"]*\).*$/\1/g' \
-                -e 's/^\(.*[=][\"][^\"]*[\"]\).*$/\1/g' -e 's/^\(.*[=]\)[\"][^\"]*$/\1/g' -e 's/\"//g' )"
+    local_file_cache="$( grep  -E '^[ ]*[a-zA-Z0-9_-][a-zA-Z0-9_-]*[=]' "${PATH_CONFIGS}/lz_rule_config.box" \
+            | sed -e 's/[#].*$//g' -e 's/^[ \t]*//g' -e 's/[ \t][ \t]*/ /g' -e 's/^\([^=]*[=][^ =]*\).*$/\1/g' \
+            -e 's/^\(.*[=][^\"][^\"]*\).*$/\1/g' -e 's/^\(.*[=][\"][^\"]*[\"]\).*$/\1/g' \
+            -e 's/^\(.*[=]\)[\"][^\"]*$/\1/g' -e 's/\"//g' )"
 
     ## 读取文件缓冲区数据项状态
     ## 输入项：
@@ -408,20 +409,22 @@ lz_aq_add_ed_net_address_sets() {
 ## 返回值：
 ##     IPv4网络IP地址^_域名^_DNS服务器地址^_DNS服务器名称
 lz_aq_resolve_ip() {
-    local local_ip="$( echo "${1}" | sed -e 's/^[ ]*\([^ ].*$\)/\1/g' -e 's/\(^.*[^ ]\)[ ]*$/\1/g' \
-                        -e '/[3-9][0-9][0-9]/d' -e '/[2][6-9][0-9]/d' -e '/[2][5][6-9]/d' -e 's/\/.*$//g' \
+    local local_ip="$( echo "${1}" | sed -e 's/^[ \t]*\([^ \t].*$\)/\1/g' -e 's/[ \t][ \t]*/ /g' \
+                        -e 's/\(^.*[^ ]\)[ ]*$/\1/g' -e '/[3-9][0-9][0-9]/d' -e '/[2][6-9][0-9]/d' \
+                        -e '/[2][5][6-9]/d' -e 's/\/.*$//g' \
                         | grep -Eo '^([0-9]{1,3}[\.]){3}[0-9]{1,3}$' | sed -n 1p )"
-    local local_domain_name="$( echo "${1}" | sed -e 's/^[ ]*\([^ ].*$\)/\1/g' -e 's/\(^.*[^ ]\)[ ]*$/\1/g' \
-                                -e 's/^.*\:\/\///g' -e 's/^[^ ]\{0,6\}\://g' -e 's/\/.*$//g' | sed -n 1p \
-                                | tr '[:A-Z:]' '[:a-z:]' )"
+    local local_domain_name="$( echo "${1}" | sed -e 's/^[ \t]*\([^ \t].*$\)/\1/g' -e 's/[ \t][ \t]*/ /g' \
+                                -e 's/\(^.*[^ ]\)[ ]*$/\1/g' -e 's/^.*\:\/\///g' -e 's/^[^ ]\{0,6\}\://g' \
+                                -e 's/\/.*$//g' | sed -n 1p | tr '[:A-Z:]' '[:a-z:]' )"
     local local_dns_server_ip=""
     local local_dns_server_name=""
     if [ "${local_ip}" = "${local_domain_name}" ]; then
         local_domain_name=""
-        [ -z "${local_ip}" ] && local_ip="$( echo "${1}" | sed -e 's/^[ ]*\([^ ].*$\)/\1/g' \
+        [ -z "${local_ip}" ] && local_ip="$( echo "${1}" | sed -e 's/^[ \t]*\([^ \t].*$\)/\1/g' -e 's/[ \t][ \t]*/ /g' \
                                             -e 's/\(^.*[^ ]\)[ ]*$/\1/g' | sed -n 1p | tr '[:A-Z:]' '[:a-z:]' )"
     else
-        local local_dnslookup_server="$( echo "${2}" | sed -e 's/^[ ]*\([^ ].*$\)/\1/g' \
+        local local_dnslookup_server="$( echo "${2}" | sed -e 's/^[ \t]*\([^ \t].*$\)/\1/g' \
+                                        -e 's/[ \t][ \t]*/ /g' \
                                         -e 's/\(^.*[^ ]\)[ ]*$/\1/g' \
                                         -e '/[3-9][0-9][0-9]/d' -e '/[2][6-9][0-9]/d' \
                                         -e '/[2][5][6-9]/d' -e 's/\/.*$//g' \
@@ -437,7 +440,8 @@ lz_aq_resolve_ip() {
                         | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}' )"
             local_domain_name="$( echo "${local_info}" | sed '1,3d' | grep -i Name | awk '{print $2}' | sed -n 1p )"
             [ -z "${local_domain_name}" ] && local_domain_name="$( echo "${1}" \
-                                                                | sed -e 's/^[ ]*\([^ ].*$\)/\1/g' \
+                                                                | sed -e 's/^[ \t]*\([^ \t].*$\)/\1/g' \
+                                                                -e 's/[ \t][ \t]*/ /g' \
                                                                 -e 's/\(^.*[^ ]\)[ ]*$/\1/g' \
                                                                 -e 's/^.*\:\/\///g' \
                                                                 -e 's/^[^ ]\{0,6\}\://g' \
@@ -447,12 +451,12 @@ lz_aq_resolve_ip() {
             local_dns_server_name="$( echo "${local_info}" | sed -n 2p | awk '{print $4}' \
                                     | sed 's/[\.]$//g' | tr '[:A-Z:]' '[:a-z:]' )"
             [ -z "${local_ip}" ] && {
-                local_ip="$( echo "${1}" | sed -e 's/^[ ]*\([^ ].*$\)/\1/g' -e 's/\(^.*[^ ]\)[ ]*$/\1/g' \
+                local_ip="$( echo "${1}" | sed -e 's/^[ \t]*\([^ \t].*$\)/\1/g' -e 's/[ \t][ \t]*/ /g' -e 's/\(^.*[^ ]\)[ ]*$/\1/g' \
                             | sed -n 1p| tr '[:A-Z:]' '[:a-z:]' )"
                 local_domain_name=""
             }
         else
-            local_ip="$( echo "${1}" | sed -e 's/^[ ]*\([^ ].*$\)/\1/g' -e 's/\(^.*[^ ]\)[ ]*$/\1/g' \
+            local_ip="$( echo "${1}" | sed -e 's/^[ \t]*\([^ \t].*$\)/\1/g' -e 's/[ \t][ \t]*/ /g' -e 's/\(^.*[^ ]\)[ ]*$/\1/g' \
                         | sed -n 1p| tr '[:A-Z:]' '[:a-z:]' )"
             local_domain_name=""
         fi
@@ -505,7 +509,7 @@ lz_show_address_info() {
         fi
     elif [ "${3}" = "$(( AQ_ISP_TOTAL + 4 ))" ]; then 
         echo "$(lzdate)" [$$]: "  Private network address"
-    elif echo "${1}" | sed -e 's/^[ ]*\([^ ].*$\)/\1/g' -e 's/\(^.*[^ ]\)[ ]*$/\1/g' \
+    elif echo "${1}" | sed -e 's/^[ \t]*\([^ \t].*$\)/\1/g' -e 's/[ \t][ \t]*/ /g' -e 's/\(^.*[^ ]\)[ ]*$/\1/g' \
                 -e '/[3-9][0-9][0-9]/d' -e '/[2][6-9][0-9]/d' -e '/[2][5][6-9]/d' -e 's/\/.*$//g' \
                 | grep -qEo '^([0-9]{1,3}[\.]){3}[0-9]{1,3}$'; then
         if [ "${2}" = "0" ]; then
@@ -585,7 +589,7 @@ lz_query_address() {
     local local_ip_item_total="$( echo "${local_net_ip}" | wc -l )"
 
     if [ "${local_ip_item_total}" -le "1" ]; then
-        if echo "${local_net_ip}" | sed -e 's/^[ ]*\([^ ].*$\)/\1/g' -e 's/\(^.*[^ ]\)[ ]*$/\1/g' \
+        if echo "${local_net_ip}" | sed -e 's/^[ \t]*\([^ \t].*$\)/\1/g' -e 's/[ \t][ \t]*/ /g' -e 's/\(^.*[^ ]\)[ ]*$/\1/g' \
                 -e '/[3-9][0-9][0-9]/d' -e '/[2][6-9][0-9]/d' -e '/[2][5][6-9]/d' -e 's/\/.*$//g' \
                 | grep -qEo '^([0-9]{1,3}[\.]){3}[0-9]{1,3}$'; then
             ipset -q flush lz_aq_ispip_tmp_sets && ipset -q destroy lz_aq_ispip_tmp_sets

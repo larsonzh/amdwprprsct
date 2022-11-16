@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v3.7.9
+# lz_rule_func.sh v3.8.0
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 #BEIGIN
@@ -136,28 +136,6 @@ lz_get_all_isp_data_item_total() {
 ##     出口参数
 lz_get_isp_data_item_total_variable() {
     eval "echo \${isp_data_${1}_item_total}"
-}
-
-## 判断目标网段是否存在系统自动分配出口项函数
-## 输入项：
-##     全局变量
-## 返回值：
-##     0--是
-##     1--否
-lz_is_auto_traffic() {
-    if [ "${isp_wan_port_0}" -lt "0" ] || [ "${isp_wan_port_0}" -gt "1" ]; then return 0; fi;
-    local local_index="1"
-    until [ "${local_index}" -gt "${ISP_TOTAL}" ]
-    do
-        if [ "$( lz_get_isp_wan_port "${local_index}" )" -lt "0" ] || [ "$( lz_get_isp_wan_port "${local_index}" )" -gt "3" ]; then
-            return 0
-        fi
-        let local_index++
-    done
-    [ "${custom_data_wan_port_1}" = "2" ] && [ "$( lz_get_ipv4_data_file_item_total "${custom_data_file_1}" )" -gt "0" ] && return 0
-    [ "${custom_data_wan_port_2}" = "2" ] && [ "$( lz_get_ipv4_data_file_item_total "${custom_data_file_2}" )" -gt "0" ] && return 0
-    [ "${usage_mode}" = "0" ] && [ "$( lz_get_ipv4_data_file_item_total "${local_ipsets_file}" )" -gt "0" ] && return 0
-    return 1
 }
 
 ## 获取策略分流运行模式函数
@@ -875,6 +853,12 @@ lz_destroy_ipset() {
 
     ## 第二WAN口域名地址数据集名称
     ipset -q flush "${DOMAIN_SET_1}" && ipset -q destroy "${DOMAIN_SET_1}"
+
+    ## 第一WAN口域名分流客户端源网址/网段数据集名称
+    ipset -q flush "${DOMAIN_CLT_SRC_SET_0}" && ipset -q destroy "${DOMAIN_CLT_SRC_SET_0}"
+
+    ## 第二WAN口域名分流客户端源网址/网段数据集名称
+    ipset -q flush "${DOMAIN_CLT_SRC_SET_1}" && ipset -q destroy "${DOMAIN_CLT_SRC_SET_1}"
 
     ## 第一WAN口客户端及源网址/网段绑定列表数据集（保留，用于兼容v3.6.8及之前版本）
     ipset -q flush "${CLIENT_SRC_SET_0}" && ipset -q destroy "${CLIENT_SRC_SET_0}"
@@ -2339,16 +2323,16 @@ lz_dest_port_policy() {
         local_ifname="$( nvram get "wan1_ifname" | grep -Eo 'eth[0-9]*|vlan[0-9]*' | sed -n 1p )"
     fi
     echo "${1}" | grep -q '[0-9]' && \
-        iptables -t mangle -A "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" -p tcp -m multiport --dport "${1}" -j CONNMARK --set-xmark "${5}/${FWMARK_MASK}" > /dev/null 2>&1
+        eval "iptables -t mangle -A ${CUSTOM_PREROUTING_CONNMARK_CHAIN} -p tcp -m multiport --dport ${1} -m set ! ${MATCH_SET} ${LOCAL_IP_SET} src -j CONNMARK --set-xmark ${5}/${FWMARK_MASK} > /dev/null 2>&1"
 
     echo "${2}" | grep -q '[0-9]' && \
-        iptables -t mangle -A "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" -p udp -m multiport --dport "${2}" -j CONNMARK --set-xmark "${5}/${FWMARK_MASK}" > /dev/null 2>&1
+        eval "iptables -t mangle -A ${CUSTOM_PREROUTING_CONNMARK_CHAIN} -p udp -m multiport --dport ${2} -m set ! ${MATCH_SET} ${LOCAL_IP_SET} src -j CONNMARK --set-xmark ${5}/${FWMARK_MASK} > /dev/null 2>&1"
 
     echo "${3}" | grep -q '[0-9]' && \
-        iptables -t mangle -A "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" -p udplite -m multiport --dport "${3}" -j CONNMARK --set-xmark "${5}/${FWMARK_MASK}" > /dev/null 2>&1
+        eval "iptables -t mangle -A ${CUSTOM_PREROUTING_CONNMARK_CHAIN} -p udplite -m multiport --dport ${3} -m set ! ${MATCH_SET} ${LOCAL_IP_SET} src -j CONNMARK --set-xmark ${5}/${FWMARK_MASK} > /dev/null 2>&1"
 
     echo "${4}" | grep -q '[0-9]' && \
-        iptables -t mangle -A "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" -p sctp -m multiport --dport "${4}" -j CONNMARK --set-xmark "${5}/${FWMARK_MASK}" > /dev/null 2>&1
+        eval "iptables -t mangle -A ${CUSTOM_PREROUTING_CONNMARK_CHAIN} -p sctp -m multiport --dport ${4} -m set ! ${MATCH_SET} ${LOCAL_IP_SET} src -j CONNMARK --set-xmark ${5}/${FWMARK_MASK} > /dev/null 2>&1"
 
     ! iptables -t mangle -L "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" 2> /dev/null | grep -q "${5}" && return
 
@@ -2390,7 +2374,7 @@ lz_protocols_wan_policy() {
     local local_proto_item=
     for local_proto_item in ${local_buf}
     do
-        iptables -t mangle -A "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" -m layer7 --l7proto "${local_proto_item}" -j CONNMARK --set-xmark "${2}/${FWMARK_MASK}" > /dev/null 2>&1
+        eval "iptables -t mangle -A ${CUSTOM_PREROUTING_CONNMARK_CHAIN} -m layer7 --l7proto ${local_proto_item} -m set ! ${MATCH_SET} ${LOCAL_IP_SET} src -j CONNMARK --set-xmark ${2}/${FWMARK_MASK} > /dev/null 2>&1"
     done
 
     ! iptables -t mangle -L "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" 2> /dev/null | grep "${2}" && return
@@ -2497,6 +2481,7 @@ lz_add_src_to_dst_netfilter_mark() {
 ##     $2--WAN口域名解析IPv4流量出口列表绑定数据文件名
 ##     $3--WAN口域名地址数据集名称
 ##     $4--WAN口域名地址配置文件名
+##     $5--WAN口名称
 ## 返回值：
 ##     0--成功
 ##     1--失败
@@ -2506,11 +2491,11 @@ lz_create_domain_wan_set() {
     do
         [ "${1}" != "0" ] && break
         [ ! -f "${2}" ] && break
-        buf="$( sed -e 's/[ \t][ \t]*/ /g' -e 's/^[ ]*//g' -e '/^[#]/d' -e 's/[#].*$//g' -e 's/^\([^ ]*\).*$/\1/g' -e 's/^[^ ]*[\:][\/][\/]//g' \
-                -e 's/^[^ ]\{0,6\}[\:]//g' -e 's/[\/]*$//g' -e 's/[ ]*$//g' -e '/^[\.]*$/d' -e '/^[\.]*[^\.]*$/d' -e '/^[ ]*$/d' "${2}" 2> /dev/null \
-                | tr '[:A-Z:]' '[:a-z:]' )"
+        buf="$( sed -e "s/\'//g" -e 's/\"//g' -e 's/[ \t][ \t]*/ /g' -e 's/^[ ]*//g' -e '/^[#]/d' -e 's/[#].*$//g' -e 's/^\([^ ]*\).*$/\1/g' \
+                -e 's/^[^ ]*[\:][\/][\/]//g' -e 's/^[^ ]\{0,6\}[\:]//g' -e 's/[\/]*$//g' -e 's/[ ]*$//g' -e '/^[\.]*$/d' -e '/^[\.]*[^\.]*$/d' \
+                -e '/^[ ]*$/d' "${2}" 2> /dev/null | tr '[:A-Z:]' '[:a-z:]' | awk '{print $1}' )"
         [ -z "${buf}" ] && break
-        ipset -q create "${3}" hash:ip
+        ipset -q create "${3}" hash:ip timeout "${dn_cache_time}" forceadd
         ipset -q flush "${3}"
         [ -z "$( ipset -q -n list "${3}" )" ] && break
         echo "${buf}" | awk 'NF != "0" {print "ipset\=\/"$1"'"\/${3}"'"}' > "${4}" 2> /dev/null
@@ -2519,6 +2504,37 @@ lz_create_domain_wan_set() {
             break
         fi
         retval="0"
+        [ "${dn_pre_resolved}" != "0" ] && [ "${dn_pre_resolved}" != "1" ] && [ "${dn_pre_resolved}" != "2" ] && break
+        echo "$(lzdate)" [$$]: Pre resolving domain name for "${5}"...... | tee -ai "${SYSLOG}" 2> /dev/null
+        [ "${dn_pre_resolved}" != "1" ] && echo "${buf}" | awk 'NF != "0" {system("'"ipset -q -r add ${3} "'"$1)}'
+        [ "${dn_pre_resolved}" = "0" ] && break
+        for buf in ${buf}
+        do
+            nslookup "${buf}" "${pre_dns}" 2> /dev/null |  sed '1,4d' | awk '{print $3}' | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}' \
+                | awk '{system("'"ipset -q add ${3} "'"$1)}'
+        done
+        break
+    done
+    return "${retval}"
+}
+
+## 获取是否全部客户端参与域名分流函数
+## 输入项：
+##     $1--域名地址动态分流客户端IPv4网址/网段条目列表数据文件
+## 返回值：
+##     0--成功
+##     1--失败
+lz_get_full_client_domain() {
+    retval="1"
+    while true
+    do
+        [ ! -f "${1}" ] && break
+        sed -e 's/\(^[^#]*\)[#].*$/\1/g' -e '/^$/d' -e 's/LZ/  /g' \
+        -e 's/\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}\)/LZ\1LZ/g' \
+        -e 's/^.*\(LZ\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}LZ\).*$/\1/g' \
+        -e '/^[^L][^Z]/d' -e '/[^L][^Z]$/d' -e '/^.\{0,10\}$/d' \
+        -e '/[3-9][0-9][0-9]/d' -e '/[2][6-9][0-9]/d' -e '/[2][5][6-9]/d' -e '/[\/][4-9][0-9]/d' \
+        -e '/[\/][3][3-9]/d' -e "s/^LZ\(.*\)LZ$/\1/g" "${1}" 2> /dev/null | grep -q '^0[\.]0[\.]0[\.]0[\/]0$' && retval="0"
         break
     done
     return "${retval}"
@@ -2533,6 +2549,7 @@ lz_create_domain_wan_set() {
 ## 返回值：无
 lz_setup_domain_policy() {
     [ "${usage_mode}" != "0" ] && return
+    local local_sucess_1="1" local_sucess_2="1"
     ## 第一WAN口
     ## 创建WAN口域名分流数据集
     ## 输入项：
@@ -2540,28 +2557,61 @@ lz_setup_domain_policy() {
     ##     $2--WAN口域名解析IPv4流量出口列表绑定数据文件名
     ##     $3--WAN口域名地址数据集名称
     ##     $4--WAN口域名地址配置文件名
+    ##     $5--WAN口名称
     ## 返回值：
     ##     0--成功
     ##     1--失败
-    if lz_create_domain_wan_set "${wan_1_domain}" "${wan_1_domain_file}" "${DOMAIN_SET_0}" "${PATH_TMP}/${DOMAIN_WAN1_CONF}"; then
-        eval "iptables -t mangle -A ${CUSTOM_PREROUTING_CONNMARK_CHAIN} -m set ${MATCH_SET} ${DOMAIN_SET_0} dst -j CONNMARK --set-xmark ${HOST_FWMARK0}/${FWMARK_MASK} > /dev/null 2>&1"
-        iptables -t mangle -A "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" -m connmark --mark "${HOST_FWMARK0}/${HOST_FWMARK0}" -j RETURN > /dev/null 2>&1
-        iptables -t mangle -A "${CUSTOM_PREROUTING_CHAIN}" -m connmark --mark "${HOST_FWMARK0}/${HOST_FWMARK0}" -j CONNMARK --restore-mark --nfmask "${FWMARK_MASK}" --ctmask "${FWMARK_MASK}" > /dev/null 2>&1
-        [ -n "${2}" ] && iptables -t mangle -I "${CUSTOM_OUTPUT_CHAIN}" -o "${local_wan0_ifname}" -m connmark --mark "${HOST_FWMARK0}/${HOST_FWMARK0}" -j CONNMARK --restore-mark --nfmask "${FWMARK_MASK}" --ctmask "${FWMARK_MASK}" > /dev/null 2>&1
-        [ -n "${1}" ] && iptables -t mangle -I "${CUSTOM_OUTPUT_CHAIN}" -o "${local_wan0_pppoe_ifname}" -m connmark --mark "${HOST_FWMARK0}/${HOST_FWMARK0}" -j CONNMARK --restore-mark --nfmask "${FWMARK_MASK}" --ctmask "${FWMARK_MASK}" > /dev/null 2>&1
-        ip rule add from all fwmark "${HOST_FWMARK0}/${FWMARK_MASK}" table "${WAN0}" prio "${IP_RULE_PRIO_HOST_PREFERRDE_WAN_DATA}" > /dev/null 2>&1
+    if [ "$( lz_get_ipv4_data_file_item_total "${wan_1_domain_client_src_addr_file}" )" -gt "0" ] \
+        && lz_create_domain_wan_set "${wan_1_domain}" "${wan_1_domain_file}" "${DOMAIN_SET_0}" "${PATH_TMP}/${DOMAIN_WAN1_CONF}" "Primary WAN"; then
+        while true
+        do
+            lz_add_net_address_sets "${wan_1_domain_client_src_addr_file}" "${DOMAIN_CLT_SRC_SET_0}" "1" "0"
+            ## 获取是否全部客户端参与域名分流
+            ## 输入项：
+            ##     $1--域名地址动态分流客户端IPv4网址/网段条目列表数据文件
+            ## 返回值：
+            ##     0--成功
+            ##     1--失败
+            if lz_get_full_client_domain "${wan_1_domain_client_src_addr_file}"; then
+                eval "iptables -t mangle -A ${CUSTOM_PREROUTING_CONNMARK_CHAIN} -m set ${MATCH_SET} ${DOMAIN_SET_0} dst -j CONNMARK --set-xmark ${HOST_FWMARK0}/${FWMARK_MASK} > /dev/null 2>&1"
+            elif [ "$( lz_get_ipset_total_number "${DOMAIN_CLT_SRC_SET_0}" )" -gt "0" ]; then
+                eval "iptables -t mangle -A ${CUSTOM_PREROUTING_CONNMARK_CHAIN} -m set ${MATCH_SET} ${DOMAIN_CLT_SRC_SET_0} src -m set ${MATCH_SET} ${DOMAIN_SET_0} dst -j CONNMARK --set-xmark ${HOST_FWMARK0}/${FWMARK_MASK} > /dev/null 2>&1"
+            else
+                break
+            fi
+            iptables -t mangle -A "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" -m connmark --mark "${HOST_FWMARK0}/${HOST_FWMARK0}" -j RETURN > /dev/null 2>&1
+            iptables -t mangle -A "${CUSTOM_PREROUTING_CHAIN}" -m connmark --mark "${HOST_FWMARK0}/${HOST_FWMARK0}" -j CONNMARK --restore-mark --nfmask "${FWMARK_MASK}" --ctmask "${FWMARK_MASK}" > /dev/null 2>&1
+            [ -n "${2}" ] && iptables -t mangle -I "${CUSTOM_OUTPUT_CHAIN}" -o "${local_wan0_ifname}" -m connmark --mark "${HOST_FWMARK0}/${HOST_FWMARK0}" -j CONNMARK --restore-mark --nfmask "${FWMARK_MASK}" --ctmask "${FWMARK_MASK}" > /dev/null 2>&1
+            [ -n "${1}" ] && iptables -t mangle -I "${CUSTOM_OUTPUT_CHAIN}" -o "${local_wan0_pppoe_ifname}" -m connmark --mark "${HOST_FWMARK0}/${HOST_FWMARK0}" -j CONNMARK --restore-mark --nfmask "${FWMARK_MASK}" --ctmask "${FWMARK_MASK}" > /dev/null 2>&1
+            ip rule add from all fwmark "${HOST_FWMARK0}/${FWMARK_MASK}" table "${WAN0}" prio "${IP_RULE_PRIO_WAN_1_DOMAIN}" > /dev/null 2>&1
+            local_sucess_1="0"
+            break
+        done
     fi
     ## 第二WAN口
-    if lz_create_domain_wan_set "${wan_2_domain}" "${wan_2_domain_file}" "${DOMAIN_SET_1}" "${PATH_TMP}/${DOMAIN_WAN2_CONF}"; then
-        eval "iptables -t mangle -A ${CUSTOM_PREROUTING_CONNMARK_CHAIN} -m set ${MATCH_SET} ${DOMAIN_SET_1} dst -j CONNMARK --set-xmark ${HOST_FWMARK1}/${FWMARK_MASK} > /dev/null 2>&1"
-        iptables -t mangle -A "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" -m connmark --mark "${HOST_FWMARK1}/${HOST_FWMARK1}" -j RETURN > /dev/null 2>&1
-        iptables -t mangle -A "${CUSTOM_PREROUTING_CHAIN}" -m connmark --mark "${HOST_FWMARK1}/${HOST_FWMARK1}" -j CONNMARK --restore-mark --nfmask "${FWMARK_MASK}" --ctmask "${FWMARK_MASK}" > /dev/null 2>&1
-        [ -n "${4}" ] && iptables -t mangle -I "${CUSTOM_OUTPUT_CHAIN}" -o "${local_wan1_ifname}" -m connmark --mark "${HOST_FWMARK1}/${HOST_FWMARK1}" -j CONNMARK --restore-mark --nfmask "${FWMARK_MASK}" --ctmask "${FWMARK_MASK}" > /dev/null 2>&1
-        [ -n "${3}" ] && iptables -t mangle -I "${CUSTOM_OUTPUT_CHAIN}" -o "${local_wan1_pppoe_ifname}" -m connmark --mark "${HOST_FWMARK1}/${HOST_FWMARK1}" -j CONNMARK --restore-mark --nfmask "${FWMARK_MASK}" --ctmask "${FWMARK_MASK}" > /dev/null 2>&1
-        ip rule add from all fwmark "${HOST_FWMARK1}/${FWMARK_MASK}" table "${WAN1}" prio "${IP_RULE_PRIO_HOST_SECOND_WAN_DATA}" > /dev/null 2>&1
+    if [ "$( lz_get_ipv4_data_file_item_total "${wan_2_domain_client_src_addr_file}" )" -gt "0" ] \
+        && lz_create_domain_wan_set "${wan_2_domain}" "${wan_2_domain_file}" "${DOMAIN_SET_1}" "${PATH_TMP}/${DOMAIN_WAN2_CONF}" "Secondary WAN"; then
+        while true
+        do
+            lz_add_net_address_sets "${wan_2_domain_client_src_addr_file}" "${DOMAIN_CLT_SRC_SET_1}" "1" "0"
+            if lz_get_full_client_domain "${wan_2_domain_client_src_addr_file}"; then
+                eval "iptables -t mangle -A ${CUSTOM_PREROUTING_CONNMARK_CHAIN} -m set ${MATCH_SET} ${DOMAIN_SET_1} dst -j CONNMARK --set-xmark ${HOST_FWMARK1}/${FWMARK_MASK} > /dev/null 2>&1"
+            elif [ "$( lz_get_ipset_total_number "${DOMAIN_CLT_SRC_SET_1}" )" -gt "0" ]; then
+                eval "iptables -t mangle -A ${CUSTOM_PREROUTING_CONNMARK_CHAIN} -m set ${MATCH_SET} ${DOMAIN_CLT_SRC_SET_1} src -m set ${MATCH_SET} ${DOMAIN_SET_1} dst -j CONNMARK --set-xmark ${HOST_FWMARK1}/${FWMARK_MASK} > /dev/null 2>&1"
+            else
+                break
+            fi
+            iptables -t mangle -A "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" -m connmark --mark "${HOST_FWMARK1}/${HOST_FWMARK1}" -j RETURN > /dev/null 2>&1
+            iptables -t mangle -A "${CUSTOM_PREROUTING_CHAIN}" -m connmark --mark "${HOST_FWMARK1}/${HOST_FWMARK1}" -j CONNMARK --restore-mark --nfmask "${FWMARK_MASK}" --ctmask "${FWMARK_MASK}" > /dev/null 2>&1
+            [ -n "${4}" ] && iptables -t mangle -I "${CUSTOM_OUTPUT_CHAIN}" -o "${local_wan1_ifname}" -m connmark --mark "${HOST_FWMARK1}/${HOST_FWMARK1}" -j CONNMARK --restore-mark --nfmask "${FWMARK_MASK}" --ctmask "${FWMARK_MASK}" > /dev/null 2>&1
+            [ -n "${3}" ] && iptables -t mangle -I "${CUSTOM_OUTPUT_CHAIN}" -o "${local_wan1_pppoe_ifname}" -m connmark --mark "${HOST_FWMARK1}/${HOST_FWMARK1}" -j CONNMARK --restore-mark --nfmask "${FWMARK_MASK}" --ctmask "${FWMARK_MASK}" > /dev/null 2>&1
+            ip rule add from all fwmark "${HOST_FWMARK1}/${FWMARK_MASK}" table "${WAN1}" prio "${IP_RULE_PRIO_WAN_2_DOMAIN}" > /dev/null 2>&1
+            local_sucess_2="0"
+            break
+        done
     fi
     ## 建立dnsmasq关联
-    if [ -n "$( ipset -q -n list "${DOMAIN_SET_0}" )" ] || [ -n "$( ipset -q -n list "${DOMAIN_SET_1}" )" ]; then
+    if [ "${local_sucess_1}" = "0" ] || [ "${local_sucess_2}" = "0" ]; then
         [ ! -d "/jffs/configs" ] && mkdir -p "/jffs/configs" > /dev/null 2>&1
         chmod 775 "/jffs/configs" > /dev/null 2>&1
         [ ! -f "${DNSMASQ_CONF_ADD}" ] && touch "${DNSMASQ_CONF_ADD}" > /dev/null 2>&1
@@ -2625,7 +2675,7 @@ lz_initialize_ip_data_policy() {
         ## 创建本地内网网址/网段数据集（仅用于动态分流模式，加入所有不进行netfilter目标访问网址/网段过滤的客户端源地址）
         ipset -q create "${LOCAL_IP_SET}" nethash #--hashsize 65535
         ipset -q flush "${LOCAL_IP_SET}"
-        ipset -q add "${LOCAL_IP_SET}" "${route_local_ip}"
+    #    ipset -q add "${LOCAL_IP_SET}" "${route_local_ip}"
         ## 加载不受目标网址/网段匹配访问控制的本地客户端网址
         if [ "$( lz_get_ipv4_data_file_item_total "${local_ipsets_file}" )" -gt "0" ]; then
             if [ "${usage_mode}" = "0" ]; then
@@ -2651,12 +2701,12 @@ lz_initialize_ip_data_policy() {
                     lz_add_net_address_sets "${wan_1_client_src_addr_file}" "${BALANCE_IP_SET}" "1" "0"
                     lz_add_net_address_sets "${wan_1_client_src_addr_file}" "${BALANCE_GUARD_IP_SET}" "1" "0"
                 fi
-            }
+           }
         fi
         ## 加载排除绑定第二WAN口的客户端及源网址/网段列表数据
         if [ "${wan_2_client_src_addr}" = "0" ]; then
             [ "$( lz_get_ipv4_data_file_item_total "${wan_2_client_src_addr_file}" )" -gt "0" ] && {
-                lz_add_net_address_sets "${wan_2_client_src_addr_file}" "${LOCAL_IP_SET}" "1" "0"
+                [ "${usage_mode}" = "0" ] && lz_add_net_address_sets "${wan_2_client_src_addr_file}" "${LOCAL_IP_SET}" "1" "0"
                 if [ "${balance_chain_existing}" = "1" ]; then
                     lz_add_net_address_sets "${wan_2_client_src_addr_file}" "${BALANCE_IP_SET}" "1" "0"
                     lz_add_net_address_sets "${wan_2_client_src_addr_file}" "${BALANCE_GUARD_IP_SET}" "1" "0"
@@ -2740,7 +2790,7 @@ lz_initialize_ip_data_policy() {
     ## 获取入口网卡设备标识
     local local_lan_ifname="$( nvram get "lan_ifname" | awk '{print $1}' | sed -n 1p )"
     [ -z "${local_lan_ifname}" ] && local_lan_ifname="br0"
-    eval "iptables -t mangle -A ${CUSTOM_PREROUTING_CHAIN} -m state --state NEW -m set ! ${MATCH_SET} ${LOCAL_IP_SET} src -j ${CUSTOM_PREROUTING_CONNMARK_CHAIN} > /dev/null 2>&1"
+    iptables -t mangle -A "${CUSTOM_PREROUTING_CHAIN}" -m state --state NEW -j "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" > /dev/null 2>&1
     iptables -t mangle -I PREROUTING -i "${local_lan_ifname}" -j "${CUSTOM_PREROUTING_CHAIN}" > /dev/null 2>&1
 
     ## 高优先级客户端及源网址/网段列表绑定WAN出口
@@ -2748,6 +2798,21 @@ lz_initialize_ip_data_policy() {
     ##     全局变量及常量
     ## 返回值：无
     lz_high_client_src_addr_binding_wan
+
+    ## 获取出口网卡设备标识
+    local local_wan0_pppoe_ifname="$( nvram get "wan0_pppoe_ifname" | grep -o 'ppp[0-9]*' | sed -n 1p )"
+    local local_wan0_ifname="$( nvram get "wan0_ifname" | grep -Eo 'eth[0-9]*|vlan[0-9]*' | sed -n 1p )"
+    local local_wan1_pppoe_ifname="$( nvram get "wan1_pppoe_ifname" | grep -o 'ppp[0-9]*' | sed -n 1p )"
+    local local_wan1_ifname="$( nvram get "wan1_ifname" | grep -Eo 'eth[0-9]*|vlan[0-9]*' | sed -n 1p )"
+
+    ## 设置域名分流策略
+    ## 输入项：
+    ##     $1--第一WAN口pppoe虚拟网卡标识
+    ##     $2--第一WAN口网卡标识
+    ##     $3--第二WAN口pppoe虚拟网卡标识
+    ##     $4--第二WAN口网卡标识
+    ## 返回值：无
+    lz_setup_domain_policy "${local_wan0_pppoe_ifname}" "${local_wan0_ifname}" "${local_wan1_pppoe_ifname}" "${local_wan1_ifname}"
 
     ## 端口分流
     ## 第一WAN口目标访问端口分流
@@ -2929,21 +2994,6 @@ lz_initialize_ip_data_policy() {
         let local_index++
     done
 
-    ## 获取出口网卡设备标识
-    local local_wan0_pppoe_ifname="$( nvram get "wan0_pppoe_ifname" | grep -o 'ppp[0-9]*' | sed -n 1p )"
-    local local_wan0_ifname="$( nvram get "wan0_ifname" | grep -Eo 'eth[0-9]*|vlan[0-9]*' | sed -n 1p )"
-    local local_wan1_pppoe_ifname="$( nvram get "wan1_pppoe_ifname" | grep -o 'ppp[0-9]*' | sed -n 1p )"
-    local local_wan1_ifname="$( nvram get "wan1_ifname" | grep -Eo 'eth[0-9]*|vlan[0-9]*' | sed -n 1p )"
-
-    ## 设置域名分流策略
-    ## 输入项：
-    ##     $1--第一WAN口pppoe虚拟网卡标识
-    ##     $2--第一WAN口网卡标识
-    ##     $3--第二WAN口pppoe虚拟网卡标识
-    ##     $4--第二WAN口网卡标识
-    ## 返回值：无
-    lz_setup_domain_policy "${local_wan0_pppoe_ifname}" "${local_wan0_ifname}" "${local_wan1_pppoe_ifname}" "${local_wan1_ifname}"
-
     ## 设置第一WAN口国内网段数据集防火墙标记访问报文数据包过滤规则
     ## 获取IPSET数据集条目数
     ## 输入项：
@@ -2951,7 +3001,7 @@ lz_initialize_ip_data_policy() {
     ## 返回值：
     ##     条目数
     if [ "$( lz_get_ipset_total_number "${ISPIP_SET_0}" )" -gt "0" ]; then
-        eval "iptables -t mangle -A ${CUSTOM_PREROUTING_CONNMARK_CHAIN} -m set ${MATCH_SET} ${ISPIP_SET_0} dst -j CONNMARK --set-xmark ${FWMARK0}/${FWMARK_MASK} > /dev/null 2>&1"
+        eval "iptables -t mangle -A ${CUSTOM_PREROUTING_CONNMARK_CHAIN} -m set ! ${MATCH_SET} ${LOCAL_IP_SET} src -m set ${MATCH_SET} ${ISPIP_SET_0} dst -j CONNMARK --set-xmark ${FWMARK0}/${FWMARK_MASK} > /dev/null 2>&1"
         iptables -t mangle -A "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" -m connmark --mark "${FWMARK0}/${FWMARK0}" -j RETURN > /dev/null 2>&1
         iptables -t mangle -A "${CUSTOM_PREROUTING_CHAIN}" -m connmark --mark "${FWMARK0}/${FWMARK0}" -j CONNMARK --restore-mark --nfmask "${FWMARK_MASK}" --ctmask "${FWMARK_MASK}" > /dev/null 2>&1
         [ -n "${local_wan0_ifname}" ] && iptables -t mangle -I "${CUSTOM_OUTPUT_CHAIN}" -o "${local_wan0_ifname}" -m connmark --mark "${FWMARK0}/${FWMARK0}" -j CONNMARK --restore-mark --nfmask "${FWMARK_MASK}" --ctmask "${FWMARK_MASK}" > /dev/null 2>&1
@@ -2965,7 +3015,7 @@ lz_initialize_ip_data_policy() {
     ## 返回值：
     ##     条目数
     if [ "$( lz_get_ipset_total_number "${ISPIP_SET_1}" )" -gt "0" ]; then
-        eval "iptables -t mangle -A ${CUSTOM_PREROUTING_CONNMARK_CHAIN} -m set ${MATCH_SET} ${ISPIP_SET_1} dst -j CONNMARK --set-xmark ${FWMARK1}/${FWMARK_MASK} > /dev/null 2>&1"
+        eval "iptables -t mangle -A ${CUSTOM_PREROUTING_CONNMARK_CHAIN} -m set ! ${MATCH_SET} ${LOCAL_IP_SET} src -m set ${MATCH_SET} ${ISPIP_SET_1} dst -j CONNMARK --set-xmark ${FWMARK1}/${FWMARK_MASK} > /dev/null 2>&1"
         iptables -t mangle -A "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" -m connmark --mark "${FWMARK1}/${FWMARK1}" -j RETURN > /dev/null 2>&1
         iptables -t mangle -A "${CUSTOM_PREROUTING_CHAIN}" -m connmark --mark "${FWMARK1}/${FWMARK1}" -j CONNMARK --restore-mark --nfmask "${FWMARK_MASK}" --ctmask "${FWMARK_MASK}" > /dev/null 2>&1
         [ -n "${local_wan1_ifname}" ] && iptables -t mangle -I "${CUSTOM_OUTPUT_CHAIN}" -o "${local_wan1_ifname}" -m connmark --mark "${FWMARK1}/${FWMARK1}" -j CONNMARK --restore-mark --nfmask "${FWMARK_MASK}" --ctmask "${FWMARK_MASK}" > /dev/null 2>&1
@@ -3053,7 +3103,7 @@ lz_initialize_ip_data_policy() {
             ## 第二WAN口，模式1时，对已定义目标网段流量出口数据直接通过本通道的整体静态路由推送访问外网，无须单独设置路由
             ## 第二WAN口，模式2时，将被自动调整为模式1
             ## 第一WAN口、第二WAN口，模式3时，对已定义目标网段流量出口数据实施动态路由
-            eval "iptables -t mangle -A ${CUSTOM_PREROUTING_CONNMARK_CHAIN} -m set ! ${MATCH_SET} ${ISPIP_ALL_CN_SET} dst -j CONNMARK --set-xmark ${FOREIGN_FWMARK}/${FWMARK_MASK} > /dev/null 2>&1"
+            eval "iptables -t mangle -A ${CUSTOM_PREROUTING_CONNMARK_CHAIN} -m set ! ${MATCH_SET} ${LOCAL_IP_SET} src -m set ! ${MATCH_SET} ${ISPIP_ALL_CN_SET} dst -j CONNMARK --set-xmark ${FOREIGN_FWMARK}/${FWMARK_MASK} > /dev/null 2>&1"
             iptables -t mangle -A "${CUSTOM_PREROUTING_CHAIN}" -m connmark --mark "${FOREIGN_FWMARK}/${FOREIGN_FWMARK}" -j CONNMARK --restore-mark --nfmask "${FWMARK_MASK}" --ctmask "${FWMARK_MASK}" > /dev/null 2>&1
             if [ "${isp_wan_port_0}" = "0" ]; then
                 [ -n "${local_wan0_ifname}" ] && iptables -t mangle -I "${CUSTOM_OUTPUT_CHAIN}" -o "${local_wan0_ifname}" -m connmark --mark "${FOREIGN_FWMARK}/${FOREIGN_FWMARK}" -j CONNMARK --restore-mark --nfmask "${FWMARK_MASK}" --ctmask "${FWMARK_MASK}" > /dev/null 2>&1
@@ -3074,8 +3124,7 @@ lz_initialize_ip_data_policy() {
     ## 返回值：无
     llz_setup_custom_data_policy() {
         if [ "${2}" -lt "0" ] || [ "${2}" -gt "2" ]; then return; fi;
-        local local_item_num="$( lz_get_ipv4_data_file_item_total "${1}" )"
-        [ "${local_item_num}" -le "0" ] && return
+        [ "$( lz_get_ipv4_data_file_item_total "${1}" )" -le "0" ] && return
         ## 创建或加载网段出口数据集
         ## 输入项：
         ##     $1--全路径网段数据文件名
@@ -3092,7 +3141,7 @@ lz_initialize_ip_data_policy() {
         [ "$( lz_get_ipset_total_number "${ISPIP_SET_1}" )" -gt "0" ] && lz_add_net_address_sets "${2}" "${ISPIP_SET_1}" "1" "1"
         ## 第一WAN口，模式1时，静态路由；模式2时，直接通过本通道的整体静态路由推送访问外网
         ## 第二WAN口，模式1时，直接通过本通道的整体静态路由推送访问外网；模式2时，静态路由
-        ## 第一WAN口、第二WAN口，模式3时，大于条目阈值数的动态路由，小于的静态路由
+        ## 第一WAN口、第二WAN口，模式3时，动态路由
         ## 模式1、模式2时，定义为系统自动分配流量出口的目标网址/网段数据将被添加进BALANCE_DST_IP_SET数据集中，balance链会据此允许系统负载均衡为其网络连接分配出口
         ## 模式3时，定义为系统自动分配流量出口数据，由系统负载均衡分配出口
         ## 模式1、模式2时，对已定义目标网址/网段流量出口数据，balance链通过识别客户端地址，阻止负载均衡为其网络连接分配出口
@@ -3100,31 +3149,11 @@ lz_initialize_ip_data_policy() {
         ## 模式3，静态路由时，需将目标网址/网段添加进NO_BALANCE_DST_IP_SET数据集，以在balance链中阻止负载均衡为其网络连接分配出口
         [ "${2}" = "2" ] && return
         local local_set_name=
-        local LOCAL_WAN_ID="0"
         if [ "${usage_mode}" = "0" ]; then
-            if [ "${local_item_num}" -gt "${list_mode_threshold}" ]; then
-                [ "${2}" = "0" ] && local_set_name="${ISPIP_SET_0}"
-                [ "${2}" = "1" ] && local_set_name="${ISPIP_SET_1}"
-                lz_add_net_address_sets "${2}" "${local_set_name}" "1" "0"
-            else
-                [ "${2}" = "0" ] && LOCAL_WAN_ID="${WAN0}"
-                [ "${2}" = "1" ] && LOCAL_WAN_ID="${WAN1}"
-                ## 转为高速直连绑定出口方式
-                ## IPv4目标网址/网段列表数据命令绑定路由器外网出口
-                ## 输入项：
-                ##     $1--全路径网段数据文件名
-                ##     $2--WAN口路由表ID号
-                ##     $3--策略规则优先级
-                ##     $4--0:不效验文件格式，非0：效验文件格式
-                ## 返回值：无
-                lz_add_ipv4_dst_addr_list_binding_wan "${1}" "${LOCAL_WAN_ID}" "${3}" "1"
-                if [ "${balance_chain_existing}" = "1" ]; then
-                    lz_add_net_address_sets "${1}" "${NO_BALANCE_DST_IP_SET}" "1" "0"
-                fi
-            fi
+            [ "${2}" = "0" ] && local_set_name="${ISPIP_SET_0}"
+            [ "${2}" = "1" ] && local_set_name="${ISPIP_SET_1}"
+            lz_add_net_address_sets "${2}" "${local_set_name}" "1" "0"
         elif [ "${2}" = "0" ] && [ "${policy_mode}" = "0" ]; then
-            [ "${2}" = "0" ] && LOCAL_WAN_ID="${WAN0}"
-            [ "${2}" = "1" ] && LOCAL_WAN_ID="${WAN1}"
             ## 转为高速直连绑定出口方式
             ## IPv4目标网址/网段列表数据命令绑定路由器外网出口
             ## 输入项：
@@ -3133,11 +3162,9 @@ lz_initialize_ip_data_policy() {
             ##     $3--策略规则优先级
             ##     $4--0:不效验文件格式，非0：效验文件格式
             ## 返回值：无
-            lz_add_ipv4_dst_addr_list_binding_wan "${1}" "${LOCAL_WAN_ID}" "${3}" "1"
+            lz_add_ipv4_dst_addr_list_binding_wan "${1}" "${WAN0}" "${3}" "1"
         elif [ "${2}" = "1" ] && [ "${policy_mode}" = "1" ]; then
-            [ "${2}" = "0" ] && LOCAL_WAN_ID="${WAN0}"
-            [ "${2}" = "1" ] && LOCAL_WAN_ID="${WAN1}"
-            lz_add_ipv4_dst_addr_list_binding_wan "${1}" "${LOCAL_WAN_ID}" "${3}" "1"
+            lz_add_ipv4_dst_addr_list_binding_wan "${1}" "${WAN1}" "${3}" "1"
         fi
     }
 
@@ -4196,7 +4223,6 @@ lz_get_ispip_info() {
 ##     $1--主执行脚本运行输入参数
 ##     $2--第一WAN出口接入ISP运营商信息
 ##     $3--第二WAN出口接入ISP运营商信息
-##     $4--是否全局直连绑定出口
 ##     全局常量及变量
 ## 返回值：无
 lz_output_ispip_info_to_system_records() {
@@ -4243,63 +4269,68 @@ lz_output_ispip_info_to_system_records() {
     local local_load_balancing_hd="  HD"
     local local_exist="0"
     [ "${isp_data_0_item_total}" -gt "0" ] && {
-        local_hd=""
-        if [ "${4}" = "1" ]; then
-            [ "${isp_wan_port_0}" = "0" ] && local_hd="${local_primary_wan_hd}"
-            [ "${isp_wan_port_0}" = "1" ] && local_hd="${local_secondary_wan_hd}"
-            if [ "${isp_wan_port_0}" -lt "0" ] || [ "${isp_wan_port_0}" -gt "1" ]; then local_hd="${local_load_balancing_hd}"; fi;
+        if [ "${usage_mode}" != "0" ]; then
+            if [ "${isp_wan_port_0}" != "0" ] && [ "${isp_wan_port_0}" != "1" ] && [ "${policy_mode}" = "0" ]; then
+                ## 获取网段出口信息
+                ## 输入项：
+                ##     $1--网段出口参数
+                ## 返回值：
+                ##     Primary WAN--首选WAN口
+                ##     Secondary WAN--第二WAN口
+                ##     Equal Division--均分出口
+                ##     Load Balancing--系统负载均衡分配出口
+                echo "$(lzdate)" [$$]: "   FOREIGN       * $( lz_get_ispip_info "1" )${local_secondary_wan_hd}" | tee -ai "${SYSLOG}" 2> /dev/null
+                local_exist="1"
+            elif [ "${isp_wan_port_0}" != "0" ] && [ "${isp_wan_port_0}" != "1" ] && [ "${policy_mode}" = "1" ]; then
+                echo "$(lzdate)" [$$]: "   FOREIGN       * $( lz_get_ispip_info "0" )${local_primary_wan_hd}" | tee -ai "${SYSLOG}" 2> /dev/null
+                local_exist="1"
+            else
+                local_hd="${local_primary_wan_hd}"
+                [ "${isp_wan_port_0}" = "1" ] && local_hd="${local_secondary_wan_hd}"
+                echo "$(lzdate)" [$$]: "   FOREIGN         $( lz_get_ispip_info "${isp_wan_port_0}" )${local_hd}" | tee -ai "${SYSLOG}" 2> /dev/null
+                local_exist="1"
+            fi
         else
-            [ "${policy_mode}" = "0" ] && [ "${isp_wan_port_0}" = "1" ] && local_hd="${local_secondary_wan_hd}"
-            [ "${policy_mode}" = "1" ] && [ "${isp_wan_port_0}" = "0" ] && local_hd="${local_primary_wan_hd}"
-            [ "${usage_mode}" = "0" ] && [ "${isp_wan_port_0}" -lt "0" ] && local_hd="${local_load_balancing_hd}"
-            [ "${usage_mode}" = "0" ] && [ "${isp_wan_port_0}" -gt "1" ] && local_hd="${local_load_balancing_hd}"
+            echo "$(lzdate)" [$$]: "   FOREIGN         $( lz_get_ispip_info "${isp_wan_port_0}" )" | tee -ai "${SYSLOG}" 2> /dev/null
+            local_exist="1"
         fi
-        ## 获取网段出口信息
-        ## 输入项：
-        ##     $1--网段出口参数
-        ## 返回值：
-        ##     Primary WAN--首选WAN口
-        ##     Secondary WAN--第二WAN口
-        ##     Equal Division--均分出口
-        ##     Load Balancing--系统负载均衡分配出口
-        echo "$(lzdate)" [$$]: "   Foreign         $( lz_get_ispip_info "${isp_wan_port_0}" )${local_hd}" | tee -ai "${SYSLOG}" 2> /dev/null
-        local_exist="1"
     }
     local local_index="1"
+    local local_isp_name=""
     until [ "${local_index}" -gt "${ISP_TOTAL}" ]
     do
         [ "$( lz_get_isp_data_item_total_variable "${local_index}" )" -gt "0" ] && {
-            local_hd=""
-            if [ "${4}" = "1" ]; then
-                [ "$( lz_get_isp_wan_port "${local_index}" )" = "0" ] && local_hd="${local_primary_wan_hd}"
-                [ "$( lz_get_isp_wan_port "${local_index}" )" = "1" ] && local_hd="${local_secondary_wan_hd}"
-                [ "$( lz_get_isp_wan_port "${local_index}" )" = "2" ] && local_hd="${local_equal_division_hd}"
-                [ "$( lz_get_isp_wan_port "${local_index}" )" = "3" ] && local_hd="${local_redivision_hd}"
-                if [ "$( lz_get_isp_wan_port "${local_index}" )" -lt "0" ] || [ "$( lz_get_isp_wan_port "${local_index}" )" -gt "3" ]; then local_hd="${local_load_balancing_hd}"; fi;
-            else
-                [ "${policy_mode}" = "0" ] && [ "$( lz_get_isp_wan_port "${local_index}" )" = "1" ] && local_hd="${local_secondary_wan_hd}"
-                [ "${policy_mode}" = "1" ] && [ "$( lz_get_isp_wan_port "${local_index}" )" = "0" ] && local_hd="${local_primary_wan_hd}"
-                [ "${policy_mode}" = "1" ] && [ "$( lz_get_isp_wan_port "${local_index}" )" = "1" ] && local_hd="${local_secondary_wan_hd}"
-                [ "${policy_mode}" = "0" ] && [ "$( lz_get_isp_wan_port "${local_index}" )" = "0" ] && local_hd="${local_primary_wan_hd}"
-                [ "${policy_mode}" = "0" ] && [ "$( lz_get_isp_wan_port "${local_index}" )" = "2" ] && local_hd="${local_equal_division_hd}"
-                [ "${policy_mode}" = "1" ] && [ "$( lz_get_isp_wan_port "${local_index}" )" = "2" ] && local_hd="${local_equal_division_hd}"
-                [ "${policy_mode}" = "0" ] && [ "$( lz_get_isp_wan_port "${local_index}" )" = "3" ] && local_hd="${local_redivision_hd}"
-                [ "${policy_mode}" = "1" ] && [ "$( lz_get_isp_wan_port "${local_index}" )" = "3" ] && local_hd="${local_redivision_hd}"
-                [ "${usage_mode}" = "0" ] && [ "$( lz_get_isp_wan_port "${local_index}" )" -lt "0" ] && local_hd="${local_load_balancing_hd}"
-                [ "${usage_mode}" = "0" ] && [ "$( lz_get_isp_wan_port "${local_index}" )" -gt "3" ] && local_hd="${local_load_balancing_hd}"
-            fi
-            local local_isp_name="CTCC          "
+            local_isp_name="CTCC          "
             [ "${local_index}" = "2" ] && local_isp_name="CUCC/CNC      "
             [ "${local_index}" = "3" ] && local_isp_name="CMCC          "
             [ "${local_index}" = "4" ] && local_isp_name="CRTC          "
             [ "${local_index}" = "5" ] && local_isp_name="CERNET        "
             [ "${local_index}" = "6" ] && local_isp_name="GWBN          "
-            [ "${local_index}" = "7" ] && local_isp_name="Other         "
-            [ "${local_index}" = "8" ] && local_isp_name="Hongkong      "
-            [ "${local_index}" = "9" ] && local_isp_name="Macao         "
-            [ "${local_index}" = "10" ] && local_isp_name="Taiwan        "
-            echo "$(lzdate)" [$$]: "   ${local_isp_name}  $( lz_get_ispip_info "$( lz_get_isp_wan_port "${local_index}" )" )${local_hd}" | tee -ai "${SYSLOG}" 2> /dev/null
-            local_exist="1"
+            [ "${local_index}" = "7" ] && local_isp_name="OTHER         "
+            [ "${local_index}" = "8" ] && local_isp_name="HONGKONG      "
+            [ "${local_index}" = "9" ] && local_isp_name="MACAO         "
+            [ "${local_index}" = "10" ] && local_isp_name="TAIWAN        "
+            if [ "${usage_mode}" != "0" ]; then
+                if [ "$( lz_get_isp_wan_port "${local_index}" )" -lt "0" ] || [ "$( lz_get_isp_wan_port "${local_index}" )" -gt "3" ]; then
+                    if [ "${policy_mode}" = "0" ]; then
+                        echo "$(lzdate)" [$$]: "   ${local_isp_name}* $( lz_get_ispip_info "1" )${local_secondary_wan_hd}" | tee -ai "${SYSLOG}" 2> /dev/null
+                        local_exist="1"
+                    elif [ "${policy_mode}" = "1" ]; then
+                        echo "$(lzdate)" [$$]: "   ${local_isp_name}* $( lz_get_ispip_info "0" )${local_primary_wan_hd}" | tee -ai "${SYSLOG}" 2> /dev/null
+                        local_exist="1"
+                    fi
+                else
+                    local_hd="${local_primary_wan_hd}"
+                    [ "$( lz_get_isp_wan_port "${local_index}" )" = "1" ] && local_hd="${local_secondary_wan_hd}"
+                    [ "$( lz_get_isp_wan_port "${local_index}" )" = "2" ] && local_hd="${local_equal_division_hd}"
+                    [ "$( lz_get_isp_wan_port "${local_index}" )" = "3" ] && local_hd="${local_redivision_hd}"
+                    echo "$(lzdate)" [$$]: "   ${local_isp_name}  $( lz_get_ispip_info "$( lz_get_isp_wan_port "${local_index}" )" )${local_hd}" | tee -ai "${SYSLOG}" 2> /dev/null
+                    local_exist="1"
+                fi
+            else
+                echo "$(lzdate)" [$$]: "   ${local_isp_name}  $( lz_get_ispip_info "$( lz_get_isp_wan_port "${local_index}" )" )" | tee -ai "${SYSLOG}" 2> /dev/null
+                local_exist="1"
+            fi
         }
         let local_index++
     done
@@ -4307,176 +4338,13 @@ lz_output_ispip_info_to_system_records() {
         echo "$(lzdate)" [$$]: ---------------------------------------- | tee -ai "${SYSLOG}" 2> /dev/null
     }
     local_exist="0"
-    local local_item_num="0"
-    [ "${custom_data_wan_port_1}" -ge "0" ] && [ "${custom_data_wan_port_1}" -le "2" ] && {
-        local_item_num="$( lz_get_ipv4_data_file_item_total "${custom_data_file_1}" )"
-        [ "${local_item_num}" -gt "0" ] && {
-            local_hd=""
-            if [ "${4}" = "1" ]; then
-                [ "${custom_data_wan_port_1}" = "0" ] && local_hd="${local_primary_wan_hd}"
-                [ "${custom_data_wan_port_1}" = "1" ] && local_hd="${local_secondary_wan_hd}"
-                [ "${custom_data_wan_port_1}" = "2" ] && local_hd="${local_load_balancing_hd}"
-            elif [ "${custom_data_wan_port_1}" = "2" ]; then
-                local_hd="${local_load_balancing_hd}"
-            else
-                if [ "${local_item_num}" -gt "${list_mode_threshold}" ]; then
-                    [ "${policy_mode}" = "0" ] && [ "${custom_data_wan_port_1}" = "1" ] && local_hd="${local_secondary_wan_hd}"
-                    [ "${policy_mode}" = "1" ] && [ "${custom_data_wan_port_1}" = "0" ] && local_hd="${local_primary_wan_hd}"
-                    [ "${policy_mode}" = "1" ] && [ "${custom_data_wan_port_1}" = "1" ] && local_hd="${local_secondary_wan_hd}"
-                    [ "${policy_mode}" = "0" ] && [ "${custom_data_wan_port_1}" = "0" ] && local_hd="${local_primary_wan_hd}"
-                else
-                    [ "${local_item_num}" -ge "1" ] && {
-                        [ "${custom_data_wan_port_1}" = "0" ] && local_hd="${local_primary_wan_hd}"
-                        [ "${custom_data_wan_port_1}" = "1" ] && local_hd="${local_secondary_wan_hd}"
-                    }
-                fi
-            fi
-            echo "$(lzdate)" [$$]: "   Custom-1        $( lz_get_ispip_info "${custom_data_wan_port_1}" )${local_hd}" | tee -ai "${SYSLOG}" 2> /dev/null
-            local_exist="1"
-        }
-    }
-    [ "${custom_data_wan_port_2}" -ge "0" ] && [ "${custom_data_wan_port_2}" -le "2" ] && {
-        local_item_num="$( lz_get_ipv4_data_file_item_total "${custom_data_file_2}" ) "
-        [ "${local_item_num}" -gt "0" ] && {
-            local_hd=""
-            if [ "${4}" = "1" ]; then
-                [ "${custom_data_wan_port_2}" = "0" ] && local_hd="${local_primary_wan_hd}"
-                [ "${custom_data_wan_port_2}" = "1" ] && local_hd="${local_secondary_wan_hd}"
-                [ "${custom_data_wan_port_2}" = "2" ] && local_hd="${local_load_balancing_hd}"
-            elif [ "${custom_data_wan_port_1}" = "2" ]; then
-                local_hd="${local_load_balancing_hd}"
-            else
-                if [ "${local_item_num}" -gt "${list_mode_threshold}" ]; then
-                    [ "${policy_mode}" = "0" ] && [ "${custom_data_wan_port_2}" = "1" ] && local_hd="${local_secondary_wan_hd}"
-                    [ "${policy_mode}" = "1" ] && [ "${custom_data_wan_port_2}" = "0" ] && local_hd="${local_primary_wan_hd}"
-                    [ "${policy_mode}" = "1" ] && [ "${custom_data_wan_port_2}" = "1" ] && local_hd="${local_secondary_wan_hd}"
-                    [ "${policy_mode}" = "0" ] && [ "${custom_data_wan_port_2}" = "0" ] && local_hd="${local_primary_wan_hd}"
-                else
-                    [ "${local_item_num}" -ge "1" ] && {
-                        [ "${custom_data_wan_port_2}" = "0" ] && local_hd="${local_primary_wan_hd}"
-                        [ "${custom_data_wan_port_2}" = "1" ] && local_hd="${local_secondary_wan_hd}"
-                    }
-                fi
-            fi
-            echo "$(lzdate)" [$$]: "   Custom-2        $( lz_get_ispip_info "${custom_data_wan_port_2}" )${local_hd}" | tee -ai "${SYSLOG}" 2> /dev/null
-            local_exist="1"
-        }
-    }
-    [ -n "$( ipset -q -n list "${DOMAIN_SET_0}" )" ] && {
-        echo "$(lzdate)" [$$]: "   DomainNmLst-1   Primary WAN" | tee -ai "${SYSLOG}" 2> /dev/null
-        local_exist="1"
-    }
-    [ -n "$( ipset -q -n list "${DOMAIN_SET_1}" )" ] && {
-        echo "$(lzdate)" [$$]: "   DomainNmLst-2   Secondary WAN" | tee -ai "${SYSLOG}" 2> /dev/null
-        local_exist="1"
-    }
-    [ "${wan_1_client_src_addr}" = "0" ] && {
-        local_item_num="$( lz_get_ipv4_data_file_item_total "${wan_1_client_src_addr_file}" )"
-        [ "${local_item_num}" -gt "0" ] && {
-            local_hd=""
-            if [ "${4}" = "1" ]; then
-                local_hd="${local_primary_wan_hd}"
-            else
-                if [ "${local_item_num}" -gt "${list_mode_threshold}" ]; then
-                    [ "${usage_mode}" != "0" ] && local_hd="${local_primary_wan_hd}"
-                else
-                    [ "${local_item_num}" -ge "1" ] && local_hd="${local_primary_wan_hd}"
-                fi
-            fi
-            echo "$(lzdate)" [$$]: "   SrcLst-1        Primary WAN${local_hd}" | tee -ai "${SYSLOG}" 2> /dev/null
-            local_exist="1"
-        }
-    }
-    [ "${wan_2_client_src_addr}" = "0" ] && {
-        local_item_num="$( lz_get_ipv4_data_file_item_total "${wan_2_client_src_addr_file}" )"
-        [ "${local_item_num}" -gt "0" ] && {
-            local_hd=""
-            if [ "${4}" = "1" ]; then
-                local_hd="${local_secondary_wan_hd}"
-            else
-                if [ "${local_item_num}" -gt "${list_mode_threshold}" ]; then
-                    [ "${usage_mode}" != "0" ] && local_hd="${local_secondary_wan_hd}"
-                else
-                    [ "${local_item_num}" -ge "1" ] && local_hd="${local_secondary_wan_hd}"
-                fi
-            fi
-            echo "$(lzdate)" [$$]: "   SrcLst-2        Secondary WAN${local_hd}" | tee -ai "${SYSLOG}" 2> /dev/null
-            local_exist="1"
-        }
-    }
-    [ "${high_wan_1_client_src_addr}" = "0" ] && {
-        local_item_num="$( lz_get_ipv4_data_file_item_total "${high_wan_1_client_src_addr_file}" )"
-        [ "${local_item_num}" -gt "0" ] && {
-            local_hd=""
-            if [ "${4}" = "1" ]; then
-                local_hd="${local_primary_wan_hd}"
-            else
-                if [ "${local_item_num}" -gt "${list_mode_threshold}" ]; then
-                    [ "${usage_mode}" != "0" ] && local_hd="${local_primary_wan_hd}"
-                else
-                    [ "${local_item_num}" -ge "1" ] && local_hd="${local_primary_wan_hd}"
-                fi
-            fi
-            echo "$(lzdate)" [$$]: "   HighSrcLst-1    Primary WAN${local_hd}" | tee -ai "${SYSLOG}" 2> /dev/null
-            local_exist="1"
-        }
-    }
-    [ "${high_wan_2_client_src_addr}" = "0" ] && {
-        local_item_num="$( lz_get_ipv4_data_file_item_total "${high_wan_2_client_src_addr_file}" )"
-        [ "${local_item_num}" -gt "0" ] && {
-            local_hd=""
-            if [ "${4}" = "1" ]; then
-                local_hd="${local_secondary_wan_hd}"
-            else
-                if [ "${local_item_num}" -gt "${list_mode_threshold}" ]; then
-                    [ "${usage_mode}" != "0" ] && local_hd="${local_secondary_wan_hd}"
-                else
-                    [ "${local_item_num}" -ge "1" ] && local_hd="${local_secondary_wan_hd}"
-                fi
-            fi
-            echo "$(lzdate)" [$$]: "   HighSrcLst-2    Secondary WAN${local_hd}" | tee -ai "${SYSLOG}" 2> /dev/null
-            local_exist="1"
-        }
-    }
-    [ "${wan_1_src_to_dst_addr}" = "0" ] && {
-        local_item_num="$( lz_get_ipv4_src_to_dst_data_file_item_total "${wan_1_src_to_dst_addr_file}" )"
-        [ "${local_item_num}" -gt "0" ] && {
-            local_hd="${local_primary_wan_hd}"
-            echo "$(lzdate)" [$$]: "   SrcToDstLst-1   Primary WAN${local_hd}" | tee -ai "${SYSLOG}" 2> /dev/null
-            local_exist="1"
-        }
-    }
-    [ "${wan_2_src_to_dst_addr}" = "0" ] && {
-        local_item_num="$( lz_get_ipv4_src_to_dst_data_file_item_total "${wan_2_src_to_dst_addr_file}" )"
-        [ "${local_item_num}" -gt "0" ] && {
-            local_hd="${local_secondary_wan_hd}"
-            echo "$(lzdate)" [$$]: "   SrcToDstLst-2   Secondary WAN${local_hd}" | tee -ai "${SYSLOG}" 2> /dev/null
-            local_exist="1"
-        }
-    }
-    [ "${high_wan_1_src_to_dst_addr}" = "0" ] && {
-        local_item_num="$( lz_get_ipv4_src_to_dst_data_file_item_total "${high_wan_1_src_to_dst_addr_file}" )"
-        [ "${local_item_num}" -gt "0" ] && {
-            local_hd="${local_primary_wan_hd}"
-            echo "$(lzdate)" [$$]: "   HiSrcToDstLst   Primary WAN${local_hd}" | tee -ai "${SYSLOG}" 2> /dev/null
-            local_exist="1"
-        }
-    }
-    local_item_num="$( lz_get_ipv4_data_file_item_total "${local_ipsets_file}" )"
-    [ "${usage_mode}" = "0" ] && [ "${local_item_num}" -gt "0" ] && {
-        local_hd="${local_load_balancing_hd}"
-        echo "$(lzdate)" [$$]: "   LocalIPBlcLst   Load Balancing${local_hd}" | tee -ai "${SYSLOG}" 2> /dev/null
-        local_exist="1"
-    }
-    local_item_num="$( lz_get_ipv4_data_file_item_total "${iptv_box_ip_lst_file}" )"
+    local local_item_num="$( lz_get_ipv4_data_file_item_total "${iptv_box_ip_lst_file}" )"
     [ "${local_item_num}" -gt "0" ] && {
         if [ "${iptv_igmp_switch}" = "0" ]; then
-            local_hd="${local_primary_wan_hd}"
-            echo "$(lzdate)" [$$]: "   IPTVSTBIPLst    Primary WAN${local_hd}" | tee -ai "${SYSLOG}" 2> /dev/null
+            echo "$(lzdate)" [$$]: "   IPTVSTBIPLst    Primary WAN${local_primary_wan_hd}" | tee -ai "${SYSLOG}" 2> /dev/null
             local_exist="1"
         elif [ "${iptv_igmp_switch}" = "1" ]; then
-            local_hd="${local_secondary_wan_hd}"
-            echo "$(lzdate)" [$$]: "   IPTVSTBIPLst    Secondary WAN${local_hd}" | tee -ai "${SYSLOG}" 2> /dev/null
+            echo "$(lzdate)" [$$]: "   IPTVSTBIPLst    Secondary WAN${local_secondary_wan_hd}" | tee -ai "${SYSLOG}" 2> /dev/null
             local_exist="1"
         fi
     }
@@ -4489,6 +4357,124 @@ lz_output_ispip_info_to_system_records() {
             }
         fi
     fi
+    [ "${high_wan_1_src_to_dst_addr}" = "0" ] && {
+        local_item_num="$( lz_get_ipv4_src_to_dst_data_file_item_total "${high_wan_1_src_to_dst_addr_file}" )"
+        [ "${local_item_num}" -gt "0" ] && {
+            echo "$(lzdate)" [$$]: "   HiSrcToDstLst   Primary WAN${local_primary_wan_hd}" | tee -ai "${SYSLOG}" 2> /dev/null
+            local_exist="1"
+        }
+    }
+    [ "${wan_2_src_to_dst_addr}" = "0" ] && {
+        local_item_num="$( lz_get_ipv4_src_to_dst_data_file_item_total "${wan_2_src_to_dst_addr_file}" )"
+        [ "${local_item_num}" -gt "0" ] && {
+            echo "$(lzdate)" [$$]: "   SrcToDstLst-2   Secondary WAN${local_secondary_wan_hd}" | tee -ai "${SYSLOG}" 2> /dev/null
+            local_exist="1"
+        }
+    }
+    [ "${wan_1_src_to_dst_addr}" = "0" ] && {
+        local_item_num="$( lz_get_ipv4_src_to_dst_data_file_item_total "${wan_1_src_to_dst_addr_file}" )"
+        [ "${local_item_num}" -gt "0" ] && {
+            echo "$(lzdate)" [$$]: "   SrcToDstLst-1   Primary WAN${local_primary_wan_hd}" | tee -ai "${SYSLOG}" 2> /dev/null
+            local_exist="1"
+        }
+    }
+    [ "${high_wan_2_client_src_addr}" = "0" ] && {
+        local_item_num="$( lz_get_ipv4_data_file_item_total "${high_wan_2_client_src_addr_file}" )"
+        [ "${local_item_num}" -gt "0" ] && {
+            echo "$(lzdate)" [$$]: "   HighSrcLst-2    Secondary WAN${local_secondary_wan_hd}" | tee -ai "${SYSLOG}" 2> /dev/null
+            local_exist="1"
+        }
+    }
+    [ "${high_wan_1_client_src_addr}" = "0" ] && {
+        local_item_num="$( lz_get_ipv4_data_file_item_total "${high_wan_1_client_src_addr_file}" )"
+        [ "${local_item_num}" -gt "0" ] && {
+            echo "$(lzdate)" [$$]: "   HighSrcLst-1    Primary WAN${local_primary_wan_hd}" | tee -ai "${SYSLOG}" 2> /dev/null
+            local_exist="1"
+        }
+    }
+    [ -n "$( ipset -q -n list "${DOMAIN_SET_1}" )" ] && {
+        echo "$(lzdate)" [$$]: "   DomainNmLst-2   Secondary WAN" | tee -ai "${SYSLOG}" 2> /dev/null
+        local_exist="1"
+    }
+    [ -n "$( ipset -q -n list "${DOMAIN_SET_0}" )" ] && {
+        echo "$(lzdate)" [$$]: "   DomainNmLst-1   Primary WAN" | tee -ai "${SYSLOG}" 2> /dev/null
+        local_exist="1"
+    }
+    [ "${wan_2_client_src_addr}" = "0" ] && {
+        local_item_num="$( lz_get_ipv4_data_file_item_total "${wan_2_client_src_addr_file}" )"
+        [ "${local_item_num}" -gt "0" ] && {
+            echo "$(lzdate)" [$$]: "   SrcLst-2        Secondary WAN${local_secondary_wan_hd}" | tee -ai "${SYSLOG}" 2> /dev/null
+            local_exist="1"
+        }
+    }
+    [ "${wan_1_client_src_addr}" = "0" ] && {
+        local_item_num="$( lz_get_ipv4_data_file_item_total "${wan_1_client_src_addr_file}" )"
+        [ "${local_item_num}" -gt "0" ] && {
+            echo "$(lzdate)" [$$]: "   SrcLst-1        Primary WAN${local_primary_wan_hd}" | tee -ai "${SYSLOG}" 2> /dev/null
+            local_exist="1"
+        }
+    }
+    [ "${custom_data_wan_port_2}" -ge "0" ] && [ "${custom_data_wan_port_2}" -le "2" ] && {
+        local_item_num="$( lz_get_ipv4_data_file_item_total "${custom_data_file_2}" ) "
+        [ "${local_item_num}" -gt "0" ] && {
+            local_hd=""
+            if [ "${usage_mode}" != "0" ]; then
+                if [ "${custom_data_wan_port_2}" = "0" ] || [ "${custom_data_wan_port_2}" = "1" ]; then
+                    local_hd="${local_primary_wan_hd}"
+                    [ "${custom_data_wan_port_2}" = "1" ] && local_hd="${local_secondary_wan_hd}"
+                    echo "$(lzdate)" [$$]: "   Custom-2        $( lz_get_ispip_info "${custom_data_wan_port_2}" )${local_hd}" | tee -ai "${SYSLOG}" 2> /dev/null
+                    local_exist="1"
+                elif [ "${custom_data_wan_port_2}" = "2" ] && [ "${policy_mode}" = "0" ]; then
+                    echo "$(lzdate)" [$$]: "   Custom-2      * $( lz_get_ispip_info "1" )${local_secondary_wan_hd}" | tee -ai "${SYSLOG}" 2> /dev/null
+                    local_exist="1"
+                elif [ "${custom_data_wan_port_2}" = "2" ] && [ "${policy_mode}" = "1" ]; then
+                    echo "$(lzdate)" [$$]: "   Custom-2      * $( lz_get_ispip_info "0" )${local_primary_wan_hd}" | tee -ai "${SYSLOG}" 2> /dev/null
+                    local_exist="1"
+                fi
+            else
+                if [ "${custom_data_wan_port_2}" = "0" ] || [ "${custom_data_wan_port_2}" = "1" ]; then
+                    echo "$(lzdate)" [$$]: "   Custom-2        $( lz_get_ispip_info "${custom_data_wan_port_2}" )" | tee -ai "${SYSLOG}" 2> /dev/null
+                    local_exist="1"
+                elif [ "${custom_data_wan_port_2}" = "2" ]; then
+                    echo "$(lzdate)" [$$]: "   Custom-2        $( lz_get_ispip_info "5" )" | tee -ai "${SYSLOG}" 2> /dev/null
+                    local_exist="1"
+                fi
+            fi
+        }
+    }
+    [ "${custom_data_wan_port_1}" -ge "0" ] && [ "${custom_data_wan_port_1}" -le "2" ] && {
+        local_item_num="$( lz_get_ipv4_data_file_item_total "${custom_data_file_1}" )"
+        [ "${local_item_num}" -gt "0" ] && {
+            local_hd=""
+            if [ "${usage_mode}" != "0" ]; then
+                if [ "${custom_data_wan_port_1}" = "0" ] || [ "${custom_data_wan_port_1}" = "1" ]; then
+                    local_hd="${local_primary_wan_hd}"
+                    [ "${custom_data_wan_port_1}" = "1" ] && local_hd="${local_secondary_wan_hd}"
+                    echo "$(lzdate)" [$$]: "   Custom-1        $( lz_get_ispip_info "${custom_data_wan_port_1}" )${local_hd}" | tee -ai "${SYSLOG}" 2> /dev/null
+                    local_exist="1"
+                elif [ "${custom_data_wan_port_1}" = "2" ] && [ "${policy_mode}" = "0" ]; then
+                    echo "$(lzdate)" [$$]: "   Custom-1      * $( lz_get_ispip_info "1" )${local_secondary_wan_hd}" | tee -ai "${SYSLOG}" 2> /dev/null
+                    local_exist="1"
+                elif [ "${custom_data_wan_port_1}" = "2" ] && [ "${policy_mode}" = "1" ]; then
+                    echo "$(lzdate)" [$$]: "   Custom-1      * $( lz_get_ispip_info "0" )${local_primary_wan_hd}" | tee -ai "${SYSLOG}" 2> /dev/null
+                    local_exist="1"
+                fi
+            else
+                if [ "${custom_data_wan_port_1}" = "0" ] || [ "${custom_data_wan_port_1}" = "1" ]; then
+                    echo "$(lzdate)" [$$]: "   Custom-1        $( lz_get_ispip_info "${custom_data_wan_port_1}" )" | tee -ai "${SYSLOG}" 2> /dev/null
+                    local_exist="1"
+                elif [ "${custom_data_wan_port_1}" = "2" ]; then
+                    echo "$(lzdate)" [$$]: "   Custom-1        $( lz_get_ispip_info "5" )" | tee -ai "${SYSLOG}" 2> /dev/null
+                    local_exist="1"
+                fi
+            fi
+        }
+    }
+    local_item_num="$( lz_get_ipv4_data_file_item_total "${local_ipsets_file}" )"
+    [ "${usage_mode}" = "0" ] && [ "${local_item_num}" -gt "0" ] && {
+        echo "$(lzdate)" [$$]: "   LocalIPBlcLst   Load Balancing" | tee -ai "${SYSLOG}" 2> /dev/null
+        local_exist="1"
+    }
     [ "${local_exist}" = "1" ] && {
         echo "$(lzdate)" [$$]: ---------------------------------------- | tee -ai "${SYSLOG}" 2> /dev/null
     }
@@ -4885,6 +4871,12 @@ lz_remove_unused_ipset() {
     ## 第二WAN口域名地址数据集名称
     ipset -q destroy "${DOMAIN_SET_1}"
 
+    ## 第一WAN口域名分流客户端源网址/网段数据集名称
+    ipset -q destroy "${DOMAIN_CLT_SRC_SET_0}"
+
+    ## 第二WAN口域名分流客户端源网址/网段数据集名称
+    ipset -q destroy "${DOMAIN_CLT_SRC_SET_1}"
+
     ## 本地内网网址/网段数据集
     ipset -q destroy "${LOCAL_IP_SET}"
 
@@ -4996,31 +4988,10 @@ lz_deployment_routing_policy() {
     ## 返回值：无
     lz_vpn_support "${1}"
 
-    local local_netfilter_used="0"
-    ## 检测是否启用NetFilter网络防火墙地址过滤匹配标记功能
-    ## 输入项：
-    ##     全局常量及变量
-    ## 返回值：
-    ##     0--已启用
-    ##     1--未启用
-    lz_get_netfilter_used && local_netfilter_used="1"
-
-    local local_auto_traffic="0"
-    ## 判断目标网段是否存在系统自动分配出口项
-    ## 输入项：
-    ##     全局变量
-    ## 返回值：
-    ##     0--是
-    ##     1--否
-    lz_is_auto_traffic && local_auto_traffic="1"
-
-    local local_show_hd="0"
-
     if [ "${usage_mode}" != "0" ]; then
         ## 静态分流模式
         [ "${policy_mode}" = "0" ] && ip rule add from all table "${WAN1}" prio "${IP_RULE_PRIO}" > /dev/null 2>&1
         [ "${policy_mode}" = "1" ] && ip rule add from all table "${WAN0}" prio "${IP_RULE_PRIO}" > /dev/null 2>&1
-        [ "${local_netfilter_used}" = "0" ] && local_show_hd="1"
     fi
 
     ## 禁用路由缓存
@@ -5208,10 +5179,9 @@ lz_deployment_routing_policy() {
     ##     $1--主执行脚本运行输入参数
     ##     $2--第一WAN出口接入ISP运营商信息
     ##     $3--第二WAN出口接入ISP运营商信息
-    ##     $4--是否全局直连绑定出口
     ##     全局常量及变量
     ## 返回值：无
-    lz_output_ispip_info_to_system_records "${1}" "${local_wan0_isp}" "${local_wan1_isp}" "${local_show_hd}"
+    lz_output_ispip_info_to_system_records "${1}" "${local_wan0_isp}" "${local_wan1_isp}"
 
     ## 向系统记录输出端口分流出口信息
     ## 输入项：
@@ -5220,18 +5190,11 @@ lz_deployment_routing_policy() {
     ## 返回值：无
     lz_output_dport_policy_info_to_system_records "${1}"
 
-    if [ "${local_netfilter_used}" = "0" ]; then
-        if [ "${local_auto_traffic}" = "0" ]; then
-            {
-                echo "$(lzdate)" [$$]: "   All in High Speed Direct DT Mode."
-                echo "$(lzdate)" [$$]: ----------------------------------------
-            } | tee -ai "${SYSLOG}" 2> /dev/null
-        else
-            {
-                echo "$(lzdate)" [$$]: "   Using Link Load Balancing Technology."
-                echo "$(lzdate)" [$$]: ----------------------------------------
-            } | tee -ai "${SYSLOG}" 2> /dev/null
-        fi
+    if [ "${usage_mode}" != "0" ]; then
+        {
+            echo "$(lzdate)" [$$]: "   All in High Speed Direct DT Mode."
+            echo "$(lzdate)" [$$]: ----------------------------------------
+        } | tee -ai "${SYSLOG}" 2> /dev/null
     else
         {
             echo "$(lzdate)" [$$]: "   Using Netfilter Technology."
