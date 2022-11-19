@@ -1,5 +1,5 @@
 #!/bin/sh
-# lzinstall.sh v3.8.0
+# lzinstall.sh v3.8.1
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ script for asuswrt/merlin based router
@@ -9,7 +9,7 @@
 
 #BEIGIN
 
-LZ_VERSION=v3.8.0
+LZ_VERSION=v3.8.1
 TIMEOUT=10
 CURRENT_PATH="${0%/*}"
 [ "${CURRENT_PATH:0:1}" != '/' ] && CURRENT_PATH="$( pwd )${CURRENT_PATH#*.}"
@@ -172,10 +172,12 @@ find "${CURRENT_PATH}/lz/data" -name "*_cidr.txt" -print0 2> /dev/null | xargs -
 [ ! -f "${PATH_DATA}/wan_1_domain.txt" ] && cp -rp "${CURRENT_PATH}/lz/data/wan_1_domain.txt" "${PATH_DATA}" > /dev/null 2>&1
 [ ! -f "${PATH_DATA}/wan_1_domain_client_src_addr.txt" ] && cp -rp "${CURRENT_PATH}/lz/data/wan_1_domain_client_src_addr.txt" "${PATH_DATA}" > /dev/null 2>&1
 [ ! -f "${PATH_DATA}/wan_1_src_to_dst_addr.txt" ] && cp -rp "${CURRENT_PATH}/lz/data/wan_1_src_to_dst_addr.txt" "${PATH_DATA}" > /dev/null 2>&1
+[ ! -f "${PATH_DATA}/wan_1_src_to_dst_addr_port.txt" ] && cp -rp "${CURRENT_PATH}/lz/data/wan_1_src_to_dst_addr_port.txt" "${PATH_DATA}" > /dev/null 2>&1
 [ ! -f "${PATH_DATA}/wan_2_client_src_addr.txt" ] && cp -rp "${CURRENT_PATH}/lz/data/wan_2_client_src_addr.txt" "${PATH_DATA}" > /dev/null 2>&1
 [ ! -f "${PATH_DATA}/wan_2_domain.txt" ] && cp -rp "${CURRENT_PATH}/lz/data/wan_2_domain.txt" "${PATH_DATA}" > /dev/null 2>&1
 [ ! -f "${PATH_DATA}/wan_2_domain_client_src_addr.txt" ] && cp -rp "${CURRENT_PATH}/lz/data/wan_2_domain_client_src_addr.txt" "${PATH_DATA}" > /dev/null 2>&1
 [ ! -f "${PATH_DATA}/wan_2_src_to_dst_addr.txt" ] && cp -rp "${CURRENT_PATH}/lz/data/wan_2_src_to_dst_addr.txt" "${PATH_DATA}" > /dev/null 2>&1
+[ ! -f "${PATH_DATA}/wan_2_src_to_dst_addr_port.txt" ] && cp -rp "${CURRENT_PATH}/lz/data/wan_2_src_to_dst_addr_port.txt" "${PATH_DATA}" > /dev/null 2>&1
 
 chmod 775 "${PATH_LZ}/lz_rule.sh" > /dev/null 2>&1
 chmod -R 775 "${PATH_LZ}" > /dev/null 2>&1

@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_status.sh v3.8.0
+# lz_rule_status.sh v3.8.1
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 显示脚本运行状态脚本
@@ -62,12 +62,17 @@ lz_define_status_constant() {
 
     STATUS_DEST_PORT_FWMARK_0="0x3333"
     STATUS_DEST_PORT_FWMARK_1="0x2222"
+    STATUS_CLIENT_DEST_PORT_FWMARK_0="0x3131"
+    STATUS_CLIENT_DEST_PORT_FWMARK_1="0x2121"
 }
 
 ## 卸载基本运行状态常量函数
 lz_uninstall_status_constant() {
     unset STATUS_DEST_PORT_FWMARK_0
     unset STATUS_DEST_PORT_FWMARK_1
+
+    unset STATUS_CLIENT_DEST_PORT_FWMARK_0
+    unset STATUS_CLIENT_DEST_PORT_FWMARK_1
 
     unset STATUS_DOMAIN_SET_0
     unset STATUS_DOMAIN_SET_1
@@ -1412,6 +1417,14 @@ lz_output_ispip_status_info() {
             echo "$(lzdate)" [$$]: "   HighSrcLst-1    Primary WAN${local_primary_wan_hd}"
             local_exist="1"
         }
+    }
+    [ "$( lz_get_iptables_fwmark_item_total_number_status "${STATUS_CLIENT_DEST_PORT_FWMARK_1}" "${STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN}" )" -gt "0" ] && {
+        echo "$(lzdate)" [$$]: "   SrcToDstPrt-2   Secondary WAN"
+        local_exist="1"
+    }
+    [ "$( lz_get_iptables_fwmark_item_total_number_status "${STATUS_CLIENT_DEST_PORT_FWMARK_0}" "${STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN}" )" -gt "0" ] && {
+        echo "$(lzdate)" [$$]: "   SrcToDstPrt-1   Primary WAN"
+        local_exist="1"
     }
     [ -n "$( ipset -q -n list "${STATUS_DOMAIN_SET_1}" )" ] && {
         echo "$(lzdate)" [$$]: "   DomainNmLst-2   Secondary WAN"

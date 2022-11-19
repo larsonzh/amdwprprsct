@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_initialize_config.sh v3.8.0
+# lz_initialize_config.sh v3.8.1
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 初始化脚本配置
@@ -62,6 +62,10 @@ lz_variable_initialize() {
     local_wan1_dest_udp_port=
     local_wan1_dest_udplite_port=
     local_wan1_dest_sctp_port=
+    local_wan_1_src_to_dst_addr_port=
+    local_wan_1_src_to_dst_addr_port_file=
+    local_wan_2_src_to_dst_addr_port=
+    local_wan_2_src_to_dst_addr_port_file=
     local_ovs_client_wan_port=
     local_vpn_client_polling_time=
     local_wan_access_port=
@@ -146,6 +150,10 @@ lz_variable_initialize() {
     local_ini_wan1_dest_udp_port=
     local_ini_wan1_dest_udplite_port=
     local_ini_wan1_dest_sctp_port=
+    local_ini_wan_1_src_to_dst_addr_port=
+    local_ini_wan_1_src_to_dst_addr_port_file=
+    local_ini_wan_2_src_to_dst_addr_port=
+    local_ini_wan_2_src_to_dst_addr_port_file=
     local_ini_ovs_client_wan_port=
     local_ini_vpn_client_polling_time=
     local_ini_wan_access_port=
@@ -229,6 +237,10 @@ lz_variable_initialize() {
     local_wan1_dest_udp_port_changed="0"
     local_wan1_dest_udplite_port_changed="0"
     local_wan1_dest_sctp_port_changed="0"
+    local_wan_1_src_to_dst_addr_port_changed="0"
+    local_wan_1_src_to_dst_addr_port_file_changed="0"
+    local_wan_2_src_to_dst_addr_port_changed="0"
+    local_wan_2_src_to_dst_addr_port_file_changed="0"
     local_ovs_client_wan_port_changed="0"
     local_vpn_client_polling_time_changed="0"
     local_wan_access_port_changed="0"
@@ -326,6 +338,10 @@ lz_variable_uninitialize() {
     unset local_ini_wan1_dest_udp_port
     unset local_ini_wan1_dest_udplite_port
     unset local_ini_wan1_dest_sctp_port
+    unset local_ini_wan_1_src_to_dst_addr_port
+    unset local_ini_wan_1_src_to_dst_addr_port_file
+    unset local_ini_wan_2_src_to_dst_addr_port
+    unset local_ini_wan_2_src_to_dst_addr_port_file
     unset local_ini_ovs_client_wan_port
     unset local_ini_vpn_client_polling_time
     unset local_ini_wan_access_port
@@ -411,6 +427,10 @@ lz_variable_uninitialize() {
     unset local_wan1_dest_udplite_port
     unset local_wan1_dest_sctp_port
     unset local_ovs_client_wan_port
+    unset local_wan_1_src_to_dst_addr_port
+    unset local_wan_1_src_to_dst_addr_port_file
+    unset local_wan_2_src_to_dst_addr_port
+    unset local_wan_2_src_to_dst_addr_port_file
     unset local_vpn_client_polling_time
     unset local_wan_access_port
     unset local_dn_pre_resolved
@@ -493,6 +513,10 @@ lz_variable_uninitialize() {
     unset local_wan1_dest_udp_port_changed
     unset local_wan1_dest_udplite_port_changed
     unset local_wan1_dest_sctp_port_changed
+    unset local_wan_1_src_to_dst_addr_port_changed
+    unset local_wan_1_src_to_dst_addr_port_file_changed
+    unset local_wan_2_src_to_dst_addr_port_changed
+    unset local_wan_2_src_to_dst_addr_port_file_changed
     unset local_ovs_client_wan_port_changed
     unset local_vpn_client_polling_time_changed
     unset local_wan_access_port_changed
@@ -638,6 +662,8 @@ lz_restore_default_config() {
 ##     第二WAN口高优先级客户端IPv4流量静态直通出口规则（high_wan_2_client_src_addr_file）
 ##     第一WAN口高优先级客户端IPv4流量静态直通出口规则（high_wan_1_client_src_addr_file）
 ##     外网访问路由器静态路由方式出入口规则
+##     第二WAN口客户端至预设IPv4目标网址/网段流量协议端口动态分流出口规则（wan_2_src_to_dst_addr_port_file）
+##     第一WAN口客户端至预设IPv4目标网址/网段流量协议端口动态分流出口规则（wan_1_src_to_dst_addr_port_file）
 ##     第二WAN口域名地址IPv4流量动态分流出口规则（wan_2_domain_client_src_addr_file及wan_2_domain_file）
 ##     第一WAN口域名地址IPv4流量动态分流出口规则（wan_1_domain_client_src_addr_file及wan_1_domain_file）
 ##     第二WAN口客户端IPv4流量静态直通出口规则（wan_2_client_src_addr_file）
@@ -646,10 +672,10 @@ lz_restore_default_config() {
 ##     用户自定义IPv4目标网址/网段(1)流量静态分流出口规则（custom_data_file_1）
 ##     国内及国外运营商IPv4目标网址/网段第二WAN口流量静态分流出口规则
 ##     国内及国外运营商IPv4目标网址/网段第一WAN口流量静态分流出口规则
-##     第二WAN口IPv4流量端口动态分流出口规则
-##     第一WAN口IPv4流量端口动态分流出口规则
-##     国内运营商及用户自定义IPv4目标网址/网段第二WAN口流量动态分流出口规则
-##     国内运营商及用户自定义IPv4目标网址/网段第一WAN口流量动态分流出口规则
+##     第二WAN口IPv4流量协议端口动态分流出口规则
+##     第一WAN口IPv4流量协议端口动态分流出口规则
+##     国内运营商IPv4目标网段和用户自定义IPv4目标网址/网段（custom_data_file_2）第二WAN口流量动态分流出口规则
+##     国内运营商IPv4目标网段和用户自定义IPv4目标网址/网段（custom_data_file_1）第一WAN口流量动态分流出口规则
 ##     国外运营商IPv4目标网段流量动态分流出口规则
 ##     系统负载均衡自动分配IPv4流量出口规则
 
@@ -795,8 +821,9 @@ custom_data_file_2="${PATH_DATA}/custom_data_2.txt"
 ## 0--启用；非0--禁用；取值范围：0~9
 ## 缺省为禁用（5）。
 ## 指定客户端条目列表中所有设备访问预设域名地址的IPv4流量使用第一WAN口作为出口。
-## 功能优先级高于“客户端IPv4流量静态直通”，低于“高优先级客户端IPv4流量静态直通”和“客户端至预设IPv4目
-## 标网址/网段流量静态直通”，详情见前述“策略规则优先级执行顺序”。
+## 功能优先级高于“客户端IPv4流量静态直通”，低于“客户端至预设IPv4目标网址/网段流量协议端口动态分流”、“高优
+## 先级客户端IPv4流量静态直通”和“客户端至预设IPv4目标网址/网段流量静态直通”，详情见前述“策略规则优先级
+## 执行顺序”。
 ## 本功能只可在动态分流模式下使用，静态分流模式下无效。
 wan_1_domain=5
 
@@ -824,8 +851,9 @@ wan_1_domain_file="${PATH_DATA}/wan_1_domain.txt"
 ## 0--启用；非0--禁用；取值范围：0~9
 ## 缺省为禁用（5）。
 ## 指定客户端条目列表中所有设备访问预设域名地址的IPv4流量使用第二WAN口作为出口。
-## 功能优先级高于“客户端IPv4流量静态直通”，低于“高优先级客户端IPv4流量静态直通”和“客户端至预设IPv4目
-## 标网址/网段流量静态直通”，详情见前述“策略规则优先级执行顺序”。
+## 功能优先级高于“客户端IPv4流量静态直通”，低于“客户端至预设IPv4目标网址/网段流量协议端口动态分流”、“高优
+## 先级客户端IPv4流量静态直通”和“客户端至预设IPv4目标网址/网段流量静态直通”，详情见前述“策略规则优先级
+## 执行顺序”。
 ## 本功能只可在动态分流模式下使用，静态分流模式下无效。
 wan_2_domain=5
 
@@ -957,6 +985,94 @@ high_wan_1_src_to_dst_addr=5
 ## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
 high_wan_1_src_to_dst_addr_file="${PATH_DATA}/high_wan_1_src_to_dst_addr.txt"
 
+## 第一WAN口IPv4流量协议端口动态分流
+## 最多可设置15个不连续的目标访问端口号埠，仅针对TCP、UDP、UDPLITE、SCTP四类协议端口
+## 不设置且为空时--禁用（缺省）
+## 例如，TCP协议端口：wan0_dest_tcp_port=80,443,6881:6889,25671
+## 其中：6881:6889表示6881~6889的连续端口号，不连续的端口号埠之间用英文半角“,”逗号相隔，不要有多余空格。
+## 功能优先级低于“客户端IPv4流量静态直通”，高于“运营商IPv4目标网段流量出口”和“用户自定义IPv4目标网址/网
+## 段流量出口”，详情见前述“策略规则优先级执行顺序”。
+## 仅能在动态分流模式下使用。
+wan0_dest_tcp_port=
+wan0_dest_udp_port=
+wan0_dest_udplite_port=
+wan0_dest_sctp_port=
+
+## 第二WAN口IPv4流量协议端口动态分流
+## 最多可设置15个不连续的目标访问端口号埠，仅针对TCP、UDP、UDPLITE、SCTP四类协议端口
+## 不设置且为空时--禁用（缺省）
+## 功能优先级低于“客户端IPv4流量静态直通”，高于“运营商IPv4目标网段流量出口”和“用户自定义IPv4目标网址/网
+## 段流量出口”，详情见前述“策略规则优先级执行顺序”。
+## 仅能在动态分流模式下使用。
+wan1_dest_tcp_port=
+wan1_dest_udp_port=
+wan1_dest_udplite_port=
+wan1_dest_sctp_port=
+
+## 第一WAN口客户端至预设IPv4目标网址/网段流量协议端口动态分流
+## 0--启用；非0--禁用；取值范围：0~9
+## 缺省为禁用（5）。
+## 指定客户端访问预设IPv4网址/网段协议端口时使用第二WAN口作为该IPv4流量出口，可一次性的同时实现多种灵活、
+## 精准的流量策略。
+## 仅用于TCP、UDP、UDPLITE、SCTP四类协议端口。
+## 功能优先级高于“域名地址IPv4流量动态分流”和“客户端IPv4流量静态直通”，低于“高优先级客户端IPv4流量静态直
+## 通”和“客户端至预设IPv4目标网址/网段流量静态直通”，详情见前述“策略规则优先级执行顺序”。
+## 仅能在动态分流模式下使用。
+wan_1_src_to_dst_addr_port=5
+
+## 第一WAN口客户端IPv4网址/网段至预设IPv4目标网址/网段协议端口动态分流条目列表数据文件
+## 文件中具体定义客户端访问预设IPv4网址/网段协议端口时使用第一WAN口作为该IPv4流量出口。
+## 文件路径、名称可自定义和修改，文件路径及名称不得为空。
+## 缺省为"${PATH_DATA}/wan_1_src_to_dst_addr_port.txt"，为空文件。
+## 文本格式：每行各字段之间用空格隔开，一个条目一行，可多行多个条目。
+## 客户端IPv4网址/网段 IPv4目标网址/网段 通讯协议 目标端口号
+## 例如：
+## 192.168.50.101 123.123.123.121 tcp 80,443,6881:6889,25671
+## 192.168.50.0/27 123.123.123.0/24 udp 4334
+## 0.0.0.0/0 123.123.123.123 udplite 12345
+## 192.168.50.102 0.0.0.0/0 sctp
+## 0.0.0.0/0 0.0.0.0/0
+## 可以用0.0.0.0/0表示所有未知IP地址。
+## “客户端IPv4网址/网段”和“IPv4目标网址/网段”为必选项。
+## “通讯协议”及“目标端口号”为可选项。选择“目标端口号”时，“通讯协议”则为必选项。
+## 每个条目只能使用一个端口通讯协议，只能是TCP、UDP、UDPLITE、SCTP四种协议中的一个，字母英文大小写均可。
+## 连续端口号中间用英文半角“:”冒号相隔，如：6881:6889表示6881~6889的连续端口号。
+## 每个条目最多可设置15个不连续的目标访问端口号埠，不连续的端口号埠之间用英文半角“,”逗号相隔，不要有空格。
+## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
+wan_1_src_to_dst_addr_port_file="${PATH_DATA}/wan_1_src_to_dst_addr_port.txt"
+
+## 第二WAN口客户端至预设IPv4目标网址/网段流量协议端口动态分流
+## 0--启用；非0--禁用；取值范围：0~9
+## 缺省为禁用（5）。
+## 指定客户端访问预设IPv4网址/网段协议端口时使用第二WAN口作为该IPv4流量出口，可一次性的同时实现多种灵活、
+## 精准的流量策略。
+## 仅用于TCP、UDP、UDPLITE、SCTP四类协议端口。
+## 功能优先级高于“域名地址IPv4流量动态分流”和“客户端IPv4流量静态直通”，低于“高优先级客户端IPv4流量静态直
+## 通”和“客户端至预设IPv4目标网址/网段流量静态直通”，详情见前述“策略规则优先级执行顺序”。
+## 仅能在动态分流模式下使用。
+wan_2_src_to_dst_addr_port=5
+
+## 第二WAN口客户端IPv4网址/网段至预设IPv4目标网址/网段协议端口动态分流条目列表数据文件
+## 文件中具体定义客户端访问预设IPv4网址/网段协议端口时使用第二WAN口作为该IPv4流量出口。
+## 文件路径、名称可自定义和修改，文件路径及名称不得为空。
+## 缺省为"${PATH_DATA}/wan_2_src_to_dst_addr_port.txt"，为空文件。
+## 文本格式：每行各字段之间用空格隔开，一个条目一行，可多行多个条目。
+## 客户端IPv4网址/网段 IPv4目标网址/网段 通讯协议 目标端口号
+## 例如：
+## 192.168.50.101 123.123.123.121 tcp 80,443,6881:6889,25671
+## 192.168.50.0/27 123.123.123.0/24 udp 4334
+## 0.0.0.0/0 123.123.123.123 udplite 12345
+## 192.168.50.102 0.0.0.0/0 sctp
+## 0.0.0.0/0 0.0.0.0/0
+## 可以用0.0.0.0/0表示所有未知IP地址。
+## “客户端IPv4网址/网段”和“IPv4目标网址/网段”为必选项。
+## “通讯协议”及“目标端口号”为可选项。选择“目标端口号”时，“通讯协议”则为必选项。
+## 每个条目只能使用一个端口通讯协议，只能是TCP、UDP、UDPLITE、SCTP四种协议中的一个，字母英文大小写均可。
+## 连续端口号中间用英文半角“:”冒号相隔，如：6881:6889表示6881~6889的连续端口号。
+## 每个条目最多可设置15个不连续的目标访问端口号埠，不连续的端口号埠之间用英文半角“,”逗号相隔，不要有空格。
+## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
+wan_2_src_to_dst_addr_port_file="${PATH_DATA}/wan_2_src_to_dst_addr_port.txt"
+
 ## 本地客户端IPv4网址/网段分流黑名单列表数据文件
 ## 在动态分流模式下，列入该网址/网段名单列表的设备访问外网时不受分流规则控制，仅由路由器自身的负载均衡
 ## 功能自动分配流量出口，可实现一些特殊用途的应用（如带速叠加下载，但外部影响因素较多，不保证能实现）。
@@ -974,26 +1090,6 @@ local_ipsets_file="${PATH_DATA}/local_ipsets_data.txt"
 ## 文本格式：一个网址/网段一行，为一个条目，可多行多个条目。
 ## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
 private_ipsets_file="${PATH_DATA}/private_ipsets_data.txt"
-
-## 第一WAN口IPv4流量端口动态分流
-## 最多可设置15个不连续的目标访问端口号埠，仅针对TCP、UDP、UDPLITE、SCTP四类协议端口
-## 不设置且为空时--禁用（缺省）
-## 例如，TCP协议端口：wan0_dest_tcp_port=80,443,6881:6889,25671
-## 其中：6881:6889表示6881~6889的连续端口号，不连续的端口号埠之间用英文半角“,”逗号相隔，不要有多余空格。
-## 仅能在动态分流模式下使用。
-wan0_dest_tcp_port=
-wan0_dest_udp_port=
-wan0_dest_udplite_port=
-wan0_dest_sctp_port=
-
-## 第二WAN口IPv4流量端口动态分流
-## 最多可设置15个不连续的目标访问端口号埠，仅针对TCP、UDP、UDPLITE、SCTP四类协议端口
-## 不设置且为空时--禁用（缺省）
-## 仅能在动态分流模式下使用。
-wan1_dest_tcp_port=
-wan1_dest_udp_port=
-wan1_dest_udplite_port=
-wan1_dest_sctp_port=
 
 ## 虚拟专网客户端访问外网IPv4流量路由器出口
 ## 0--第一WAN口；1--第二WAN口；>1--按网段分流规则匹配出口；取值范围：0~9
@@ -1335,6 +1431,8 @@ lz_restore_cfg_file() {
 ##     第二WAN口高优先级客户端IPv4流量静态直通出口规则（high_wan_2_client_src_addr_file）
 ##     第一WAN口高优先级客户端IPv4流量静态直通出口规则（high_wan_1_client_src_addr_file）
 ##     外网访问路由器静态路由方式出入口规则
+##     第二WAN口客户端至预设IPv4目标网址/网段流量协议端口动态分流出口规则（wan_2_src_to_dst_addr_port_file）
+##     第一WAN口客户端至预设IPv4目标网址/网段流量协议端口动态分流出口规则（wan_1_src_to_dst_addr_port_file）
 ##     第二WAN口域名地址IPv4流量动态分流出口规则（wan_2_domain_client_src_addr_file及wan_2_domain_file）
 ##     第一WAN口域名地址IPv4流量动态分流出口规则（wan_1_domain_client_src_addr_file及wan_1_domain_file）
 ##     第二WAN口客户端IPv4流量静态直通出口规则（wan_2_client_src_addr_file）
@@ -1343,10 +1441,10 @@ lz_restore_cfg_file() {
 ##     用户自定义IPv4目标网址/网段(1)流量静态分流出口规则（custom_data_file_1）
 ##     国内及国外运营商IPv4目标网址/网段第二WAN口流量静态分流出口规则
 ##     国内及国外运营商IPv4目标网址/网段第一WAN口流量静态分流出口规则
-##     第二WAN口IPv4流量端口动态分流出口规则
-##     第一WAN口IPv4流量端口动态分流出口规则
-##     国内运营商及用户自定义IPv4目标网址/网段第二WAN口流量动态分流出口规则
-##     国内运营商及用户自定义IPv4目标网址/网段第一WAN口流量动态分流出口规则
+##     第二WAN口IPv4流量协议端口动态分流出口规则
+##     第一WAN口IPv4流量协议端口动态分流出口规则
+##     国内运营商IPv4目标网段和用户自定义IPv4目标网址/网段（custom_data_file_2）第二WAN口流量动态分流出口规则
+##     国内运营商IPv4目标网段和用户自定义IPv4目标网址/网段（custom_data_file_1）第一WAN口流量动态分流出口规则
 ##     国外运营商IPv4目标网段流量动态分流出口规则
 ##     系统负载均衡自动分配IPv4流量出口规则
 
@@ -1492,8 +1590,9 @@ custom_data_file_2=${local_custom_data_file_2}
 ## 0--启用；非0--禁用；取值范围：0~9
 ## 缺省为禁用（5）。
 ## 指定客户端条目列表中所有设备访问预设域名地址的IPv4流量使用第一WAN口作为出口。
-## 功能优先级高于“客户端IPv4流量静态直通”，低于“高优先级客户端IPv4流量静态直通”和“客户端至预设IPv4目
-## 标网址/网段流量静态直通”，详情见前述“策略规则优先级执行顺序”。
+## 功能优先级高于“客户端IPv4流量静态直通”，低于“客户端至预设IPv4目标网址/网段流量协议端口动态分流”、“高优
+## 先级客户端IPv4流量静态直通”和“客户端至预设IPv4目标网址/网段流量静态直通”，详情见前述“策略规则优先级
+## 执行顺序”。
 ## 本功能只可在动态分流模式下使用，静态分流模式下无效。
 wan_1_domain=${local_wan_1_domain}
 
@@ -1521,8 +1620,9 @@ wan_1_domain_file=${local_wan_1_domain_file}
 ## 0--启用；非0--禁用；取值范围：0~9
 ## 缺省为禁用（5）。
 ## 指定客户端条目列表中所有设备访问预设域名地址的IPv4流量使用第二WAN口作为出口。
-## 功能优先级高于“客户端IPv4流量静态直通”，低于“高优先级客户端IPv4流量静态直通”和“客户端至预设IPv4目
-## 标网址/网段流量静态直通”，详情见前述“策略规则优先级执行顺序”。
+## 功能优先级高于“客户端IPv4流量静态直通”，低于“客户端至预设IPv4目标网址/网段流量协议端口动态分流”、“高优
+## 先级客户端IPv4流量静态直通”和“客户端至预设IPv4目标网址/网段流量静态直通”，详情见前述“策略规则优先级
+## 执行顺序”。
 ## 本功能只可在动态分流模式下使用，静态分流模式下无效。
 wan_2_domain=${local_wan_2_domain}
 
@@ -1654,6 +1754,94 @@ high_wan_1_src_to_dst_addr=${local_high_wan_1_src_to_dst_addr}
 ## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
 high_wan_1_src_to_dst_addr_file=${local_high_wan_1_src_to_dst_addr_file}
 
+## 第一WAN口IPv4流量协议端口动态分流
+## 最多可设置15个不连续的目标访问端口号埠，仅针对TCP、UDP、UDPLITE、SCTP四类协议端口
+## 不设置且为空时--禁用（缺省）
+## 例如，TCP协议端口：wan0_dest_tcp_port=80,443,6881:6889,25671
+## 其中：6881:6889表示6881~6889的连续端口号，不连续的端口号埠之间用英文半角“,”逗号相隔，不要有多余空格。
+## 功能优先级低于“客户端IPv4流量静态直通”，高于“运营商IPv4目标网段流量出口”和“用户自定义IPv4目标网址/网
+## 段流量出口”，详情见前述“策略规则优先级执行顺序”。
+## 仅能在动态分流模式下使用。
+wan0_dest_tcp_port=${local_wan0_dest_tcp_port}
+wan0_dest_udp_port=${local_wan0_dest_udp_port}
+wan0_dest_udplite_port=${local_wan0_dest_udplite_port}
+wan0_dest_sctp_port=${local_wan0_dest_sctp_port}
+
+## 第二WAN口IPv4流量协议端口动态分流
+## 最多可设置15个不连续的目标访问端口号埠，仅针对TCP、UDP、UDPLITE、SCTP四类协议端口
+## 不设置且为空时--禁用（缺省）
+## 功能优先级低于“客户端IPv4流量静态直通”，高于“运营商IPv4目标网段流量出口”和“用户自定义IPv4目标网址/网
+## 段流量出口”，详情见前述“策略规则优先级执行顺序”。
+## 仅能在动态分流模式下使用。
+wan1_dest_tcp_port=${local_wan1_dest_tcp_port}
+wan1_dest_udp_port=${local_wan1_dest_udp_port}
+wan1_dest_udplite_port=${local_wan1_dest_udplite_port}
+wan1_dest_sctp_port=${local_wan1_dest_sctp_port}
+
+## 第一WAN口客户端至预设IPv4目标网址/网段流量协议端口动态分流
+## 0--启用；非0--禁用；取值范围：0~9
+## 缺省为禁用（5）。
+## 指定客户端访问预设IPv4网址/网段协议端口时使用第二WAN口作为该IPv4流量出口，可一次性的同时实现多种灵活、
+## 精准的流量策略。
+## 仅用于TCP、UDP、UDPLITE、SCTP四类协议端口。
+## 功能优先级高于“域名地址IPv4流量动态分流”和“客户端IPv4流量静态直通”，低于“高优先级客户端IPv4流量静态直
+## 通”和“客户端至预设IPv4目标网址/网段流量静态直通”，详情见前述“策略规则优先级执行顺序”。
+## 仅能在动态分流模式下使用。
+wan_1_src_to_dst_addr_port=${local_wan_1_src_to_dst_addr_port}
+
+## 第一WAN口客户端IPv4网址/网段至预设IPv4目标网址/网段协议端口动态分流条目列表数据文件
+## 文件中具体定义客户端访问预设IPv4网址/网段协议端口时使用第一WAN口作为该IPv4流量出口。
+## 文件路径、名称可自定义和修改，文件路径及名称不得为空。
+## 缺省为"${PATH_DATA}/wan_1_src_to_dst_addr_port.txt"，为空文件。
+## 文本格式：每行各字段之间用空格隔开，一个条目一行，可多行多个条目。
+## 客户端IPv4网址/网段 IPv4目标网址/网段 通讯协议 目标端口号
+## 例如：
+## 192.168.50.101 123.123.123.121 tcp 80,443,6881:6889,25671
+## 192.168.50.0/27 123.123.123.0/24 udp 4334
+## 0.0.0.0/0 123.123.123.123 udplite 12345
+## 192.168.50.102 0.0.0.0/0 sctp
+## 0.0.0.0/0 0.0.0.0/0
+## 可以用0.0.0.0/0表示所有未知IP地址。
+## “客户端IPv4网址/网段”和“IPv4目标网址/网段”为必选项。
+## “通讯协议”及“目标端口号”为可选项。选择“目标端口号”时，“通讯协议”则为必选项。
+## 每个条目只能使用一个端口通讯协议，只能是TCP、UDP、UDPLITE、SCTP四种协议中的一个，字母英文大小写均可。
+## 连续端口号中间用英文半角“:”冒号相隔，如：6881:6889表示6881~6889的连续端口号。
+## 每个条目最多可设置15个不连续的目标访问端口号埠，不连续的端口号埠之间用英文半角“,”逗号相隔，不要有空格。
+## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
+wan_1_src_to_dst_addr_port_file=${local_wan_1_src_to_dst_addr_port_file}
+
+## 第二WAN口客户端至预设IPv4目标网址/网段流量协议端口动态分流
+## 0--启用；非0--禁用；取值范围：0~9
+## 缺省为禁用（5）。
+## 指定客户端访问预设IPv4网址/网段协议端口时使用第二WAN口作为该IPv4流量出口，可一次性的同时实现多种灵活、
+## 精准的流量策略。
+## 仅用于TCP、UDP、UDPLITE、SCTP四类协议端口。
+## 功能优先级高于“域名地址IPv4流量动态分流”和“客户端IPv4流量静态直通”，低于“高优先级客户端IPv4流量静态直
+## 通”和“客户端至预设IPv4目标网址/网段流量静态直通”，详情见前述“策略规则优先级执行顺序”。
+## 仅能在动态分流模式下使用。
+wan_2_src_to_dst_addr_port=${local_wan_2_src_to_dst_addr_port}
+
+## 第二WAN口客户端IPv4网址/网段至预设IPv4目标网址/网段协议端口动态分流条目列表数据文件
+## 文件中具体定义客户端访问预设IPv4网址/网段协议端口时使用第二WAN口作为该IPv4流量出口。
+## 文件路径、名称可自定义和修改，文件路径及名称不得为空。
+## 缺省为"${PATH_DATA}/wan_2_src_to_dst_addr_port.txt"，为空文件。
+## 文本格式：每行各字段之间用空格隔开，一个条目一行，可多行多个条目。
+## 客户端IPv4网址/网段 IPv4目标网址/网段 通讯协议 目标端口号
+## 例如：
+## 192.168.50.101 123.123.123.121 tcp 80,443,6881:6889,25671
+## 192.168.50.0/27 123.123.123.0/24 udp 4334
+## 0.0.0.0/0 123.123.123.123 udplite 12345
+## 192.168.50.102 0.0.0.0/0 sctp
+## 0.0.0.0/0 0.0.0.0/0
+## 可以用0.0.0.0/0表示所有未知IP地址。
+## “客户端IPv4网址/网段”和“IPv4目标网址/网段”为必选项。
+## “通讯协议”及“目标端口号”为可选项。选择“目标端口号”时，“通讯协议”则为必选项。
+## 每个条目只能使用一个端口通讯协议，只能是TCP、UDP、UDPLITE、SCTP四种协议中的一个，字母英文大小写均可。
+## 连续端口号中间用英文半角“:”冒号相隔，如：6881:6889表示6881~6889的连续端口号。
+## 每个条目最多可设置15个不连续的目标访问端口号埠，不连续的端口号埠之间用英文半角“,”逗号相隔，不要有空格。
+## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
+wan_2_src_to_dst_addr_port_file=${local_wan_2_src_to_dst_addr_port_file}
+
 ## 本地客户端IPv4网址/网段分流黑名单列表数据文件
 ## 在动态分流模式下，列入该网址/网段名单列表的设备访问外网时不受分流规则控制，仅由路由器自身的负载均衡
 ## 功能自动分配流量出口，可实现一些特殊用途的应用（如带速叠加下载，但外部影响因素较多，不保证能实现）。
@@ -1671,26 +1859,6 @@ local_ipsets_file=${local_local_ipsets_file}
 ## 文本格式：一个网址/网段一行，为一个条目，可多行多个条目。
 ## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
 private_ipsets_file=${local_private_ipsets_file}
-
-## 第一WAN口IPv4流量端口动态分流
-## 最多可设置15个不连续的目标访问端口号埠，仅针对TCP、UDP、UDPLITE、SCTP四类协议端口
-## 不设置且为空时--禁用（缺省）
-## 例如，TCP协议端口：wan0_dest_tcp_port=80,443,6881:6889,25671
-## 其中：6881:6889表示6881~6889的连续端口号，不连续的端口号埠之间用英文半角“,”逗号相隔，不要有多余空格。
-## 仅能在动态分流模式下使用。
-wan0_dest_tcp_port=${local_wan0_dest_tcp_port}
-wan0_dest_udp_port=${local_wan0_dest_udp_port}
-wan0_dest_udplite_port=${local_wan0_dest_udplite_port}
-wan0_dest_sctp_port=${local_wan0_dest_sctp_port}
-
-## 第二WAN口IPv4流量端口动态分流
-## 最多可设置15个不连续的目标访问端口号埠，仅针对TCP、UDP、UDPLITE、SCTP四类协议端口
-## 不设置且为空时--禁用（缺省）
-## 仅能在动态分流模式下使用。
-wan1_dest_tcp_port=${local_wan1_dest_tcp_port}
-wan1_dest_udp_port=${local_wan1_dest_udp_port}
-wan1_dest_udplite_port=${local_wan1_dest_udplite_port}
-wan1_dest_sctp_port=${local_wan1_dest_sctp_port}
 
 ## 虚拟专网客户端访问外网IPv4流量路由器出口
 ## 0--第一WAN口；1--第二WAN口；>1--按网段分流规则匹配出口；取值范围：0~9
@@ -2154,6 +2322,16 @@ lz_read_config_param() {
         if grep -qE "^[ ]*wan1_dest_sctp_port=" "${PATH_CONFIGS}/lz_rule_config.sh"; then local_wan1_dest_sctp_port=""; else local_exist="0"; fi;
     }
 
+    local_wan_1_src_to_dst_addr_port="$( lz_get_file_cache_data "wan_1_src_to_dst_addr_port" "5" )" && local_exist="0"
+    ! echo "${local_wan_1_src_to_dst_addr_port}" | grep -q '^[0-9]$' && local_wan_1_src_to_dst_addr_port="5" && local_exist="0"
+
+    local_wan_1_src_to_dst_addr_port_file="$( lz_get_file_cache_data "wan_1_src_to_dst_addr_port_file" "\"${PATH_DATA}/wan_1_src_to_dst_addr_port.txt\"" )" && local_exist="0"
+
+    local_wan_2_src_to_dst_addr_port="$( lz_get_file_cache_data "wan_2_src_to_dst_addr_port" "5" )" && local_exist="0"
+    ! echo "${local_wan_2_src_to_dst_addr_port}" | grep -q '^[0-9]$' && local_wan_2_src_to_dst_addr_port="5" && local_exist="0"
+
+    local_wan_2_src_to_dst_addr_port_file="$( lz_get_file_cache_data "wan_2_src_to_dst_addr_port_file" "\"${PATH_DATA}/wan_2_src_to_dst_addr_port.txt\"" )" && local_exist="0"
+
     local_ovs_client_wan_port="$( lz_get_file_cache_data "ovs_client_wan_port" "5" )" && local_exist="0"
     ! echo "${local_ovs_client_wan_port}" | grep -q '^[0-9]$' && local_ovs_client_wan_port="5" && local_exist="0"
 
@@ -2366,6 +2544,10 @@ lz_cfg_is_default() {
     [ "${local_wan1_dest_udp_port}" != "" ] && return 0
     [ "${local_wan1_dest_udplite_port}" != "" ] && return 0
     [ "${local_wan1_dest_sctp_port}" != "" ] && return 0
+    [ "${local_wan_1_src_to_dst_addr_port}" != "5" ] && return 0
+    [ "${local_wan_1_src_to_dst_addr_port_file}" != "\"${PATH_DATA}/wan_1_src_to_dst_addr_port.txt\"" ] && return 0
+    [ "${local_wan_2_src_to_dst_addr_port}" != "5" ] && return 0
+    [ "${local_wan_2_src_to_dst_addr_port_file}" != "\"${PATH_DATA}/wan_2_src_to_dst_addr_port.txt\"" ] && return 0
     [ "${local_ovs_client_wan_port}" != "0" ] && return 0
     [ "${local_vpn_client_polling_time}" != "5" ] && return 0
     [ "${local_wan_access_port}" != "0" ] && return 0
@@ -2457,6 +2639,10 @@ lz_config_wan1_dest_tcp_port=${local_wan1_dest_tcp_port}
 lz_config_wan1_dest_udp_port=${local_wan1_dest_udp_port}
 lz_config_wan1_dest_udplite_port=${local_wan1_dest_udplite_port}
 lz_config_wan1_dest_sctp_port=${local_wan1_dest_sctp_port}
+lz_config_wan_1_src_to_dst_addr_port=${local_wan_1_src_to_dst_addr_port}
+lz_config_wan_1_src_to_dst_addr_port_file=${local_wan_1_src_to_dst_addr_port_file}
+lz_config_wan_2_src_to_dst_addr_port=${local_wan_2_src_to_dst_addr_port}
+lz_config_wan_2_src_to_dst_addr_port_file=${local_wan_2_src_to_dst_addr_port_file}
 lz_config_ovs_client_wan_port=${local_ovs_client_wan_port}
 lz_config_vpn_client_polling_time=${local_vpn_client_polling_time}
 lz_config_wan_access_port=${local_wan_access_port}
@@ -2550,6 +2736,10 @@ lz_config_wan1_dest_tcp_port=${local_ini_wan1_dest_tcp_port}
 lz_config_wan1_dest_udp_port=${local_ini_wan1_dest_udp_port}
 lz_config_wan1_dest_udplite_port=${local_ini_wan1_dest_udplite_port}
 lz_config_wan1_dest_sctp_port=${local_ini_wan1_dest_sctp_port}
+lz_config_wan_1_src_to_dst_addr_port=${local_ini_wan_1_src_to_dst_addr_port}
+lz_config_wan_1_src_to_dst_addr_port_file=${local_ini_wan_1_src_to_dst_addr_port_file}
+lz_config_wan_2_src_to_dst_addr_port=${local_ini_wan_2_src_to_dst_addr_port}
+lz_config_wan_2_src_to_dst_addr_port_file=${local_ini_wan_2_src_to_dst_addr_port_file}
 lz_config_ovs_client_wan_port=${local_ini_ovs_client_wan_port}
 lz_config_vpn_client_polling_time=${local_ini_vpn_client_polling_time}
 lz_config_wan_access_port=${local_ini_wan_access_port}
@@ -2802,6 +2992,16 @@ lz_read_box_data() {
         if grep "^[ ]*lz_config_wan1_dest_sctp_port=" "${PATH_CONFIGS}/lz_rule_config.box"; then local_ini_wan1_dest_sctp_port=""; else local_exist="0"; fi;
     }
 
+    local_ini_wan_1_src_to_dst_addr_port="$( lz_get_file_cache_data "lz_config_wan_1_src_to_dst_addr_port" "5" )" && local_exist="0"
+    ! echo "${local_ini_wan_1_src_to_dst_addr_port}" | grep -q '^[0-9]$' && local_ini_wan_1_src_to_dst_addr_port="5" && local_exist="0"
+
+    local_ini_wan_1_src_to_dst_addr_port_file="$( lz_get_file_cache_data "lz_config_wan_1_src_to_dst_addr_port_file" "\"${PATH_DATA}/wan_1_src_to_dst_addr_port.txt\"" )" && local_exist="0"
+
+    local_ini_wan_2_src_to_dst_addr_port="$( lz_get_file_cache_data "lz_config_wan_2_src_to_dst_addr_port" "5" )" && local_exist="0"
+    ! echo "${local_ini_wan_2_src_to_dst_addr_port}" | grep -q '^[0-9]$' && local_ini_wan_2_src_to_dst_addr_port="5" && local_exist="0"
+
+    local_ini_wan_2_src_to_dst_addr_port_file="$( lz_get_file_cache_data "lz_config_wan_2_src_to_dst_addr_port_file" "\"${PATH_DATA}/wan_2_src_to_dst_addr_port.txt\"" )" && local_exist="0"
+
     local_ini_ovs_client_wan_port="$( lz_get_file_cache_data "lz_config_ovs_client_wan_port" "5" )" && local_exist="0"
     ! echo "${local_ini_ovs_client_wan_port}" | grep -q '^[0-9]$' && local_ini_ovs_client_wan_port="5" && local_exist="0"
 
@@ -3001,6 +3201,10 @@ lz_cfg_is_changed() {
     [ "${local_ini_wan1_dest_udp_port}" != "${local_wan1_dest_udp_port}" ] && local_wan1_dest_udp_port_changed="1" && local_cfg_changed="1"
     [ "${local_ini_wan1_dest_udplite_port}" != "${local_wan1_dest_udplite_port}" ] && local_wan1_dest_udplite_port_changed="1" && local_cfg_changed="1"
     [ "${local_ini_wan1_dest_sctp_port}" != "${local_wan1_dest_sctp_port}" ] && local_wan1_dest_sctp_port_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_wan_1_src_to_dst_addr_port}" != "${local_wan_1_src_to_dst_addr_port}" ] && local_wan_1_src_to_dst_addr_port_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_wan_1_src_to_dst_addr_port_file}" != "${local_wan_1_src_to_dst_addr_port_file}" ] && local_wan_1_src_to_dst_addr_port_file_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_wan_2_src_to_dst_addr_port}" != "${local_wan_2_src_to_dst_addr_port}" ] && local_wan_2_src_to_dst_addr_port_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_wan_2_src_to_dst_addr_port_file}" != "${local_wan_2_src_to_dst_addr_port_file}" ] && local_wan_2_src_to_dst_addr_port_file_changed="1" && local_cfg_changed="1"
     [ "${local_ini_ovs_client_wan_port}" != "${local_ovs_client_wan_port}" ] && local_ovs_client_wan_port_changed="1" && local_cfg_changed="1"
     [ "${local_ini_vpn_client_polling_time}" != "${local_vpn_client_polling_time}" ] && local_vpn_client_polling_time_changed="1" && local_cfg_changed="1"
     [ "${local_ini_wan_access_port}" != "${local_wan_access_port}" ] && local_wan_access_port_changed="1" && local_cfg_changed="1"
@@ -3098,6 +3302,11 @@ lz_restore_config() {
     [ "${local_wan1_dest_udp_port_changed}" = "1" ] && sed -i "s|^[ ]*wan1_dest_udp_port=${local_wan1_dest_udp_port}|wan1_dest_udp_port=${local_ini_wan1_dest_udp_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
     [ "${local_wan1_dest_udplite_port_changed}" = "1" ] && sed -i "s|^[ ]*wan1_dest_udplite_port=${local_wan1_dest_udplite_port}|wan1_dest_udplite_port=${local_ini_wan1_dest_udplite_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
     [ "${local_wan1_dest_sctp_port_changed}" = "1" ] && sed -i "s|^[ ]*wan1_dest_sctp_port=${local_wan1_dest_sctp_port}|wan1_dest_sctp_port=${local_ini_wan1_dest_sctp_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+
+    [ "${local_wan_1_src_to_dst_addr_port_changed}" = "1" ] && sed -i "s|^[ ]*wan_1_src_to_dst_addr_port=${local_wan_1_src_to_dst_addr_port}|wan_1_src_to_dst_addr_port=${local_ini_wan_1_src_to_dst_addr_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan_1_src_to_dst_addr_port_file_changed}" = "1" ] && sed -i "s|^[ ]*wan_1_src_to_dst_addr_port_file=${local_wan_1_src_to_dst_addr_port_file}|wan_1_src_to_dst_addr_port_file=${local_ini_wan_1_src_to_dst_addr_port_file}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan_2_src_to_dst_addr_port_changed}" = "1" ] && sed -i "s|^[ ]*wan_2_src_to_dst_addr_port=${local_wan_2_src_to_dst_addr_port}|wan_2_src_to_dst_addr_port=${local_ini_wan_2_src_to_dst_addr_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan_2_src_to_dst_addr_port_file_changed}" = "1" ] && sed -i "s|^[ ]*wan_2_src_to_dst_addr_port_file=${local_wan_2_src_to_dst_addr_port_file}|wan_2_src_to_dst_addr_port_file=${local_ini_wan_2_src_to_dst_addr_port_file}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
 
     [ "${local_ovs_client_wan_port_changed}" = "1" ] && sed -i "s:^[ \t]*ovs_client_wan_port=${local_ovs_client_wan_port}:ovs_client_wan_port=${local_ini_ovs_client_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
     [ "${local_vpn_client_polling_time_changed}" = "1" ] && sed -i "s:^[ \t]*vpn_client_polling_time=${local_vpn_client_polling_time}:vpn_client_polling_time=${local_ini_vpn_client_polling_time}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
