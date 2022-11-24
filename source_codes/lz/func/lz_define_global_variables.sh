@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_define_global_variables.sh v3.8.1
+# lz_define_global_variables.sh v3.8.2
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 # QnkgTFog5aaZ5aaZ5ZGc77yI6Juk6J+G5aKp5YS/77yJ（首次运行标识，切勿修改）
 
@@ -346,11 +346,11 @@ IP_RULE_PRIO_WAN_1_CLIENT_DEST_PORT="$(( IP_RULE_PRIO_WAN_2_DOMAIN - 1 ))"
 ## 第二WAN口客户端至预设IPv4目标网址/网段流量协议端口动态分流出口规则策略规则优先级--24973（IP_RULE_PRIO-27）
 IP_RULE_PRIO_WAN_2_CLIENT_DEST_PORT="$(( IP_RULE_PRIO_WAN_1_CLIENT_DEST_PORT - 1 ))"
 
-## 路由器内部应用分流出口规则策略规则优先级--24972（IP_RULE_PRIO-28）
-IP_RULE_PRIO_INNER_ACCESS="$(( IP_RULE_PRIO_WAN_2_CLIENT_DEST_PORT - 1 ))"
+## 本地客户端网址/网段分流黑名单列表负载均衡出口规则策略规则优先级--24972（IP_RULE_PRIO-28）
+IP_RULE_PRIO_BLCLST_LB="$(( IP_RULE_PRIO_WAN_2_CLIENT_DEST_PORT - 1 ))"
 
 ## SS服务线路绑定出口规则策略规则优先级--24971、24970（IP_RULE_PRIO-29、IP_RULE_PRIO-30）
-SS_RULE_TO_PRIO="$(( IP_RULE_PRIO_INNER_ACCESS - 1 ))"
+SS_RULE_TO_PRIO="$(( IP_RULE_PRIO_BLCLST_LB - 1 ))"
 SS_RULE_FROM_PRIO="$(( SS_RULE_TO_PRIO - 1 ))"
 
 ## 第一WAN口客户端及源网址/网段高优先级绑定列表分流出口规则策略规则优先级--24969（IP_RULE_PRIO-31）
@@ -377,11 +377,11 @@ IP_RULE_PRIO_HIGH_WAN_1_SRC_TO_DST_ADDR="$(( IP_RULE_PRIO_WAN_2_SRC_TO_DST_ADDR 
 ## 虚拟专网客户端访问互联网分流出口规则策略规则优先级--24962（IP_RULE_PRIO-38）
 IP_RULE_PRIO_VPN="$(( IP_RULE_PRIO_HIGH_WAN_1_SRC_TO_DST_ADDR - 1 ))"
 
-## 本地客户端网址/网段分流黑名单列表负载均衡出口规则策略规则优先级--24961（IP_RULE_PRIO-39）
-IP_RULE_PRIO_BLCLST_LB="$(( IP_RULE_PRIO_VPN - 1 ))"
+## 路由器内部应用分流出口规则策略规则优先级--24961（IP_RULE_PRIO-39）
+IP_RULE_PRIO_INNER_ACCESS="$(( IP_RULE_PRIO_VPN - 1 ))"
 
 ## 最高策略规则优先级--24960（IP_RULE_PRIO-40）
-IP_RULE_PRIO_TOPEST="$(( IP_RULE_PRIO_BLCLST_LB - 1 ))"
+IP_RULE_PRIO_TOPEST="$(( IP_RULE_PRIO_INNER_ACCESS - 1 ))"
 
 ## IPTV规则优先级
 IP_RULE_PRIO_IPTV="888"
@@ -433,6 +433,9 @@ l7_protocols_file="${PATH_CONFIGS}/configs/lz_protocols.txt"
 policy_mode=5
 ## 由于应用配置的复杂性，不建议普通用户手工直接调整脚本配置中的"运行模式"参数。建议用户通过脚本的"动态
 ## 分流模式配置"命令、"静态分流模式配置"命令、"IPTV模式配置"命令让脚本自动配置和调整"运行模式"参数。
+
+## 调整流量出口策略（0--已调整；非0--未调整）
+adjust_traffic_policy=5
 
 ## 路由器硬件类型
 route_hardware_type="$( uname -m )"

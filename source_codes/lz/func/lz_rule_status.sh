@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_status.sh v3.8.1
+# lz_rule_status.sh v3.8.2
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 显示脚本运行状态脚本
@@ -138,12 +138,27 @@ lz_unset_isp_wan_port_status_variable() {
 lz_get_ipv4_data_file_item_total_status() {
     local retval="0"
     [ -f "${1}" ] && {
-        retval="$( sed -e 's/\(^[^#]*\)[#].*$/\1/g' -e '/^$/d' -e 's/LZ/  /g' \
-        -e 's/\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}\)/LZ\1LZ/g' \
-        -e 's/^.*\(LZ\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}LZ\).*$/\1/g' \
-        -e '/^[^L][^Z]/d' -e '/[^L][^Z]$/d' -e '/^.\{0,10\}$/d' \
-        -e '/[3-9][0-9][0-9]/d' -e '/[2][6-9][0-9]/d' -e '/[2][5][6-9]/d' -e '/[\/][4-9][0-9]/d' \
-        -e '/[\/][3][3-9]/d' "${1}" | grep -c '^[L][Z].*[L][Z]$' )"
+        retval="$( sed -e '/^[ \t]*[#]/d' -e 's/[#].*$//g' -e 's/[ \t][ \t]*/ /g' -e 's/^[ ]//' -e 's/[ ]$//' -e '/^[ ]*$/d' "${1}" 2> /dev/null \
+            | awk -v count="0" '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
+            && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
+            && NF >= "1" {count++} END{print count}' )"
+    }
+    echo "${retval}"
+}
+
+## 获取IPv4源网址/网段列表数据文件不含未知地址的总有效条目数函数
+## 输入项：
+##     $1--全路径网段数据文件名
+## 返回值：
+##     总有效条目数
+lz_get_ipv4_data_file_valid_item_total_status() {
+    local retval="0"
+    [ -f "${1}" ] && {
+        retval="$( sed -e '/^[ \t]*[#]/d' -e 's/[#].*$//g' -e 's/[ \t][ \t]*/ /g' -e 's/^[ ]//' -e 's/[ ]$//' -e '/^[ ]*$/d' "${1}" 2> /dev/null \
+            | awk -v count="0" '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
+            && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
+            && $1 != "0.0.0.0/0" \
+            && NF >= "1" {count++} END{print count}' )"
     }
     echo "${retval}"
 }
@@ -156,14 +171,72 @@ lz_get_ipv4_data_file_item_total_status() {
 lz_get_ipv4_src_to_dst_data_file_item_total_status() {
     local retval="0"
     [ -f "${1}" ] && {
-        retval="$( sed -e 's/\(^[^#]*\)[#].*$/\1/g' -e '/^$/d' -e 's/LZ/  /g' \
-        -e 's/\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}\)/LZ\1LZ/g' \
-        -e 's/^.*\(LZ.*LZ\).*\(LZ.*LZ\).*$/\1\2/' \
-        -e '/^[^L][^Z]/d' -e '/[^L][^Z]$/d' -e '/^.\{0,21\}$/d' \
-        -e '/^LZ\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}LZ$/d' \
-        -e '/[3-9][0-9][0-9]/d' -e '/[2][6-9][0-9]/d' -e '/[2][5][6-9]/d' -e '/[\/][4-9][0-9]LZ/d' \
-        -e '/[\/][3][3-9]LZ/d' "${1}" | grep -c '^[L][Z].*[L][Z]$' )"
+        retval="$( sed -e '/^[ \t]*[#]/d' -e 's/[#].*$//g' -e 's/[ \t][ \t]*/ /g' -e 's/^[ ]//' -e 's/[ ]$//' -e '/^[ ]*$/d' "${1}" 2> /dev/null \
+            | awk -v count="0" '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
+            && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
+            && $2 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
+            && $2 !~ /[3-9][0-9][0-9]/ && $2 !~ /[2][6-9][0-9]/ && $2 !~ /[2][5][6-9]/ && $2 !~ /[\/][4-9][0-9]/ && $2 !~ /[\/][3][3-9]/ \
+            && NF >= "2" {count++} END{print count}' )"
     }
+    echo "${retval}"
+}
+
+## 获取IPv4源网址/网段列表数据文件未知IP地址的客户端项状态函数
+## 输入项：
+##     $1--全路径网段数据文件名
+## 返回值：
+##     0--成功
+##     1--失败
+lz_get_unkonwn_ipv4_src_addr_data_file_item_status() {
+    local retval="1"
+    [ -f "${1}" ] && {
+        retval="$( sed -e '/^[ \t]*[#]/d' -e 's/[#].*$//g' -e 's/[ \t][ \t]*/ /g' -e 's/^[ ]//' -e 's/[ ]$//' -e '/^[ ]*$/d' "${1}" 2> /dev/null \
+            | awk '$1 == "0.0.0.0/0" && NF >= "1" {print "0"; exit}' )"
+        [ -z "${retval}" ] && retval="1"
+    }
+    return "${retval}"
+}
+
+## 获取IPv4源网址/网段至目标网址/网段列表数据文件客户端与目标地址均为未知IP地址项状态函数
+## 输入项：
+##     $1--全路径网段数据文件名
+## 返回值：
+##     0--成功
+##     1--失败
+lz_get_unkonwn_ipv4_src_dst_addr_data_file_item_status() {
+    local retval="1"
+    [ -f "${1}" ] && {
+        retval="$( sed -e '/^[ \t]*[#]/d' -e 's/[#].*$//g' -e 's/[ \t][ \t]*/ /g' -e 's/^[ ]//' -e 's/[ ]$//' -e '/^[ ]*$/d' "${1}" 2> /dev/null \
+            | awk '$1 == "0.0.0.0/0" && $2 == "0.0.0.0/0" && NF >= "2" {print "0"; exit}' )"
+        [ -z "${retval}" ] && retval="1"
+    }
+    return "${retval}"
+}
+
+## 获取IPv4源网址/网段至目标网址/网段协议端口列表数据中文件客户端与目标地址均为未知IP地址且无协议端口项状态函数
+## 输入项：
+##     $1--全路径网段数据文件名
+## 返回值：
+##     0--成功
+##     1--失败
+lz_get_unkonwn_ipv4_src_dst_addr_port_data_file_item_status() {
+    local retval="1"
+    [ -f "${1}" ] && {
+        retval="$( sed -e '/^[ \t]*[#]/d' -e 's/[#].*$//g' -e 's/[ \t][ \t]*/ /g' -e 's/^[ ]//' -e 's/[ ]$//' -e '/^[ ]*$/d' "${1}" 2> /dev/null \
+            | awk '$1 == "0.0.0.0/0" && $2 == "0.0.0.0/0" && NF == "2" {print "0"; exit}' )"
+        [ -z "${retval}" ] && retval="1"
+    }
+    return "${retval}"
+}
+
+## 获取指定数据包标记的防火墙过滤规则条目数量状态函数
+## 输入项：
+##     $1--报文数据包标记
+##     $2--防火墙规则链名称
+## 返回值：
+##     条目数
+lz_get_iptables_fwmark_item_total_number_status() {
+    local retval="$( iptables -t mangle -L "${2}" 2> /dev/null | grep CONNMARK | grep -ci "${1}" )"
     echo "${retval}"
 }
 
@@ -222,6 +295,8 @@ lz_set_parameter_status_variable() {
     status_custom_data_file_1=
     status_custom_data_wan_port_2=
     status_custom_data_file_2=
+    status_wan_1_domain=
+    status_wan_2_domain=
     status_wan_1_client_src_addr=
     status_wan_1_client_src_addr_file=
     status_wan_2_client_src_addr=
@@ -236,6 +311,10 @@ lz_set_parameter_status_variable() {
     status_wan_2_src_to_dst_addr_file=
     status_high_wan_1_src_to_dst_addr=
     status_high_wan_1_src_to_dst_addr_file=
+    status_wan_1_src_to_dst_addr_port=
+    status_wan_1_src_to_dst_addr_port_file=
+    status_wan_2_src_to_dst_addr_port=
+    status_wan_2_src_to_dst_addr_port_file=
     status_local_ipsets_file=
     status_vpn_client_polling_time=
     status_ovs_client_wan_port=
@@ -267,6 +346,7 @@ lz_set_parameter_status_variable() {
     status_route_local_ip=
     status_route_local_ip_mask=
     status_ip_rule_exist=0
+    status_adjust_traffic_policy="5"
 }
 
 ## 卸载脚本基本运行状态参数变量函数
@@ -282,6 +362,8 @@ lz_unset_parameter_status_variable() {
     unset status_custom_data_file_1
     unset status_custom_data_wan_port_2
     unset status_custom_data_file_2
+    unset status_wan_1_domain
+    unset status_wan_2_domain
     unset status_wan_1_client_src_addr
     unset status_wan_1_client_src_addr_file
     unset status_wan_2_client_src_addr
@@ -296,6 +378,10 @@ lz_unset_parameter_status_variable() {
     unset status_wan_2_src_to_dst_addr_file
     unset status_high_wan_1_src_to_dst_addr
     unset status_high_wan_1_src_to_dst_addr_file
+    unset status_wan_1_src_to_dst_addr_port
+    unset status_wan_1_src_to_dst_addr_port_file
+    unset status_wan_2_src_to_dst_addr_port
+    unset status_wan_2_src_to_dst_addr_port_file
     unset status_local_ipsets_file
     unset status_ovs_client_wan_port
     unset status_vpn_client_polling_time
@@ -327,6 +413,7 @@ lz_unset_parameter_status_variable() {
     unset status_route_local_ip
     unset status_route_local_ip_mask
     unset status_ip_rule_exist
+    unset status_adjust_traffic_policy
 }
 
 ## 读取文件缓冲区数据项状态函数
@@ -360,11 +447,10 @@ lz_get_file_cache_data_status() {
 ##     全局常量及变量
 ## 返回值：无
 lz_read_box_data_status() {
-
-    local_file_cache="$( grep  -E '^[ \t]*[a-zA-Z0-9_-][a-zA-Z0-9_-]*[=]' "${PATH_CONFIGS}/lz_rule_config.box" \
-            | sed -e 's/[#].*$//g' -e 's/^[ \t]*//g' -e 's/^\([^=]*[=][^ =]*\).*$/\1/g' -e 's/^\(.*[=][^\"][^\"]*\).*$/\1/g' \
-                -e 's/^\(.*[=][\"][^\"]*[\"]\).*$/\1/g' -e 's/^\(.*[=]\)[\"][^\"]*$/\1/g' -e 's/\"//g' )"
-
+    local_file_cache="$( awk '$1 ~ /^[a-zA-Z0-9_-][a-zA-Z0-9_-]*[=]/ {print $1}' "${PATH_CONFIGS}/lz_rule_config.box" \
+            | sed -e 's/[#].*$//g' -e 's/^[ \t]*//g' -e 's/[ \t][ \t]*/ /g' -e 's/^\([^=]*[=][^ =]*\).*$/\1/g' \
+            -e 's/^\(.*[=][^\"][^\"]*\).*$/\1/g' -e 's/^\(.*[=][\"][^\"]*[\"]\).*$/\1/g' \
+            -e 's/^\(.*[=]\)[\"][^\"]*$/\1/g' -e 's/\"//g' )"
     ## 读取文件缓冲区数据项状态
     ## 输入项：
     ##     $1--数据项名称
@@ -408,6 +494,10 @@ lz_read_box_data_status() {
 
     status_custom_data_file_2="$( lz_get_file_cache_data_status "lz_config_custom_data_file_2" "${PATH_DATA}/custom_data_2.txt" )"
 
+    status_wan_1_domain="$( lz_get_file_cache_data_status "lz_config_wan_1_domain" "5" )"
+
+    status_wan_2_domain="$( lz_get_file_cache_data_status "lz_config_wan_2_domain" "5" )"
+
     status_wan_1_client_src_addr="$( lz_get_file_cache_data_status "lz_config_wan_1_client_src_addr" "5" )"
 
     status_wan_1_client_src_addr_file="$( lz_get_file_cache_data_status "lz_config_wan_1_client_src_addr_file" "${PATH_DATA}/wan_1_client_src_addr.txt" )"
@@ -435,6 +525,14 @@ lz_read_box_data_status() {
     status_high_wan_1_src_to_dst_addr="$( lz_get_file_cache_data_status "lz_config_high_wan_1_src_to_dst_addr" "5" )"
 
     status_high_wan_1_src_to_dst_addr_file="$( lz_get_file_cache_data_status "lz_config_high_wan_1_src_to_dst_addr_file" "${PATH_DATA}/high_wan_1_src_to_dst_addr.txt" )"
+
+    status_wan_1_src_to_dst_addr_port="$( lz_get_file_cache_data_status "lz_config_wan_1_src_to_dst_addr_port" "5" )"
+
+    status_wan_1_src_to_dst_addr_port_file="$( lz_get_file_cache_data_status "lz_config_wan_1_src_to_dst_addr_port_file" "${PATH_DATA}/wan_1_src_to_dst_addr_port.txt" )"
+
+    status_wan_2_src_to_dst_addr_port="$( lz_get_file_cache_data_status "lz_config_wan_2_src_to_dst_addr_port" "5" )"
+
+    status_wan_2_src_to_dst_addr_port_file="$( lz_get_file_cache_data_status "lz_config_wan_2_src_to_dst_addr_port_file" "${PATH_DATA}/wan_2_src_to_dst_addr_port.txt" )"
 
     status_local_ipsets_file="$( lz_get_file_cache_data_status "lz_config_local_ipsets_file" "${PATH_DATA}/local_ipsets_data.txt" )"
 
@@ -506,6 +604,180 @@ lz_get_isp_data_item_total_status_variable() {
     eval "echo \${status_isp_data_${1}_item_total}"
 }
 
+## 调整ISP网络运营商出口参数状态函数
+## 输入项：
+##     $1--新的ISP网络运营商出口参数（0--第一WAN口；1--第二WAN口）
+## 返回值：无
+lz_adjust_isp_wan_port_status() {
+    [ "${1}" != "0" ] && [ "${1}" != "1" ] && return
+    local local_index="0"
+    until [ "${local_index}" -gt "${STATUS_ISP_TOTAL}" ]
+    do
+        ## ISP网络运营商出口参数
+        eval "status_isp_wan_port_${local_index}=${1}"
+        let local_index++
+    done
+}
+
+## 调整流量出口策略状态函数
+## 输入项：
+##     全局变量及常量
+## 返回值：
+##     0--成功
+##     1--失败
+lz_adjust_traffic_policy_status() {
+    local retval="1"
+    while true
+    do
+        ## 获取IPv4源网址/网段至目标网址/网段列表数据文件客户端与目标地址均为未知IP地址项状态
+        ## 输入项：
+        ##     $1--全路径网段数据文件名
+        ## 返回值：
+        ##     0--成功
+        ##     1--失败
+        if [ "${status_high_wan_1_src_to_dst_addr}" = "0" ] && lz_get_unkonwn_ipv4_src_dst_addr_data_file_item_status "${status_high_wan_1_src_to_dst_addr_file}"; then
+            status_usage_mode="1"
+            status_wan_2_src_to_dst_addr="5"
+            status_wan_1_src_to_dst_addr="5"
+            status_high_wan_2_client_src_addr="5"
+            status_high_wan_1_client_src_addr="5"
+            status_wan_2_src_to_dst_addr_port="5"
+            status_wan_1_src_to_dst_addr_port="5"
+            status_wan_2_domain="5"
+            status_wan_1_domain="5"
+            status_wan_2_client_src_addr="5"
+            status_wan_1_client_src_addr="5"
+            status_custom_data_wan_port_2="5"
+            status_custom_data_wan_port_1="5"
+            ## 调整ISP网络运营商出口参数状态
+            ## 输入项：
+            ##     $1--新的ISP网络运营商出口参数（0--第一WAN口；1--第二WAN口）
+            ## 返回值：无
+            lz_adjust_isp_wan_port_status "0"
+            retval="0"
+            break
+        fi
+        if [ "${status_wan_2_src_to_dst_addr}" = "0" ] && lz_get_unkonwn_ipv4_src_dst_addr_data_file_item_status "${status_wan_2_src_to_dst_addr_file}"; then
+            status_usage_mode="1"
+            status_wan_1_src_to_dst_addr="5"
+            status_high_wan_2_client_src_addr="5"
+            status_high_wan_1_client_src_addr="5"
+            status_wan_2_src_to_dst_addr_port="5"
+            status_wan_1_src_to_dst_addr_port="5"
+            status_wan_2_domain="5"
+            status_wan_1_domain="5"
+            status_wan_2_client_src_addr="5"
+            status_wan_1_client_src_addr="5"
+            status_custom_data_wan_port_2="5"
+            status_custom_data_wan_port_1="5"
+            lz_adjust_isp_wan_port_status "1"
+            retval="0"
+            break
+        fi
+        if [ "${status_wan_1_src_to_dst_addr}" = "0" ] && lz_get_unkonwn_ipv4_src_dst_addr_data_file_item_status "${status_wan_1_src_to_dst_addr_file}"; then
+            status_usage_mode="1"
+            status_high_wan_2_client_src_addr="5"
+            status_high_wan_1_client_src_addr="5"
+            status_wan_2_src_to_dst_addr_port="5"
+            status_wan_1_src_to_dst_addr_port="5"
+            status_wan_2_domain="5"
+            status_wan_1_domain="5"
+            status_wan_2_client_src_addr="5"
+            status_wan_1_client_src_addr="5"
+            status_custom_data_wan_port_2="5"
+            status_custom_data_wan_port_1="5"
+            lz_adjust_isp_wan_port_status "0"
+            retval="0"
+            break
+        fi
+        ## 获取IPv4源网址/网段列表数据文件未知IP地址的客户端项状态
+        ## 输入项：
+        ##     $1--全路径网段数据文件名
+        ## 返回值：
+        ##     0--成功
+        ##     1--失败
+        if [ "${status_high_wan_2_client_src_addr}" = "0" ] && lz_get_unkonwn_ipv4_src_addr_data_file_item_status "${status_high_wan_2_client_src_addr_file}"; then
+            status_usage_mode="1"
+            status_high_wan_1_client_src_addr="5"
+            status_wan_2_src_to_dst_addr_port="5"
+            status_wan_1_src_to_dst_addr_port="5"
+            status_wan_2_domain="5"
+            status_wan_1_domain="5"
+            status_wan_2_client_src_addr="5"
+            status_wan_1_client_src_addr="5"
+            status_custom_data_wan_port_2="5"
+            status_custom_data_wan_port_1="5"
+            lz_adjust_isp_wan_port_status "1"
+            retval="0"
+            break
+        fi
+        if [ "${status_high_wan_1_client_src_addr}" = "0" ] && lz_get_unkonwn_ipv4_src_addr_data_file_item_status "${status_high_wan_1_client_src_addr_file}"; then
+            status_usage_mode="1"
+            status_wan_2_src_to_dst_addr_port="5"
+            status_wan_1_src_to_dst_addr_port="5"
+            status_wan_2_domain="5"
+            status_wan_1_domain="5"
+            status_wan_2_client_src_addr="5"
+            status_wan_1_client_src_addr="5"
+            status_custom_data_wan_port_2="5"
+            status_custom_data_wan_port_1="5"
+            lz_adjust_isp_wan_port_status "0"
+            retval="0"
+            break
+        fi
+        ## 获取IPv4源网址/网段至目标网址/网段协议端口列表数据中文件客户端与目标地址均为未知IP地址且无协议端口项状态
+        ## 输入项：
+        ##     $1--全路径网段数据文件名
+        ## 返回值：
+        ##     0--成功
+        ##     1--失败
+        if [ "${status_usage_mode}" = "0" ] && [ "${status_wan_2_src_to_dst_addr_port}" = "0" ] && lz_get_unkonwn_ipv4_src_dst_addr_port_data_file_item_status "${status_wan_2_src_to_dst_addr_port_file}"; then
+            status_wan_1_src_to_dst_addr_port="5"
+            status_wan_2_domain="5"
+            status_wan_1_domain="5"
+            status_wan_2_client_src_addr="5"
+            status_wan_1_client_src_addr="5"
+            status_custom_data_wan_port_2="5"
+            status_custom_data_wan_port_1="5"
+            lz_adjust_isp_wan_port_status "1"
+            retval="0"
+            break
+        fi
+        if [ "${status_usage_mode}" = "0" ] && [ "${status_wan_1_src_to_dst_addr_port}" = "0" ] && lz_get_unkonwn_ipv4_src_dst_addr_port_data_file_item_status "${status_wan_1_src_to_dst_addr_port_file}"; then
+            status_wan_2_domain="5"
+            status_wan_1_domain="5"
+            status_wan_2_client_src_addr="5"
+            status_wan_1_client_src_addr="5"
+            status_custom_data_wan_port_2="5"
+            status_custom_data_wan_port_1="5"
+            lz_adjust_isp_wan_port_status "0"
+            retval="0"
+            break
+        fi
+        if [ "${status_wan_2_client_src_addr}" = "0" ] && lz_get_unkonwn_ipv4_src_addr_data_file_item_status "${status_wan_2_client_src_addr_file}"; then
+            [ "${status_usage_mode}" = "0" ] && [ "${status_wan_2_src_to_dst_addr_port}" != "0" ] && [ "${status_wan_1_src_to_dst_addr_port}" != "0" ] \
+                && [ "${status_wan_2_domain}" != "0" ] && [ "${status_wan_1_domain}" != "0" ] && status_usage_mode="1"
+            status_wan_1_client_src_addr="5"
+            status_custom_data_wan_port_2="5"
+            status_custom_data_wan_port_1="5"
+            lz_adjust_isp_wan_port_status "1"
+            retval="0"
+            break
+        fi
+        if [ "${status_wan_1_client_src_addr}" = "0" ] && lz_get_unkonwn_ipv4_src_addr_data_file_item_status "${status_wan_1_client_src_addr_file}"; then
+            [ "${status_usage_mode}" = "0" ] && [ "${status_wan_2_src_to_dst_addr_port}" != "0" ] && [ "${status_wan_1_src_to_dst_addr_port}" != "0" ] \
+                && [ "${status_wan_2_domain}" != "0" ] && [ "${status_wan_1_domain}" != "0" ] && status_usage_mode="1"
+            status_custom_data_wan_port_2="5"
+            status_custom_data_wan_port_1="5"
+            lz_adjust_isp_wan_port_status "0"
+            retval="0"
+            break
+        fi
+        break
+    done
+    return "${retval}"
+}
+
 ## 获取策略分流运行模式状态函数
 ## 输入项：
 ##     全局变量及常量
@@ -514,6 +786,14 @@ lz_get_isp_data_item_total_status_variable() {
 ##     0--当前为双线路状态
 ##     1--当前为非双线路状态
 lz_get_policy_mode_status() {
+
+    ## 调整流量出口策略状态
+    ## 输入项：
+    ##     全局变量及常量
+    ## 返回值：
+    ##     0--成功
+    ##     1--失败
+    lz_adjust_traffic_policy_status && status_adjust_traffic_policy="0"
 
     ! ip route show | grep -q nexthop && status_policy_mode="5" && return 1
     [ "${status_usage_mode}" = "0" ] && status_policy_mode="5" && return 1
@@ -994,42 +1274,19 @@ lz_show_vpn_support_status() {
 ## 输入项：
 ##     $1--全路径网段数据文件名
 ##     $2--网段数据集名称
-##     $3--0:不效验文件格式，非0：效验文件格式
-##     $4--0:正匹配数据，非0：反匹配（nomatch）数据
+##     $3--0:正匹配数据，非0：反匹配（nomatch）数据
 ## 返回值：
 ##     网址/网段数据集--全局变量
 lz_add_net_address_status_sets() {
     if [ ! -f "${1}" ] || [ -z "${2}" ]; then return; fi;
     local NOMATCH=""
-    [ "${4}" != "0" ] && NOMATCH="nomatch"
+    [ "${3}" != "0" ] && NOMATCH=" nomatch"
     ipset -q create "${2}" nethash #--hashsize 65535
-    if [ "${3}" = "0" ]; then
-        sed -e '/^$/d' -e "s/^.*$/-! del ${2} &/g" "${1}" | \
-        awk '{print $0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
-        sed -e '/^$/d' -e "s/^.*$/-! add ${2} & ${NOMATCH}/g" "${1}" | \
-        awk '{print $0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
-    else
-        sed -e 's/\(^[^#]*\)[#].*$/\1/g' -e '/^$/d' -e 's/LZ/  /g' -e 's/del/   /g' \
-        -e 's/\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}\)/LZ\1LZ/g' \
-        -e 's/^.*\(LZ\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}LZ\).*$/\1/g' \
-        -e '/^[^L][^Z]/d' -e '/[^L][^Z]$/d' -e '/^.\{0,10\}$/d' \
-        -e '/[3-9][0-9][0-9]/d' -e '/[2][6-9][0-9]/d' -e '/[2][5][6-9]/d' -e '/[\/][4-9][0-9]/d' \
-        -e '/[\/][3][3-9]/d' \
-        -e "s/^LZ\(.*\)LZ$/-! del ${2} \1/g" \
-        -e '/^[^-]/d' \
-        -e '/^[-][^!]/d' "${1}" | \
-        awk '{print $0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
-        sed -e 's/\(^[^#]*\)[#].*$/\1/g' -e '/^$/d' -e 's/LZ/  /g' -e 's/add/   /g' \
-        -e 's/\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}\)/LZ\1LZ/g' \
-        -e 's/^.*\(LZ\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}LZ\).*$/\1/g' \
-        -e '/^[^L][^Z]/d' -e '/[^L][^Z]$/d' -e '/^.\{0,10\}$/d' \
-        -e '/[3-9][0-9][0-9]/d' -e '/[2][6-9][0-9]/d' -e '/[2][5][6-9]/d' -e '/[\/][4-9][0-9]/d' \
-        -e '/[\/][3][3-9]/d' \
-        -e "s/^LZ\(.*\)LZ$/-! add ${2} \1 ${NOMATCH}/g" \
-        -e '/^[^-]/d' \
-        -e '/^[-][^!]/d' "${1}" | \
-        awk '{print $0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
-    fi
+    sed -e '/^[ \t]*[#]/d' -e 's/[#].*$//g' -e 's/[ \t][ \t]*/ /g' -e 's/^[ ]//' -e 's/[ ]$//' -e '/^[ ]*$/d' "${1}" 2> /dev/null \
+        | awk '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
+        && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
+        && $1 != "0.0.0.0/0" \
+        && NF >= "1" {print "'"-! del ${2} "'"$1"'"\n-! add ${2} "'"$1"'"${NOMATCH}"'"} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
 }
 
 ## 获取路由器WAN出口IPv4公网IP地址状态函数
@@ -1084,11 +1341,10 @@ lz_get_wan_isp_info_staus() {
             ## 输入项：
             ##     $1--全路径网段数据文件名
             ##     $2--网段数据集名称
-            ##     $3--0:不效验文件格式，非0：效验文件格式
-            ##     $4--0:正匹配数据，非0：反匹配（nomatch）数据
+            ##     $3--0:正匹配数据，非0：反匹配（nomatch）数据
             ## 返回值：
             ##     网址/网段数据集--全局变量
-            lz_add_net_address_status_sets "$( lz_get_isp_data_filename_status "${local_index}" )" "lz_ispip_tmp_${local_index}" "1" "0"
+            lz_add_net_address_status_sets "$( lz_get_isp_data_filename_status "${local_index}" )" "lz_ispip_tmp_${local_index}" "0"
         }
         let local_index++
     done
@@ -1364,7 +1620,7 @@ lz_output_ispip_status_info() {
         echo "$(lzdate)" [$$]: ----------------------------------------
     }
     local_exist="0"
-    local local_item_num="$( lz_get_ipv4_data_file_item_total_status "${status_iptv_box_ip_lst_file}" )"
+    local local_item_num="$( lz_get_ipv4_data_file_valid_item_total_status "${status_iptv_box_ip_lst_file}" )"
     [ "${local_item_num}" -gt "0" ] && {
         if [ "${status_iptv_igmp_switch}" = "0" ]; then
             echo "$(lzdate)" [$$]: "   IPTVSTBIPLst    Primary WAN${local_primary_wan_hd}"
@@ -1376,7 +1632,7 @@ lz_output_ispip_status_info() {
     }
     if [ "${status_iptv_igmp_switch}" = "0" ] || [ "${status_iptv_igmp_switch}" = "1" ]; then
         if [ "${status_iptv_access_mode}" = "2" ]; then
-            local_item_num="$( lz_get_ipv4_data_file_item_total_status "${status_iptv_isp_ip_lst_file}" )"
+            local_item_num="$( lz_get_ipv4_data_file_valid_item_total_status "${status_iptv_isp_ip_lst_file}" )"
             [ "${local_item_num}" -gt "0" ] && {
                 echo "$(lzdate)" [$$]: "   IPTVSrvIPLst    Available"
                 local_exist="1"
@@ -1449,7 +1705,7 @@ lz_output_ispip_status_info() {
         }
     }
     [ "${status_custom_data_wan_port_2}" -ge "0" ] && [ "${status_custom_data_wan_port_2}" -le "2" ] && {
-        local_item_num=$( lz_get_ipv4_data_file_item_total_status "${status_custom_data_file_2}" ) 
+        local_item_num=$( lz_get_ipv4_data_file_valid_item_total_status "${status_custom_data_file_2}" ) 
         [ "${local_item_num}" -gt "0" ] && {
             if [ "${status_usage_mode}" != "0" ]; then
                 if [ "${status_custom_data_wan_port_2}" = "0" ] || [ "${status_custom_data_wan_port_2}" = "1" ]; then
@@ -1476,7 +1732,7 @@ lz_output_ispip_status_info() {
         }
     }
     [ "${status_custom_data_wan_port_1}" -ge "0" ] && [ "${status_custom_data_wan_port_1}" -le "2" ] && {
-        local_item_num="$( lz_get_ipv4_data_file_item_total_status "${status_custom_data_file_1}" )"
+        local_item_num="$( lz_get_ipv4_data_file_valid_item_total_status "${status_custom_data_file_1}" )"
         [ "${local_item_num}" -gt "0" ] && {
             if [ "${status_usage_mode}" != "0" ]; then
                 if [ "${status_custom_data_wan_port_1}" = "0" ] || [ "${status_custom_data_wan_port_1}" = "1" ]; then
@@ -1502,23 +1758,12 @@ lz_output_ispip_status_info() {
             fi
         }
     }
-    local_item_num=$( lz_get_ipv4_data_file_item_total_status "${status_local_ipsets_file}" )
-    [ "${status_usage_mode}" = "0" ] && [ "${local_item_num}" -gt "0" ] && {
+    local_item_num=$( lz_get_ipv4_data_file_valid_item_total_status "${status_local_ipsets_file}" )
+    [ "${status_usage_mode}" = "0" ] && [ "${status_adjust_traffic_policy}" != "0" ] && [ "${local_item_num}" -gt "0" ] && {
         echo "$(lzdate)" [$$]: "   LocalIPBlcLst   Load Balancing"
         local_exist="1"
     }
     [ "${local_exist}" = "1" ] && echo "$(lzdate)" [$$]: ----------------------------------------
-}
-
-## 获取指定数据包标记的防火墙过滤规则条目数量状态函数
-## 输入项：
-##     $1--报文数据包标记
-##     $2--防火墙规则链名称
-## 返回值：
-##     条目数
-lz_get_iptables_fwmark_item_total_number_status() {
-    local retval="$( iptables -t mangle -L "${2}" 2> /dev/null | grep CONNMARK | grep -ci "${1}" )"
-    echo "${retval}"
 }
 
 ## 输出端口分流出口信息状态函数
@@ -1534,31 +1779,31 @@ lz_output_dport_policy_info_status() {
         echo "$(lzdate)" [$$]: "   Primary WAN     TCP:${local_dports}"
     }
     local_dports="$( iptables -t mangle -L "${STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN}" -v -n --line-numbers | grep "MARK set ${STATUS_DEST_PORT_FWMARK_0}" | grep "udp " | awk -F "dports " '{print $2}' | awk '{print $1}' )"
-    [ -n "${local_dports}" ] && local_item_exist=1 && {
+    [ -n "${local_dports}" ] && local_item_exist="1" && {
         echo "$(lzdate)" [$$]: "   Primary WAN     UDP:${local_dports}"
     }
     local_dports="$( iptables -t mangle -L "${STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN}" -v -n --line-numbers | grep "MARK set ${STATUS_DEST_PORT_FWMARK_0}" | grep "udplite" | awk -F "dports " '{print $2}' | awk '{print $1}' )"
-    [ -n "${local_dports}" ] && local_item_exist=1 && {
+    [ -n "${local_dports}" ] && local_item_exist="1" && {
         echo "$(lzdate)" [$$]: "   Primary WAN     UDPLITE:${local_dports}"
     }
     local_dports="$( iptables -t mangle -L "${STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN}" -v -n --line-numbers | grep "MARK set ${STATUS_DEST_PORT_FWMARK_0}" | grep "sctp" | awk -F "dports " '{print $2}' | awk '{print $1}' )"
-    [ -n "${local_dports}" ] && local_item_exist=1 && {
+    [ -n "${local_dports}" ] && local_item_exist="1" && {
         echo "$(lzdate)" [$$]: "   Primary WAN     SCTP:${local_dports}"
     }
     local_dports="$( iptables -t mangle -L "${STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN}" -v -n --line-numbers | grep "MARK set ${STATUS_DEST_PORT_FWMARK_1}" | grep "tcp" | awk -F "dports " '{print $2}' | awk '{print $1}' )"
-    [ -n "${local_dports}" ] && local_item_exist=1 && {
+    [ -n "${local_dports}" ] && local_item_exist="1" && {
         echo "$(lzdate)" [$$]: "   Secondary WAN   TCP:${local_dports}"
     }
     local_dports="$( iptables -t mangle -L "${STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN}" -v -n --line-numbers | grep "MARK set ${STATUS_DEST_PORT_FWMARK_1}" | grep "udp " | awk -F "dports " '{print $2}' | awk '{print $1}' )"
-    [ -n "${local_dports}" ] && local_item_exist=1 && {
+    [ -n "${local_dports}" ] && local_item_exist="1" && {
         echo "$(lzdate)" [$$]: "   Secondary WAN   UDP:${local_dports}"
     }
     local_dports="$( iptables -t mangle -L "${STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN}" -v -n --line-numbers | grep "MARK set ${STATUS_DEST_PORT_FWMARK_1}" | grep "udplite" | awk -F "dports " '{print $2}' | awk '{print $1}' )"
-    [ -n "${local_dports}" ] && local_item_exist=1 && {
+    [ -n "${local_dports}" ] && local_item_exist="1" && {
         echo "$(lzdate)" [$$]: "   Secondary WAN   UDPLITE:${local_dports}"
     }
     local_dports="$( iptables -t mangle -L "${STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN}" -v -n --line-numbers | grep "MARK set ${STATUS_DEST_PORT_FWMARK_1}" | grep "sctp" | awk -F "dports " '{print $2}' | awk '{print $1}' )"
-    [ -n "${local_dports}" ] && {
+    [ -n "${local_dports}" ] && local_item_exist="1" && {
         echo "$(lzdate)" [$$]: "   Secondary WAN   SCTP:${local_dports}"
     }
     [ "${local_item_exist}" = "1" ] && echo "$(lzdate)" [$$]: ----------------------------------------

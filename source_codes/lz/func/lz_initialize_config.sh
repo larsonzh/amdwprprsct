@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_initialize_config.sh v3.8.1
+# lz_initialize_config.sh v3.8.2
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 初始化脚本配置
@@ -655,13 +655,13 @@ lz_restore_default_config() {
 
 ## 策略规则优先级执行顺序：由高到低排列，系统抢先执行高优先级策略。
 ##     IPTV机顶盒线路IPv4流量出口静态分流出口规则（iptv_box_ip_lst_file）
+##     外网访问路由器静态路由方式出入口规则
 ##     虚拟专网客户端访问互联网IPv4流量出口静态分流出口规则
 ##     第一WAN口高优先级客户端至预设IPv4目标网址/网段流量静态直通出口规则（high_wan_1_src_to_dst_addr_file）
 ##     第二WAN口客户端至预设IPv4目标网址/网段流量静态直通出口规则（wan_2_src_to_dst_addr_file）
 ##     第一WAN口客户端至预设IPv4目标网址/网段流量静态直通出口规则（wan_1_src_to_dst_addr_file）
 ##     第二WAN口高优先级客户端IPv4流量静态直通出口规则（high_wan_2_client_src_addr_file）
 ##     第一WAN口高优先级客户端IPv4流量静态直通出口规则（high_wan_1_client_src_addr_file）
-##     外网访问路由器静态路由方式出入口规则
 ##     第二WAN口客户端至预设IPv4目标网址/网段流量协议端口动态分流出口规则（wan_2_src_to_dst_addr_port_file）
 ##     第一WAN口客户端至预设IPv4目标网址/网段流量协议端口动态分流出口规则（wan_1_src_to_dst_addr_port_file）
 ##     第二WAN口域名地址IPv4流量动态分流出口规则（wan_2_domain_client_src_addr_file及wan_2_domain_file）
@@ -674,8 +674,8 @@ lz_restore_default_config() {
 ##     国内及国外运营商IPv4目标网址/网段第一WAN口流量静态分流出口规则
 ##     第二WAN口IPv4流量协议端口动态分流出口规则
 ##     第一WAN口IPv4流量协议端口动态分流出口规则
-##     国内运营商IPv4目标网段和用户自定义IPv4目标网址/网段（custom_data_file_2）第二WAN口流量动态分流出口规则
-##     国内运营商IPv4目标网段和用户自定义IPv4目标网址/网段（custom_data_file_1）第一WAN口流量动态分流出口规则
+##     国内运营商IPv4目标网段和用户自定义IPv4目标网址/网段第二WAN口流量动态分流出口规则
+##     国内运营商IPv4目标网段和用户自定义IPv4目标网址/网段第一WAN口流量动态分流出口规则
 ##     国外运营商IPv4目标网段流量动态分流出口规则
 ##     系统负载均衡自动分配IPv4流量出口规则
 
@@ -802,6 +802,7 @@ custom_data_wan_port_1=5
 ## 文件路径、名称可自定义和修改，文件路径及名称不得为空。
 ## 缺省为"${PATH_DATA}/custom_data_1.txt"，为空文件。
 ## 文本格式：一个网址/网段一行，为一个条目，可多行多个条目。
+## 此文件中0.0.0.0/0为无效地址。
 ## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
 custom_data_file_1="${PATH_DATA}/custom_data_1.txt"
 
@@ -814,6 +815,7 @@ custom_data_wan_port_2=5
 ## 文件路径、名称可自定义和修改，文件路径及名称不得为空。
 ## 缺省为"${PATH_DATA}/custom_data_2.txt"，为空文件。
 ## 文本格式：一个网址/网段一行，为一个条目，可多行多个条目。
+## 此文件中0.0.0.0/0为无效地址。
 ## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
 custom_data_file_2="${PATH_DATA}/custom_data_2.txt"
 
@@ -886,6 +888,7 @@ wan_1_client_src_addr=5
 ## 文件路径、名称可自定义和修改，文件路径及名称不得为空。
 ## 缺省为"${PATH_DATA}/wan_1_client_src_addr.txt"，为空文件。
 ## 文本格式：一个网址/网段一行，为一个条目，可多行多个条目。
+## 可以用0.0.0.0/0表示所有客户端。
 ## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
 wan_1_client_src_addr_file="${PATH_DATA}/wan_1_client_src_addr.txt"
 
@@ -900,6 +903,7 @@ wan_2_client_src_addr=5
 ## 文件路径、名称可自定义和修改，文件路径及名称不得为空。
 ## 缺省为"${PATH_DATA}/wan_2_client_src_addr.txt"，为空文件。
 ## 文本格式：一个网址/网段一行，为一个条目，可多行多个条目。
+## 可以用0.0.0.0/0表示所有客户端。
 ## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
 wan_2_client_src_addr_file="${PATH_DATA}/wan_2_client_src_addr.txt"
 
@@ -914,6 +918,7 @@ high_wan_1_client_src_addr=5
 ## 文件路径、名称可自定义和修改，文件路径及名称不得为空。
 ## 缺省为"${PATH_DATA}/high_wan_1_client_src_addr.txt"，为空文件。
 ## 文本格式：一个网址/网段一行，为一个条目，可多行多个条目。
+## 可以用0.0.0.0/0表示所有客户端。
 ## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
 high_wan_1_client_src_addr_file="${PATH_DATA}/high_wan_1_client_src_addr.txt"
 
@@ -928,6 +933,7 @@ high_wan_2_client_src_addr=5
 ## 文件路径、名称可自定义和修改，文件路径及名称不得为空。
 ## 缺省为"${PATH_DATA}/high_wan_2_client_src_addr.txt"，为空文件。
 ## 文本格式：一个网址/网段一行，为一个条目，可多行多个条目。
+## 可以用0.0.0.0/0表示所有客户端。
 ## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
 high_wan_2_client_src_addr_file="${PATH_DATA}/high_wan_2_client_src_addr.txt"
 
@@ -1080,6 +1086,7 @@ wan_2_src_to_dst_addr_port_file="${PATH_DATA}/wan_2_src_to_dst_addr_port.txt"
 ## 文件路径、名称可自定义和修改，文件路径及名称不得为空。
 ## 缺省为"${PATH_DATA}/local_ipsets_data.txt"，为空文件。
 ## 文本格式：一个网址/网段一行，为一个条目，可多行多个条目。
+## 此文件中0.0.0.0/0为无效地址。
 ## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
 local_ipsets_file="${PATH_DATA}/local_ipsets_data.txt"
 
@@ -1088,6 +1095,7 @@ local_ipsets_file="${PATH_DATA}/local_ipsets_data.txt"
 ## 文件路径、名称可自定义和修改，文件路径及名称不得为空。
 ## 缺省为"${PATH_DATA}/private_ipsets_data.txt"，已预存数据。
 ## 文本格式：一个网址/网段一行，为一个条目，可多行多个条目。
+## 此文件中0.0.0.0/0为无效地址。
 ## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
 private_ipsets_file="${PATH_DATA}/private_ipsets_data.txt"
 
@@ -1213,6 +1221,7 @@ iptv_access_mode=1
 ## 文件路径、名称可自定义和修改，文件路径及名称不得为空。
 ## 缺省为"${PATH_DATA}/iptv_box_ip_lst.txt"，为空文件。
 ## 文本格式，一个机顶盒地址一行，可逐行填入多个机顶盒地址。
+## 此文件中0.0.0.0/0为无效地址。
 ## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
 iptv_box_ip_lst_file="${PATH_DATA}/iptv_box_ip_lst.txt"
 
@@ -1223,6 +1232,7 @@ iptv_box_ip_lst_file="${PATH_DATA}/iptv_box_ip_lst.txt"
 ## 网络服务地址，需要用户自己获取和填写，如果地址不全或错误，机顶盒将无法通过路由器正确接入IPTV线路。若
 ## 填入的地址覆盖了用户使用的互联网访问地址，会导致机顶盒无法通过该地址访问互联网。
 ## 文本格式，一个网址/网段一行，可逐行填入多个网址/网段。
+## 此文件中0.0.0.0/0为无效地址。
 ## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
 iptv_isp_ip_lst_file="${PATH_DATA}/iptv_isp_ip_lst.txt"
 
@@ -1424,13 +1434,13 @@ lz_restore_cfg_file() {
 
 ## 策略规则优先级执行顺序：由高到低排列，系统抢先执行高优先级策略。
 ##     IPTV机顶盒线路IPv4流量出口静态分流出口规则（iptv_box_ip_lst_file）
+##     外网访问路由器静态路由方式出入口规则
 ##     虚拟专网客户端访问互联网IPv4流量出口静态分流出口规则
 ##     第一WAN口高优先级客户端至预设IPv4目标网址/网段流量静态直通出口规则（high_wan_1_src_to_dst_addr_file）
 ##     第二WAN口客户端至预设IPv4目标网址/网段流量静态直通出口规则（wan_2_src_to_dst_addr_file）
 ##     第一WAN口客户端至预设IPv4目标网址/网段流量静态直通出口规则（wan_1_src_to_dst_addr_file）
 ##     第二WAN口高优先级客户端IPv4流量静态直通出口规则（high_wan_2_client_src_addr_file）
 ##     第一WAN口高优先级客户端IPv4流量静态直通出口规则（high_wan_1_client_src_addr_file）
-##     外网访问路由器静态路由方式出入口规则
 ##     第二WAN口客户端至预设IPv4目标网址/网段流量协议端口动态分流出口规则（wan_2_src_to_dst_addr_port_file）
 ##     第一WAN口客户端至预设IPv4目标网址/网段流量协议端口动态分流出口规则（wan_1_src_to_dst_addr_port_file）
 ##     第二WAN口域名地址IPv4流量动态分流出口规则（wan_2_domain_client_src_addr_file及wan_2_domain_file）
@@ -1443,8 +1453,8 @@ lz_restore_cfg_file() {
 ##     国内及国外运营商IPv4目标网址/网段第一WAN口流量静态分流出口规则
 ##     第二WAN口IPv4流量协议端口动态分流出口规则
 ##     第一WAN口IPv4流量协议端口动态分流出口规则
-##     国内运营商IPv4目标网段和用户自定义IPv4目标网址/网段（custom_data_file_2）第二WAN口流量动态分流出口规则
-##     国内运营商IPv4目标网段和用户自定义IPv4目标网址/网段（custom_data_file_1）第一WAN口流量动态分流出口规则
+##     国内运营商IPv4目标网段和用户自定义IPv4目标网址/网段第二WAN口流量动态分流出口规则
+##     国内运营商IPv4目标网段和用户自定义IPv4目标网址/网段第一WAN口流量动态分流出口规则
 ##     国外运营商IPv4目标网段流量动态分流出口规则
 ##     系统负载均衡自动分配IPv4流量出口规则
 
@@ -1571,6 +1581,7 @@ custom_data_wan_port_1=${local_custom_data_wan_port_1}
 ## 文件路径、名称可自定义和修改，文件路径及名称不得为空。
 ## 缺省为"${PATH_DATA}/custom_data_1.txt"，为空文件。
 ## 文本格式：一个网址/网段一行，为一个条目，可多行多个条目。
+## 此文件中0.0.0.0/0为无效地址。
 ## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
 custom_data_file_1=${local_custom_data_file_1}
 
@@ -1583,6 +1594,7 @@ custom_data_wan_port_2=${local_custom_data_wan_port_2}
 ## 文件路径、名称可自定义和修改，文件路径及名称不得为空。
 ## 缺省为"${PATH_DATA}/custom_data_2.txt"，为空文件。
 ## 文本格式：一个网址/网段一行，为一个条目，可多行多个条目。
+## 此文件中0.0.0.0/0为无效地址。
 ## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
 custom_data_file_2=${local_custom_data_file_2}
 
@@ -1655,6 +1667,7 @@ wan_1_client_src_addr=${local_wan_1_client_src_addr}
 ## 文件路径、名称可自定义和修改，文件路径及名称不得为空。
 ## 缺省为"${PATH_DATA}/wan_1_client_src_addr.txt"，为空文件。
 ## 文本格式：一个网址/网段一行，为一个条目，可多行多个条目。
+## 可以用0.0.0.0/0表示所有客户端。
 ## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
 wan_1_client_src_addr_file=${local_wan_1_client_src_addr_file}
 
@@ -1669,6 +1682,7 @@ wan_2_client_src_addr=${local_wan_2_client_src_addr}
 ## 文件路径、名称可自定义和修改，文件路径及名称不得为空。
 ## 缺省为"${PATH_DATA}/wan_2_client_src_addr.txt"，为空文件。
 ## 文本格式：一个网址/网段一行，为一个条目，可多行多个条目。
+## 可以用0.0.0.0/0表示所有客户端。
 ## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
 wan_2_client_src_addr_file=${local_wan_2_client_src_addr_file}
 
@@ -1683,6 +1697,7 @@ high_wan_1_client_src_addr=${local_high_wan_1_client_src_addr}
 ## 文件路径、名称可自定义和修改，文件路径及名称不得为空。
 ## 缺省为"${PATH_DATA}/high_wan_1_client_src_addr.txt"，为空文件。
 ## 文本格式：一个网址/网段一行，为一个条目，可多行多个条目。
+## 可以用0.0.0.0/0表示所有客户端。
 ## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
 high_wan_1_client_src_addr_file=${local_high_wan_1_client_src_addr_file}
 
@@ -1697,6 +1712,7 @@ high_wan_2_client_src_addr=${local_high_wan_2_client_src_addr}
 ## 文件路径、名称可自定义和修改，文件路径及名称不得为空。
 ## 缺省为"${PATH_DATA}/high_wan_2_client_src_addr.txt"，为空文件。
 ## 文本格式：一个网址/网段一行，为一个条目，可多行多个条目。
+## 可以用0.0.0.0/0表示所有客户端。
 ## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
 high_wan_2_client_src_addr_file=${local_high_wan_2_client_src_addr_file}
 
@@ -1849,6 +1865,7 @@ wan_2_src_to_dst_addr_port_file=${local_wan_2_src_to_dst_addr_port_file}
 ## 文件路径、名称可自定义和修改，文件路径及名称不得为空。
 ## 缺省为"${PATH_DATA}/local_ipsets_data.txt"，为空文件。
 ## 文本格式：一个网址/网段一行，为一个条目，可多行多个条目。
+## 此文件中0.0.0.0/0为无效地址。
 ## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
 local_ipsets_file=${local_local_ipsets_file}
 
@@ -1857,6 +1874,7 @@ local_ipsets_file=${local_local_ipsets_file}
 ## 文件路径、名称可自定义和修改，文件路径及名称不得为空。
 ## 缺省为"${PATH_DATA}/private_ipsets_data.txt"，已预存数据。
 ## 文本格式：一个网址/网段一行，为一个条目，可多行多个条目。
+## 此文件中0.0.0.0/0为无效地址。
 ## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
 private_ipsets_file=${local_private_ipsets_file}
 
@@ -1982,6 +2000,7 @@ iptv_access_mode=${local_iptv_access_mode}
 ## 文件路径、名称可自定义和修改，文件路径及名称不得为空。
 ## 缺省为"${PATH_DATA}/iptv_box_ip_lst.txt"，为空文件。
 ## 文本格式，一个机顶盒地址一行，可逐行填入多个机顶盒地址。
+## 此文件中0.0.0.0/0为无效地址。
 ## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
 iptv_box_ip_lst_file=${local_iptv_box_ip_lst_file}
 
@@ -1992,6 +2011,7 @@ iptv_box_ip_lst_file=${local_iptv_box_ip_lst_file}
 ## 网络服务地址，需要用户自己获取和填写，如果地址不全或错误，机顶盒将无法通过路由器正确接入IPTV线路。若
 ## 填入的地址覆盖了用户使用的互联网访问地址，会导致机顶盒无法通过该地址访问互联网。
 ## 文本格式，一个网址/网段一行，可逐行填入多个网址/网段。
+## 此文件中0.0.0.0/0为无效地址。
 ## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
 iptv_isp_ip_lst_file=${local_iptv_isp_ip_lst_file}
 
@@ -2099,7 +2119,7 @@ EOF
 ## 返回值：
 ##     数据文件缓冲区内容
 lz_read_file_cache_buffer() {
-    local local_buffer="$( grep -E '^[ \t]*[a-zA-Z0-9_-][a-zA-Z0-9_-]*[=]' "${1}" \
+    local local_buffer="$( awk '$1 ~ /^[a-zA-Z0-9_-][a-zA-Z0-9_-]*[=]/ {print $1}' "${1}" \
             | sed -e 's/[#].*$//g' -e 's/^[ \t]*//g' -e 's/[ \t][ \t]*/ /g' -e 's/^\([^=]*[=][^ =]*\).*$/\1/g' \
             -e 's/^\(.*[=][^\"][^\"]*\).*$/\1/g' -e 's/^\(.*[=][\"][^\"]*[\"]\).*$/\1/g' \
             -e 's/^\(.*[=]\)[\"][^\"]*$/\1/g' -e 's/\"/##/g' )"
