@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_initialize_config.sh v3.8.2
+# lz_initialize_config.sh v3.8.3
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 初始化脚本配置
@@ -66,6 +66,8 @@ lz_variable_initialize() {
     local_wan_1_src_to_dst_addr_port_file=
     local_wan_2_src_to_dst_addr_port=
     local_wan_2_src_to_dst_addr_port_file=
+    local_high_wan_1_src_to_dst_addr_port=
+    local_high_wan_1_src_to_dst_addr_port_file=
     local_ovs_client_wan_port=
     local_vpn_client_polling_time=
     local_wan_access_port=
@@ -154,6 +156,8 @@ lz_variable_initialize() {
     local_ini_wan_1_src_to_dst_addr_port_file=
     local_ini_wan_2_src_to_dst_addr_port=
     local_ini_wan_2_src_to_dst_addr_port_file=
+    local_ini_high_wan_1_src_to_dst_addr_port=
+    local_ini_high_wan_1_src_to_dst_addr_port_file=
     local_ini_ovs_client_wan_port=
     local_ini_vpn_client_polling_time=
     local_ini_wan_access_port=
@@ -241,6 +245,8 @@ lz_variable_initialize() {
     local_wan_1_src_to_dst_addr_port_file_changed="0"
     local_wan_2_src_to_dst_addr_port_changed="0"
     local_wan_2_src_to_dst_addr_port_file_changed="0"
+    local_high_wan_1_src_to_dst_addr_port_changed="0"
+    local_high_wan_1_src_to_dst_addr_port_file_changed="0"
     local_ovs_client_wan_port_changed="0"
     local_vpn_client_polling_time_changed="0"
     local_wan_access_port_changed="0"
@@ -342,6 +348,8 @@ lz_variable_uninitialize() {
     unset local_ini_wan_1_src_to_dst_addr_port_file
     unset local_ini_wan_2_src_to_dst_addr_port
     unset local_ini_wan_2_src_to_dst_addr_port_file
+    unset local_ini_high_wan_1_src_to_dst_addr_port
+    unset local_ini_high_wan_1_src_to_dst_addr_port_file
     unset local_ini_ovs_client_wan_port
     unset local_ini_vpn_client_polling_time
     unset local_ini_wan_access_port
@@ -426,11 +434,13 @@ lz_variable_uninitialize() {
     unset local_wan1_dest_ucp_port
     unset local_wan1_dest_udplite_port
     unset local_wan1_dest_sctp_port
-    unset local_ovs_client_wan_port
     unset local_wan_1_src_to_dst_addr_port
     unset local_wan_1_src_to_dst_addr_port_file
     unset local_wan_2_src_to_dst_addr_port
     unset local_wan_2_src_to_dst_addr_port_file
+    unset local_high_wan_1_src_to_dst_addr_port
+    unset local_high_wan_1_src_to_dst_addr_port_file
+    unset local_ovs_client_wan_port
     unset local_vpn_client_polling_time
     unset local_wan_access_port
     unset local_dn_pre_resolved
@@ -517,6 +527,8 @@ lz_variable_uninitialize() {
     unset local_wan_1_src_to_dst_addr_port_file_changed
     unset local_wan_2_src_to_dst_addr_port_changed
     unset local_wan_2_src_to_dst_addr_port_file_changed
+    unset local_high_wan_1_src_to_dst_addr_port_changed
+    unset local_high_wan_1_src_to_dst_addr_port_file_changed
     unset local_ovs_client_wan_port_changed
     unset local_vpn_client_polling_time_changed
     unset local_wan_access_port_changed
@@ -654,30 +666,31 @@ lz_restore_default_config() {
 ##     如有不同需求，请在自定义区修改下面的参数配置。
 
 ## 策略规则优先级执行顺序：由高到低排列，系统抢先执行高优先级策略。
-##     IPTV机顶盒线路IPv4流量出口静态分流出口规则（iptv_box_ip_lst_file）
-##     外网访问路由器静态路由方式出入口规则
-##     虚拟专网客户端访问互联网IPv4流量出口静态分流出口规则
-##     第一WAN口高优先级客户端至预设IPv4目标网址/网段流量静态直通出口规则（high_wan_1_src_to_dst_addr_file）
-##     第二WAN口客户端至预设IPv4目标网址/网段流量静态直通出口规则（wan_2_src_to_dst_addr_file）
-##     第一WAN口客户端至预设IPv4目标网址/网段流量静态直通出口规则（wan_1_src_to_dst_addr_file）
-##     第二WAN口高优先级客户端IPv4流量静态直通出口规则（high_wan_2_client_src_addr_file）
-##     第一WAN口高优先级客户端IPv4流量静态直通出口规则（high_wan_1_client_src_addr_file）
-##     第二WAN口客户端至预设IPv4目标网址/网段流量协议端口动态分流出口规则（wan_2_src_to_dst_addr_port_file）
-##     第一WAN口客户端至预设IPv4目标网址/网段流量协议端口动态分流出口规则（wan_1_src_to_dst_addr_port_file）
-##     第二WAN口域名地址IPv4流量动态分流出口规则（wan_2_domain_client_src_addr_file及wan_2_domain_file）
-##     第一WAN口域名地址IPv4流量动态分流出口规则（wan_1_domain_client_src_addr_file及wan_1_domain_file）
-##     第二WAN口客户端IPv4流量静态直通出口规则（wan_2_client_src_addr_file）
-##     第一WAN口客户端IPv4流量静态直通出口规则（wan_1_client_src_addr_file）
-##     用户自定义IPv4目标网址/网段(2)流量静态分流出口规则（custom_data_file_2）
-##     用户自定义IPv4目标网址/网段(1)流量静态分流出口规则（custom_data_file_1）
-##     国内及国外运营商IPv4目标网址/网段第二WAN口流量静态分流出口规则
-##     国内及国外运营商IPv4目标网址/网段第一WAN口流量静态分流出口规则
-##     第二WAN口IPv4流量协议端口动态分流出口规则
-##     第一WAN口IPv4流量协议端口动态分流出口规则
-##     国内运营商IPv4目标网段和用户自定义IPv4目标网址/网段第二WAN口流量动态分流出口规则
-##     国内运营商IPv4目标网段和用户自定义IPv4目标网址/网段第一WAN口流量动态分流出口规则
-##     国外运营商IPv4目标网段流量动态分流出口规则
-##     系统负载均衡自动分配IPv4流量出口规则
+##     IPTV机顶盒线路IPv4流量出口静态直通出口规则（iptv_box_ip_lst_file）--同时用于动、静态分流模式
+##     外网访问路由器静态直通方式出入口规则--同时用于动、静态分流模式
+##     虚拟专网客户端访问互联网IPv4流量出口静态直通出口规则--同时用于动、静态分流模式
+##     第一WAN口高优先级客户端至预设IPv4目标网址/网段流量静态直通出口规则（high_wan_1_src_to_dst_addr_file）--同时用于动、静态分流模式
+##     第二WAN口客户端至预设IPv4目标网址/网段流量静态直通出口规则（wan_2_src_to_dst_addr_file）--同时用于动、静态分流模式
+##     第一WAN口客户端至预设IPv4目标网址/网段流量静态直通出口规则（wan_1_src_to_dst_addr_file）--同时用于动、静态分流模式
+##     第二WAN口高优先级客户端IPv4流量静态直通出口规则（high_wan_2_client_src_addr_file）--同时用于动、静态分流模式
+##     第一WAN口高优先级客户端IPv4流量静态直通出口规则（high_wan_1_client_src_addr_file）--同时用于动、静态分流模式
+##     第一WAN口高优先级客户端至预设IPv4目标网址/网段流量协议端口动态分流出口规则（high_wan_1_src_to_dst_addr_port_file）--仅用于动态分流模式
+##     第二WAN口客户端至预设IPv4目标网址/网段流量协议端口动态分流出口规则（wan_2_src_to_dst_addr_port_file）--仅用于动态分流模式
+##     第一WAN口客户端至预设IPv4目标网址/网段流量协议端口动态分流出口规则（wan_1_src_to_dst_addr_port_file）--仅用于动态分流模式
+##     第二WAN口域名地址IPv4流量动态分流出口规则（wan_2_domain_client_src_addr_file及wan_2_domain_file）--仅用于动态分流模式
+##     第一WAN口域名地址IPv4流量动态分流出口规则（wan_1_domain_client_src_addr_file及wan_1_domain_file）--仅用于动态分流模式
+##     第二WAN口客户端IPv4流量静态直通出口规则（wan_2_client_src_addr_file）--同时用于动、静态分流模式
+##     第一WAN口客户端IPv4流量静态直通出口规则（wan_1_client_src_addr_file）--同时用于动、静态分流模式
+##     第二WAN口IPv4流量协议端口动态分流出口规则--仅用于动态分流模式
+##     第一WAN口IPv4流量协议端口动态分流出口规则--仅用于动态分流模式
+##     用户自定义IPv4目标网址/网段(2)流量静态直通出口规则（custom_data_file_2）--仅用于静态分流模式
+##     用户自定义IPv4目标网址/网段(1)流量静态直通出口规则（custom_data_file_1）--仅用于静态分流模式
+##     国内及国外运营商IPv4目标网址/网段第二WAN口流量静态直通出口规则--仅用于静态分流模式
+##     国内及国外运营商IPv4目标网址/网段第一WAN口流量静态直通出口规则--仅用于静态分流模式
+##     国内运营商IPv4目标网段和用户自定义IPv4目标网址/网段第二WAN口流量动态分流出口规则--仅用于动态分流模式
+##     国内运营商IPv4目标网段和用户自定义IPv4目标网址/网段第一WAN口流量动态分流出口规则--仅用于动态分流模式
+##     国外运营商IPv4目标网段流量动态分流出口规则--仅用于动态分流模式
+##     系统负载均衡自动分配IPv4流量出口规则--仅用于动态分流模式
 
 ## 本软件将全宇宙所有互联网IPv4地址网段划分为如下11个国内外网络运营商目标网段数据集合，使用中首先将所接
 ## 入网络运营商网段对应至相应的路由器出口，其他运营商网段可根据使用需求、所属运营商网络跨网段访问品质、
@@ -787,8 +800,9 @@ ruid_timer_min=*     ## 时间分钟数（0~59，*表示由系统指定）；"ru
 ## 0--不重试；>0--重试次数；取值范围：0~99
 ## 缺省为重试5次。
 ruid_retry_num=5
-## 若自动重试后经常下载失败，建议自行前往 https://ispip.clang.cn/ 网站手工下载获取与上述11个网络运营商IPv4网段数据
-## 文件同名的最新CIDR网段数据，下载后直接粘贴覆盖${PATH_DATA}/目录内同名数据文件，重启脚本即刻生效。
+## 若自动重试后经常下载失败，建议自行前往 https://ispip.clang.cn/ 网站手工下载获取与上述11个网络运营商IPv4
+## 网段数据文件同名的最新CIDR网段数据，下载后直接粘贴覆盖${PATH_DATA}/目录内同名数据文件，重启脚本
+## 即刻生效。
 
 
 ## 二、高级设置
@@ -796,6 +810,8 @@ ruid_retry_num=5
 ## 用户自定义IPv4目标网址/网段(1)流量出口
 ## 0--第一WAN口；1--第二WAN口；2--由系统自动分配流量出口；>2--禁用；取值范围：0~9
 ## 缺省为禁用（5）。
+## 动态分流模式时自动与同一出口的国内运营商IPv4目标网段合集，采用同一条限定优先级的出口流量动态分流出口规则。
+## 静态分流模式时采用专属的用户自定义IPv4目标网址/网段(1)流量静态分流出口规则。
 custom_data_wan_port_1=5
 
 ## 用户自定义IPv4目标网址/网段(1)数据文件
@@ -809,6 +825,8 @@ custom_data_file_1="${PATH_DATA}/custom_data_1.txt"
 ## 用户自定义IPv4目标网址/网段(2)流量出口
 ## 0--第一WAN口；1--第二WAN口；2--由系统自动分配流量出口；>2--禁用；取值范围：0~9
 ## 缺省为禁用（5）。
+## 动态分流模式时自动与同一出口的国内运营商IPv4目标网段合集，采用同一条限定优先级的出口流量动态分流出口规则。
+## 静态分流模式时采用专属的用户自定义IPv4目标网址/网段(2)流量静态分流出口规则。
 custom_data_wan_port_2=5
 
 ## 用户自定义IPv4目标网址/网段(2)数据文件
@@ -1078,6 +1096,38 @@ wan_2_src_to_dst_addr_port=5
 ## 每个条目最多可设置15个不连续的目标访问端口号埠，不连续的端口号埠之间用英文半角“,”逗号相隔，不要有空格。
 ## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
 wan_2_src_to_dst_addr_port_file="${PATH_DATA}/wan_2_src_to_dst_addr_port.txt"
+
+## 第一WAN口高优先级客户端至预设IPv4目标网址/网段流量协议端口动态分流
+## 0--启用；非0--禁用；取值范围：0~9
+## 缺省为禁用（5）。
+## 指定高优先级客户端访问预设IPv4网址/网段协议端口时使用第二WAN口作为该IPv4流量出口，可一次性的同时实现多
+## 种灵活、精准的流量策略。
+## 仅用于TCP、UDP、UDPLITE、SCTP四类协议端口。
+## 功能优先级高于“域名地址IPv4流量动态分流”和“客户端IPv4流量静态直通”，低于“高优先级客户端IPv4流量静态直
+## 通”和“客户端至预设IPv4目标网址/网段流量静态直通”，详情见前述“策略规则优先级执行顺序”。
+## 仅能在动态分流模式下使用。
+high_wan_1_src_to_dst_addr_port=5
+
+## 第一WAN口高优先级客户端IPv4网址/网段至预设IPv4目标网址/网段协议端口动态分流条目列表数据文件
+## 文件中具体定义高优先级客户端访问预设IPv4网址/网段协议端口时使用第一WAN口作为该IPv4流量出口。
+## 文件路径、名称可自定义和修改，文件路径及名称不得为空。
+## 缺省为"${PATH_DATA}/high_wan_1_src_to_dst_addr_port.txt"，为空文件。
+## 文本格式：每行各字段之间用空格隔开，一个条目一行，可多行多个条目。
+## 客户端IPv4网址/网段 IPv4目标网址/网段 通讯协议 目标端口号
+## 例如：
+## 192.168.50.101 123.123.123.121 tcp 80,443,6881:6889,25671
+## 192.168.50.0/27 123.123.123.0/24 udp 4334
+## 0.0.0.0/0 123.123.123.123 udplite 12345
+## 192.168.50.102 0.0.0.0/0 sctp
+## 0.0.0.0/0 0.0.0.0/0
+## 可以用0.0.0.0/0表示所有未知IP地址。
+## “客户端IPv4网址/网段”和“IPv4目标网址/网段”为必选项。
+## “通讯协议”及“目标端口号”为可选项。选择“目标端口号”时，“通讯协议”则为必选项。
+## 每个条目只能使用一个端口通讯协议，只能是TCP、UDP、UDPLITE、SCTP四种协议中的一个，字母英文大小写均可。
+## 连续端口号中间用英文半角“:”冒号相隔，如：6881:6889表示6881~6889的连续端口号。
+## 每个条目最多可设置15个不连续的目标访问端口号埠，不连续的端口号埠之间用英文半角“,”逗号相隔，不要有空格。
+## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
+high_wan_1_src_to_dst_addr_port_file="${PATH_DATA}/high_wan_1_src_to_dst_addr_port.txt"
 
 ## 本地客户端IPv4网址/网段分流黑名单列表数据文件
 ## 在动态分流模式下，列入该网址/网段名单列表的设备访问外网时不受分流规则控制，仅由路由器自身的负载均衡
@@ -1433,30 +1483,31 @@ lz_restore_cfg_file() {
 ##     如有不同需求，请在自定义区修改下面的参数配置。
 
 ## 策略规则优先级执行顺序：由高到低排列，系统抢先执行高优先级策略。
-##     IPTV机顶盒线路IPv4流量出口静态分流出口规则（iptv_box_ip_lst_file）
-##     外网访问路由器静态路由方式出入口规则
-##     虚拟专网客户端访问互联网IPv4流量出口静态分流出口规则
-##     第一WAN口高优先级客户端至预设IPv4目标网址/网段流量静态直通出口规则（high_wan_1_src_to_dst_addr_file）
-##     第二WAN口客户端至预设IPv4目标网址/网段流量静态直通出口规则（wan_2_src_to_dst_addr_file）
-##     第一WAN口客户端至预设IPv4目标网址/网段流量静态直通出口规则（wan_1_src_to_dst_addr_file）
-##     第二WAN口高优先级客户端IPv4流量静态直通出口规则（high_wan_2_client_src_addr_file）
-##     第一WAN口高优先级客户端IPv4流量静态直通出口规则（high_wan_1_client_src_addr_file）
-##     第二WAN口客户端至预设IPv4目标网址/网段流量协议端口动态分流出口规则（wan_2_src_to_dst_addr_port_file）
-##     第一WAN口客户端至预设IPv4目标网址/网段流量协议端口动态分流出口规则（wan_1_src_to_dst_addr_port_file）
-##     第二WAN口域名地址IPv4流量动态分流出口规则（wan_2_domain_client_src_addr_file及wan_2_domain_file）
-##     第一WAN口域名地址IPv4流量动态分流出口规则（wan_1_domain_client_src_addr_file及wan_1_domain_file）
-##     第二WAN口客户端IPv4流量静态直通出口规则（wan_2_client_src_addr_file）
-##     第一WAN口客户端IPv4流量静态直通出口规则（wan_1_client_src_addr_file）
-##     用户自定义IPv4目标网址/网段(2)流量静态分流出口规则（custom_data_file_2）
-##     用户自定义IPv4目标网址/网段(1)流量静态分流出口规则（custom_data_file_1）
-##     国内及国外运营商IPv4目标网址/网段第二WAN口流量静态分流出口规则
-##     国内及国外运营商IPv4目标网址/网段第一WAN口流量静态分流出口规则
-##     第二WAN口IPv4流量协议端口动态分流出口规则
-##     第一WAN口IPv4流量协议端口动态分流出口规则
-##     国内运营商IPv4目标网段和用户自定义IPv4目标网址/网段第二WAN口流量动态分流出口规则
-##     国内运营商IPv4目标网段和用户自定义IPv4目标网址/网段第一WAN口流量动态分流出口规则
-##     国外运营商IPv4目标网段流量动态分流出口规则
-##     系统负载均衡自动分配IPv4流量出口规则
+##     IPTV机顶盒线路IPv4流量出口静态直通出口规则（iptv_box_ip_lst_file）--同时用于动、静态分流模式
+##     外网访问路由器静态直通方式出入口规则--同时用于动、静态分流模式
+##     虚拟专网客户端访问互联网IPv4流量出口静态直通出口规则--同时用于动、静态分流模式
+##     第一WAN口高优先级客户端至预设IPv4目标网址/网段流量静态直通出口规则（high_wan_1_src_to_dst_addr_file）--同时用于动、静态分流模式
+##     第二WAN口客户端至预设IPv4目标网址/网段流量静态直通出口规则（wan_2_src_to_dst_addr_file）--同时用于动、静态分流模式
+##     第一WAN口客户端至预设IPv4目标网址/网段流量静态直通出口规则（wan_1_src_to_dst_addr_file）--同时用于动、静态分流模式
+##     第二WAN口高优先级客户端IPv4流量静态直通出口规则（high_wan_2_client_src_addr_file）--同时用于动、静态分流模式
+##     第一WAN口高优先级客户端IPv4流量静态直通出口规则（high_wan_1_client_src_addr_file）--同时用于动、静态分流模式
+##     第一WAN口高优先级客户端至预设IPv4目标网址/网段流量协议端口动态分流出口规则（high_wan_1_src_to_dst_addr_port_file）--仅用于动态分流模式
+##     第二WAN口客户端至预设IPv4目标网址/网段流量协议端口动态分流出口规则（wan_2_src_to_dst_addr_port_file）--仅用于动态分流模式
+##     第一WAN口客户端至预设IPv4目标网址/网段流量协议端口动态分流出口规则（wan_1_src_to_dst_addr_port_file）--仅用于动态分流模式
+##     第二WAN口域名地址IPv4流量动态分流出口规则（wan_2_domain_client_src_addr_file及wan_2_domain_file）--仅用于动态分流模式
+##     第一WAN口域名地址IPv4流量动态分流出口规则（wan_1_domain_client_src_addr_file及wan_1_domain_file）--仅用于动态分流模式
+##     第二WAN口客户端IPv4流量静态直通出口规则（wan_2_client_src_addr_file）--同时用于动、静态分流模式
+##     第一WAN口客户端IPv4流量静态直通出口规则（wan_1_client_src_addr_file）--同时用于动、静态分流模式
+##     第二WAN口IPv4流量协议端口动态分流出口规则--仅用于动态分流模式
+##     第一WAN口IPv4流量协议端口动态分流出口规则--仅用于动态分流模式
+##     用户自定义IPv4目标网址/网段(2)流量静态直通出口规则（custom_data_file_2）--仅用于静态分流模式
+##     用户自定义IPv4目标网址/网段(1)流量静态直通出口规则（custom_data_file_1）--仅用于静态分流模式
+##     国内及国外运营商IPv4目标网址/网段第二WAN口流量静态直通出口规则--仅用于静态分流模式
+##     国内及国外运营商IPv4目标网址/网段第一WAN口流量静态直通出口规则--仅用于静态分流模式
+##     国内运营商IPv4目标网段和用户自定义IPv4目标网址/网段第二WAN口流量动态分流出口规则--仅用于动态分流模式
+##     国内运营商IPv4目标网段和用户自定义IPv4目标网址/网段第一WAN口流量动态分流出口规则--仅用于动态分流模式
+##     国外运营商IPv4目标网段流量动态分流出口规则--仅用于动态分流模式
+##     系统负载均衡自动分配IPv4流量出口规则--仅用于动态分流模式
 
 ## 本软件将全宇宙所有互联网IPv4地址网段划分为如下11个国内外网络运营商目标网段数据集合，使用中首先将所接
 ## 入网络运营商网段对应至相应的路由器出口，其他运营商网段可根据使用需求、所属运营商网络跨网段访问品质、
@@ -1566,8 +1617,9 @@ ruid_timer_min=${local_ruid_timer_min}    ## 时间分钟数（0~59，*表示由
 ## 0--不重试；>0--重试次数；取值范围：0~99
 ## 缺省为重试5次。
 ruid_retry_num=${local_ruid_retry_num}
-## 若自动重试后经常下载失败，建议自行前往 https://ispip.clang.cn/ 网站手工下载获取与上述11个网络运营商IPv4网段数据
-## 文件同名的最新CIDR网段数据，下载后直接粘贴覆盖${PATH_DATA}/目录内同名数据文件，重启脚本即刻生效。
+## 若自动重试后经常下载失败，建议自行前往 https://ispip.clang.cn/ 网站手工下载获取与上述11个网络运营商IPv4
+## 网段数据文件同名的最新CIDR网段数据，下载后直接粘贴覆盖${PATH_DATA}/目录内同名数据文件，重启脚本
+## 即刻生效。
 
 
 ## 二、高级设置
@@ -1575,6 +1627,8 @@ ruid_retry_num=${local_ruid_retry_num}
 ## 用户自定义IPv4目标网址/网段(1)流量出口
 ## 0--第一WAN口；1--第二WAN口；2--由系统自动分配流量出口；>2--禁用；取值范围：0~9
 ## 缺省为禁用（5）。
+## 动态分流模式时自动与同一出口的国内运营商IPv4目标网段合集，采用同一条限定优先级的出口流量动态分流出口规则。
+## 静态分流模式时采用专属的用户自定义IPv4目标网址/网段(1)流量静态分流出口规则。
 custom_data_wan_port_1=${local_custom_data_wan_port_1}
 
 ## 用户自定义IPv4目标网址/网段(1)数据文件
@@ -1588,6 +1642,8 @@ custom_data_file_1=${local_custom_data_file_1}
 ## 用户自定义IPv4目标网址/网段(2)流量出口
 ## 0--第一WAN口；1--第二WAN口；2--由系统自动分配流量出口；>2--禁用；取值范围：0~9
 ## 缺省为禁用（5）。
+## 动态分流模式时自动与同一出口的国内运营商IPv4目标网段合集，采用同一条限定优先级的出口流量动态分流出口规则。
+## 静态分流模式时采用专属的用户自定义IPv4目标网址/网段(2)流量静态分流出口规则。
 custom_data_wan_port_2=${local_custom_data_wan_port_2}
 
 ## 用户自定义IPv4目标网址/网段(2)数据文件
@@ -1857,6 +1913,38 @@ wan_2_src_to_dst_addr_port=${local_wan_2_src_to_dst_addr_port}
 ## 每个条目最多可设置15个不连续的目标访问端口号埠，不连续的端口号埠之间用英文半角“,”逗号相隔，不要有空格。
 ## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
 wan_2_src_to_dst_addr_port_file=${local_wan_2_src_to_dst_addr_port_file}
+
+## 第一WAN口高优先级客户端至预设IPv4目标网址/网段流量协议端口动态分流
+## 0--启用；非0--禁用；取值范围：0~9
+## 缺省为禁用（5）。
+## 指定高优先级客户端访问预设IPv4网址/网段协议端口时使用第二WAN口作为该IPv4流量出口，可一次性的同时实现多
+## 种灵活、精准的流量策略。
+## 仅用于TCP、UDP、UDPLITE、SCTP四类协议端口。
+## 功能优先级高于“域名地址IPv4流量动态分流”和“客户端IPv4流量静态直通”，低于“高优先级客户端IPv4流量静态直
+## 通”和“客户端至预设IPv4目标网址/网段流量静态直通”，详情见前述“策略规则优先级执行顺序”。
+## 仅能在动态分流模式下使用。
+high_wan_1_src_to_dst_addr_port=${local_high_wan_1_src_to_dst_addr_port}
+
+## 第一WAN口高优先级客户端IPv4网址/网段至预设IPv4目标网址/网段协议端口动态分流条目列表数据文件
+## 文件中具体定义高优先级客户端访问预设IPv4网址/网段协议端口时使用第一WAN口作为该IPv4流量出口。
+## 文件路径、名称可自定义和修改，文件路径及名称不得为空。
+## 缺省为"${PATH_DATA}/high_wan_1_src_to_dst_addr_port.txt"，为空文件。
+## 文本格式：每行各字段之间用空格隔开，一个条目一行，可多行多个条目。
+## 客户端IPv4网址/网段 IPv4目标网址/网段 通讯协议 目标端口号
+## 例如：
+## 192.168.50.101 123.123.123.121 tcp 80,443,6881:6889,25671
+## 192.168.50.0/27 123.123.123.0/24 udp 4334
+## 0.0.0.0/0 123.123.123.123 udplite 12345
+## 192.168.50.102 0.0.0.0/0 sctp
+## 0.0.0.0/0 0.0.0.0/0
+## 可以用0.0.0.0/0表示所有未知IP地址。
+## “客户端IPv4网址/网段”和“IPv4目标网址/网段”为必选项。
+## “通讯协议”及“目标端口号”为可选项。选择“目标端口号”时，“通讯协议”则为必选项。
+## 每个条目只能使用一个端口通讯协议，只能是TCP、UDP、UDPLITE、SCTP四种协议中的一个，字母英文大小写均可。
+## 连续端口号中间用英文半角“:”冒号相隔，如：6881:6889表示6881~6889的连续端口号。
+## 每个条目最多可设置15个不连续的目标访问端口号埠，不连续的端口号埠之间用英文半角“,”逗号相隔，不要有空格。
+## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
+high_wan_1_src_to_dst_addr_port_file=${local_high_wan_1_src_to_dst_addr_port_file}
 
 ## 本地客户端IPv4网址/网段分流黑名单列表数据文件
 ## 在动态分流模式下，列入该网址/网段名单列表的设备访问外网时不受分流规则控制，仅由路由器自身的负载均衡
@@ -2352,6 +2440,11 @@ lz_read_config_param() {
 
     local_wan_2_src_to_dst_addr_port_file="$( lz_get_file_cache_data "wan_2_src_to_dst_addr_port_file" "\"${PATH_DATA}/wan_2_src_to_dst_addr_port.txt\"" )" && local_exist="0"
 
+    local_high_wan_1_src_to_dst_addr_port="$( lz_get_file_cache_data "high_wan_1_src_to_dst_addr_port" "5" )" && local_exist="0"
+    ! echo "${local_high_wan_1_src_to_dst_addr_port}" | grep -q '^[0-9]$' && local_high_wan_1_src_to_dst_addr_port="5" && local_exist="0"
+
+    local_high_wan_1_src_to_dst_addr_port_file="$( lz_get_file_cache_data "high_wan_1_src_to_dst_addr_port_file" "\"${PATH_DATA}/high_wan_1_src_to_dst_addr_port.txt\"" )" && local_exist="0"
+
     local_ovs_client_wan_port="$( lz_get_file_cache_data "ovs_client_wan_port" "5" )" && local_exist="0"
     ! echo "${local_ovs_client_wan_port}" | grep -q '^[0-9]$' && local_ovs_client_wan_port="5" && local_exist="0"
 
@@ -2568,6 +2661,8 @@ lz_cfg_is_default() {
     [ "${local_wan_1_src_to_dst_addr_port_file}" != "\"${PATH_DATA}/wan_1_src_to_dst_addr_port.txt\"" ] && return 0
     [ "${local_wan_2_src_to_dst_addr_port}" != "5" ] && return 0
     [ "${local_wan_2_src_to_dst_addr_port_file}" != "\"${PATH_DATA}/wan_2_src_to_dst_addr_port.txt\"" ] && return 0
+    [ "${local_high_wan_1_src_to_dst_addr_port}" != "5" ] && return 0
+    [ "${local_high_wan_1_src_to_dst_addr_port_file}" != "\"${PATH_DATA}/high_wan_1_src_to_dst_addr_port.txt\"" ] && return 0
     [ "${local_ovs_client_wan_port}" != "0" ] && return 0
     [ "${local_vpn_client_polling_time}" != "5" ] && return 0
     [ "${local_wan_access_port}" != "0" ] && return 0
@@ -2663,6 +2758,8 @@ lz_config_wan_1_src_to_dst_addr_port=${local_wan_1_src_to_dst_addr_port}
 lz_config_wan_1_src_to_dst_addr_port_file=${local_wan_1_src_to_dst_addr_port_file}
 lz_config_wan_2_src_to_dst_addr_port=${local_wan_2_src_to_dst_addr_port}
 lz_config_wan_2_src_to_dst_addr_port_file=${local_wan_2_src_to_dst_addr_port_file}
+lz_config_high_wan_1_src_to_dst_addr_port=${local_high_wan_1_src_to_dst_addr_port}
+lz_config_high_wan_1_src_to_dst_addr_port_file=${local_high_wan_1_src_to_dst_addr_port_file}
 lz_config_ovs_client_wan_port=${local_ovs_client_wan_port}
 lz_config_vpn_client_polling_time=${local_vpn_client_polling_time}
 lz_config_wan_access_port=${local_wan_access_port}
@@ -2760,6 +2857,8 @@ lz_config_wan_1_src_to_dst_addr_port=${local_ini_wan_1_src_to_dst_addr_port}
 lz_config_wan_1_src_to_dst_addr_port_file=${local_ini_wan_1_src_to_dst_addr_port_file}
 lz_config_wan_2_src_to_dst_addr_port=${local_ini_wan_2_src_to_dst_addr_port}
 lz_config_wan_2_src_to_dst_addr_port_file=${local_ini_wan_2_src_to_dst_addr_port_file}
+lz_config_high_wan_1_src_to_dst_addr_port=${local_ini_high_wan_1_src_to_dst_addr_port}
+lz_config_high_wan_1_src_to_dst_addr_port_file=${local_ini_high_wan_1_src_to_dst_addr_port_file}
 lz_config_ovs_client_wan_port=${local_ini_ovs_client_wan_port}
 lz_config_vpn_client_polling_time=${local_ini_vpn_client_polling_time}
 lz_config_wan_access_port=${local_ini_wan_access_port}
@@ -3022,6 +3121,11 @@ lz_read_box_data() {
 
     local_ini_wan_2_src_to_dst_addr_port_file="$( lz_get_file_cache_data "lz_config_wan_2_src_to_dst_addr_port_file" "\"${PATH_DATA}/wan_2_src_to_dst_addr_port.txt\"" )" && local_exist="0"
 
+    local_ini_high_wan_1_src_to_dst_addr_port="$( lz_get_file_cache_data "lz_config_high_wan_1_src_to_dst_addr_port" "5" )" && local_exist="0"
+    ! echo "${local_ini_high_wan_1_src_to_dst_addr_port}" | grep -q '^[0-9]$' && local_ini_high_wan_1_src_to_dst_addr_port="5" && local_exist="0"
+
+    local_ini_high_wan_1_src_to_dst_addr_port_file="$( lz_get_file_cache_data "lz_config_high_wan_1_src_to_dst_addr_port_file" "\"${PATH_DATA}/high_wan_1_src_to_dst_addr_port.txt\"" )" && local_exist="0"
+
     local_ini_ovs_client_wan_port="$( lz_get_file_cache_data "lz_config_ovs_client_wan_port" "5" )" && local_exist="0"
     ! echo "${local_ini_ovs_client_wan_port}" | grep -q '^[0-9]$' && local_ini_ovs_client_wan_port="5" && local_exist="0"
 
@@ -3225,6 +3329,8 @@ lz_cfg_is_changed() {
     [ "${local_ini_wan_1_src_to_dst_addr_port_file}" != "${local_wan_1_src_to_dst_addr_port_file}" ] && local_wan_1_src_to_dst_addr_port_file_changed="1" && local_cfg_changed="1"
     [ "${local_ini_wan_2_src_to_dst_addr_port}" != "${local_wan_2_src_to_dst_addr_port}" ] && local_wan_2_src_to_dst_addr_port_changed="1" && local_cfg_changed="1"
     [ "${local_ini_wan_2_src_to_dst_addr_port_file}" != "${local_wan_2_src_to_dst_addr_port_file}" ] && local_wan_2_src_to_dst_addr_port_file_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_high_wan_1_src_to_dst_addr_port}" != "${local_high_wan_1_src_to_dst_addr_port}" ] && local_high_wan_1_src_to_dst_addr_port_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_high_wan_1_src_to_dst_addr_port_file}" != "${local_high_wan_1_src_to_dst_addr_port_file}" ] && local_high_wan_1_src_to_dst_addr_port_file_changed="1" && local_cfg_changed="1"
     [ "${local_ini_ovs_client_wan_port}" != "${local_ovs_client_wan_port}" ] && local_ovs_client_wan_port_changed="1" && local_cfg_changed="1"
     [ "${local_ini_vpn_client_polling_time}" != "${local_vpn_client_polling_time}" ] && local_vpn_client_polling_time_changed="1" && local_cfg_changed="1"
     [ "${local_ini_wan_access_port}" != "${local_wan_access_port}" ] && local_wan_access_port_changed="1" && local_cfg_changed="1"
@@ -3327,6 +3433,8 @@ lz_restore_config() {
     [ "${local_wan_1_src_to_dst_addr_port_file_changed}" = "1" ] && sed -i "s|^[ ]*wan_1_src_to_dst_addr_port_file=${local_wan_1_src_to_dst_addr_port_file}|wan_1_src_to_dst_addr_port_file=${local_ini_wan_1_src_to_dst_addr_port_file}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
     [ "${local_wan_2_src_to_dst_addr_port_changed}" = "1" ] && sed -i "s|^[ ]*wan_2_src_to_dst_addr_port=${local_wan_2_src_to_dst_addr_port}|wan_2_src_to_dst_addr_port=${local_ini_wan_2_src_to_dst_addr_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
     [ "${local_wan_2_src_to_dst_addr_port_file_changed}" = "1" ] && sed -i "s|^[ ]*wan_2_src_to_dst_addr_port_file=${local_wan_2_src_to_dst_addr_port_file}|wan_2_src_to_dst_addr_port_file=${local_ini_wan_2_src_to_dst_addr_port_file}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_high_wan_1_src_to_dst_addr_port_changed}" = "1" ] && sed -i "s|^[ ]*high_wan_1_src_to_dst_addr_port=${local_high_wan_1_src_to_dst_addr_port}|high_wan_1_src_to_dst_addr_port=${local_ini_high_wan_1_src_to_dst_addr_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_high_wan_1_src_to_dst_addr_port_file_changed}" = "1" ] && sed -i "s|^[ ]*high_wan_1_src_to_dst_addr_port_file=${local_high_wan_1_src_to_dst_addr_port_file}|high_wan_1_src_to_dst_addr_port_file=${local_ini_high_wan_1_src_to_dst_addr_port_file}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
 
     [ "${local_ovs_client_wan_port_changed}" = "1" ] && sed -i "s:^[ \t]*ovs_client_wan_port=${local_ovs_client_wan_port}:ovs_client_wan_port=${local_ini_ovs_client_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
     [ "${local_vpn_client_polling_time_changed}" = "1" ] && sed -i "s:^[ \t]*vpn_client_polling_time=${local_vpn_client_polling_time}:vpn_client_polling_time=${local_ini_vpn_client_polling_time}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1

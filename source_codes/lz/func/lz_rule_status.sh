@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_status.sh v3.8.2
+# lz_rule_status.sh v3.8.3
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 显示脚本运行状态脚本
@@ -64,6 +64,7 @@ lz_define_status_constant() {
     STATUS_DEST_PORT_FWMARK_1="0x2222"
     STATUS_CLIENT_DEST_PORT_FWMARK_0="0x3131"
     STATUS_CLIENT_DEST_PORT_FWMARK_1="0x2121"
+    STATUS_HIGH_CLIENT_DEST_PORT_FWMARK_0="0x1717"
 }
 
 ## 卸载基本运行状态常量函数
@@ -73,6 +74,7 @@ lz_uninstall_status_constant() {
 
     unset STATUS_CLIENT_DEST_PORT_FWMARK_0
     unset STATUS_CLIENT_DEST_PORT_FWMARK_1
+    unset STATUS_HIGH_CLIENT_DEST_PORT_FWMARK_0
 
     unset STATUS_DOMAIN_SET_0
     unset STATUS_DOMAIN_SET_1
@@ -315,6 +317,8 @@ lz_set_parameter_status_variable() {
     status_wan_1_src_to_dst_addr_port_file=
     status_wan_2_src_to_dst_addr_port=
     status_wan_2_src_to_dst_addr_port_file=
+    status_high_wan_1_src_to_dst_addr_port=
+    status_high_wan_1_src_to_dst_addr_port_file=
     status_local_ipsets_file=
     status_vpn_client_polling_time=
     status_ovs_client_wan_port=
@@ -382,6 +386,8 @@ lz_unset_parameter_status_variable() {
     unset status_wan_1_src_to_dst_addr_port_file
     unset status_wan_2_src_to_dst_addr_port
     unset status_wan_2_src_to_dst_addr_port_file
+    unset status_high_wan_1_src_to_dst_addr_port
+    unset status_high_wan_1_src_to_dst_addr_port_file
     unset status_local_ipsets_file
     unset status_ovs_client_wan_port
     unset status_vpn_client_polling_time
@@ -534,6 +540,10 @@ lz_read_box_data_status() {
 
     status_wan_2_src_to_dst_addr_port_file="$( lz_get_file_cache_data_status "lz_config_wan_2_src_to_dst_addr_port_file" "${PATH_DATA}/wan_2_src_to_dst_addr_port.txt" )"
 
+    status_high_wan_1_src_to_dst_addr_port="$( lz_get_file_cache_data_status "lz_config_high_wan_1_src_to_dst_addr_port" "5" )"
+
+    status_high_wan_1_src_to_dst_addr_port_file="$( lz_get_file_cache_data_status "lz_config_high_wan_1_src_to_dst_addr_port_file" "${PATH_DATA}/high_wan_1_src_to_dst_addr_port.txt" )"
+
     status_local_ipsets_file="$( lz_get_file_cache_data_status "lz_config_local_ipsets_file" "${PATH_DATA}/local_ipsets_data.txt" )"
 
     status_ovs_client_wan_port="$( lz_get_file_cache_data_status "lz_config_ovs_client_wan_port" "0" )"
@@ -641,6 +651,7 @@ lz_adjust_traffic_policy_status() {
             status_wan_1_src_to_dst_addr="5"
             status_high_wan_2_client_src_addr="5"
             status_high_wan_1_client_src_addr="5"
+            status_high_wan_1_src_to_dst_addr_port="5"
             status_wan_2_src_to_dst_addr_port="5"
             status_wan_1_src_to_dst_addr_port="5"
             status_wan_2_domain="5"
@@ -662,6 +673,7 @@ lz_adjust_traffic_policy_status() {
             status_wan_1_src_to_dst_addr="5"
             status_high_wan_2_client_src_addr="5"
             status_high_wan_1_client_src_addr="5"
+            status_high_wan_1_src_to_dst_addr_port="5"
             status_wan_2_src_to_dst_addr_port="5"
             status_wan_1_src_to_dst_addr_port="5"
             status_wan_2_domain="5"
@@ -678,6 +690,7 @@ lz_adjust_traffic_policy_status() {
             status_usage_mode="1"
             status_high_wan_2_client_src_addr="5"
             status_high_wan_1_client_src_addr="5"
+            status_high_wan_1_src_to_dst_addr_port="5"
             status_wan_2_src_to_dst_addr_port="5"
             status_wan_1_src_to_dst_addr_port="5"
             status_wan_2_domain="5"
@@ -699,6 +712,7 @@ lz_adjust_traffic_policy_status() {
         if [ "${status_high_wan_2_client_src_addr}" = "0" ] && lz_get_unkonwn_ipv4_src_addr_data_file_item_status "${status_high_wan_2_client_src_addr_file}"; then
             status_usage_mode="1"
             status_high_wan_1_client_src_addr="5"
+            status_high_wan_1_src_to_dst_addr_port="5"
             status_wan_2_src_to_dst_addr_port="5"
             status_wan_1_src_to_dst_addr_port="5"
             status_wan_2_domain="5"
@@ -713,6 +727,7 @@ lz_adjust_traffic_policy_status() {
         fi
         if [ "${status_high_wan_1_client_src_addr}" = "0" ] && lz_get_unkonwn_ipv4_src_addr_data_file_item_status "${status_high_wan_1_client_src_addr_file}"; then
             status_usage_mode="1"
+            status_high_wan_1_src_to_dst_addr_port="5"
             status_wan_2_src_to_dst_addr_port="5"
             status_wan_1_src_to_dst_addr_port="5"
             status_wan_2_domain="5"
@@ -731,6 +746,19 @@ lz_adjust_traffic_policy_status() {
         ## 返回值：
         ##     0--成功
         ##     1--失败
+        if [ "${status_usage_mode}" = "0" ] && [ "${status_high_wan_1_src_to_dst_addr_port}" = "0" ] && lz_get_unkonwn_ipv4_src_dst_addr_port_data_file_item_status "${status_high_wan_1_src_to_dst_addr_port_file}"; then
+            status_wan_2_src_to_dst_addr_port="5"
+            status_wan_1_src_to_dst_addr_port="5"
+            status_wan_2_domain="5"
+            status_wan_1_domain="5"
+            status_wan_2_client_src_addr="5"
+            status_wan_1_client_src_addr="5"
+            status_custom_data_wan_port_2="5"
+            status_custom_data_wan_port_1="5"
+            lz_adjust_isp_wan_port_status "0"
+            retval="0"
+            break
+        fi
         if [ "${status_usage_mode}" = "0" ] && [ "${status_wan_2_src_to_dst_addr_port}" = "0" ] && lz_get_unkonwn_ipv4_src_dst_addr_port_data_file_item_status "${status_wan_2_src_to_dst_addr_port_file}"; then
             status_wan_1_src_to_dst_addr_port="5"
             status_wan_2_domain="5"
@@ -1281,7 +1309,7 @@ lz_add_net_address_status_sets() {
     if [ ! -f "${1}" ] || [ -z "${2}" ]; then return; fi;
     local NOMATCH=""
     [ "${3}" != "0" ] && NOMATCH=" nomatch"
-    ipset -q create "${2}" nethash #--hashsize 65535
+    ipset -q create "${2}" nethash maxelem 4294967295 #--hashsize 1024 mexleme 65536
     sed -e '/^[ \t]*[#]/d' -e 's/[#].*$//g' -e 's/[ \t][ \t]*/ /g' -e 's/^[ ]//' -e 's/[ ]$//' -e '/^[ ]*$/d' "${1}" 2> /dev/null \
         | awk '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
         && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
@@ -1673,6 +1701,10 @@ lz_output_ispip_status_info() {
             echo "$(lzdate)" [$$]: "   HighSrcLst-1    Primary WAN${local_primary_wan_hd}"
             local_exist="1"
         }
+    }
+    [ "$( lz_get_iptables_fwmark_item_total_number_status "${STATUS_HIGH_CLIENT_DEST_PORT_FWMARK_0}" "${STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN}" )" -gt "0" ] && {
+        echo "$(lzdate)" [$$]: "   HSrcToDstPrt-1  Primary WAN"
+        local_exist="1"
     }
     [ "$( lz_get_iptables_fwmark_item_total_number_status "${STATUS_CLIENT_DEST_PORT_FWMARK_1}" "${STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN}" )" -gt "0" ] && {
         echo "$(lzdate)" [$$]: "   SrcToDstPrt-2   Secondary WAN"

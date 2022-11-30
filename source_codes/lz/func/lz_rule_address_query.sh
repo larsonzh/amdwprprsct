@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_address_query.sh v3.8.2
+# lz_rule_address_query.sh v3.8.3
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 网址信息查询脚本
@@ -32,7 +32,7 @@ lz_define_aq_constant() {
     AQ_ISP_DATA_10="tw_cidr.txt"
 
     local local_index="1"
-    until [ "${local_index}" -gt "$(( AQ_ISP_TOTAL + 4 ))" ]
+    until [ "${local_index}" -gt "$(( AQ_ISP_TOTAL + 6 ))" ]
     do
         ## 用户自定义出口IPv4网址/网段数据集
         eval "AQ_CUSTOM_SET_${local_index}=lz_aq_custom_set_${local_index}"
@@ -47,10 +47,10 @@ lz_define_aq_constant() {
 ## 卸载网址信息查询用常量函数
 lz_uninstall_aq_constant() {
     local local_index="1"
-    until [ "${local_index}" -gt "$(( AQ_ISP_TOTAL + 4 ))" ]
+    until [ "${local_index}" -gt "$(( AQ_ISP_TOTAL + 6 ))" ]
     do
         ## 用户自定义出口IPv4网址/网段数据集
-        unset ipset -q destroy "\${AQ_CUSTOM_SET_${local_index}}"
+        eval ipset -q destroy "\${AQ_CUSTOM_SET_${local_index}}"
         eval unset "AQ_CUSTOM_SET_${local_index}"
         let local_index++
     done
@@ -167,7 +167,7 @@ lz_aq_add_net_address_sets() {
     if [ ! -f "${1}" ] || [ -z "${2}" ]; then return; fi;
     local NOMATCH=""
     [ "${3}" != "0" ] && NOMATCH=" nomatch"
-    ipset -q create "${2}" nethash #--hashsize 65535
+    ipset -q create "${2}" nethash maxelem 4294967295 #--hashsize 1024 mexleme 65536
     sed -e '/^[ \t]*[#]/d' -e 's/[#].*$//g' -e 's/[ \t][ \t]*/ /g' -e 's/^[ ]//' -e 's/[ ]$//' -e '/^[ ]*$/d' "${1}" 2> /dev/null \
         | awk '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
         && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
@@ -193,7 +193,7 @@ lz_aq_add_ed_net_address_sets() {
     [ "${local_ed_num}" = "${local_ed_total}" ] && [ "${5}" != "0" ] && return
     local NOMATCH=""
     [ "${3}" != "0" ] && NOMATCH=" nomatch"
-    ipset -q create "${2}" nethash #--hashsize 65535
+    ipset -q create "${2}" nethash maxelem 4294967295 #--hashsize 1024 mexleme 65536
     [ "${5}" != "0" ] && let local_ed_num++
     sed -e '/^[ \t]*[#]/d' -e 's/[#].*$//g' -e 's/[ \t][ \t]*/ /g' -e 's/^[ ]//' -e 's/[ ]$//' -e '/^[ ]*$/d' "${1}" 2> /dev/null \
         | awk -v count="0" -v criterion="${5}" -v ed_num="${local_ed_num}" '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
@@ -219,7 +219,7 @@ lz_aq_add_dst_net_address_sets() {
     if [ ! -f "${1}" ] || [ -z "${2}" ]; then return; fi;
     local NOMATCH=""
     [ "${3}" != "0" ] && NOMATCH=" nomatch"
-    ipset -q create "${2}" nethash #--hashsize 65535
+    ipset -q create "${2}" nethash maxelem 4294967295 #--hashsize 1024 mexleme 65536
     sed -e '/^[ \t]*[#]/d' -e 's/[#].*$//g' -e 's/[ \t][ \t]*/ /g' -e 's/^[ ]//' -e 's/[ ]$//' -e '/^[ ]*$/d' "${1}" 2> /dev/null \
         | awk '$1 == "0.0.0.0/0" \
         && $2 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
@@ -239,7 +239,7 @@ lz_aq_add_client_dest_port_net_address_sets() {
     if [ ! -f "${1}" ] || [ -z "${2}" ]; then return; fi;
     local NOMATCH=""
     [ "${3}" != "0" ] && NOMATCH=" nomatch"
-    ipset -q create "${2}" nethash #--hashsize 65535
+    ipset -q create "${2}" nethash maxelem 4294967295 #--hashsize 1024 mexleme 65536
     sed -e '/^[ \t]*[#]/d' -e 's/[#].*$//g' -e 's/[ \t][ \t]*/ /g' -e 's/^[ ]//' -e 's/[ ]$//' -e '/^[ ]*$/d' "${1}" 2> /dev/null \
         | awk '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
         && $1 == "0.0.0.0/0" \
@@ -298,6 +298,7 @@ lz_aq_adjust_traffic_policy() {
                 aq_wan_1_src_to_dst_addr="5"
                 aq_high_wan_2_client_src_addr="5"
                 aq_high_wan_1_client_src_addr="5"
+                aq_high_wan_1_src_to_dst_addr_port="5"
                 aq_wan_2_src_to_dst_addr_port="5"
                 aq_wan_1_src_to_dst_addr_port="5"
                 aq_wan_2_domain="5"
@@ -332,6 +333,7 @@ lz_aq_adjust_traffic_policy() {
                 aq_wan_1_src_to_dst_addr="5"
                 aq_high_wan_2_client_src_addr="5"
                 aq_high_wan_1_client_src_addr="5"
+                aq_high_wan_1_src_to_dst_addr_port="5"
                 aq_wan_2_src_to_dst_addr_port="5"
                 aq_wan_1_src_to_dst_addr_port="5"
                 aq_wan_2_domain="5"
@@ -354,6 +356,7 @@ lz_aq_adjust_traffic_policy() {
                 aq_usage_mode="1"
                 aq_high_wan_2_client_src_addr="5"
                 aq_high_wan_1_client_src_addr="5"
+                aq_high_wan_1_src_to_dst_addr_port="5"
                 aq_wan_2_src_to_dst_addr_port="5"
                 aq_wan_1_src_to_dst_addr_port="5"
                 aq_wan_2_domain="5"
@@ -380,6 +383,7 @@ lz_aq_adjust_traffic_policy() {
         if [ "${aq_high_wan_2_client_src_addr}" = "0" ] && lz_aq_get_unkonwn_ipv4_src_addr_data_file_item "${aq_high_wan_2_client_src_addr_file}"; then
             aq_usage_mode="1"
             aq_high_wan_1_client_src_addr="5"
+            aq_high_wan_1_src_to_dst_addr_port="5"
             aq_wan_2_src_to_dst_addr_port="5"
             aq_wan_1_src_to_dst_addr_port="5"
             aq_wan_2_domain="5"
@@ -395,6 +399,7 @@ lz_aq_adjust_traffic_policy() {
         fi
         if [ "${aq_high_wan_1_client_src_addr}" = "0" ] && lz_aq_get_unkonwn_ipv4_src_addr_data_file_item "${aq_high_wan_1_client_src_addr_file}"; then
             aq_usage_mode="1"
+            aq_high_wan_1_src_to_dst_addr_port="5"
             aq_wan_2_src_to_dst_addr_port="5"
             aq_wan_1_src_to_dst_addr_port="5"
             aq_wan_2_domain="5"
@@ -414,33 +419,10 @@ lz_aq_adjust_traffic_policy() {
         ## 返回值：
         ##     0--成功
         ##     1--失败
-        if [ "${aq_usage_mode}" = "0" ] && [ "${aq_wan_2_src_to_dst_addr_port}" = "0" ]; then
-            if lz_aq_get_unkonwn_ipv4_src_dst_addr_port_data_file_item "${aq_wan_2_src_to_dst_addr_port_file}"; then
+        if [ "${aq_usage_mode}" = "0" ] && [ "${aq_high_wan_1_src_to_dst_addr_port}" = "0" ]; then
+            if lz_aq_get_unkonwn_ipv4_src_dst_addr_port_data_file_item "${aq_high_wan_1_src_to_dst_addr_port_file}"; then
+                aq_wan_2_src_to_dst_addr_port="5"
                 aq_wan_1_src_to_dst_addr_port="5"
-                aq_wan_2_domain="5"
-                aq_wan_1_domain="5"
-                aq_wan_2_client_src_addr="5"
-                aq_wan_1_client_src_addr="5"
-                aq_custom_data_wan_port_2="5"
-                aq_custom_data_wan_port_1="5"
-                lz_aq_adjust_isp_wan_port "1"
-                aq_client_full_traffic_wan="6"
-                retval="0"
-                break
-            else
-                ## 创建或加载客户端IPv4网址/网段至预设IPv4目标网址/网段协议端口动态分流条目列表数据中未指明源网址/网段的非协议端口目标网址/网段至数据集函数
-                ## 输入项：
-                ##     $1--全路径网段数据文件名
-                ##     $2--网段数据集名称
-                ##     $3--0:正匹配数据，非0：反匹配（nomatch）数据
-                ## 返回值：
-                ##     网址/网段数据集--全局变量
-                lz_aq_add_client_dest_port_net_address_sets "${aq_wan_2_src_to_dst_addr_port_file}" "${AQ_CUSTOM_SET_6}" "0"
-                [ "$( lz_aq_get_ipset_total_number "${AQ_CUSTOM_SET_6}" )" = "0" ] && ipset -q destroy "${AQ_CUSTOM_SET_6}"
-            fi
-        fi
-        if [ "${aq_usage_mode}" = "0" ] && [ "${aq_wan_1_src_to_dst_addr_port}" = "0" ]; then
-            if lz_aq_get_unkonwn_ipv4_src_dst_addr_port_data_file_item "${aq_wan_1_src_to_dst_addr_port_file}"; then
                 aq_wan_2_domain="5"
                 aq_wan_1_domain="5"
                 aq_wan_2_client_src_addr="5"
@@ -452,8 +434,50 @@ lz_aq_adjust_traffic_policy() {
                 retval="0"
                 break
             else
-                lz_aq_add_client_dest_port_net_address_sets "${aq_wan_1_src_to_dst_addr_port_file}" "${AQ_CUSTOM_SET_7}" "0"
+                ## 创建或加载客户端IPv4网址/网段至预设IPv4目标网址/网段协议端口动态分流条目列表数据中未指明源网址/网段的非协议端口目标网址/网段至数据集函数
+                ## 输入项：
+                ##     $1--全路径网段数据文件名
+                ##     $2--网段数据集名称
+                ##     $3--0:正匹配数据，非0：反匹配（nomatch）数据
+                ## 返回值：
+                ##     网址/网段数据集--全局变量
+                lz_aq_add_client_dest_port_net_address_sets "${aq_high_wan_1_src_to_dst_addr_port_file}" "${AQ_CUSTOM_SET_7}" "0"
                 [ "$( lz_aq_get_ipset_total_number "${AQ_CUSTOM_SET_7}" )" = "0" ] && ipset -q destroy "${AQ_CUSTOM_SET_7}"
+            fi
+        fi
+        if [ "${aq_usage_mode}" = "0" ] && [ "${aq_wan_2_src_to_dst_addr_port}" = "0" ]; then
+            if lz_aq_get_unkonwn_ipv4_src_dst_addr_port_data_file_item "${aq_wan_2_src_to_dst_addr_port_file}"; then
+                aq_wan_1_src_to_dst_addr_port="5"
+                aq_wan_2_domain="5"
+                aq_wan_1_domain="5"
+                aq_wan_2_client_src_addr="5"
+                aq_wan_1_client_src_addr="5"
+                aq_custom_data_wan_port_2="5"
+                aq_custom_data_wan_port_1="5"
+                lz_aq_adjust_isp_wan_port "1"
+                aq_client_full_traffic_wan="8"
+                retval="0"
+                break
+            else
+                lz_aq_add_client_dest_port_net_address_sets "${aq_wan_2_src_to_dst_addr_port_file}" "${AQ_CUSTOM_SET_8}" "0"
+                [ "$( lz_aq_get_ipset_total_number "${AQ_CUSTOM_SET_8}" )" = "0" ] && ipset -q destroy "${AQ_CUSTOM_SET_8}"
+            fi
+        fi
+        if [ "${aq_usage_mode}" = "0" ] && [ "${aq_wan_1_src_to_dst_addr_port}" = "0" ]; then
+            if lz_aq_get_unkonwn_ipv4_src_dst_addr_port_data_file_item "${aq_wan_1_src_to_dst_addr_port_file}"; then
+                aq_wan_2_domain="5"
+                aq_wan_1_domain="5"
+                aq_wan_2_client_src_addr="5"
+                aq_wan_1_client_src_addr="5"
+                aq_custom_data_wan_port_2="5"
+                aq_custom_data_wan_port_1="5"
+                lz_aq_adjust_isp_wan_port "0"
+                aq_client_full_traffic_wan="9"
+                retval="0"
+                break
+            else
+                lz_aq_add_client_dest_port_net_address_sets "${aq_wan_1_src_to_dst_addr_port_file}" "${AQ_CUSTOM_SET_9}" "0"
+                [ "$( lz_aq_get_ipset_total_number "${AQ_CUSTOM_SET_9}" )" = "0" ] && ipset -q destroy "${AQ_CUSTOM_SET_9}"
             fi
         fi
         if [ "${aq_wan_2_client_src_addr}" = "0" ] && lz_aq_get_unkonwn_ipv4_src_addr_data_file_item "${aq_wan_2_client_src_addr_file}"; then
@@ -463,7 +487,7 @@ lz_aq_adjust_traffic_policy() {
             aq_custom_data_wan_port_2="5"
             aq_custom_data_wan_port_1="5"
             lz_aq_adjust_isp_wan_port "1"
-            aq_client_full_traffic_wan="10"
+            aq_client_full_traffic_wan="12"
             retval="0"
             break
         fi
@@ -473,7 +497,7 @@ lz_aq_adjust_traffic_policy() {
             aq_custom_data_wan_port_2="5"
             aq_custom_data_wan_port_1="5"
             lz_aq_adjust_isp_wan_port "0"
-            aq_client_full_traffic_wan="11"
+            aq_client_full_traffic_wan="13"
             retval="0"
             break
         fi
@@ -484,15 +508,15 @@ lz_aq_adjust_traffic_policy() {
         ##     $3--0:正匹配数据，非0：反匹配（nomatch）数据
         ## 返回值：
         ##     网址/网段数据集--全局变量
-        [ "${aq_custom_data_wan_port_2}" = "1" ] && lz_aq_add_net_address_sets "${aq_custom_data_file_2}" "${AQ_CUSTOM_SET_12}" "0"
-        [ "${aq_custom_data_wan_port_2}" = "0" ] && lz_aq_add_net_address_sets "${aq_custom_data_file_2}" "${AQ_CUSTOM_SET_13}" "0"
-        [ "${aq_custom_data_wan_port_1}" = "1" ] && lz_aq_add_net_address_sets "${aq_custom_data_file_1}" "${AQ_CUSTOM_SET_12}" "0"
-        [ "${aq_custom_data_wan_port_1}" = "0" ] && lz_aq_add_net_address_sets "${aq_custom_data_file_1}" "${AQ_CUSTOM_SET_13}" "0"
-        [ "$( lz_aq_get_ipset_total_number "${AQ_CUSTOM_SET_12}" )" = "0" ] && ipset -q destroy "${AQ_CUSTOM_SET_12}"
-        [ "$( lz_aq_get_ipset_total_number "${AQ_CUSTOM_SET_13}" )" = "0" ] && ipset -q destroy "${AQ_CUSTOM_SET_13}"
-        [ "${aq_custom_data_wan_port_2}" = "2" ] && [ "${aq_usage_mode}" = "0" ] && lz_aq_add_net_address_sets "${aq_custom_data_file_2}" "${AQ_CUSTOM_SET_14}" "0"
-        [ "${aq_custom_data_wan_port_1}" = "2" ] && [ "${aq_usage_mode}" = "0" ] && lz_aq_add_net_address_sets "${aq_custom_data_file_1}" "${AQ_CUSTOM_SET_14}" "0"
+        [ "${aq_custom_data_wan_port_2}" = "1" ] && lz_aq_add_net_address_sets "${aq_custom_data_file_2}" "${AQ_CUSTOM_SET_14}" "0"
+        [ "${aq_custom_data_wan_port_2}" = "0" ] && lz_aq_add_net_address_sets "${aq_custom_data_file_2}" "${AQ_CUSTOM_SET_15}" "0"
+        [ "${aq_custom_data_wan_port_1}" = "1" ] && lz_aq_add_net_address_sets "${aq_custom_data_file_1}" "${AQ_CUSTOM_SET_14}" "0"
+        [ "${aq_custom_data_wan_port_1}" = "0" ] && lz_aq_add_net_address_sets "${aq_custom_data_file_1}" "${AQ_CUSTOM_SET_15}" "0"
         [ "$( lz_aq_get_ipset_total_number "${AQ_CUSTOM_SET_14}" )" = "0" ] && ipset -q destroy "${AQ_CUSTOM_SET_14}"
+        [ "$( lz_aq_get_ipset_total_number "${AQ_CUSTOM_SET_15}" )" = "0" ] && ipset -q destroy "${AQ_CUSTOM_SET_15}"
+        [ "${aq_custom_data_wan_port_2}" = "2" ] && [ "${aq_usage_mode}" = "0" ] && lz_aq_add_net_address_sets "${aq_custom_data_file_2}" "${AQ_CUSTOM_SET_16}" "0"
+        [ "${aq_custom_data_wan_port_1}" = "2" ] && [ "${aq_usage_mode}" = "0" ] && lz_aq_add_net_address_sets "${aq_custom_data_file_1}" "${AQ_CUSTOM_SET_16}" "0"
+        [ "$( lz_aq_get_ipset_total_number "${AQ_CUSTOM_SET_16}" )" = "0" ] && ipset -q destroy "${AQ_CUSTOM_SET_16}"
         break
     done
     return "${retval}"
@@ -609,6 +633,8 @@ lz_set_aq_parameter_variable() {
     aq_wan_1_src_to_dst_addr_port_file=
     aq_wan_2_src_to_dst_addr_port=
     aq_wan_2_src_to_dst_addr_port_file=
+    aq_high_wan_1_src_to_dst_addr_port=
+    aq_high_wan_1_src_to_dst_addr_port_file=
 
     aq_private_ipsets_file=
 
@@ -658,6 +684,8 @@ lz_unset_aq_parameter_variable() {
     unset aq_wan_1_src_to_dst_addr_port_file
     unset aq_wan_2_src_to_dst_addr_port
     unset aq_wan_2_src_to_dst_addr_port_file
+    unset aq_high_wan_1_src_to_dst_addr_port
+    unset aq_high_wan_1_src_to_dst_addr_port_file
 
     unset aq_private_ipsets_file
 
@@ -751,6 +779,8 @@ lz_aq_read_box_data() {
     aq_wan_1_src_to_dst_addr_port_file="$( lz_aq_get_file_cache_data "lz_config_wan_1_src_to_dst_addr_port_file" "${PATH_DATA}/wan_1_src_to_dst_addr_port.txt" )"
     aq_wan_2_src_to_dst_addr_port="$( lz_aq_get_file_cache_data "lz_config_wan_2_src_to_dst_addr_port" "5" )"
     aq_wan_2_src_to_dst_addr_port_file="$( lz_aq_get_file_cache_data "lz_config_wan_2_src_to_dst_addr_port_file" "${PATH_DATA}/wan_2_src_to_dst_addr_port.txt" )"
+    aq_high_wan_1_src_to_dst_addr_port="$( lz_aq_get_file_cache_data "lz_config_high_wan_1_src_to_dst_addr_port" "5" )"
+    aq_high_wan_1_src_to_dst_addr_port_file="$( lz_aq_get_file_cache_data "lz_config_high_wan_1_src_to_dst_addr_port_file" "${PATH_DATA}/high_wan_1_src_to_dst_addr_port.txt" )"
 
     aq_private_ipsets_file="$( lz_aq_get_file_cache_data "lz_config_private_ipsets_file" "${PATH_DATA}/private_ipsets_data.txt" )"
     unset local_file_cache
@@ -937,17 +967,17 @@ lz_query_address() {
     local local_dns_server_ip="$( echo "${1}" | awk -F '\\^\\_' '{print $3}' | sed '/^$/d' )"
     local local_dns_server_name="$( echo "${1}" | awk -F '\\^\\_' '{print $4}' | sed '/^$/d' )"
 
-    local local_isp_name_0="Foreign/Unknown"
+    local local_isp_name_0="FOREIGN/Unknown"
     local local_isp_name_1="CTCC"
     local local_isp_name_2="CUCC/CNC"
     local local_isp_name_3="CMCC"
     local local_isp_name_4="CRTC"
     local local_isp_name_5="CERNET"
     local local_isp_name_6="GWBN"
-    local local_isp_name_7="Other"
-    local local_isp_name_8="Hongkong"
-    local local_isp_name_9="Macao"
-    local local_isp_name_10="Taiwan"
+    local local_isp_name_7="OTHER"
+    local local_isp_name_8="HONGKONG"
+    local local_isp_name_9="MACAO"
+    local local_isp_name_10="TAIWAN"
     local local_isp_name_11="LocalLan"
     local local_isp_name_12="Local/PrivateIP"
     local local_isp_name_13="Local/PrivateIP"
@@ -1009,7 +1039,7 @@ lz_query_address() {
             done
 
             if [ "${local_isp_no}" = "0" ] && [ -n "${aq_route_local_ip}" ] && [ -n "${aq_route_local_ip_cidr_mask}" ]; then
-                ipset -q create lz_aq_ispip_tmp_sets nethash #--hashsize 65535
+                ipset -q create lz_aq_ispip_tmp_sets nethash maxelem 4294967295 #--hashsize 1024 mexleme 65536
                 ipset -q flush lz_aq_ispip_tmp_sets
                 ipset -q add lz_aq_ispip_tmp_sets "${aq_route_local_ip}/${aq_route_local_ip_cidr_mask}"
                 ip route | grep -Ev 'default|nexthop' | grep -E "tap|tun" | awk '{print $1}' \
@@ -1063,24 +1093,24 @@ lz_query_address() {
 
             if [ "${local_isp_no}" -le "${AQ_ISP_TOTAL}" ]; then
                 local_index="1"
-                until [ "${local_index}" -gt "$(( AQ_ISP_TOTAL + 4 ))" ]
+                until [ "${local_index}" -gt "$(( AQ_ISP_TOTAL + 6 ))" ]
                 do
                     [ "${aq_client_full_traffic_wan}" = "${local_index}" ] && local_isp_wan_no="0" && break
-                    if [ "${local_index}" = "8" ] && [ "$( lz_aq_get_ipset_total_number "${AQ_DOMAIN_SET_1}" )" != "0" ] \
+                    if [ "${local_index}" = "10" ] && [ "$( lz_aq_get_ipset_total_number "${AQ_DOMAIN_SET_1}" )" != "0" ] \
                         && ipset -q test "${AQ_DOMAIN_SET_1}" "${local_net_ip}"; then
                         eval local_isp_wan_pram="\${aq_isp_wan_port_${local_isp_no}}"
                         eval "aq_isp_wan_port_${local_isp_no}=1"
                         local_isp_wan_no="0"
                         break
                     fi
-                    if [ "${local_index}" = "9" ] && [ "$( lz_aq_get_ipset_total_number "${AQ_DOMAIN_SET_0}" )" != "0" ] \
+                    if [ "${local_index}" = "11" ] && [ "$( lz_aq_get_ipset_total_number "${AQ_DOMAIN_SET_0}" )" != "0" ] \
                         && ipset -q test "${AQ_DOMAIN_SET_0}" "${local_net_ip}"; then
                         eval local_isp_wan_pram="\${aq_isp_wan_port_${local_isp_no}}"
                         eval "aq_isp_wan_port_${local_isp_no}=0"
                         local_isp_wan_no="0"
                         break
                     fi
-                    if [ "${local_index}" = "14" ] && eval [ "$( lz_aq_get_ipset_total_number "\${AQ_CUSTOM_SET_${local_index}}" )" != "0" ] \
+                    if [ "${local_index}" = "16" ] && eval [ "$( lz_aq_get_ipset_total_number "\${AQ_CUSTOM_SET_${local_index}}" )" != "0" ] \
                         && eval ipset -q test "\${AQ_CUSTOM_SET_${local_index}}" "${local_net_ip}"; then
                         eval local_isp_wan_pram="\${aq_isp_wan_port_${local_isp_no}}"
                         eval "aq_isp_wan_port_${local_isp_no}=5"
@@ -1194,24 +1224,24 @@ lz_query_address() {
 
             if [ "${local_isp_no}" -le "${AQ_ISP_TOTAL}" ]; then
                 local_index="1"
-                until [ "${local_index}" -gt "$(( AQ_ISP_TOTAL + 4 ))" ]
+                until [ "${local_index}" -gt "$(( AQ_ISP_TOTAL + 6 ))" ]
                 do
                     [ "${aq_client_full_traffic_wan}" = "${local_index}" ] && local_isp_wan_no="0" && break
-                    if [ "${local_index}" = "8" ] && [ "$( lz_aq_get_ipset_total_number "${AQ_DOMAIN_SET_1}" )" != "0" ] \
+                    if [ "${local_index}" = "10" ] && [ "$( lz_aq_get_ipset_total_number "${AQ_DOMAIN_SET_1}" )" != "0" ] \
                         && ipset -q test "${AQ_DOMAIN_SET_1}" "${local_net_ip}"; then
                         eval local_isp_wan_pram="\${aq_isp_wan_port_${local_isp_no}}"
                         eval "aq_isp_wan_port_${local_isp_no}=1"
                         local_isp_wan_no="0"
                         break
                     fi
-                    if [ "${local_index}" = "9" ] && [ "$( lz_aq_get_ipset_total_number "${AQ_DOMAIN_SET_0}" )" != "0" ] \
+                    if [ "${local_index}" = "11" ] && [ "$( lz_aq_get_ipset_total_number "${AQ_DOMAIN_SET_0}" )" != "0" ] \
                         && ipset -q test "${AQ_DOMAIN_SET_0}" "${local_net_ip}"; then
                         eval local_isp_wan_pram="\${aq_isp_wan_port_${local_isp_no}}"
                         eval "aq_isp_wan_port_${local_isp_no}=0"
                         local_isp_wan_no="0"
                         break
                     fi
-                    if [ "${local_index}" = "14" ] && eval [ "$( lz_aq_get_ipset_total_number "\${AQ_CUSTOM_SET_${local_index}}" )" != "0" ] \
+                    if [ "${local_index}" = "16" ] && eval [ "$( lz_aq_get_ipset_total_number "\${AQ_CUSTOM_SET_${local_index}}" )" != "0" ] \
                         && eval ipset -q test "\${AQ_CUSTOM_SET_${local_index}}" "${local_net_ip}"; then
                         eval local_isp_wan_pram="\${aq_isp_wan_port_${local_isp_no}}"
                         eval "aq_isp_wan_port_${local_isp_no}=5"

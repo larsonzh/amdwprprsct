@@ -1,5 +1,5 @@
 #!/bin/sh
-# lzinstall.sh v3.8.2
+# lzinstall.sh v3.8.3
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ script for asuswrt/merlin based router
@@ -9,7 +9,7 @@
 
 #BEIGIN
 
-LZ_VERSION=v3.8.2
+LZ_VERSION=v3.8.3
 TIMEOUT=10
 CURRENT_PATH="${0%/*}"
 [ "${CURRENT_PATH:0:1}" != '/' ] && CURRENT_PATH="$( pwd )${CURRENT_PATH#*.}"
@@ -163,6 +163,7 @@ find "${CURRENT_PATH}/lz/data" -name "*_cidr.txt" -print0 2> /dev/null | xargs -
 [ ! -f "${PATH_DATA}/custom_data_2.txt" ] && cp -rp "${CURRENT_PATH}/lz/data/custom_data_2.txt" "${PATH_DATA}" > /dev/null 2>&1
 [ ! -f "${PATH_DATA}/high_wan_1_client_src_addr.txt" ] && cp -rp "${CURRENT_PATH}/lz/data/high_wan_1_client_src_addr.txt" "${PATH_DATA}" > /dev/null 2>&1
 [ ! -f "${PATH_DATA}/high_wan_1_src_to_dst_addr.txt" ] && cp -rp "${CURRENT_PATH}/lz/data/high_wan_1_src_to_dst_addr.txt" "${PATH_DATA}" > /dev/null 2>&1
+[ ! -f "${PATH_DATA}/high_wan_1_src_to_dst_addr_port.txt" ] && cp -rp "${CURRENT_PATH}/lz/data/high_wan_1_src_to_dst_addr_port.txt" "${PATH_DATA}" > /dev/null 2>&1
 [ ! -f "${PATH_DATA}/high_wan_2_client_src_addr.txt" ] && cp -rp "${CURRENT_PATH}/lz/data/high_wan_2_client_src_addr.txt" "${PATH_DATA}" > /dev/null 2>&1
 [ ! -f "${PATH_DATA}/iptv_box_ip_lst.txt" ] && cp -rp "${CURRENT_PATH}/lz/data/iptv_box_ip_lst.txt" "${PATH_DATA}" > /dev/null 2>&1
 [ ! -f "${PATH_DATA}/iptv_isp_ip_lst.txt" ] && cp -rp "${CURRENT_PATH}/lz/data/iptv_isp_ip_lst.txt" "${PATH_DATA}" > /dev/null 2>&1
