@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_address_query.sh v3.8.3
+# lz_rule_address_query.sh v3.8.4
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 网址信息查询脚本
@@ -419,8 +419,9 @@ lz_aq_adjust_traffic_policy() {
         ## 返回值：
         ##     0--成功
         ##     1--失败
-        if [ "${aq_usage_mode}" = "0" ] && [ "${aq_high_wan_1_src_to_dst_addr_port}" = "0" ]; then
+        if [ "${aq_high_wan_1_src_to_dst_addr_port}" = "0" ]; then
             if lz_aq_get_unkonwn_ipv4_src_dst_addr_port_data_file_item "${aq_high_wan_1_src_to_dst_addr_port_file}"; then
+                aq_usage_mode="1"
                 aq_wan_2_src_to_dst_addr_port="5"
                 aq_wan_1_src_to_dst_addr_port="5"
                 aq_wan_2_domain="5"
@@ -445,8 +446,9 @@ lz_aq_adjust_traffic_policy() {
                 [ "$( lz_aq_get_ipset_total_number "${AQ_CUSTOM_SET_7}" )" = "0" ] && ipset -q destroy "${AQ_CUSTOM_SET_7}"
             fi
         fi
-        if [ "${aq_usage_mode}" = "0" ] && [ "${aq_wan_2_src_to_dst_addr_port}" = "0" ]; then
+        if [ "${aq_wan_2_src_to_dst_addr_port}" = "0" ]; then
             if lz_aq_get_unkonwn_ipv4_src_dst_addr_port_data_file_item "${aq_wan_2_src_to_dst_addr_port_file}"; then
+                aq_usage_mode="1"
                 aq_wan_1_src_to_dst_addr_port="5"
                 aq_wan_2_domain="5"
                 aq_wan_1_domain="5"
@@ -463,8 +465,9 @@ lz_aq_adjust_traffic_policy() {
                 [ "$( lz_aq_get_ipset_total_number "${AQ_CUSTOM_SET_8}" )" = "0" ] && ipset -q destroy "${AQ_CUSTOM_SET_8}"
             fi
         fi
-        if [ "${aq_usage_mode}" = "0" ] && [ "${aq_wan_1_src_to_dst_addr_port}" = "0" ]; then
+        if [ "${aq_wan_1_src_to_dst_addr_port}" = "0" ]; then
             if lz_aq_get_unkonwn_ipv4_src_dst_addr_port_data_file_item "${aq_wan_1_src_to_dst_addr_port_file}"; then
+                aq_usage_mode="1"
                 aq_wan_2_domain="5"
                 aq_wan_1_domain="5"
                 aq_wan_2_client_src_addr="5"
@@ -481,8 +484,7 @@ lz_aq_adjust_traffic_policy() {
             fi
         fi
         if [ "${aq_wan_2_client_src_addr}" = "0" ] && lz_aq_get_unkonwn_ipv4_src_addr_data_file_item "${aq_wan_2_client_src_addr_file}"; then
-            [ "${aq_usage_mode}" = "0" ] && [ "${aq_wan_2_src_to_dst_addr_port}" != "0" ] && [ "${aq_wan_1_src_to_dst_addr_port}" != "0" ] \
-                &&  [ -z "$( ipset -q -L -n "${AQ_DOMAIN_SET_1}" )" ] && [ -z "$( ipset -q -L -n "${AQ_DOMAIN_SET_0}" )" ] && aq_usage_mode="1"
+            aq_usage_mode="1"
             aq_wan_1_client_src_addr="5"
             aq_custom_data_wan_port_2="5"
             aq_custom_data_wan_port_1="5"
@@ -492,8 +494,7 @@ lz_aq_adjust_traffic_policy() {
             break
         fi
         if [ "${aq_wan_1_client_src_addr}" = "0" ] && lz_aq_get_unkonwn_ipv4_src_addr_data_file_item "${aq_wan_1_client_src_addr_file}"; then
-            [ "${aq_usage_mode}" = "0" ] && [ "${aq_wan_2_src_to_dst_addr_port}" != "0" ] && [ "${aq_wan_1_src_to_dst_addr_port}" != "0" ] \
-                &&  [ -z "$( ipset -q -L -n "${AQ_DOMAIN_SET_1}" )" ] &&  [ -z "$( ipset -q -L -n "${AQ_DOMAIN_SET_0}" )" ] && aq_usage_mode="1"
+            aq_usage_mode="1"
             aq_custom_data_wan_port_2="5"
             aq_custom_data_wan_port_1="5"
             lz_aq_adjust_isp_wan_port "0"
@@ -761,6 +762,10 @@ lz_aq_read_box_data() {
     aq_custom_data_file_2="$( lz_aq_get_file_cache_data "lz_config_custom_data_file_2" "${PATH_DATA}/custom_data_2.txt" )"
     aq_wan_1_domain="$( lz_aq_get_file_cache_data "lz_config_wan_1_domain" "5" )"
     aq_wan_2_domain="$( lz_aq_get_file_cache_data "lz_config_wan_2_domain" "5" )"
+    if ! dnsmasq -v 2> /dev/null | grep -w 'ipset' | grep -qvw "no\-ipset"; then
+        [ "${aq_wan_1_domain}" = "0" ] && aq_wan_1_domain="5"
+        [ "${aq_wan_2_domain}" = "0" ] && aq_wan_2_domain="5"
+    fi
     aq_wan_1_client_src_addr="$( lz_aq_get_file_cache_data "lz_config_wan_1_client_src_addr" "5" )"
     aq_wan_1_client_src_addr_file="$( lz_aq_get_file_cache_data "lz_config_wan_1_client_src_addr_file" "${PATH_DATA}/wan_1_client_src_addr.txt" )"
     aq_wan_2_client_src_addr="$( lz_aq_get_file_cache_data "lz_config_wan_2_client_src_addr" "5" )"

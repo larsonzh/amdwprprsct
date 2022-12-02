@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_status.sh v3.8.3
+# lz_rule_status.sh v3.8.4
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 显示脚本运行状态脚本
@@ -504,6 +504,11 @@ lz_read_box_data_status() {
 
     status_wan_2_domain="$( lz_get_file_cache_data_status "lz_config_wan_2_domain" "5" )"
 
+    if ! dnsmasq -v 2> /dev/null | grep -w 'ipset' | grep -qvw "no\-ipset"; then
+        [ "${status_wan_1_domain}" = "0" ] && status_wan_1_domain="5"
+        [ "${status_wan_2_domain}" = "0" ] && status_wan_2_domain="5"
+    fi
+
     status_wan_1_client_src_addr="$( lz_get_file_cache_data_status "lz_config_wan_1_client_src_addr" "5" )"
 
     status_wan_1_client_src_addr_file="$( lz_get_file_cache_data_status "lz_config_wan_1_client_src_addr_file" "${PATH_DATA}/wan_1_client_src_addr.txt" )"
@@ -746,7 +751,8 @@ lz_adjust_traffic_policy_status() {
         ## 返回值：
         ##     0--成功
         ##     1--失败
-        if [ "${status_usage_mode}" = "0" ] && [ "${status_high_wan_1_src_to_dst_addr_port}" = "0" ] && lz_get_unkonwn_ipv4_src_dst_addr_port_data_file_item_status "${status_high_wan_1_src_to_dst_addr_port_file}"; then
+        if [ "${status_high_wan_1_src_to_dst_addr_port}" = "0" ] && lz_get_unkonwn_ipv4_src_dst_addr_port_data_file_item_status "${status_high_wan_1_src_to_dst_addr_port_file}"; then
+            status_usage_mode="1"
             status_wan_2_src_to_dst_addr_port="5"
             status_wan_1_src_to_dst_addr_port="5"
             status_wan_2_domain="5"
@@ -759,7 +765,8 @@ lz_adjust_traffic_policy_status() {
             retval="0"
             break
         fi
-        if [ "${status_usage_mode}" = "0" ] && [ "${status_wan_2_src_to_dst_addr_port}" = "0" ] && lz_get_unkonwn_ipv4_src_dst_addr_port_data_file_item_status "${status_wan_2_src_to_dst_addr_port_file}"; then
+        if [ "${status_wan_2_src_to_dst_addr_port}" = "0" ] && lz_get_unkonwn_ipv4_src_dst_addr_port_data_file_item_status "${status_wan_2_src_to_dst_addr_port_file}"; then
+            status_usage_mode="1"
             status_wan_1_src_to_dst_addr_port="5"
             status_wan_2_domain="5"
             status_wan_1_domain="5"
@@ -771,7 +778,8 @@ lz_adjust_traffic_policy_status() {
             retval="0"
             break
         fi
-        if [ "${status_usage_mode}" = "0" ] && [ "${status_wan_1_src_to_dst_addr_port}" = "0" ] && lz_get_unkonwn_ipv4_src_dst_addr_port_data_file_item_status "${status_wan_1_src_to_dst_addr_port_file}"; then
+        if [ "${status_wan_1_src_to_dst_addr_port}" = "0" ] && lz_get_unkonwn_ipv4_src_dst_addr_port_data_file_item_status "${status_wan_1_src_to_dst_addr_port_file}"; then
+            status_usage_mode="1"
             status_wan_2_domain="5"
             status_wan_1_domain="5"
             status_wan_2_client_src_addr="5"
@@ -783,8 +791,7 @@ lz_adjust_traffic_policy_status() {
             break
         fi
         if [ "${status_wan_2_client_src_addr}" = "0" ] && lz_get_unkonwn_ipv4_src_addr_data_file_item_status "${status_wan_2_client_src_addr_file}"; then
-            [ "${status_usage_mode}" = "0" ] && [ "${status_wan_2_src_to_dst_addr_port}" != "0" ] && [ "${status_wan_1_src_to_dst_addr_port}" != "0" ] \
-                && [ "${status_wan_2_domain}" != "0" ] && [ "${status_wan_1_domain}" != "0" ] && status_usage_mode="1"
+            status_usage_mode="1"
             status_wan_1_client_src_addr="5"
             status_custom_data_wan_port_2="5"
             status_custom_data_wan_port_1="5"
@@ -793,8 +800,7 @@ lz_adjust_traffic_policy_status() {
             break
         fi
         if [ "${status_wan_1_client_src_addr}" = "0" ] && lz_get_unkonwn_ipv4_src_addr_data_file_item_status "${status_wan_1_client_src_addr_file}"; then
-            [ "${status_usage_mode}" = "0" ] && [ "${status_wan_2_src_to_dst_addr_port}" != "0" ] && [ "${status_wan_1_src_to_dst_addr_port}" != "0" ] \
-                && [ "${status_wan_2_domain}" != "0" ] && [ "${status_wan_1_domain}" != "0" ] && status_usage_mode="1"
+            status_usage_mode="1"
             status_custom_data_wan_port_2="5"
             status_custom_data_wan_port_1="5"
             lz_adjust_isp_wan_port_status "0"
@@ -1167,7 +1173,7 @@ lz_get_route_status_info() {
         else
             echo "$(lzdate)" [$$]: "   Route Policy Mode: Mode 3"
         fi
-        if [ "${status_usage_mode}" = "0" ] && dnsmasq -v 2> /dev/null | grep -w 'ipset' | grep -qvw "no\-ipset"; then
+        if dnsmasq -v 2> /dev/null | grep -w 'ipset' | grep -qvw "no\-ipset"; then
             echo "$(lzdate)" [$$]: "   Route Domain Policy: Enable"
         else
             echo "$(lzdate)" [$$]: "   Route Domain Policy: Disable"
@@ -1736,6 +1742,11 @@ lz_output_ispip_status_info() {
             local_exist="1"
         }
     }
+    [ "${status_usage_mode}" != "0" ] && [ "${status_adjust_traffic_policy}" != "0" ] \
+        && [ "$( lz_get_ipv4_data_file_valid_item_total_status "${status_local_ipsets_file}" )" -gt "0" ] && {
+        echo "$(lzdate)" [$$]: "   LocalIPBlcLst   Load Balancing${local_load_balancing_hd}"
+        local_exist="1"
+    }
     [ "${status_custom_data_wan_port_2}" -ge "0" ] && [ "${status_custom_data_wan_port_2}" -le "2" ] && {
         local_item_num=$( lz_get_ipv4_data_file_valid_item_total_status "${status_custom_data_file_2}" ) 
         [ "${local_item_num}" -gt "0" ] && {
@@ -1790,8 +1801,8 @@ lz_output_ispip_status_info() {
             fi
         }
     }
-    local_item_num=$( lz_get_ipv4_data_file_valid_item_total_status "${status_local_ipsets_file}" )
-    [ "${status_usage_mode}" = "0" ] && [ "${status_adjust_traffic_policy}" != "0" ] && [ "${local_item_num}" -gt "0" ] && {
+    [ "${status_usage_mode}" = "0" ] && [ "${status_adjust_traffic_policy}" != "0" ] \
+        && [ "$( lz_get_ipv4_data_file_valid_item_total_status "${status_local_ipsets_file}" )" -gt "0" ] && {
         echo "$(lzdate)" [$$]: "   LocalIPBlcLst   Load Balancing"
         local_exist="1"
     }

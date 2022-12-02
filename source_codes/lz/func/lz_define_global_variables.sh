@@ -271,41 +271,41 @@ BALANCE_JUMP_FWMARK="0xcdcd"
 ## 策略规则基础优先级--25000（IP_RULE_PRIO）
 IP_RULE_PRIO="25000"
 
-## 运营商网段流量负载均衡分流出口规则策略规则优先级--24999（IP_RULE_PRIO-1）
-IP_RULE_PRIO_ISP_DATA_LB="$(( IP_RULE_PRIO - 1 ))"
+## 国外运营商网段分流出口规则策略规则优先级--24999（IP_RULE_PRIO-1）
+IP_RULE_PRIO_FOREIGN_DATA="$(( IP_RULE_PRIO - 1 ))"
 
-## 国外运营商网段分流出口规则策略规则优先级--24998（IP_RULE_PRIO-2）
-IP_RULE_PRIO_FOREIGN_DATA="$(( IP_RULE_PRIO_ISP_DATA_LB - 1 ))"
-
-## 国内运营商网段第一WAN口分流出口规则策略规则优先级--24997（IP_RULE_PRIO-3）
+## 国内运营商网段第一WAN口分流出口规则策略规则优先级--24998（IP_RULE_PRIO-2）
 IP_RULE_PRIO_PREFERRDE_WAN_DATA="$(( IP_RULE_PRIO_FOREIGN_DATA - 1 ))"
 
-## 国内运营商网段第二WAN口分流出口规则策略规则优先级--24996（IP_RULE_PRIO-4）
+## 国内运营商网段第二WAN口分流出口规则策略规则优先级--24997（IP_RULE_PRIO-3）
 IP_RULE_PRIO_SECOND_WAN_DATA="$(( IP_RULE_PRIO_PREFERRDE_WAN_DATA - 1 ))"
 
-## 国外运营商网段主机分流出口规则策略规则优先级--24995（IP_RULE_PRIO-5）
+## 国外运营商网段主机分流出口规则策略规则优先级--24996（IP_RULE_PRIO-4）
 IP_RULE_PRIO_HOST_FOREIGN_DATA="$(( IP_RULE_PRIO_SECOND_WAN_DATA - 1 ))"
 
-## 国内运营商网段主机报文第一WAN口分流出口规则策略规则优先级--24994（IP_RULE_PRIO-6）
+## 国内运营商网段主机报文第一WAN口分流出口规则策略规则优先级--24995（IP_RULE_PRIO-5）
 IP_RULE_PRIO_HOST_PREFERRDE_WAN_DATA="$(( IP_RULE_PRIO_HOST_FOREIGN_DATA - 1 ))"
 
-## 国内运营商网段主机报文第二WAN口分流出口规则策略规则优先级--24993（IP_RULE_PRIO-7）
+## 国内运营商网段主机报文第二WAN口分流出口规则策略规则优先级--24994（IP_RULE_PRIO-6）
 IP_RULE_PRIO_HOST_SECOND_WAN_DATA="$(( IP_RULE_PRIO_HOST_PREFERRDE_WAN_DATA - 1 ))"
 
-## 国内运营商网段高速直连绑定第一WAN口分流出口规则策略规则优先级--24992（IP_RULE_PRIO-8）
+## 国内运营商网段高速直连绑定第一WAN口分流出口规则策略规则优先级--24993（IP_RULE_PRIO-7）
 IP_RULE_PRIO_DIRECT_PREFERRDE_WAN_DATA="$(( IP_RULE_PRIO_HOST_SECOND_WAN_DATA - 1 ))"
 
-## 国内运营商网段高速直连绑定第二WAN口分流出口规则策略规则优先级--24991（IP_RULE_PRIO-9）
+## 国内运营商网段高速直连绑定第二WAN口分流出口规则策略规则优先级--24992（IP_RULE_PRIO-8）
 IP_RULE_PRIO_DIRECT_SECOND_WAN_DATA="$(( IP_RULE_PRIO_DIRECT_PREFERRDE_WAN_DATA - 1 ))"
 
-## 用户自定义目标网址/网段(1)分流出口规则策略规则优先级--24990（IP_RULE_PRIO-10）
+## 用户自定义目标网址/网段(1)分流出口规则策略规则优先级--24991（IP_RULE_PRIO-9）
 IP_RULE_PRIO_CUSTOM_1_DATA="$(( IP_RULE_PRIO_DIRECT_SECOND_WAN_DATA - 1 ))"
 
-## 用户自定义目标网址/网段(2)分流出口规则策略规则优先级--24989（IP_RULE_PRIO-11）
+## 用户自定义目标网址/网段(2)分流出口规则策略规则优先级--24990（IP_RULE_PRIO-10）
 IP_RULE_PRIO_CUSTOM_2_DATA="$(( IP_RULE_PRIO_CUSTOM_1_DATA - 1 ))"
 
+## 运营商网段流量负载均衡分流出口规则策略规则优先级--24989（IP_RULE_PRIO-11）
+IP_RULE_PRIO_ISP_DATA_LB="$(( IP_RULE_PRIO_CUSTOM_2_DATA - 1 ))"
+
 ## 第一WAN口客户端及源网址/网段绑定列表（总条目数大于条目阈值数）分流出口规则策略规则优先级--24988（IP_RULE_PRIO-12）
-IP_RULE_PRIO_WAN_1_CLIENT_SRC_DATA="$(( IP_RULE_PRIO_CUSTOM_2_DATA - 1 ))"
+IP_RULE_PRIO_WAN_1_CLIENT_SRC_DATA="$(( IP_RULE_PRIO_ISP_DATA_LB - 1 ))"
 
 ## 第二WAN口客户端及源网址/网段绑定列表（总条目数小于条目阈值数）分流出口规则策略规则优先级--24987（IP_RULE_PRIO-13）
 IP_RULE_PRIO_WAN_2_CLIENT_SRC_DATA="$(( IP_RULE_PRIO_WAN_1_CLIENT_SRC_DATA - 1 ))"
