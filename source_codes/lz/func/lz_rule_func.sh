@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v3.8.4
+# lz_rule_func.sh v3.8.5
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 #BEIGIN
@@ -833,8 +833,8 @@ lz_sys_load_balance_control() {
         balance_chain_existing="1"
         ## 删除路由前mangle表balance负载均衡规则链中脚本曾经插入的规则（避免系统原生负载均衡影响分流）
         local local_number="$( iptables -t mangle -L balance -v -n --line-numbers 2> /dev/null \
-        | grep -Ew "${BALANCE_GUARD_IP_SET}|${BALANCE_IP_SET}|${LOCAL_IP_SET}|${BALANCE_DST_IP_SET}|${ISPIP_ALL_CN_SET}|${NO_BALANCE_DST_IP_SET}|${ISPIP_SET_0}|${ISPIP_SET_1}|lz_balace_ipsets|${FOREIGN_FWMARK}/${FOREIGN_FWMARK}|${HOST_FOREIGN_FWMARK}/${HOST_FOREIGN_FWMARK}|${FWMARK0}/${FWMARK0}|${HOST_FWMARK0}/${HOST_FWMARK0}|${FWMARK1}/${FWMARK1}|${HOST_FWMARK1}/${HOST_FWMARK1}|${BALANCE_JUMP_FWMARK}/${BALANCE_JUMP_FWMARK}|${BALANCE_JUMP_FWMARK}/${FWMARK_MASK}|${HOST_PROTOCOLS_FWMARK_0}/${HOST_PROTOCOLS_FWMARK_0}|${PROTOCOLS_FWMARK_0}/${PROTOCOLS_FWMARK_0}|${HOST_PROTOCOLS_FWMARK_1}/${HOST_PROTOCOLS_FWMARK_1}|${PROTOCOLS_FWMARK_1}/${PROTOCOLS_FWMARK_1}|${HIGH_CLIENT_DEST_PORT_FWMARK_0}/${HIGH_CLIENT_DEST_PORT_FWMARK_0}|${CLIENT_DEST_PORT_FWMARK_0}/${CLIENT_DEST_PORT_FWMARK_0}|${DEST_PORT_FWMARK_0}/${DEST_PORT_FWMARK_0}|${CLIENT_DEST_PORT_FWMARK_1}/${CLIENT_DEST_PORT_FWMARK_1}|${DEST_PORT_FWMARK_1}/${DEST_PORT_FWMARK_1}|${SRC_DST_FWMARK}" \
-        | cut -d " " -f 1 | grep -o '^[0-9]*$' | sort -nr )"
+            | grep -Ew "${BALANCE_GUARD_IP_SET}|${BALANCE_IP_SET}|${LOCAL_IP_SET}|${BALANCE_DST_IP_SET}|${ISPIP_ALL_CN_SET}|${NO_BALANCE_DST_IP_SET}|${ISPIP_SET_0}|${ISPIP_SET_1}|lz_balace_ipsets|${FOREIGN_FWMARK}/${FOREIGN_FWMARK}|${HOST_FOREIGN_FWMARK}/${HOST_FOREIGN_FWMARK}|${FWMARK0}/${FWMARK0}|${HOST_FWMARK0}/${HOST_FWMARK0}|${FWMARK1}/${FWMARK1}|${HOST_FWMARK1}/${HOST_FWMARK1}|${BALANCE_JUMP_FWMARK}/${BALANCE_JUMP_FWMARK}|${BALANCE_JUMP_FWMARK}/${FWMARK_MASK}|${HIGH_CLIENT_DEST_PORT_FWMARK_0}/${HIGH_CLIENT_DEST_PORT_FWMARK_0}|${CLIENT_DEST_PORT_FWMARK_0}/${CLIENT_DEST_PORT_FWMARK_0}|${DEST_PORT_FWMARK_0}/${DEST_PORT_FWMARK_0}|${CLIENT_DEST_PORT_FWMARK_1}/${CLIENT_DEST_PORT_FWMARK_1}|${DEST_PORT_FWMARK_1}/${DEST_PORT_FWMARK_1}|${SRC_DST_FWMARK}" \
+            | cut -d " " -f 1 | grep -o '^[0-9]*$' | sort -nr )"
         local local_item_no=
         for local_item_no in ${local_number}
         do
@@ -1051,7 +1051,7 @@ lz_delete_iptables_custom_output_chain() {
     iptables -t mangle -X "${1}" > /dev/null 2>&1
 }
 
-## 清理之前设置的标记数据包的防火墙过滤规则函数（兼容老版本用）
+## 清理之前设置的标记数据包的防火墙过滤规则函数（兼容老版本升级用）
 ## 输入项：
 ##     全局常量
 ## 返回值：无
@@ -1075,12 +1075,6 @@ lz_clear_iptables_fwmark() {
     ## 清理标记 CLIENT_SRC_FWMARK_1 数据包的防火墙过滤规则（保留，用于兼容v3.6.8及之前版本）
     lz_delete_iptables_fwmark "${CLIENT_SRC_FWMARK_1}"
 
-    ## 清理标记 PROTOCOLS_FWMARK_0 数据包的防火墙过滤规则
-    lz_delete_iptables_fwmark "${PROTOCOLS_FWMARK_0}"
-
-    ## 清理标记 PROTOCOLS_FWMARK_1 数据包的防火墙过滤规则
-    lz_delete_iptables_fwmark "${PROTOCOLS_FWMARK_1}"
-
     ## 清理标记 DEST_PORT_FWMARK_0 数据包的防火墙过滤规则
     lz_delete_iptables_fwmark "${DEST_PORT_FWMARK_0}"
 
@@ -1103,10 +1097,8 @@ lz_clear_iptables_fwmark() {
 lz_get_netfilter_key_used() {
     [ "$( lz_get_iptables_fwmark_item_total_number "${FOREIGN_FWMARK}" "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" )" -gt "0" ] && return "0"
     [ "$( lz_get_iptables_fwmark_item_total_number "${FWMARK0}" "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" )" -gt "0" ] && return "0"
-    [ "$( lz_get_iptables_fwmark_item_total_number "${PROTOCOLS_FWMARK_0}" "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" )" -gt "0" ] && return "0"
     [ "$( lz_get_iptables_fwmark_item_total_number "${DEST_PORT_FWMARK_0}" "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" )" -gt "0" ] && return "0"
     [ "$( lz_get_iptables_fwmark_item_total_number "${FWMARK1}" "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" )" -gt "0" ] && return "0"
-    [ "$( lz_get_iptables_fwmark_item_total_number "${PROTOCOLS_FWMARK_1}" "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" )" -gt "0" ] && return "0"
     [ "$( lz_get_iptables_fwmark_item_total_number "${DEST_PORT_FWMARK_1}" "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" )" -gt "0" ] && return "0"
     return "1"
 }
@@ -1363,7 +1355,7 @@ lz_data_cleaning() {
     ## 返回值：无
     lz_delete_iptables_custom_output_chain "${CUSTOM_OUTPUT_CHAIN}" "${CUSTOM_OUTPUT_CONNMARK_CHAIN}"
 
-    ## 清理之前设置的标记数据包的防火墙过滤规则（兼容老版本用）
+    ## 清理之前设置的标记数据包的防火墙过滤规则（兼容老版本升级用）
     ## 输入项：
     ##     全局常量
     ## 返回值：无
@@ -2356,10 +2348,10 @@ lz_add_src_to_dst_output_mark() {
 ##     $4--转发速率：0~10000个包/秒。实测以太网数据包1500字节大小时，最大下载速率20MB/s（160Mbps）左右
 ## 返回值：无
 lz_hash_speed_limited() {
-    iptables -N "${1}"
-    iptables -A "${1}" -m hashlimit --hashlimit-name "${2}" --hashlimit-upto "${4}/sec" --hashlimit-burst "${4}" --hashlimit-mode dstip -j ACCEPT
-    iptables -A "${1}" -j DROP
-    iptables -I FORWARD -d "${3}" -j "${1}"
+    iptables -N "${1}"  > /dev/null 2>&1
+    iptables -A "${1}" -m hashlimit --hashlimit-name "${2}" --hashlimit-upto "${4}/sec" --hashlimit-burst "${4}" --hashlimit-mode dstip -j ACCEPT > /dev/null 2>&1
+    iptables -A "${1}" -j DROP  > /dev/null 2>&1
+    iptables -I FORWARD -d "${3}" -j "${1}"  > /dev/null 2>&1
     ## 启用转发功能
     [ -f "/proc/sys/net/ipv4/ip_forward" ] && {
         [ "$( cat "/proc/sys/net/ipv4/ip_forward" )" != "1" ] && echo "1" > "/proc/sys/net/ipv4/ip_forward"
@@ -2588,78 +2580,6 @@ lz_dest_port_policy() {
     lz_define_netfilter_fwmark_flow_export "${5}" "${6}" "${7}" "${local_pppoe_ifname}" "${local_ifname}"
 }
 
-## 协议策略出口分流函数
-## 输入项：
-##     $1--协议分流网络应用层协议列表文件全路径文件名
-##     $2--协议分流报文数据包标记
-##     $3--WAN口路由表ID号
-##     $4--协议分流出口规则策略规则优先级
-##     全局常量及变量
-## 返回值：无
-lz_protocols_wan_policy() {
-    ## 获取出口网卡设备标识
-    local local_id="0"
-    local local_pppoe_ifname="$( nvram get "wan0_pppoe_ifname" | grep -o 'ppp[0-9]*' | sed -n 1p )"
-    local local_ifname="$( nvram get "wan0_ifname" | grep -Eo 'eth[0-9]*|vlan[0-9]*' | sed -n 1p )"
-    if [ "${3}" = "${WAN1}" ]; then
-        local_id="1"
-        local_pppoe_ifname="$( nvram get "wan1_pppoe_ifname" | grep -o 'ppp[0-9]*' | sed -n 1p )"
-        local_ifname="$( nvram get "wan1_ifname" | grep -Eo 'eth[0-9]*|vlan[0-9]*' | sed -n 1p )"
-    fi
-    local local_buf="$( grep "lz_.*=${local_id}" "${1}" | awk -F "_" '{print $2}' | awk -F "=" '{print $1}' )"
-    local local_proto_item=
-    for local_proto_item in ${local_buf}
-    do
-        iptables -t mangle -A "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" -m layer7 --l7proto "${local_proto_item}" -j CONNMARK --set-xmark "${2}/${FWMARK_MASK}" > /dev/null 2>&1
-    done
-    ## 定义策略分流报文数据包标记流量出口
-    ## 输入项：
-    ##     $1--端口分流报文数据包标记
-    ##     $2--WAN口路由表ID号
-    ##     $3--端口分流出口规则策略规则优先级
-    ##     $4--WAN口pppoe虚拟网卡标识
-    ##     $5--WAN口网卡标识
-    ##     全局常量及变量
-    ## 返回值：
-    ##     0--成功
-    ##     1--失败
-    lz_define_netfilter_fwmark_flow_export "${2}" "${3}" "${4}" "${local_pppoe_ifname}" "${local_ifname}"
-}
-
-## 协议策略分流函数
-## 输入项：
-##     $1--协议分流网络应用层协议列表文件全路径文件名
-##     全局常量及变量
-## 返回值：无
-lz_protocols_policy() {
-    ## 简单校验协议文件
-    [ ! -f "${1}" ] && return
-    ! grep -qEo '[l][z][\_]' "${1}" && return
-    ! iptables -t mangle -L PREROUTING 2> /dev/null | grep -qw "${CUSTOM_PREROUTING_CHAIN}" && return
-    ! iptables -t mangle -L "${CUSTOM_PREROUTING_CHAIN}" 2> /dev/null | grep -qw "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" && return
-    ## 启用nf_conntrack_acct
-    [ -f "/proc/sys/net/netfilter/nf_conntrack_acct" ] && {
-        local local_ca_item="$( cat "/proc/sys/net/netfilter/nf_conntrack_acct" )"
-        [ "${local_ca_item}" = "0" ] && echo "1" > "/proc/sys/net/netfilter/nf_conntrack_acct"
-    }
-    ## 第一WAN口
-    ## 模式1、模式2时，协议策略分流无效，端口分流仅作用于动态分流模式（模式3）
-    ## 模式3时，在balance链中通过识别报文数据包标记，阻止负载均衡为其分配网络出口
-    ## 协议策略出口分流
-    ## 输入项：
-    ##     $1--协议分流网络应用层协议列表文件全路径文件名
-    ##     $2--协议分流报文数据包标记
-    ##     $3--WAN口路由表ID号
-    ##     $4--协议分流出口规则策略规则优先级
-    ##     全局常量及变量
-    ## 返回值：无
-    lz_protocols_wan_policy "${1}" "${PROTOCOLS_FWMARK_0}" "${WAN0}" "${IP_RULE_PRIO_WAN_1_PROTOCOLS}"
-    ## 第二WAN口
-    ## 模式1、模式2时，协议策略分流无效，端口分流仅作用于动态分流模式（模式3）
-    ## 模式3时，在balance链中通过识别报文数据包标记，阻止负载均衡为其分配网络出口
-    lz_protocols_wan_policy "${1}" "${PROTOCOLS_FWMARK_1}" "${WAN1}" "${IP_RULE_PRIO_WAN_2_PROTOCOLS}"
-}
-
 ## 加载已明确定义源网址/网段至目标网址/网段列表条目至NetFilter防火墙规则进行数据标记函数
 ## 输入项：
 ##     全局变量及常量
@@ -2740,8 +2660,8 @@ lz_create_domain_wan_set() {
         [ "${dn_pre_resolved}" = "0" ] && break
         for buf in ${buf}
         do
-            nslookup "${buf}" "${pre_dns}" 2> /dev/null |  sed '1,4d' | awk '{print $3}' | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}' \
-                | awk '{system("'"ipset -q add ${3} "'"$1)}'
+            nslookup "${buf}" "${pre_dns}" 2> /dev/null | sed '1,4d' \
+                | awk '$3 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ {system("'"ipset -q add ${3} "'"$3)}'
         done
         break
     done
@@ -3154,14 +3074,6 @@ lz_initialize_ip_data_policy() {
     ## 第一WAN口目标访问端口分流
     ## 在balance链中通过识别报文数据包标记，阻止负载均衡为其分配网络出口
     [ "${adjust_traffic_policy}" != "0" ] && lz_dest_port_policy "${wan0_dest_tcp_port}" "${wan0_dest_udp_port}" "${wan0_dest_udplite_port}" "${wan0_dest_sctp_port}" "${DEST_PORT_FWMARK_0}" "${WAN0}" "${IP_RULE_PRIO_WAN_1_PORT}"
-
-    ## 协议分流
-    ## 协议策略分流
-    ## 输入项：
-    ##     $1--协议分流网络应用层协议列表文件全路径文件名
-    ##     全局常量及变量
-    ## 返回值：无
-    [ "${adjust_traffic_policy}" != "0" ] && [ "${l7_protocols}" = "0" ] && lz_protocols_policy "${l7_protocols_file}"
 
     ## 系统负载均衡自动分配IPv4流量静态直通路由出口规则
     if [ "${usage_mode}" != "0" ] && [ "${adjust_traffic_policy}" != "0" ] \
@@ -5139,11 +5051,6 @@ lz_insert_custom_balance_rules() {
         || echo "${wan0_dest_udplite_port}" | grep -q "[0-9]" || echo "${wan0_dest_sctp_port}" | grep -q "[0-9]"; then
         ## 阻止对第一WAN口端口分流的网络流量进行负载均衡
         iptables -t mangle -I balance -m connmark --mark "${DEST_PORT_FWMARK_0}/${DEST_PORT_FWMARK_0}" -j RETURN > /dev/null 2>&1
-    fi
-    if [ "${l7_protocols}" = "0" ]; then
-        ## 阻止对协议分流的网络流量进行负载均衡
-        iptables -t mangle -I balance -m connmark --mark "${PROTOCOLS_FWMARK_0}/${PROTOCOLS_FWMARK_0}" -j RETURN > /dev/null 2>&1
-        iptables -t mangle -I balance -m connmark --mark "${PROTOCOLS_FWMARK_1}/${PROTOCOLS_FWMARK_1}" -j RETURN > /dev/null 2>&1
     fi
     if [ "$( lz_get_iptables_fwmark_item_total_number "${CLIENT_DEST_PORT_FWMARK_1}" "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" )" -gt "0" ]; then
         ## 阻止对第二WAN口客户端至预设IPv4目标网址/网段流量协议端口动态分流进行负载均衡

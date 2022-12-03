@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_initialize_config.sh v3.8.4
+# lz_initialize_config.sh v3.8.5
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 初始化脚本配置

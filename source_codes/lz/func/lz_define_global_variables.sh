@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_define_global_variables.sh v3.8.4
+# lz_define_global_variables.sh v3.8.5
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 # QnkgTFog5aaZ5aaZ5ZGc77yI6Juk6J+G5aKp5YS/77yJ（首次运行标识，切勿修改）
 
@@ -403,19 +403,6 @@ LZ_IPTV="888"
 
 ## iptables --match-set针对不同硬件类型选项设置的操作符宏变量
 MATCH_SET='--match-set'
-
-## 协议分流（0--启用；非0--禁用）
-## 缺省为禁用（5）。
-## 该功能需要系统中有用于OSI模型第七层应用层控制的layer7模块，否则需重新编译和配置Linux内核，打netfilter
-## 补丁和安装l7-protocals协议包。
-## 仅能在动态分流模式下使用。
-l7_protocols=5
-
-## 协议分流流量出口网络应用层协议绑定列表文件（文件路径、名称可自定义和修改）
-## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
-## 文件中协议项取值：0--第一WAN口；1--第二WAN口；>1--禁用。
-## 缺省为禁用（5）。
-l7_protocols_file="${PATH_CONFIGS}/configs/lz_protocols.txt"
 
 ## 运行模式（双线路接通时）
 ## 脚本提供三种运行模式（模式1、模式2、模式3），针对路由器WAN口通道按需设置相应的"动态路由"、"静态路由"
