@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_define_global_variables.sh v3.8.5
+# lz_define_global_variables.sh v3.8.6
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 # QnkgTFog5aaZ5aaZ5ZGc77yI6Juk6J+G5aKp5YS/77yJ（首次运行标识，切勿修改）
 
@@ -183,6 +183,9 @@ PPTP_CLIENT_IP_SET="lz_pptp_client"
 
 ## IPSec虚拟专网子网网段地址列表数据集名称
 IPSEC_SUBNET_IP_SET="lz_ipsec_subnet"
+
+## WireGuard虚拟专网客户端本地地址列表数据集名称
+WIREGUARD_CLIENT_IP_SET="lz_wireguard_client"
 
 ## 启动后台守护进程脚本文件名
 START_DAEMON_SCRIPT="lz_start_daemon.sh"

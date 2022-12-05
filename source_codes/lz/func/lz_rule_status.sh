@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_status.sh v3.8.5
+# lz_rule_status.sh v3.8.6
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 显示脚本运行状态脚本
@@ -1251,13 +1251,13 @@ lz_get_event_interface_status() {
 ##     全局常量及变量
 ## 返回值：无
 lz_show_vpn_support_status() {
-    local local_vpn_client_wan_port="by Policy"
+    local local_vpn_client_wan_port="by System"
     [ "${status_ovs_client_wan_port}" = "0" ] && local_vpn_client_wan_port="Primary WAN"
     [ "${status_ovs_client_wan_port}" = "1" ] && local_vpn_client_wan_port="Secondary WAN"
-    local local_route_list="$( ip route show | grep -Ev 'default|nexthop' )"
+    local local_route_list="$( ip route show | awk '/tap|tun|pptp|wgs/ {print $0}' )"
     local local_vpn_item=
     local local_index="0"
-    for local_vpn_item in $( echo "${local_route_list}" | grep -E 'tap|tun' | awk '{print $3":"$1}' )
+    for local_vpn_item in $( echo "${local_route_list}" | awk '/tap|tun/ {print $3":"$1}' )
     do
         let local_index++
         [ "${local_index}" = "1" ] && echo "$(lzdate)" [$$]: ----------------------------------------
@@ -1271,7 +1271,7 @@ lz_show_vpn_support_status() {
         local_vpn_item=$( nvram get "pptpd_clients" | sed 's/-/~/g' | sed -n 1p )
         [ -n "${local_vpn_item}" ] && echo "$(lzdate)" [$$]: "   PPTP Client IP Pool: ${local_vpn_item}"
         local_index="0"
-        for local_vpn_item in $( echo "${local_route_list}" | grep pptp | awk '{print $1}' )
+        for local_vpn_item in $( echo "${local_route_list}" | awk '/pptp/ {print $1}' )
         do
             let local_index++
             echo "$(lzdate)" [$$]: "   PPTP VPN Client-${local_index}: ${local_vpn_item}"
@@ -1286,6 +1286,19 @@ lz_show_vpn_support_status() {
             echo "$(lzdate)" [$$]: "   IPSec Server Subnet: ${local_vpn_item}"
             echo "$(lzdate)" [$$]: "   IPSec Client Export: ${local_vpn_client_wan_port}"
         fi
+    fi
+    if [ "$( nvram get "wgs_enable" )" = "1" ]; then
+        echo "$(lzdate)" [$$]: ----------------------------------------
+        echo "$(lzdate)" [$$]: "   WireGuard Client Detect Time: ${status_vpn_client_polling_time}s"
+        echo "$(lzdate)" [$$]: "   Tunnel Address: $( nvram get wgs_addr | sed 's/[\/].*$//g' )"
+        echo "$(lzdate)" [$$]: "   Listen Port: $( nvram get wgs_port )"
+        local_index="0"
+        for local_vpn_item in $( echo "${local_route_list}" | awk '/wgs/ {print $1}' )
+        do
+            let local_index++
+            echo "$(lzdate)" [$$]: "   WireGuard Client-${local_index}: ${local_vpn_item}"
+        done
+        echo "$(lzdate)" [$$]: "   WireGuard Client Export: ${local_vpn_client_wan_port}"
     fi
 
     echo "$(lzdate)" [$$]: ----------------------------------------

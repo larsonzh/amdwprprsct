@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v3.8.5
+# lz_rule_func.sh v3.8.6
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 #BEIGIN
@@ -1198,8 +1198,8 @@ lz_destroy_ipset() {
 ## 返回值：无
 lz_clear_vpn_support() {
     ## 清理Open虚拟专网服务支持（TAP及TUN接口类型）中出口路由表添加项
-    ip route show table "${WAN0}" | awk '/pptp|tap|tun/ {system("ip route del "$0"'" table ${WAN0} > /dev/null 2>&1"'")}'
-    ip route show table "${WAN1}" | awk '/pptp|tap|tun/ {system("ip route del "$0"'" table ${WAN1} > /dev/null 2>&1"'")}'
+    ip route show table "${WAN0}" | awk '/pptp|tap|tun|wgs/ {system("ip route del "$0"'" table ${WAN0} > /dev/null 2>&1"'")}'
+    ip route show table "${WAN1}" | awk '/pptp|tap|tun|wgs/ {system("ip route del "$0"'" table ${WAN1} > /dev/null 2>&1"'")}'
     ip route flush cache > /dev/null 2>&1
 
     ## 清除Open虚拟专网子网网段地址列表文件（保留，用于兼容v3.7.0及之前版本）
@@ -1216,6 +1216,9 @@ lz_clear_vpn_support() {
 
     ## 清除IPSec虚拟专网子网网段地址列表数据集
     ipset -q destroy "${IPSEC_SUBNET_IP_SET}"
+
+    ## 清除WireGuard虚拟专网客户端本地地址列表数据集
+    ipset -q destroy "${WIREGUARD_CLIENT_IP_SET}"
 }
 
 ## 设置udpxy_used参数函数
@@ -1286,14 +1289,14 @@ lz_clear_ss_start_command() {
 lz_clear_dnsmasq_relation() {
     [ -f "${DNSMASQ_CONF_ADD}" ] && sed -i '/^[^#]*conf[\-]dir=[^#]*[\/]lz[\/]tmp/d' "${DNSMASQ_CONF_ADD}" > /dev/null 2>&1
     if [ -f "${PATH_TMP}/${DOMAIN_WAN1_CONF}" ]; then
-        if [ "${wan_1_domain}" = "0" ] && [ "${usage_mode}" = "0" ]; then
+        if [ "${wan_1_domain}" = "0" ]; then
             sed -i '1,$d' "${PATH_TMP}/${DOMAIN_WAN1_CONF}" > /dev/null 2>&1
         else
             rm -f "${PATH_TMP}/${DOMAIN_WAN1_CONF}" > /dev/null 2>&1
         fi
     fi
     if [ -f "${PATH_TMP}/${DOMAIN_WAN2_CONF}" ]; then
-        if [ "${wan_2_domain}" = "0" ] && [ "${usage_mode}" = "0" ]; then
+        if [ "${wan_2_domain}" = "0" ]; then
             sed -i '1,$d' "${PATH_TMP}/${DOMAIN_WAN2_CONF}" > /dev/null 2>&1
         else
             rm -f "${PATH_TMP}/${DOMAIN_WAN2_CONF}" > /dev/null 2>&1
@@ -1367,6 +1370,11 @@ lz_data_cleaning() {
     ## 返回值：无
     lz_delete_iptables_custom_forward_chain "${CUSTOM_FORWARD_CHAIN}"
 
+    local local_restart_dnsmasq="1"
+    if [ -n "$( ipset -q -n list "${DOMAIN_SET_0}" )" ] || [ -n "$( ipset -q -n list "${DOMAIN_SET_1}" )" ]; then
+        local_restart_dnsmasq="0"
+    fi
+
     ## 清理目标访问服务器IP网段数据集
     ## 其中的所有网段的数据集名称（必须保证在系统中唯一）来自创建时定义的名称
     ## 输入项：无
@@ -1374,7 +1382,7 @@ lz_data_cleaning() {
     lz_destroy_ipset
 
     ## 重启dnsmasq服务
-    service restart_dnsmasq > /dev/null 2>&1
+    [ "${local_restart_dnsmasq}" = "0" ] && service restart_dnsmasq > /dev/null 2>&1
 
     ## 清除虚拟专网客户端路由刷新处理后台守护进程
     rm -f "${PATH_TMP}/${VPN_CLIENT_DAEMON_LOCK}" > /dev/null 2>&1	##（保留，用于兼容v3.7.0及之前版本）
@@ -1530,7 +1538,7 @@ lz_ip_rule_output_syslog() {
 ## 输入项：
 ##     $1--主执行脚本运行输入参数
 ##     全局常量
-## 返回值：无
+## 返回值：
 ##     0--清除成功
 ##     1--未清除
 lz_clear_openvpn_event_command() {
@@ -1554,7 +1562,7 @@ lz_clear_openvpn_event_command() {
 ## 返回值：无
 lz_clear_openvpn_rule() {
     ## 清空策略优先级为IP_RULE_PRIO_VPN的出口规则
-    ip rule show | grep "^${IP_RULE_PRIO_VPN}:" | awk -F: '{system("ip rule del prio "$1" > /dev/null 2>&1")}'
+    ip rule show | awk -F: '$1 == "'"${IP_RULE_PRIO_VPN}"'" {system("ip rule del prio "$1" > /dev/null 2>&1")}'
     ip route flush cache > /dev/null 2>&1
 }
 
@@ -1730,7 +1738,7 @@ if [ ! -d "${PATH_LOCK}" ]; then
     chmod 777 "${PATH_LOCK}"
 fi
 
-exec ${LOCK_FILE_ID}<>${LOCK_FILE}
+exec ${LOCK_FILE_ID}<>"${LOCK_FILE}"
 flock -x "${LOCK_FILE_ID}"  > /dev/null 2>&1
 
 ## 创建临时下载目录
@@ -3753,7 +3761,11 @@ lz_ss_support() {
 ##     全局常量及变量
 ## 返回值：无
 lz_add_openvpn_event_scripts() {
+    local local_pptpd_enable="$( nvram get "pptpd_enable" )"
+    local local_ipsec_server_enable="$( nvram get "ipsec_server_enable" )"
+    local local_wgs_enable="$( nvram get "wgs_enable" )"
     cat > "${1}/${2}" <<EOF_OVPN_A
+#!/bin/sh
 # ${2} ${LZ_VERSION}
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 # Do not manually modify!!!
@@ -3761,8 +3773,8 @@ lz_add_openvpn_event_scripts() {
 
 #BEIGIN
 
-[ ! -d ${PATH_LOCK} ] && { mkdir -p ${PATH_LOCK} > /dev/null 2>&1; chmod 777 ${PATH_LOCK} > /dev/null 2>&1; }
-exec ${LOCK_FILE_ID}<>${LOCK_FILE}; flock -x ${LOCK_FILE_ID} > /dev/null 2>&1;
+[ ! -d "${PATH_LOCK}" ] && { mkdir -p "${PATH_LOCK}" > /dev/null 2>&1; chmod 777 "${PATH_LOCK}" > /dev/null 2>&1; }
+exec ${LOCK_FILE_ID}<>"${LOCK_FILE}"; flock -x "${LOCK_FILE_ID}" > /dev/null 2>&1;
 
 lzdate() { eval echo "\$( date +"%F %T" )"; }
 
@@ -3774,32 +3786,36 @@ lzdate() { eval echo "\$( date +"%F %T" )"; }
 lz_ovpn_subnet_list="\$( ipset -q list "${OPENVPN_SUBNET_IP_SET}" | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}' )"
 lz_pptp_client_list="\$( ipset -q list "${PPTP_CLIENT_IP_SET}" | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}' )"
 lz_ipsec_subnet_list="\$( ipset -q list "${IPSEC_SUBNET_IP_SET}" | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}' )"
+lz_wireguard_client_list="\$( ipset -q list "${WIREGUARD_CLIENT_IP_SET}" | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}' )"
 lz_nvram_ipsec_subnet_list=
 if [ "\$( nvram get "ipsec_server_enable" )" = "1" ]; then
     lz_nvram_ipsec_subnet_list="\$( nvram get "ipsec_profile_1" | sed 's/>/\n/g' | sed -n 15p | grep -Eo '([0-9]{1,3}[\.]){2}[0-9]{1,3}' | sed 's/^.*\$/&\.0\/24/' )"
     [ -z "\${lz_nvram_ipsec_subnet_list}" ] && lz_nvram_ipsec_subnet_list="\$( nvram get "ipsec_profile_2" | sed 's/>/\n/g' | sed -n 15p | grep -Eo '([0-9]{1,3}[\.]){2}[0-9]{1,3}' | sed 's/^.*\$/&\.0\/24/' )"
 fi
-ip rule show | grep "^${IP_RULE_PRIO_VPN}:" | awk -F: 'NF!=0 {system("ip rule del prio "\$1" > /dev/null 2>&1")}'
-if ip route show | grep -q nexthop; then
+ip rule show | awk -F: '\$1 == "${IP_RULE_PRIO_VPN}" {system("ip rule del prio "\$1" > /dev/null 2>&1")}'
+if ! ip route show | grep -q nexthop; then
+    echo "\$(lzdate)" [\$\$]: Non dual network operation mode. >> "${SYSLOG}"
+else
     lz_route_list="\$( ip route show | grep -Ev 'default|nexthop' )"
     if [ -n "\${lz_route_list}" ]; then
-        echo "\${lz_route_list}" | awk 'NF!=0 {system("ip route add "\$0" table ${WAN0} > /dev/null 2>&1")}'
-        echo "\${lz_route_list}" | awk 'NF!=0 {system("ip route add "\$0" table ${WAN1} > /dev/null 2>&1")}'
+        echo "\${lz_route_list}" | awk 'NF != "0" {system("ip route add "\$0" table ${WAN0} > /dev/null 2>&1")}'
+        echo "\${lz_route_list}" | awk 'NF != "0" {system("ip route add "\$0" table ${WAN1} > /dev/null 2>&1")}'
         if ip route show table "${LZ_IPTV}" | grep -q "default"; then
-            echo "\${lz_route_list}" | awk 'NF!=0 {system("ip route add "\$0" table ${LZ_IPTV} > /dev/null 2>&1")}'
+            echo "\${lz_route_list}" | awk 'NF != "0" {system("ip route add "\$0" table ${LZ_IPTV} > /dev/null 2>&1")}'
         fi
-        lz_route_vpn_list="\$( echo "\${lz_route_list}" | awk '/pptp|tap|tun/ {print \$1}' )"
+        lz_route_vpn_list="\$( echo "\${lz_route_list}" | awk '/pptp|tap|tun|wgs/ {print \$1}' )"
 EOF_OVPN_A
     if [ "${ovs_client_wan_port}" = "0" ] || [ "${ovs_client_wan_port}" = "1" ]; then
         local local_ovs_client_wan="${WAN0}"
         [ "${ovs_client_wan_port}" = "1" ] && local_ovs_client_wan="${WAN1}"
         cat >> "${1}/${2}" <<EOF_OVPN_B
-        echo "\${lz_route_vpn_list}" | awk 'NF!=0 {system("ip rule add from "\$1" table ${local_ovs_client_wan} prio ${IP_RULE_PRIO_VPN} > /dev/null 2>&1")}'
-        echo "\${lz_nvram_ipsec_subnet_list}" | awk 'NF!=0 {system("ip rule add from "\$1" table ${local_ovs_client_wan} prio ${IP_RULE_PRIO_VPN} > /dev/null 2>&1")}'
+        echo "\${lz_route_vpn_list}" | awk 'NF != "0" {system("ip rule add from "\$1" table ${local_ovs_client_wan} prio ${IP_RULE_PRIO_VPN} > /dev/null 2>&1")}'
+        echo "\${lz_nvram_ipsec_subnet_list}" | awk 'NF != "0" {system("ip rule add from "\$1" table ${local_ovs_client_wan} prio ${IP_RULE_PRIO_VPN} > /dev/null 2>&1")}'
         if [ -n "\$( ipset -q -n list "${BALANCE_IP_SET}" )" ]; then
             [ -n "\${lz_ovpn_subnet_list}" ] && echo "\${lz_ovpn_subnet_list}" | awk '{print "-! del ${BALANCE_IP_SET} "\$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
             [ -n "\${lz_pptp_client_list}" ] && echo "\${lz_pptp_client_list}" | awk '{print "-! del ${BALANCE_IP_SET} "\$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
             [ -n "\${lz_ipsec_subnet_list}" ] && echo "\${lz_ipsec_subnet_list}" | awk '{print "-! del ${BALANCE_IP_SET} "\$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
+            [ -n "\${lz_wireguard_client_list}" ] && echo "\${lz_wireguard_client_list}" | awk '{print "-! del ${BALANCE_IP_SET} "\$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
             [ -n "\${lz_route_vpn_list}" ] && echo "\${lz_route_vpn_list}" | awk '{print "-! del ${BALANCE_IP_SET} "\$1"\n-! add ${BALANCE_IP_SET} "\$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
             [ -n "\${lz_nvram_ipsec_subnet_list}" ] && echo "\${lz_nvram_ipsec_subnet_list}" | awk '{print "-! del ${BALANCE_IP_SET} "\$1"\n-! add ${BALANCE_IP_SET} "\$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
         fi
@@ -3810,46 +3826,63 @@ EOF_OVPN_B
             [ -n "\${lz_ovpn_subnet_list}" ] && echo "\${lz_ovpn_subnet_list}" | awk '{print "-! del ${BALANCE_IP_SET} "\$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
             [ -n "\${lz_pptp_client_list}" ] && echo "\${lz_pptp_client_list}" | awk '{print "-! del ${BALANCE_IP_SET} "\$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
             [ -n "\${lz_ipsec_subnet_list}" ] && echo "\${lz_ipsec_subnet_list}" | awk '{print "-! del ${BALANCE_IP_SET} "\$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
+            [ -n "\${lz_wireguard_client_list}" ] && echo "\${lz_wireguard_client_list}" | awk '{print "-! del ${BALANCE_IP_SET} "\$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
             [ -n "\${lz_route_vpn_list}" ] && echo "\${lz_route_vpn_list}" | awk '{print "-! del ${BALANCE_IP_SET} "\$1"\n-! add ${BALANCE_IP_SET} "\$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
             [ -n "\${lz_nvram_ipsec_subnet_list}" ] && echo "\${lz_nvram_ipsec_subnet_list}" | awk '{print "-! del ${BALANCE_IP_SET} "\$1"\n-! add ${BALANCE_IP_SET} "\$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
         fi
 EOF_OVPN_C
     fi
-
     cat >> "${1}/${2}" <<EOF_OVPN_D
         if [ -n "\$( ipset -q -n list "${LOCAL_IP_SET}" )" ]; then
             [ -n "\${lz_ovpn_subnet_list}" ] && echo "\${lz_ovpn_subnet_list}" | awk '{print "-! del ${LOCAL_IP_SET} "\$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
             [ -n "\${lz_pptp_client_list}" ] && echo "\${lz_pptp_client_list}" | awk '{print "-! del ${LOCAL_IP_SET} "\$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
             [ -n "\${lz_ipsec_subnet_list}" ] && echo "\${lz_ipsec_subnet_list}" | awk '{print "-! del ${LOCAL_IP_SET} "\$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
+            [ -n "\${lz_wireguard_client_list}" ] && echo "\${lz_wireguard_client_list}" | awk '{print "-! del ${LOCAL_IP_SET} "\$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
             [ -n "\${lz_route_vpn_list}" ] && echo "\${lz_route_vpn_list}" | awk '{print "-! del ${LOCAL_IP_SET} "\$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
             [ -n "\${lz_nvram_ipsec_subnet_list}" ] && echo "\${lz_nvram_ipsec_subnet_list}" | awk '{print "-! del ${LOCAL_IP_SET} "\$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
 EOF_OVPN_D
-
     if [ "${ovs_client_wan_port}" = "0" ] || [ "${ovs_client_wan_port}" = "1" ]; then
         cat >> "${1}/${2}" <<EOF_OVPN_E
             [ -n "\${lz_route_vpn_list}" ] && echo "\${lz_route_vpn_list}" | awk '{print "-! add ${LOCAL_IP_SET} "\$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
             [ -n "\${lz_nvram_ipsec_subnet_list}" ] && echo "\${lz_nvram_ipsec_subnet_list}" | awk '{print "-! add ${LOCAL_IP_SET} "\$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
 EOF_OVPN_E
     fi
-
     cat >> "${1}/${2}" <<EOF_OVPN_F
         fi
         if [ -n "\$( ipset -q -n list "${BALANCE_GUARD_IP_SET}" )" ]; then
             [ -n "\${lz_ovpn_subnet_list}" ] && echo "\${lz_ovpn_subnet_list}" | awk '{print "-! del ${BALANCE_GUARD_IP_SET} "\$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
             [ -n "\${lz_pptp_client_list}" ] && echo "\${lz_pptp_client_list}" | awk '{print "-! del ${BALANCE_GUARD_IP_SET} "\$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
             [ -n "\${lz_ipsec_subnet_list}" ] && echo "\${lz_ipsec_subnet_list}" | awk '{print "-! del ${BALANCE_GUARD_IP_SET} "\$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
+            [ -n "\${lz_wireguard_client_list}" ] && echo "\${lz_wireguard_client_list}" | awk '{print "-! del ${BALANCE_GUARD_IP_SET} "\$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
             [ -n "\${lz_route_vpn_list}" ] && echo "\${lz_route_vpn_list}" | awk '{print "-! del ${BALANCE_GUARD_IP_SET} "\$1"\n-! add ${BALANCE_GUARD_IP_SET} "\$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
             [ -n "\${lz_nvram_ipsec_subnet_list}" ] && echo "\${lz_nvram_ipsec_subnet_list}" | awk '{print "-! del ${BALANCE_GUARD_IP_SET} "\$1"\n-! add ${BALANCE_GUARD_IP_SET} "\$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
         fi
         ipset -q create "${OPENVPN_SUBNET_IP_SET}" nethash maxelem 4294967295 #--hashsize 1024 mexleme 65536
-        ipset -q create "${PPTP_CLIENT_IP_SET}" nethash maxelem 4294967295 #--hashsize 1024 mexleme 65536
-        ipset -q create "${IPSEC_SUBNET_IP_SET}" nethash maxelem 4294967295 #--hashsize 1024 mexleme 65536
         ipset -q flush "${OPENVPN_SUBNET_IP_SET}"
+        [ -n "\${lz_route_list}" ] && echo "\${lz_route_list}" | awk '/tap|tun/ {system("ipset -q add ${OPENVPN_SUBNET_IP_SET} "\$1)}'
+EOF_OVPN_F
+    if [ -n "${local_pptpd_enable}" ]; then
+    cat >> "${1}/${2}" <<EOF_OVPN_G
+        ipset -q create "${PPTP_CLIENT_IP_SET}" nethash maxelem 4294967295 #--hashsize 1024 mexleme 65536
         ipset -q flush "${PPTP_CLIENT_IP_SET}"
+        [ -n "\${lz_route_list}" ] && echo "\${lz_route_list}" | awk '/pptp/ {system("ipset -q add ${PPTP_CLIENT_IP_SET} "\$1)}'
+EOF_OVPN_G
+    fi
+    if [ -n "${local_ipsec_server_enable}" ]; then
+    cat >> "${1}/${2}" <<EOF_OVPN_H
+        ipset -q create "${IPSEC_SUBNET_IP_SET}" nethash maxelem 4294967295 #--hashsize 1024 mexleme 65536
         ipset -q flush "${IPSEC_SUBNET_IP_SET}"
-        [ -n "\${lz_route_list}" ] && echo "\${lz_route_list}" | awk -v var=0 '/tap|tun/ {print "-! add ${OPENVPN_SUBNET_IP_SET} "\$1; var++} END{if (var != 0) print "COMMIT"}' | ipset restore > /dev/null 2>&1
-        [ -n "\${lz_route_list}" ] && echo "\${lz_route_list}" | awk -v var=0 '/pptp/ {print "-! add ${PPTP_CLIENT_IP_SET} "\$1; var++} END{if (var != 0) print "COMMIT"}' | ipset restore > /dev/null 2>&1
-        [ -n "\${lz_nvram_ipsec_subnet_list}" ] && echo "\${lz_nvram_ipsec_subnet_list}" | awk '{print "-! add ${IPSEC_SUBNET_IP_SET} "\$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
+        [ -n "\${lz_nvram_ipsec_subnet_list}" ] && echo "\${lz_nvram_ipsec_subnet_list}" | awk 'NF != "0" {system("ipset -q add ${IPSEC_SUBNET_IP_SET} "\$1)}'
+EOF_OVPN_H
+    fi
+    if [ -n "${local_wgs_enable}" ]; then
+    cat >> "${1}/${2}" <<EOF_OVPN_I
+        ipset -q create "${WIREGUARD_CLIENT_IP_SET}" nethash maxelem 4294967295 #--hashsize 1024 mexleme 65536
+        ipset -q flush "${WIREGUARD_CLIENT_IP_SET}"
+        [ -n "\${lz_route_list}" ] && echo "\${lz_route_list}" | awk '/wgs/ {system("ipset -q add ${WIREGUARD_CLIENT_IP_SET} "\$1)}'
+EOF_OVPN_I
+    fi
+    cat >> "${1}/${2}" <<EOF_OVPN_J
     fi
     lz_index="0"
     for lz_vpn_item in \$( echo "\${lz_route_list}" | awk '/tap|tun/ {print \$1":"\$3}' )
@@ -3859,6 +3892,9 @@ EOF_OVPN_E
         echo "\$(lzdate)" [\$\$]: LZ OpenVPN Subnet "\${lz_index}: \${lz_vpn_item}" >> "${SYSLOG}"
     done
     [ "\${lz_index}" = "0" ] && echo "\$(lzdate)" [\$\$]: LZ OpenVPN Server: Stop >> "${SYSLOG}"
+EOF_OVPN_J
+    if [ -n "${local_pptpd_enable}" ]; then
+    cat >> "${1}/${2}" <<EOF_OVPN_K
     lz_index="0"
     for lz_vpn_item in \$( echo "\${lz_route_list}" | awk '/pptp/ {print \$1":"\$3}' )
     do
@@ -3867,12 +3903,14 @@ EOF_OVPN_E
         echo "\$(lzdate)" [\$\$]: LZ VPN Client "\${lz_index}: \${lz_vpn_item}" >> "${SYSLOG}"
     done
     if [ "\${lz_index}" = "0" ]; then
-        if [ "\$( nvram get "pptpd_enable" )" != "1" ]; then
-            echo "\$(lzdate)" [\$\$]: LZ PPTP VPN Server: Stop >> "${SYSLOG}"
-        else
-            echo "\$(lzdate)" [\$\$]: LZ PPTP VPN Client: None >> "${SYSLOG}"
-        fi
+        lz_vpn_enable="\$( nvram get "pptpd_enable" )"
+        [ "\${lz_vpn_enable}" = "0" ] && echo "\$(lzdate)" [\$\$]: LZ PPTP VPN Server: Stop >> "${SYSLOG}"
+        [ "\${lz_vpn_enable}" = "1" ] && echo "\$(lzdate)" [\$\$]: LZ PPTP VPN Client: None >> "${SYSLOG}"
     fi
+EOF_OVPN_K
+    fi
+    if [ -n "${local_ipsec_server_enable}" ]; then
+    cat >> "${1}/${2}" <<EOF_OVPN_L
     if [ -n "\${lz_nvram_ipsec_subnet_list}" ]; then
         lz_index="0"
         for lz_vpn_item in \$( echo "\${lz_nvram_ipsec_subnet_list}" | awk '{print \$1":ipsec"}' )
@@ -3881,22 +3919,39 @@ EOF_OVPN_E
             lz_vpn_item="\$( echo "\${lz_vpn_item}" | sed 's/:/ /g' )"
             echo "\$(lzdate)" [\$\$]: LZ IPSec VPN Subnet "\${lz_index}: \${lz_vpn_item}" >> "${SYSLOG}"
         done
-    else
+    elif [ "\$( nvram get "ipsec_server_enable" )" = "0" ]; then
         echo "\$(lzdate)" [\$\$]: LZ IPSec VPN Server: Stop >> "${SYSLOG}"
     fi
-else
-    echo "\$(lzdate)" [\$\$]: Non dual network operation mode. >> "${SYSLOG}"
+EOF_OVPN_L
+    fi
+    if [ -n "${local_wgs_enable}" ]; then
+    cat >> "${1}/${2}" <<EOF_OVPN_M
+    lz_index="0"
+    for lz_vpn_item in \$( echo "\${lz_route_list}" | awk '/wgs/ {print \$1":"\$3}' )
+    do
+        let lz_index++
+        lz_vpn_item="\$( echo "\${lz_vpn_item}" | sed 's/:/ /g' )"
+        echo "\$(lzdate)" [\$\$]: LZ WireGuard Client "\${lz_index}: \${lz_vpn_item}" >> "${SYSLOG}"
+    done
+    if [ "\${lz_index}" = "0" ]; then
+        lz_vpn_enable="\$( nvram get "wgs_enable" )"
+        [ "\${lz_vpn_enable}" = "0" ] && echo "\$(lzdate)" [\$\$]: LZ WireGuard Server: Stop >> "${SYSLOG}"
+        [ "\${lz_vpn_enable}" = "1" ] && echo "\$(lzdate)" [\$\$]: LZ WireGuard Client: None >> "${SYSLOG}"
+    fi
+EOF_OVPN_M
+    fi
+    cat >> "${1}/${2}" <<EOF_OVPN_N
 fi
 
 ip route flush cache > /dev/null 2>&1
 
 echo "\$(lzdate)" [\$\$]: >> "${SYSLOG}"
 
-flock -u ${LOCK_FILE_ID} > /dev/null 2>&1
+flock -u "${LOCK_FILE_ID}" > /dev/null 2>&1
 
 #END
 
-EOF_OVPN_F
+EOF_OVPN_N
 
     chmod +x "${1}/${2}"
 }
@@ -3948,7 +4003,7 @@ EOF_OVPN_SCRIPTS_A
     while [ -f "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}" ]
     do
         ## 事件处理脚本内容为空
-        if ! echo "${local_openvpn_event_interface_scripts}" | grep -q "awk \'\/pptp\|tap\|tun\/ {print"; then
+        if ! echo "${local_openvpn_event_interface_scripts}" | grep -q "awk \'\/pptp\|tap\|tun\|wgs\/ {print"; then
             ## 更新openvpn-event事件触发脚本
             ## 输入项：
             ##     $1--openvpn-event事件触发接口文件路径名
@@ -3966,7 +4021,7 @@ EOF_OVPN_SCRIPTS_A
         fi
 
         ## 优先级发生改变
-        if ! echo "${local_openvpn_event_interface_scripts}" | grep -q "rule show prio \"${IP_RULE_PRIO_VPN}\" \| awk"; then
+        if ! echo "${local_openvpn_event_interface_scripts}" | grep -q "== \"${IP_RULE_PRIO_VPN}\" {system(\"ip rule del prio"; then
             llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
             break
         fi
@@ -4037,6 +4092,35 @@ EOF_OVPN_SCRIPTS_A
         ## 阻止系统负载均衡对访问虚拟专网客户端的流量分配出口
         if ! echo "${local_openvpn_event_interface_scripts}" | grep -q "ipset -q -n list \"${BALANCE_GUARD_IP_SET}\""; then
             llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
+            break
+        fi
+
+        ## 检查PPTP项
+        if [ -n "$( nvram get "pptpd_enable" )" ] \
+            && ! echo "${local_openvpn_event_interface_scripts}" | grep -q "LZ PPTP VPN Server: Stop"; then
+            llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
+            break
+        elif echo "${local_openvpn_event_interface_scripts}" | grep -q "LZ PPTP VPN Server: Stop"; then
+            llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
+            break
+        fi
+
+        ## 检查IPSec项
+        if [ -n "$( nvram get "ipsec_server_enable" )" ] \
+            && ! echo "${local_openvpn_event_interface_scripts}" | grep -q "LZ IPSec VPN Subnet"; then
+            llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
+            break
+        elif echo "${local_openvpn_event_interface_scripts}" | grep -q "LZ IPSec VPN Subnet"; then
+            llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
+            break
+        fi
+
+        ## 检查WireGuard项
+        if [ -n "$( nvram get "wgs_enable" )" ] \
+            && ! echo "${local_openvpn_event_interface_scripts}" | grep -q "LZ WireGuard Server: Stop"; then
+            llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
+        elif echo "${local_openvpn_event_interface_scripts}" | grep -q "LZ WireGuard Server: Stop"; then
+            llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
         fi
 
         break
@@ -4091,52 +4175,115 @@ lz_vpn_support() {
     ## 在策略路由库中添加虚拟专网客户端策略优先级为IP_RULE_PRIO_VPN的出口规则
     ## 输出显示虚拟专网服务器及客户端的状态信息
     local local_route_list="$( ip route show | grep -Ev 'default|nexthop' )"
-    if [ -n "${local_route_list}" ]; then
-        local local_vpn_item=
-        local local_index="0"
-        local local_vpn_client_wan_port="by Policy"
-        [ "${ovs_client_wan_port}" = "0" ] && local_vpn_client_wan_port="Primary WAN"
-        [ "${ovs_client_wan_port}" = "1" ] && local_vpn_client_wan_port="Secondary WAN"
+    [ -z "${local_route_list}" ] && return
+    local local_vpn_item=
+    local local_index="0"
+    local local_vpn_client_wan_port="by System"
+    [ "${ovs_client_wan_port}" = "0" ] && local_vpn_client_wan_port="Primary WAN"
+    [ "${ovs_client_wan_port}" = "1" ] && local_vpn_client_wan_port="Secondary WAN"
 
-        ## 更新出口路由表
-        echo "${local_route_list}" | awk '{system("ip route add "$0"'" table ${WAN0} > /dev/null 2>&1"'")}'
-        echo "${local_route_list}" | awk '{system("ip route add "$0"'" table ${WAN1} > /dev/null 2>&1"'")}'
+    ## 更新出口路由表
+    echo "${local_route_list}" | awk '{system("ip route add "$0"'" table ${WAN0} > /dev/null 2>&1"'")}'
+    echo "${local_route_list}" | awk '{system("ip route add "$0"'" table ${WAN1} > /dev/null 2>&1"'")}'
 
-        ## 虚拟专网客户端路由出口规则添加及分流数据集更新处理函数
+    ## 虚拟专网客户端路由出口规则添加及分流数据集更新处理函数
+    ## 输入项：
+    ##     $1--虚拟专网客户端IPv4地址/网段列表
+    ##     全局变量及常量
+    ## 返回值：无
+    llz_vpn_client_rule_update() {
+        if [ "${ovs_client_wan_port}" = "0" ] || [ "${ovs_client_wan_port}" = "1" ]; then
+            local local_ovs_client_wan="${WAN0}"
+            [ "${ovs_client_wan_port}" = "1" ] && local_ovs_client_wan="${WAN1}"
+            echo "${1}" | awk '{system("ip rule add from "$1"'" table ${local_ovs_client_wan} prio ${IP_RULE_PRIO_VPN} > /dev/null 2>&1"'")}'
+            [ -n "$( ipset -q -n list "${BALANCE_IP_SET}" )" ] && {
+                echo "${1}" | awk '{print "'"-! del ${BALANCE_IP_SET} "'"$1"'"\n-! add ${BALANCE_IP_SET} "'"$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
+            }
+        elif [ "${usage_mode}" != "0" ]; then
+            [ -n "$( ipset -q -n list "${BALANCE_IP_SET}" )" ] && {
+                echo "${1}" | awk '{print "'"-! del ${BALANCE_IP_SET} "'"$1"'"\n-! add ${BALANCE_IP_SET} "'"$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
+            }
+        fi
+        [ -n "$( ipset -q -n list "${LOCAL_IP_SET}" )" ] && {
+            echo "${1}" | awk '{print "'"-! del ${LOCAL_IP_SET} "'"$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
+            if [ "${ovs_client_wan_port}" = "0" ] || [ "${ovs_client_wan_port}" = "1" ]; then
+                echo "${1}" | awk '{print "'"-! add ${LOCAL_IP_SET} "'"$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
+            fi
+        }
+        [ -n "$( ipset -q -n list "${BALANCE_GUARD_IP_SET}" )" ] && {
+            echo "${1}" | awk '{print "'"-! del ${BALANCE_GUARD_IP_SET} "'"$1"'"\n-! add ${BALANCE_GUARD_IP_SET} "'"$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
+        }
+    }
+
+    ## 添加Open、PPTP及WireGuard虚拟专网客户端出口规则
+    ## 更新Open、PPTP及WireGuard虚拟专网客户端与分流及负载均衡相关的数据集
+    local_vpn_item="$( echo "${local_route_list}" | awk '/pptp|tap|tun|wgs/ {print $1}' )"
+    if [ -n "${local_vpn_item}" ]; then
+        ## 虚拟专网客户端路由出口规则添加及分流数据集更新处理
         ## 输入项：
         ##     $1--虚拟专网客户端IPv4地址/网段列表
         ##     全局变量及常量
         ## 返回值：无
-        llz_vpn_client_rule_update() {
-            if [ "${ovs_client_wan_port}" = "0" ] || [ "${ovs_client_wan_port}" = "1" ]; then
-                local local_ovs_client_wan="${WAN0}"
-                [ "${ovs_client_wan_port}" = "1" ] && local_ovs_client_wan="${WAN1}"
-                echo "${1}" | awk '{system("ip rule add from "$1"'" table ${local_ovs_client_wan} prio ${IP_RULE_PRIO_VPN} > /dev/null 2>&1"'")}'
-                [ -n "$( ipset -q -n list "${BALANCE_IP_SET}" )" ] && {
-                    echo "${1}" | awk '{print "'"-! del ${BALANCE_IP_SET} "'"$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
-                    echo "${1}" | awk '{print "'"-! add ${BALANCE_IP_SET} "'"$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
-                }
-            elif [ "${usage_mode}" != "0" ]; then
-                [ -n "$( ipset -q -n list "${BALANCE_IP_SET}" )" ] && {
-                    echo "${1}" | awk '{print "'"-! del ${BALANCE_IP_SET} "'"$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
-                    echo "${1}" | awk '{print "'"-! add ${BALANCE_IP_SET} "'"$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
-                }
-            fi
-            [ -n "$( ipset -q -n list "${LOCAL_IP_SET}" )" ] && {
-                echo "${1}" | awk '{print "'"-! del ${LOCAL_IP_SET} "'"$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
-                if [ "${ovs_client_wan_port}" = "0" ] || [ "${ovs_client_wan_port}" = "1" ]; then
-                    echo "${1}" | awk '{print "'"-! add ${LOCAL_IP_SET} "'"$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
-                fi
-            }
-            [ -n "$( ipset -q -n list "${BALANCE_GUARD_IP_SET}" )" ] && {
-                echo "${1}" | awk '{print "'"-! del ${BALANCE_GUARD_IP_SET} "'"$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
-                echo "${1}" | awk '{print "'"-! add ${BALANCE_GUARD_IP_SET} "'"$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
-            }
-        }
+        llz_vpn_client_rule_update "${local_vpn_item}"
 
-        ## 添加Open及TTPT虚拟专网客户端出口规则
-        ## 更新Open及TTPT虚拟专网客户端与分流及负载均衡相关的数据集
-        local_vpn_item="$( echo "${local_route_list}" | awk '/pptp|tap|tun/ {print $1}' )"
+        ## 创建Open虚拟专网子网网段地址列表数据集
+        ipset -q create "${OPENVPN_SUBNET_IP_SET}" nethash maxelem 4294967295 #--hashsize 1024 mexleme 65536
+        ipset -q flush "${OPENVPN_SUBNET_IP_SET}"
+        echo "${local_route_list}" | awk '/tap|tun/ {system("'"ipset -q add ${OPENVPN_SUBNET_IP_SET} "'"$1)}'
+
+        ## 创建PPTP虚拟专网客户端本地地址列表数据集
+        if [ -n "$( nvram get "pptpd_enable" )" ]; then
+            ipset -q create "${PPTP_CLIENT_IP_SET}" nethash maxelem 4294967295 #--hashsize 1024 mexleme 65536
+            ipset -q flush "${PPTP_CLIENT_IP_SET}"
+            echo "${local_route_list}" | awk '/pptp/ {system("'"ipset -q add ${PPTP_CLIENT_IP_SET} "'"$1)}'
+        fi
+
+        ## 创建WireGuard虚拟专网客户端本地地址列表数据集
+        if [ -n "$( nvram get "wgs_enable" )" ]; then
+            ipset -q create "${WIREGUARD_CLIENT_IP_SET}" nethash maxelem 4294967295 #--hashsize 1024 mexleme 65536
+            ipset -q flush "${WIREGUARD_CLIENT_IP_SET}"
+            echo "${local_route_list}" | awk '/wgs/ {system("'"ipset -q add ${WIREGUARD_CLIENT_IP_SET} "'"$1)}'
+        fi
+
+        ## 输出显示Open虚拟专网服务器及客户端状态信息
+        for local_vpn_item in $( echo "${local_route_list}" | awk '/tap|tun/ {print $3":"$1}' )
+        do
+            let local_index++
+            [ "${local_index}" = "1" ] && echo "$(lzdate)" [$$]: ---------------------------------------- | tee -ai "${SYSLOG}" 2> /dev/null
+            local_vpn_item="$( echo "${local_vpn_item}" | sed 's/:/ /g' )"
+            echo "$(lzdate)" [$$]: "   OpenVPN Server-${local_index}: ${local_vpn_item}" | tee -ai "${SYSLOG}" 2> /dev/null
+        done
+        if [ "${local_index}" -gt "0" ]; then
+            echo "$(lzdate)" [$$]: "   OpenVPN Client Export: ${local_vpn_client_wan_port}" | tee -ai "${SYSLOG}" 2> /dev/null
+        fi
+    fi
+
+    ## 输出显示PPTP虚拟专网服务器及客户端状态信息
+    if [ "$( nvram get "pptpd_enable" )" = "1" ]; then
+        {
+            echo "$(lzdate)" [$$]: ----------------------------------------
+            echo "$(lzdate)" [$$]: "   PPTP Client IP Detect Time: ${vpn_client_polling_time}s"
+        } | tee -ai "${SYSLOG}" 2> /dev/null
+        local_vpn_item="$( nvram get "pptpd_clients" | sed 's/-/~/g' | sed -n 1p )"
+        [ -n "${local_vpn_item}" ] && {
+            echo "$(lzdate)" [$$]: "   PPTP Client IP Pool: ${local_vpn_item}" | tee -ai "${SYSLOG}" 2> /dev/null
+        }
+        local_index="0"
+        for local_vpn_item in $( echo "${local_route_list}" | awk '/pptp/ {print $1}' )
+        do
+            let local_index++
+            echo "$(lzdate)" [$$]: "   PPTP VPN Client-${local_index}: ${local_vpn_item}" | tee -ai "${SYSLOG}" 2> /dev/null
+        done
+        echo "$(lzdate)" [$$]: "   PPTP Client Export: ${local_vpn_client_wan_port}" | tee -ai "${SYSLOG}" 2> /dev/null
+    fi
+
+    ## 添加IPSec虚拟专网客户端出口规则
+    ## 更新IPSec虚拟专网客户端与分流及负载均衡相关的数据集
+    ## 输出显示IPSec虚拟专网服务器及客户端状态信息
+    if [ "$( nvram get "ipsec_server_enable" )" = "1" ]; then
+        ## 获取IPSec虚拟专用子网网段地址
+        local_vpn_item="$( nvram get "ipsec_profile_1" | sed 's/>/\n/g' | sed -n 15p | grep -Eo '([0-9]{1,3}[\.]){2}[0-9]{1,3}' | sed 's/^.*$/&\.0\/24/' )"
+        [ -z "${local_vpn_item}" ] && local_vpn_item="$( nvram get "ipsec_profile_2" | sed 's/>/\n/g' | sed -n 15p | grep -Eo '([0-9]{1,3}[\.]){2}[0-9]{1,3}' | sed 's/^.*$/&\.0\/24/' )"
         if [ -n "${local_vpn_item}" ]; then
             ## 虚拟专网客户端路由出口规则添加及分流数据集更新处理
             ## 输入项：
@@ -4144,81 +4291,34 @@ lz_vpn_support() {
             ##     全局变量及常量
             ## 返回值：无
             llz_vpn_client_rule_update "${local_vpn_item}"
-
-            ## 创建Open虚拟专网子网网段地址列表数据集
-            ipset -q create "${OPENVPN_SUBNET_IP_SET}" nethash maxelem 4294967295 #--hashsize 1024 mexleme 65536
-            ipset -q flush "${OPENVPN_SUBNET_IP_SET}"
-            echo "${local_route_list}" | awk -v var=0 '/tap|tun/ {print "'"-! add ${OPENVPN_SUBNET_IP_SET} "'"$1; var++} END{if (var != 0) print "COMMIT"}' | ipset restore > /dev/null 2>&1
-
-            ## 创建PPTP虚拟专网客户端本地地址列表数据集
-            ipset -q create "${PPTP_CLIENT_IP_SET}" nethash maxelem 4294967295 #--hashsize 1024 mexleme 65536
-            ipset -q flush "${PPTP_CLIENT_IP_SET}"
-            echo "${local_route_list}" | awk -v var=0 '/pptp/ {print "'"-! add ${OPENVPN_SUBNET_IP_SET} "'"$1; var++} END{if (var != 0) print "COMMIT"}' | ipset restore > /dev/null 2>&1
-
-            ## 输出显示Open虚拟专网服务器及客户端状态信息
-            for local_vpn_item in $( echo "${local_route_list}" | awk '/tap|tun/ {print $3":"$1}' )
-            do
-                let local_index++
-                [ "${local_index}" = "1" ] && echo "$(lzdate)" [$$]: ---------------------------------------- | tee -ai "${SYSLOG}" 2> /dev/null
-                local_vpn_item="$( echo "${local_vpn_item}" | sed 's/:/ /g' )"
-                echo "$(lzdate)" [$$]: "   OpenVPN Server-${local_index}: ${local_vpn_item}" | tee -ai "${SYSLOG}" 2> /dev/null
-            done
-            if [ "${local_index}" -gt "0" ]; then
-                echo "$(lzdate)" [$$]: "   OpenVPN Client Export: ${local_vpn_client_wan_port}" | tee -ai "${SYSLOG}" 2> /dev/null
-            fi
-        fi
-
-        ## 输出显示PPTP虚拟专网服务器及客户端状态信息
-        if [ "$( nvram get "pptpd_enable" )" = "1" ]; then
             {
                 echo "$(lzdate)" [$$]: ----------------------------------------
-                echo "$(lzdate)" [$$]: "   PPTP Client IP Detect Time: ${vpn_client_polling_time}s"
+                echo "$(lzdate)" [$$]: "   IPSec Server Subnet: ${local_vpn_item}"
+                echo "$(lzdate)" [$$]: "   IPSec Client Export: ${local_vpn_client_wan_port}"
             } | tee -ai "${SYSLOG}" 2> /dev/null
-            local_vpn_item="$( nvram get "pptpd_clients" | sed 's/-/~/g' | sed -n 1p )"
-            [ -n "${local_vpn_item}" ] && {
-                echo "$(lzdate)" [$$]: "   PPTP Client IP Pool: ${local_vpn_item}" | tee -ai "${SYSLOG}" 2> /dev/null
-            }
-            local_index="0"
-            for local_vpn_item in $( echo "${local_route_list}" | awk '/pptp/ {print $1}' )
-            do
-                let local_index++
-                echo "$(lzdate)" [$$]: "   PPTP VPN Client-${local_index}: ${local_vpn_item}" | tee -ai "${SYSLOG}" 2> /dev/null
-            done
-            echo "$(lzdate)" [$$]: "   PPTP Client Export: ${local_vpn_client_wan_port}" | tee -ai "${SYSLOG}" 2> /dev/null
         fi
-
-        ## 添加IPSec虚拟专网客户端出口规则
-        ## 更新IPSec虚拟专网客户端与分流及负载均衡相关的数据集
-        ## 输出显示IPSec虚拟专网服务器及客户端状态信息
-        if [ "$( nvram get "ipsec_server_enable" )" = "1" ]; then
-            ## 获取IPSec虚拟专用子网网段地址
-            local_vpn_item=$( nvram get "ipsec_profile_1" | sed 's/>/\n/g' | sed -n 15p | grep -Eo '([0-9]{1,3}[\.]){2}[0-9]{1,3}' | sed 's/^.*$/&\.0\/24/' )
-            [ -z "${local_vpn_item}" ] && local_vpn_item=$( nvram get "ipsec_profile_2" | sed 's/>/\n/g' | sed -n 15p | grep -Eo '([0-9]{1,3}[\.]){2}[0-9]{1,3}' | sed 's/^.*$/&\.0\/24/' )
-            if [ -n "${local_vpn_item}" ]; then
-                ## 虚拟专网客户端路由出口规则添加及分流数据集更新处理
-                ## 输入项：
-                ##     $1--虚拟专网客户端IPv4地址/网段列表
-                ##     全局变量及常量
-                ## 返回值：无
-                llz_vpn_client_rule_update "${local_vpn_item}"
-                {
-                    echo "$(lzdate)" [$$]: ----------------------------------------
-                    echo "$(lzdate)" [$$]: "   IPSec Server Subnet: ${local_vpn_item}"
-                    echo "$(lzdate)" [$$]: "   IPSec Client Export: ${local_vpn_client_wan_port}"
-                } | tee -ai "${SYSLOG}" 2> /dev/null
-            fi
-            ## 创建IPSec虚拟专网子网网段地址列表数据集
-            ipset -q create "${IPSEC_SUBNET_IP_SET}" nethash maxelem 4294967295 #--hashsize 1024 mexleme 65536
-            ipset -q flush "${IPSEC_SUBNET_IP_SET}"
-            [ -n "${local_vpn_item}" ] && echo "${local_vpn_item}" | awk '{print "'"-! add ${IPSEC_SUBNET_IP_SET} "'"$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
-        fi
+        ## 创建IPSec虚拟专网子网网段地址列表数据集
+        ipset -q create "${IPSEC_SUBNET_IP_SET}" nethash maxelem 4294967295 #--hashsize 1024 mexleme 65536
+        ipset -q flush "${IPSEC_SUBNET_IP_SET}"
+        [ -n "${local_vpn_item}" ] && echo "${local_vpn_item}" | awk 'NF != "0" {system("'"ipset -q add ${IPSEC_SUBNET_IP_SET} "'"$1)}'
     fi
 
-    ## 创建openvpn-event事件触发文件并添加路由规则项
-    ## 输入项：
-    ##     全局常量及变量
-    ## 返回值：无
-    lz_create_openvpn_event_command
+    ## 输出显示WireGuard虚拟专网服务器及客户端状态信息
+    if [ "$( nvram get "wgs_enable" )" = "1" ]; then
+        {
+            echo "$(lzdate)" [$$]: ----------------------------------------
+            echo "$(lzdate)" [$$]: "   WireGuard Client Detect Time: ${vpn_client_polling_time}s"
+            echo "$(lzdate)" [$$]: "   Tunnel Address: $( nvram get wgs_addr | sed 's/[\/].*$//g' )"
+            echo "$(lzdate)" [$$]: "   Listen Port: $( nvram get wgs_port )"
+        } | tee -ai "${SYSLOG}" 2> /dev/null
+        local_index="0"
+        for local_vpn_item in $( echo "${local_route_list}" | awk '/wgs/ {print $1}' )
+        do
+            let local_index++
+            echo "$(lzdate)" [$$]: "   WireGuard Client-${local_index}: ${local_vpn_item}" | tee -ai "${SYSLOG}" 2> /dev/null
+        done
+        echo "$(lzdate)" [$$]: "   WireGuard Client Export: ${local_vpn_client_wan_port}" | tee -ai "${SYSLOG}" 2> /dev/null
+    fi
 }
 
 ## 获取路由器WAN出口IPv4公网IP地址函数
@@ -5215,6 +5315,12 @@ lz_deployment_routing_policy() {
     ## 返回值：无
     lz_vpn_support "${1}"
 
+    ## 创建openvpn-event事件触发文件并添加路由规则项
+    ## 输入项：
+    ##     全局常量及变量
+    ## 返回值：无
+    lz_create_openvpn_event_command
+
     if [ "${usage_mode}" != "0" ]; then
         ## 静态分流模式
         [ "${policy_mode}" = "0" ] && ip rule add from all table "${WAN1}" prio "${IP_RULE_PRIO}" > /dev/null 2>&1
@@ -5517,7 +5623,7 @@ lz_deployment_routing_policy() {
     ##     $1--轮询时间（1~20秒）
     ## 返回值：无
     if which nohup > /dev/null 2>&1; then
-        if [ "$( nvram get "pptpd_enable" )" = "1" ] || [ "$( nvram get "ipsec_server_enable" )" = "1" ]; then
+        if [ "$( nvram get "pptpd_enable" )" = "1" ] || [ "$( nvram get "ipsec_server_enable" )" = "1" ] || [ -n "$( nvram get "wgs_enable" )" ]; then
             ## 启动后台守护进程（第一次在主进程中启动）
             nohup /bin/sh "${PATH_FUNC}/${VPN_CLIENT_DAEMON}" "${vpn_client_polling_time}" > /dev/null 2>&1 &
 
