@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_status.sh v3.8.6
+# lz_rule_status.sh v3.8.7
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 显示脚本运行状态脚本
@@ -1667,8 +1667,11 @@ lz_output_ispip_status_info() {
         echo "$(lzdate)" [$$]: ----------------------------------------
     }
     local_exist="0"
-    local local_item_num="$( lz_get_ipv4_data_file_valid_item_total_status "${status_iptv_box_ip_lst_file}" )"
-    [ "${local_item_num}" -gt "0" ] && {
+    [ "$( lz_get_ipv4_data_file_valid_item_total_status "${status_local_ipsets_file}" )" -gt "0" ] && {
+        echo "$(lzdate)" [$$]: "   LocalIPBlcLst   Load Balancing"
+        local_exist="1"
+    }
+    [ "$( lz_get_ipv4_data_file_valid_item_total_status "${status_iptv_box_ip_lst_file}" )" -gt "0" ] && {
         if [ "${status_iptv_igmp_switch}" = "0" ]; then
             echo "$(lzdate)" [$$]: "   IPTVSTBIPLst    Primary WAN${local_primary_wan_hd}"
             local_exist="1"
@@ -1678,48 +1681,36 @@ lz_output_ispip_status_info() {
         fi
     }
     if [ "${status_iptv_igmp_switch}" = "0" ] || [ "${status_iptv_igmp_switch}" = "1" ]; then
-        if [ "${status_iptv_access_mode}" = "2" ]; then
-            local_item_num="$( lz_get_ipv4_data_file_valid_item_total_status "${status_iptv_isp_ip_lst_file}" )"
-            [ "${local_item_num}" -gt "0" ] && {
-                echo "$(lzdate)" [$$]: "   IPTVSrvIPLst    Available"
-                local_exist="1"
-            }
-        fi
+        [ "${status_iptv_access_mode}" = "2" ] \
+            && [ "$( lz_get_ipv4_data_file_valid_item_total_status "${status_iptv_isp_ip_lst_file}" )" -gt "0" ] && {
+            echo "$(lzdate)" [$$]: "   IPTVSrvIPLst    Available"
+            local_exist="1"
+        }
     fi
-    [ "${status_high_wan_1_src_to_dst_addr}" = "0" ] && {
-        local_item_num=$( lz_get_ipv4_src_to_dst_data_file_item_total_status "${status_high_wan_1_src_to_dst_addr_file}" )
-        [ "${local_item_num}" -gt "0" ] && {
-            echo "$(lzdate)" [$$]: "   HiSrcToDstLst   Primary WAN${local_primary_wan_hd}"
-            local_exist="1"
-        }
+    [ "${status_high_wan_1_src_to_dst_addr}" = "0" ] \
+        && [ "$( lz_get_ipv4_src_to_dst_data_file_item_total_status "${status_high_wan_1_src_to_dst_addr_file}" )" -gt "0" ] && {
+        echo "$(lzdate)" [$$]: "   HiSrcToDstLst   Primary WAN${local_primary_wan_hd}"
+        local_exist="1"
     }
-    [ "${status_wan_2_src_to_dst_addr}" = "0" ] && {
-        local_item_num=$( lz_get_ipv4_src_to_dst_data_file_item_total_status "${status_wan_2_src_to_dst_addr_file}" )
-        [ "${local_item_num}" -gt "0" ] && {
-            echo "$(lzdate)" [$$]: "   SrcToDstLst-2   Secondary WAN${local_secondary_wan_hd}"
-            local_exist="1"
-        }
+    [ "${status_wan_2_src_to_dst_addr}" = "0" ] \
+        && [ "$( lz_get_ipv4_src_to_dst_data_file_item_total_status "${status_wan_2_src_to_dst_addr_file}" )" -gt "0" ] && {
+        echo "$(lzdate)" [$$]: "   SrcToDstLst-2   Secondary WAN${local_secondary_wan_hd}"
+        local_exist="1"
     }
-    [ "${status_wan_1_src_to_dst_addr}" = "0" ] && {
-        local_item_num=$( lz_get_ipv4_src_to_dst_data_file_item_total_status "${status_wan_1_src_to_dst_addr_file}" )
-        [ "${local_item_num}" -gt "0" ] && {
-            echo "$(lzdate)" [$$]: "   SrcToDstLst-1   Primary WAN${local_primary_wan_hd}"
-            local_exist="1"
-        }
+    [ "${status_wan_1_src_to_dst_addr}" = "0" ] \
+        && [ "$( lz_get_ipv4_src_to_dst_data_file_item_total_status "${status_wan_1_src_to_dst_addr_file}" )" -gt "0" ] && {
+        echo "$(lzdate)" [$$]: "   SrcToDstLst-1   Primary WAN${local_primary_wan_hd}"
+        local_exist="1"
     }
-    [ "${status_high_wan_2_client_src_addr}" = "0" ] && {
-        local_item_num=$( lz_get_ipv4_data_file_item_total_status "${status_high_wan_2_client_src_addr_file}" )
-        [ "${local_item_num}" -gt "0" ] && {
-            echo "$(lzdate)" [$$]: "   HighSrcLst-2    Secondary WAN${local_secondary_wan_hd}"
-            local_exist="1"
-        }
+    [ "${status_high_wan_2_client_src_addr}" = "0" ] \
+        && [ "$( lz_get_ipv4_data_file_item_total_status "${status_high_wan_2_client_src_addr_file}" )" -gt "0" ] && {
+        echo "$(lzdate)" [$$]: "   HighSrcLst-2    Secondary WAN${local_secondary_wan_hd}"
+        local_exist="1"
     }
-    [ "${status_high_wan_1_client_src_addr}" = "0" ] && {
-        local_item_num=$( lz_get_ipv4_data_file_item_total_status "${status_high_wan_1_client_src_addr_file}" )
-        [ "${local_item_num}" -gt "0" ] && {
-            echo "$(lzdate)" [$$]: "   HighSrcLst-1    Primary WAN${local_primary_wan_hd}"
-            local_exist="1"
-        }
+    [ "${status_high_wan_1_client_src_addr}" = "0" ] \
+        && [ "$( lz_get_ipv4_data_file_item_total_status "${status_high_wan_1_client_src_addr_file}" )" -gt "0" ] && {
+        echo "$(lzdate)" [$$]: "   HighSrcLst-1    Primary WAN${local_primary_wan_hd}"
+        local_exist="1"
     }
     [ "$( lz_get_iptables_fwmark_item_total_number_status "${STATUS_HIGH_CLIENT_DEST_PORT_FWMARK_0}" "${STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN}" )" -gt "0" ] && {
         echo "$(lzdate)" [$$]: "   HSrcToDstPrt-1  Primary WAN"
@@ -1741,83 +1732,65 @@ lz_output_ispip_status_info() {
         echo "$(lzdate)" [$$]: "   DomainNmLst-1   Primary WAN"
         local_exist="1"
     }
-    [ "${status_wan_2_client_src_addr}" = "0" ] && {
-        local_item_num=$( lz_get_ipv4_data_file_item_total_status "${status_wan_2_client_src_addr_file}" )
-        [ "${local_item_num}" -gt "0" ] && {
-            echo "$(lzdate)" [$$]: "   SrcLst-2        Secondary WAN${local_secondary_wan_hd}"
-            local_exist="1"
-        }
-    }
-    [ "${status_wan_1_client_src_addr}" = "0" ] && {
-        local_item_num=$( lz_get_ipv4_data_file_item_total_status "${status_wan_1_client_src_addr_file}" )
-        [ "${local_item_num}" -gt "0" ] && {
-            echo "$(lzdate)" [$$]: "   SrcLst-1        Primary WAN${local_primary_wan_hd}"
-            local_exist="1"
-        }
-    }
-    [ "${status_usage_mode}" != "0" ] && [ "${status_adjust_traffic_policy}" != "0" ] \
-        && [ "$( lz_get_ipv4_data_file_valid_item_total_status "${status_local_ipsets_file}" )" -gt "0" ] && {
-        echo "$(lzdate)" [$$]: "   LocalIPBlcLst   Load Balancing${local_load_balancing_hd}"
+    [ "${status_wan_2_client_src_addr}" = "0" ] \
+        && [ "$( lz_get_ipv4_data_file_item_total_status "${status_wan_2_client_src_addr_file}" )" -gt "0" ] && {
+        echo "$(lzdate)" [$$]: "   SrcLst-2        Secondary WAN${local_secondary_wan_hd}"
         local_exist="1"
     }
-    [ "${status_custom_data_wan_port_2}" -ge "0" ] && [ "${status_custom_data_wan_port_2}" -le "2" ] && {
-        local_item_num=$( lz_get_ipv4_data_file_valid_item_total_status "${status_custom_data_file_2}" ) 
-        [ "${local_item_num}" -gt "0" ] && {
-            if [ "${status_usage_mode}" != "0" ]; then
-                if [ "${status_custom_data_wan_port_2}" = "0" ] || [ "${status_custom_data_wan_port_2}" = "1" ]; then
-                    local_hd="${local_primary_wan_hd}"
-                    [ "${status_custom_data_wan_port_2}" = "1" ] && local_hd="${local_secondary_wan_hd}"
-                    echo "$(lzdate)" [$$]: "   Custom-2        $( lz_get_ispip_status_info "${status_custom_data_wan_port_2}" )${local_hd}"
-                    local_exist="1"
-                elif [ "${status_custom_data_wan_port_2}" = "2" ] && [ "${status_policy_mode}" = "0" ]; then
-                    echo "$(lzdate)" [$$]: "   Custom-2      * $( lz_get_ispip_status_info "1" )${local_secondary_wan_hd}"
-                    local_exist="1"
-                elif [ "${status_custom_data_wan_port_2}" = "2" ] && [ "${status_policy_mode}" = "1" ]; then
-                    echo "$(lzdate)" [$$]: "   Custom-2      * $( lz_get_ispip_status_info "0" )${local_primary_wan_hd}"
-                    local_exist="1"
-                fi
-            else
-                if [ "${status_custom_data_wan_port_2}" = "0" ] || [ "${status_custom_data_wan_port_2}" = "1" ]; then
-                    echo "$(lzdate)" [$$]: "   Custom-2        $( lz_get_ispip_status_info "${status_custom_data_wan_port_2}" )"
-                    local_exist="1"
-                elif [ "${status_custom_data_wan_port_2}" = "2" ]; then
-                    echo "$(lzdate)" [$$]: "   Custom-2        $( lz_get_ispip_status_info "5" )"
-                    local_exist="1"
-                fi
-            fi
-        }
-    }
-    [ "${status_custom_data_wan_port_1}" -ge "0" ] && [ "${status_custom_data_wan_port_1}" -le "2" ] && {
-        local_item_num="$( lz_get_ipv4_data_file_valid_item_total_status "${status_custom_data_file_1}" )"
-        [ "${local_item_num}" -gt "0" ] && {
-            if [ "${status_usage_mode}" != "0" ]; then
-                if [ "${status_custom_data_wan_port_1}" = "0" ] || [ "${status_custom_data_wan_port_1}" = "1" ]; then
-                    local_hd="${local_primary_wan_hd}"
-                    [ "${status_custom_data_wan_port_1}" = "1" ] && local_hd="${local_secondary_wan_hd}"
-                    echo "$(lzdate)" [$$]: "   Custom-1        $( lz_get_ispip_status_info "${status_custom_data_wan_port_1}" )${local_hd}"
-                    local_exist="1"
-                elif [ "${status_custom_data_wan_port_1}" = "2" ] && [ "${status_policy_mode}" = "0" ]; then
-                    echo "$(lzdate)" [$$]: "   Custom-1      * $( lz_get_ispip_status_info "1" )${local_secondary_wan_hd}"
-                    local_exist="1"
-                elif [ "${status_custom_data_wan_port_1}" = "2" ] && [ "${status_policy_mode}" = "1" ]; then
-                    echo "$(lzdate)" [$$]: "   Custom-1      * $( lz_get_ispip_status_info "0" )${local_primary_wan_hd}"
-                    local_exist="1"
-                fi
-            else
-                if [ "${status_custom_data_wan_port_1}" = "0" ] || [ "${status_custom_data_wan_port_1}" = "1" ]; then
-                    echo "$(lzdate)" [$$]: "   Custom-1        $( lz_get_ispip_status_info "${status_custom_data_wan_port_1}" )"
-                    local_exist="1"
-                elif [ "${status_custom_data_wan_port_1}" = "2" ]; then
-                    echo "$(lzdate)" [$$]: "   Custom-1        $( lz_get_ispip_status_info "5" )"
-                    local_exist="1"
-                fi
-            fi
-        }
-    }
-    [ "${status_usage_mode}" = "0" ] && [ "${status_adjust_traffic_policy}" != "0" ] \
-        && [ "$( lz_get_ipv4_data_file_valid_item_total_status "${status_local_ipsets_file}" )" -gt "0" ] && {
-        echo "$(lzdate)" [$$]: "   LocalIPBlcLst   Load Balancing"
+    [ "${status_wan_1_client_src_addr}" = "0" ] \
+        && [ "$( lz_get_ipv4_data_file_item_total_status "${status_wan_1_client_src_addr_file}" )" -gt "0" ] && {
+        echo "$(lzdate)" [$$]: "   SrcLst-1        Primary WAN${local_primary_wan_hd}"
         local_exist="1"
+    }
+    [ "${status_custom_data_wan_port_2}" -ge "0" ] && [ "${status_custom_data_wan_port_2}" -le "2" ] \
+        && [ "$( lz_get_ipv4_data_file_valid_item_total_status "${status_custom_data_file_2}" )" -gt "0" ] && {
+        if [ "${status_usage_mode}" != "0" ]; then
+            if [ "${status_custom_data_wan_port_2}" = "0" ] || [ "${status_custom_data_wan_port_2}" = "1" ]; then
+                local_hd="${local_primary_wan_hd}"
+                [ "${status_custom_data_wan_port_2}" = "1" ] && local_hd="${local_secondary_wan_hd}"
+                echo "$(lzdate)" [$$]: "   Custom-2        $( lz_get_ispip_status_info "${status_custom_data_wan_port_2}" )${local_hd}"
+                local_exist="1"
+            elif [ "${status_custom_data_wan_port_2}" = "2" ] && [ "${status_policy_mode}" = "0" ]; then
+                echo "$(lzdate)" [$$]: "   Custom-2      * $( lz_get_ispip_status_info "1" )${local_secondary_wan_hd}"
+                local_exist="1"
+            elif [ "${status_custom_data_wan_port_2}" = "2" ] && [ "${status_policy_mode}" = "1" ]; then
+                echo "$(lzdate)" [$$]: "   Custom-2      * $( lz_get_ispip_status_info "0" )${local_primary_wan_hd}"
+                local_exist="1"
+            fi
+        else
+            if [ "${status_custom_data_wan_port_2}" = "0" ] || [ "${status_custom_data_wan_port_2}" = "1" ]; then
+                echo "$(lzdate)" [$$]: "   Custom-2        $( lz_get_ispip_status_info "${status_custom_data_wan_port_2}" )"
+                local_exist="1"
+            elif [ "${status_custom_data_wan_port_2}" = "2" ]; then
+                echo "$(lzdate)" [$$]: "   Custom-2        $( lz_get_ispip_status_info "5" )"
+                local_exist="1"
+            fi
+        fi
+    }
+    [ "${status_custom_data_wan_port_1}" -ge "0" ] && [ "${status_custom_data_wan_port_1}" -le "2" ] \
+        && [ "$( lz_get_ipv4_data_file_valid_item_total_status "${status_custom_data_file_1}" )" -gt "0" ] && {
+        if [ "${status_usage_mode}" != "0" ]; then
+            if [ "${status_custom_data_wan_port_1}" = "0" ] || [ "${status_custom_data_wan_port_1}" = "1" ]; then
+                local_hd="${local_primary_wan_hd}"
+                [ "${status_custom_data_wan_port_1}" = "1" ] && local_hd="${local_secondary_wan_hd}"
+                echo "$(lzdate)" [$$]: "   Custom-1        $( lz_get_ispip_status_info "${status_custom_data_wan_port_1}" )${local_hd}"
+                local_exist="1"
+            elif [ "${status_custom_data_wan_port_1}" = "2" ] && [ "${status_policy_mode}" = "0" ]; then
+                echo "$(lzdate)" [$$]: "   Custom-1      * $( lz_get_ispip_status_info "1" )${local_secondary_wan_hd}"
+                local_exist="1"
+            elif [ "${status_custom_data_wan_port_1}" = "2" ] && [ "${status_policy_mode}" = "1" ]; then
+                echo "$(lzdate)" [$$]: "   Custom-1      * $( lz_get_ispip_status_info "0" )${local_primary_wan_hd}"
+                local_exist="1"
+            fi
+        else
+            if [ "${status_custom_data_wan_port_1}" = "0" ] || [ "${status_custom_data_wan_port_1}" = "1" ]; then
+                echo "$(lzdate)" [$$]: "   Custom-1        $( lz_get_ispip_status_info "${status_custom_data_wan_port_1}" )"
+                local_exist="1"
+            elif [ "${status_custom_data_wan_port_1}" = "2" ]; then
+                echo "$(lzdate)" [$$]: "   Custom-1        $( lz_get_ispip_status_info "5" )"
+                local_exist="1"
+            fi
+        fi
     }
     [ "${local_exist}" = "1" ] && echo "$(lzdate)" [$$]: ----------------------------------------
 }

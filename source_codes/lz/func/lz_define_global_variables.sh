@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_define_global_variables.sh v3.8.6
+# lz_define_global_variables.sh v3.8.7
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 # QnkgTFog5aaZ5aaZ5ZGc77yI6Juk6J+G5aKp5YS/77yJ（首次运行标识，切勿修改）
 
@@ -118,8 +118,8 @@ DOMAIN_CLT_SRC_SET_0="lz_dn_de_src_addr_0"
 ## 第二WAN口域名分流客户端源网址/网段数据集名称
 DOMAIN_CLT_SRC_SET_1="lz_dn_de_src_addr_1"
 
-## 非域名分流的本地客户端网址/网段数据集
-NO_DOMAIN_CLT_SRC_SET="lz_no_dn_src_addr"
+## 本地黑名单负载均衡客户端网址/网段数据集
+BLACK_CLT_SRC_SET="lz_clt_black_lst"
 
 ## 第一WAN口客户端源网址/网段绑定列表数据集名称（保留，用于兼容v3.6.8及之前版本）
 CLIENT_SRC_SET_0="lz_client_src_addr_0"
@@ -304,90 +304,90 @@ IP_RULE_PRIO_CUSTOM_1_DATA="$(( IP_RULE_PRIO_DIRECT_SECOND_WAN_DATA - 1 ))"
 ## 用户自定义目标网址/网段(2)分流出口规则策略规则优先级--24990（IP_RULE_PRIO-10）
 IP_RULE_PRIO_CUSTOM_2_DATA="$(( IP_RULE_PRIO_CUSTOM_1_DATA - 1 ))"
 
-## 运营商网段流量负载均衡分流出口规则策略规则优先级--24989（IP_RULE_PRIO-11）
-IP_RULE_PRIO_ISP_DATA_LB="$(( IP_RULE_PRIO_CUSTOM_2_DATA - 1 ))"
+## 第一WAN口客户端及源网址/网段绑定列表（总条目数大于条目阈值数）分流出口规则策略规则优先级--24989（IP_RULE_PRIO-11）
+IP_RULE_PRIO_WAN_1_CLIENT_SRC_DATA="$(( IP_RULE_PRIO_CUSTOM_2_DATA - 1 ))"
 
-## 第一WAN口客户端及源网址/网段绑定列表（总条目数大于条目阈值数）分流出口规则策略规则优先级--24988（IP_RULE_PRIO-12）
-IP_RULE_PRIO_WAN_1_CLIENT_SRC_DATA="$(( IP_RULE_PRIO_ISP_DATA_LB - 1 ))"
-
-## 第二WAN口客户端及源网址/网段绑定列表（总条目数小于条目阈值数）分流出口规则策略规则优先级--24987（IP_RULE_PRIO-13）
+## 第二WAN口客户端及源网址/网段绑定列表（总条目数小于条目阈值数）分流出口规则策略规则优先级--24988（IP_RULE_PRIO-12）
 IP_RULE_PRIO_WAN_2_CLIENT_SRC_DATA="$(( IP_RULE_PRIO_WAN_1_CLIENT_SRC_DATA - 1 ))"
 
-## 第一WAN口协议分流出口规则策略规则优先级--24986（IP_RULE_PRIO-14）
+## 第一WAN口协议分流出口规则策略规则优先级--24987（IP_RULE_PRIO-13）
 IP_RULE_PRIO_WAN_1_PROTOCOLS="$(( IP_RULE_PRIO_WAN_2_CLIENT_SRC_DATA - 1 ))"
 
-## 第二WAN口协议分流出口规则策略规则优先级--24985（IP_RULE_PRIO-15）
+## 第二WAN口协议分流出口规则策略规则优先级--24986（IP_RULE_PRIO-14）
 IP_RULE_PRIO_WAN_2_PROTOCOLS="$(( IP_RULE_PRIO_WAN_1_PROTOCOLS - 1 ))"
 
-## 第一WAN口主机协议分流出口规则策略规则优先级--24984（IP_RULE_PRIO-16）
+## 第一WAN口主机协议分流出口规则策略规则优先级--24985（IP_RULE_PRIO-15）
 IP_RULE_PRIO_HOST_WAN_1_PROTOCOLS="$(( IP_RULE_PRIO_WAN_2_PROTOCOLS - 1 ))"
 
-## 第二WAN口主机协议分流出口规则策略规则优先级--24983（IP_RULE_PRIO-17）
+## 第二WAN口主机协议分流出口规则策略规则优先级--24984（IP_RULE_PRIO-16）
 IP_RULE_PRIO_HOST_WAN_2_PROTOCOLS="$(( IP_RULE_PRIO_HOST_WAN_1_PROTOCOLS - 1 ))"
 
-## 第一WAN口端口分流出口规则策略规则优先级--24982（IP_RULE_PRIO-18）
+## 第一WAN口端口分流出口规则策略规则优先级--24983（IP_RULE_PRIO-17）
 IP_RULE_PRIO_WAN_1_PORT="$(( IP_RULE_PRIO_HOST_WAN_2_PROTOCOLS - 1 ))"
 
-## 第二WAN口端口分流出口规则策略规则优先级--24981（IP_RULE_PRIO-19）
+## 第二WAN口端口分流出口规则策略规则优先级--24982（IP_RULE_PRIO-18）
 IP_RULE_PRIO_WAN_2_PORT="$(( IP_RULE_PRIO_WAN_1_PORT - 1 ))"
 
-## 第一WAN口主机端口分流出口规则策略规则优先级--24980（IP_RULE_PRIO-20）
+## 第一WAN口主机端口分流出口规则策略规则优先级--24981（IP_RULE_PRIO-19）
 IP_RULE_PRIO_HOST_WAN_1_PORT="$(( IP_RULE_PRIO_WAN_2_PORT - 1 ))"
 
-## 第二WAN口主机端口分流出口规则策略规则优先级--24979（IP_RULE_PRIO-21）
+## 第二WAN口主机端口分流出口规则策略规则优先级--24980（IP_RULE_PRIO-20）
 IP_RULE_PRIO_HOST_WAN_2_PORT="$(( IP_RULE_PRIO_HOST_WAN_1_PORT - 1 ))"
 
-## 第一WAN口客户端及源网址/网段绑定列表分流出口规则策略规则优先级--24978（IP_RULE_PRIO-22）
+## 第一WAN口客户端及源网址/网段绑定列表分流出口规则策略规则优先级--24979（IP_RULE_PRIO-21）
 IP_RULE_PRIO_WAN_1_CLIENT_SRC_ADDR="$(( IP_RULE_PRIO_HOST_WAN_2_PORT - 1 ))"
 
-## 第二WAN口客户端及源网址/网段绑定列表分流出口规则策略规则优先级--24977（IP_RULE_PRIO-23）
+## 第二WAN口客户端及源网址/网段绑定列表分流出口规则策略规则优先级--24978（IP_RULE_PRIO-22）
 IP_RULE_PRIO_WAN_2_CLIENT_SRC_ADDR="$(( IP_RULE_PRIO_WAN_1_CLIENT_SRC_ADDR - 1 ))"
 
-## 第一WAN口域名地址IPv4流量动态分流出口规则策略规则优先级--24976（IP_RULE_PRIO-24）
+## 第一WAN口域名地址IPv4流量动态分流出口规则策略规则优先级--24977（IP_RULE_PRIO-23）
 IP_RULE_PRIO_WAN_1_DOMAIN="$(( IP_RULE_PRIO_WAN_2_CLIENT_SRC_ADDR - 1 ))"
 
-## 第二WAN口域名地址IPv4流量动态分流出口规则策略规则优先级--24975（IP_RULE_PRIO-25）
+## 第二WAN口域名地址IPv4流量动态分流出口规则策略规则优先级--24976（IP_RULE_PRIO-24）
 IP_RULE_PRIO_WAN_2_DOMAIN="$(( IP_RULE_PRIO_WAN_1_DOMAIN - 1 ))"
 
-## 第一WAN口客户端至预设IPv4目标网址/网段流量协议端口动态分流出口规则策略规则优先级--24974（IP_RULE_PRIO-26）
+## 第一WAN口客户端至预设IPv4目标网址/网段流量协议端口动态分流出口规则策略规则优先级--24975（IP_RULE_PRIO-25）
 IP_RULE_PRIO_WAN_1_CLIENT_DEST_PORT="$(( IP_RULE_PRIO_WAN_2_DOMAIN - 1 ))"
 
-## 第二WAN口客户端至预设IPv4目标网址/网段流量协议端口动态分流出口规则策略规则优先级--24973（IP_RULE_PRIO-27）
+## 第二WAN口客户端至预设IPv4目标网址/网段流量协议端口动态分流出口规则策略规则优先级--24974（IP_RULE_PRIO-26）
 IP_RULE_PRIO_WAN_2_CLIENT_DEST_PORT="$(( IP_RULE_PRIO_WAN_1_CLIENT_DEST_PORT - 1 ))"
 
-## 第一WAN口高优先级客户端至预设IPv4目标网址/网段流量协议端口动态分流出口规则策略规则优先级--24972（IP_RULE_PRIO-28）
+## 第一WAN口高优先级客户端至预设IPv4目标网址/网段流量协议端口动态分流出口规则策略规则优先级--24973（IP_RULE_PRIO-27）
 IP_RULE_PRIO_HIGH_WAN_1_CLIENT_DEST_PORT="$(( IP_RULE_PRIO_WAN_2_CLIENT_DEST_PORT - 1 ))"
 
-## SS服务线路绑定出口规则策略规则优先级--24971、24970（IP_RULE_PRIO-29、IP_RULE_PRIO-30）
+## SS服务线路绑定出口规则策略规则优先级--24972、24971（IP_RULE_PRIO-28、IP_RULE_PRIO-29）
 SS_RULE_TO_PRIO="$(( IP_RULE_PRIO_HIGH_WAN_1_CLIENT_DEST_PORT - 1 ))"
 SS_RULE_FROM_PRIO="$(( SS_RULE_TO_PRIO - 1 ))"
 
-## 第一WAN口客户端及源网址/网段高优先级绑定列表分流出口规则策略规则优先级--24969（IP_RULE_PRIO-31）
+## 第一WAN口客户端及源网址/网段高优先级绑定列表分流出口规则策略规则优先级--24970（IP_RULE_PRIO-30）
 IP_RULE_PRIO_HIGH_WAN_1_CLIENT_SRC_ADDR="$(( SS_RULE_FROM_PRIO - 1 ))"
 
-## 第二WAN口客户端及源网址/网段高优先级绑定列表分流出口规则策略规则优先级--24968（IP_RULE_PRIO-32）
+## 第二WAN口客户端及源网址/网段高优先级绑定列表分流出口规则策略规则优先级--24969（IP_RULE_PRIO-31）
 IP_RULE_PRIO_HIGH_WAN_2_CLIENT_SRC_ADDR="$(( IP_RULE_PRIO_HIGH_WAN_1_CLIENT_SRC_ADDR - 1 ))"
 
-## 用户自定义客户端或特定网址/网段命令绑定分流出口规则策略规则最高优先级--24967（IP_RULE_PRIO-33）
+## 用户自定义客户端或特定网址/网段命令绑定分流出口规则策略规则最高优先级--24968（IP_RULE_PRIO-32）
 IP_RULE_PRIO_CUSTOM_TOP="$(( IP_RULE_PRIO_HIGH_WAN_2_CLIENT_SRC_ADDR - 1 ))"
 
-## 用户自定义客户端或特定网址/网段命令绑定分流出口规则策略规则最高高优先级--24966（IP_RULE_PRIO-34）
+## 用户自定义客户端或特定网址/网段命令绑定分流出口规则策略规则最高高优先级--24967（IP_RULE_PRIO-33）
 IP_RULE_PRIO_CUSTOM_TOP_HIGH="$(( IP_RULE_PRIO_CUSTOM_TOP - 1 ))"
 
-## 第一WAN口用户自定义源网址/网段至目标网址/网段流量出口绑定列表分流出口规则策略规则优先级--24965（IP_RULE_PRIO-35）
+## 第一WAN口用户自定义源网址/网段至目标网址/网段流量出口绑定列表分流出口规则策略规则优先级--24966（IP_RULE_PRIO-34）
 IP_RULE_PRIO_WAN_1_SRC_TO_DST_ADDR="$(( IP_RULE_PRIO_CUSTOM_TOP_HIGH - 1 ))"
 
-## 第二WAN口用户自定义源网址/网段至目标网址/网段流量出口绑定列表分流出口规则策略规则优先级--24964（IP_RULE_PRIO-36）
+## 第二WAN口用户自定义源网址/网段至目标网址/网段流量出口绑定列表分流出口规则策略规则优先级--24965（IP_RULE_PRIO-35）
 IP_RULE_PRIO_WAN_2_SRC_TO_DST_ADDR="$(( IP_RULE_PRIO_WAN_1_SRC_TO_DST_ADDR - 1 ))"
 
-## 第一WAN口用户自定义源网址/网段至目标网址/网段高优先级流量出口绑定列表分流出口规则策略规则优先级--24963（IP_RULE_PRIO-37）
+## 第一WAN口用户自定义源网址/网段至目标网址/网段高优先级流量出口绑定列表分流出口规则策略规则优先级--24964（IP_RULE_PRIO-36）
 IP_RULE_PRIO_HIGH_WAN_1_SRC_TO_DST_ADDR="$(( IP_RULE_PRIO_WAN_2_SRC_TO_DST_ADDR - 1 ))"
 
-## 虚拟专网客户端访问互联网分流出口规则策略规则优先级--24962（IP_RULE_PRIO-38）
+## 虚拟专网客户端访问互联网分流出口规则策略规则优先级--24963（IP_RULE_PRIO-37）
 IP_RULE_PRIO_VPN="$(( IP_RULE_PRIO_HIGH_WAN_1_SRC_TO_DST_ADDR - 1 ))"
 
+## 系统负载均衡自动分配IPv4流量动态路由出口出口规则策略规则优先级-24962（IP_RULE_PRIO-38）
+IP_RULE_PRIO_ISP_DATA_LB="$(( IP_RULE_PRIO_VPN - 1 ))"
+
 ## 路由器内部应用分流出口规则策略规则优先级--24961（IP_RULE_PRIO-39）
-IP_RULE_PRIO_INNER_ACCESS="$(( IP_RULE_PRIO_VPN - 1 ))"
+IP_RULE_PRIO_INNER_ACCESS="$(( IP_RULE_PRIO_ISP_DATA_LB - 1 ))"
 
 ## 最高策略规则优先级--24960（IP_RULE_PRIO-40）
 IP_RULE_PRIO_TOPEST="$(( IP_RULE_PRIO_INNER_ACCESS - 1 ))"

@@ -1,5 +1,5 @@
 #!/bin/sh
-# lzinstall.sh v3.8.6
+# lzinstall.sh v3.8.7
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ script for asuswrt/merlin based router
@@ -9,7 +9,7 @@
 
 #BEIGIN
 
-LZ_VERSION=v3.8.6
+LZ_VERSION=v3.8.7
 TIMEOUT=10
 CURRENT_PATH="${0%/*}"
 [ "${CURRENT_PATH:0:1}" != '/' ] && CURRENT_PATH="$( pwd )${CURRENT_PATH#*.}"
@@ -168,7 +168,6 @@ find "${CURRENT_PATH}/lz/data" -name "*_cidr.txt" -print0 2> /dev/null | xargs -
 [ ! -f "${PATH_DATA}/iptv_box_ip_lst.txt" ] && cp -rp "${CURRENT_PATH}/lz/data/iptv_box_ip_lst.txt" "${PATH_DATA}" > /dev/null 2>&1
 [ ! -f "${PATH_DATA}/iptv_isp_ip_lst.txt" ] && cp -rp "${CURRENT_PATH}/lz/data/iptv_isp_ip_lst.txt" "${PATH_DATA}" > /dev/null 2>&1
 [ ! -f "${PATH_DATA}/local_ipsets_data.txt" ] && cp -rp "${CURRENT_PATH}/lz/data/local_ipsets_data.txt" "${PATH_DATA}" > /dev/null 2>&1
-[ ! -f "${PATH_DATA}/private_ipsets_data.txt" ] && cp -rp "${CURRENT_PATH}/lz/data/private_ipsets_data.txt" "${PATH_DATA}" > /dev/null 2>&1
 [ ! -f "${PATH_DATA}/wan_1_client_src_addr.txt" ] && cp -rp "${CURRENT_PATH}/lz/data/wan_1_client_src_addr.txt" "${PATH_DATA}" > /dev/null 2>&1
 [ ! -f "${PATH_DATA}/wan_1_domain.txt" ] && cp -rp "${CURRENT_PATH}/lz/data/wan_1_domain.txt" "${PATH_DATA}" > /dev/null 2>&1
 [ ! -f "${PATH_DATA}/wan_1_domain_client_src_addr.txt" ] && cp -rp "${CURRENT_PATH}/lz/data/wan_1_domain_client_src_addr.txt" "${PATH_DATA}" > /dev/null 2>&1

@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule.sh v3.8.6
+# lz_rule.sh v3.8.7
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # 本软件采用CIDR（无类别域间路由，Classless Inter-Domain Routing）技术，是一个在Internet上创建附加地
@@ -80,7 +80,7 @@
 ## -------------全局数据定义及初始化-------------------
 
 ## 版本号
-LZ_VERSION=v3.8.6
+LZ_VERSION=v3.8.7
 
 ## 运行状态查询命令
 SHOW_STATUS="status"
@@ -372,10 +372,10 @@ __lz_main() {
 
     ## 处理系统负载均衡分流策略规则
     ## 输入项：
-    ##     $1--规则优先级（$IP_RULE_PRIO_BALANCE--ASUS原始；$IP_RULE_PRIO + 1--脚本定义）
+    ##     $1--规则优先级（${IP_RULE_PRIO_BALANCE}--ASUS原始；$(( IP_RULE_PRIO + 1 ))--脚本原定义）
     ##     全局常量
     ## 返回值：无
-    lz_sys_load_balance_control "$(( IP_RULE_PRIO + 1 ))"
+    lz_sys_load_balance_control "${IP_RULE_PRIO_BALANCE}"
 
     ## 数据清理
     ## 输入项：
@@ -422,7 +422,7 @@ __lz_main() {
         ## 恢复系统负载均衡分流策略规则为系统初始的优先级状态
         ## 处理系统负载均衡分流策略规则
         ## 输入项：
-        ##     $1--规则优先级（$IP_RULE_PRIO_BALANCE--ASUS原始；$IP_RULE_PRIO + 1--脚本定义）
+        ##     $1--规则优先级（${IP_RULE_PRIO_BALANCE}--ASUS原始；$(( IP_RULE_PRIO + 1 ))--脚本原定义）
         ##     全局常量
         ## 返回值：无
         lz_sys_load_balance_control "${IP_RULE_PRIO_BALANCE}"

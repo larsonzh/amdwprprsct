@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_initialize_config.sh v3.8.6
+# lz_initialize_config.sh v3.8.7
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 初始化脚本配置
@@ -53,7 +53,6 @@ lz_variable_initialize() {
     local_high_wan_1_src_to_dst_addr=
     local_high_wan_1_src_to_dst_addr_file=
     local_local_ipsets_file=
-    local_private_ipsets_file=
     local_wan0_dest_tcp_port=
     local_wan0_dest_udp_port=
     local_wan0_dest_udplite_port=
@@ -143,7 +142,6 @@ lz_variable_initialize() {
     local_ini_high_wan_1_src_to_dst_addr=
     local_ini_high_wan_1_src_to_dst_addr_file=
     local_ini_local_ipsets_file=
-    local_ini_private_ipsets_file=
     local_ini_wan0_dest_tcp_port=
     local_ini_wan0_dest_udp_port=
     local_ini_wan0_dest_udplite_port=
@@ -232,7 +230,6 @@ lz_variable_initialize() {
     local_high_wan_1_src_to_dst_addr_changed="0"
     local_high_wan_1_src_to_dst_addr_file_changed="0"
     local_local_ipsets_file_changed="0"
-    local_private_ipsets_file_changed="0"
     local_wan0_dest_tcp_port_changed="0"
     local_wan0_dest_udp_port_changed="0"
     local_wan0_dest_udplite_port_changed="0"
@@ -335,7 +332,6 @@ lz_variable_uninitialize() {
     unset local_ini_high_wan_1_src_to_dst_addr
     unset local_ini_high_wan_1_src_to_dst_addr_file
     unset local_ini_local_ipsets_file
-    unset local_ini_private_ipsets_file
     unset local_ini_wan0_dest_tcp_port
     unset local_ini_wan0_dest_udp_port
     unset local_ini_wan0_dest_udplite_port
@@ -425,7 +421,6 @@ lz_variable_uninitialize() {
     unset local_high_wan_1_src_to_dst_addr
     unset local_high_wan_1_src_to_dst_addr_file
     unset local_local_ipsets_file
-    unset local_private_ipsets_file
     unset local_wan0_dest_tcp_port
     unset local_wan0_dest_udp_port
     unset local_wan0_dest_udplite_port
@@ -514,7 +509,6 @@ lz_variable_uninitialize() {
     unset local_high_wan_1_src_to_dst_addr_changed
     unset local_high_wan_1_src_to_dst_addr_file_changed
     unset local_local_ipsets_file_changed
-    unset local_private_ipsets_file_changed
     unset local_wan0_dest_tcp_port_changed
     unset local_wan0_dest_udp_port_changed
     unset local_wan0_dest_udplite_port_changed
@@ -666,6 +660,7 @@ lz_restore_default_config() {
 ##     如有不同需求，请在自定义区修改下面的参数配置。
 
 ## 策略规则优先级执行顺序：由高到低排列，系统抢先执行高优先级策略。
+##     系统负载均衡自动分配IPv4流量动态路由出口出口规则--动、静态分流模式下均可使用
 ##     IPTV机顶盒线路IPv4流量出口静态直通路由出口规则（iptv_box_ip_lst_file）--动、静态分流模式下均可使用
 ##     外网访问路由器静态直通路由方式出入口规则--动、静态分流模式下均可使用
 ##     虚拟专网客户端访问互联网IPv4流量出口静态直通路由出口规则--动、静态分流模式下均可使用
@@ -683,7 +678,6 @@ lz_restore_default_config() {
 ##     第一WAN口客户端IPv4流量静态直通路由出口规则（wan_1_client_src_addr_file）--动、静态分流模式下均可使用
 ##     第二WAN口IPv4流量协议端口动态路由出口规则--动、静态分流模式下均可使用
 ##     第一WAN口IPv4流量协议端口动态路由出口规则--动、静态分流模式下均可使用
-##     系统负载均衡自动分配IPv4流量静态直通路由出口规则--仅用于静态分流模式
 ##     用户自定义IPv4目标网址/网段(2)流量静态直通路由出口规则（custom_data_file_2）--仅用于静态分流模式
 ##     用户自定义IPv4目标网址/网段(1)流量静态直通路由出口规则（custom_data_file_1）--仅用于静态分流模式
 ##     国内及国外运营商IPv4目标网址/网段第二WAN口流量静态直通路由出口规则--仅用于静态分流模式
@@ -691,7 +685,6 @@ lz_restore_default_config() {
 ##     国内运营商IPv4目标网段和用户自定义IPv4目标网址/网段第二WAN口流量动态路由出口规则--仅用于动态分流模式
 ##     国内运营商IPv4目标网段和用户自定义IPv4目标网址/网段第一WAN口流量动态路由出口规则--仅用于动态分流模式
 ##     国外运营商IPv4目标网段流量动态路由出口规则--仅用于动态分流模式
-##     系统负载均衡自动分配IPv4流量动态路由出口出口规则--仅用于动态分流模式
 
 ## 本软件将全宇宙所有互联网IPv4地址网段划分为如下11个国内外网络运营商目标网段数据集合，使用中首先将所接
 ## 入网络运营商网段对应至相应的路由器出口，其他运营商网段可根据使用需求、所属运营商网络跨网段访问品质、
@@ -1129,15 +1122,6 @@ high_wan_1_src_to_dst_addr_port_file="${PATH_DATA}/high_wan_1_src_to_dst_addr_po
 ## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
 local_ipsets_file="${PATH_DATA}/local_ipsets_data.txt"
 
-## 内网保留IPv4网址/网段列表数据文件
-## 必备的预置非公网网址/网段列表数据文件，可根据应用环境增添、删除或修改条目内容。
-## 文件路径、名称可自定义和修改，文件路径及名称不得为空。
-## 缺省为"${PATH_DATA}/private_ipsets_data.txt"，已预存数据。
-## 文本格式：一个网址/网段一行，为一个条目，可多行多个条目。
-## 此文件中0.0.0.0/0为无效地址。
-## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
-private_ipsets_file="${PATH_DATA}/private_ipsets_data.txt"
-
 ## 虚拟专网客户端访问外网IPv4流量路由器出口
 ## 0--第一WAN口；1--第二WAN口；>1--由系统分配出口；取值范围：0~9
 ## 缺省为第一WAN口（0）。
@@ -1472,6 +1456,7 @@ lz_restore_cfg_file() {
 ##     如有不同需求，请在自定义区修改下面的参数配置。
 
 ## 策略规则优先级执行顺序：由高到低排列，系统抢先执行高优先级策略。
+##     系统负载均衡自动分配IPv4流量动态路由出口出口规则--动、静态分流模式下均可使用
 ##     IPTV机顶盒线路IPv4流量出口静态直通路由出口规则（iptv_box_ip_lst_file）--动、静态分流模式下均可使用
 ##     外网访问路由器静态直通路由方式出入口规则--动、静态分流模式下均可使用
 ##     虚拟专网客户端访问互联网IPv4流量出口静态直通路由出口规则--动、静态分流模式下均可使用
@@ -1489,7 +1474,6 @@ lz_restore_cfg_file() {
 ##     第一WAN口客户端IPv4流量静态直通路由出口规则（wan_1_client_src_addr_file）--动、静态分流模式下均可使用
 ##     第二WAN口IPv4流量协议端口动态路由出口规则--动、静态分流模式下均可使用
 ##     第一WAN口IPv4流量协议端口动态路由出口规则--动、静态分流模式下均可使用
-##     系统负载均衡自动分配IPv4流量静态直通路由出口规则--仅用于静态分流模式
 ##     用户自定义IPv4目标网址/网段(2)流量静态直通路由出口规则（custom_data_file_2）--仅用于静态分流模式
 ##     用户自定义IPv4目标网址/网段(1)流量静态直通路由出口规则（custom_data_file_1）--仅用于静态分流模式
 ##     国内及国外运营商IPv4目标网址/网段第二WAN口流量静态直通路由出口规则--仅用于静态分流模式
@@ -1497,7 +1481,6 @@ lz_restore_cfg_file() {
 ##     国内运营商IPv4目标网段和用户自定义IPv4目标网址/网段第二WAN口流量动态路由出口规则--仅用于动态分流模式
 ##     国内运营商IPv4目标网段和用户自定义IPv4目标网址/网段第一WAN口流量动态路由出口规则--仅用于动态分流模式
 ##     国外运营商IPv4目标网段流量动态路由出口规则--仅用于动态分流模式
-##     系统负载均衡自动分配IPv4流量动态路由出口出口规则--仅用于动态分流模式
 
 ## 本软件将全宇宙所有互联网IPv4地址网段划分为如下11个国内外网络运营商目标网段数据集合，使用中首先将所接
 ## 入网络运营商网段对应至相应的路由器出口，其他运营商网段可根据使用需求、所属运营商网络跨网段访问品质、
@@ -1935,15 +1918,6 @@ high_wan_1_src_to_dst_addr_port_file=${local_high_wan_1_src_to_dst_addr_port_fil
 ## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
 local_ipsets_file=${local_local_ipsets_file}
 
-## 内网保留IPv4网址/网段列表数据文件
-## 必备的预置非公网网址/网段列表数据文件，可根据应用环境增添、删除或修改条目内容。
-## 文件路径、名称可自定义和修改，文件路径及名称不得为空。
-## 缺省为"${PATH_DATA}/private_ipsets_data.txt"，已预存数据。
-## 文本格式：一个网址/网段一行，为一个条目，可多行多个条目。
-## 此文件中0.0.0.0/0为无效地址。
-## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
-private_ipsets_file=${local_private_ipsets_file}
-
 ## 虚拟专网客户端访问外网IPv4流量路由器出口
 ## 0--第一WAN口；1--第二WAN口；>1--由系统分配出口；取值范围：0~9
 ## 缺省为第一WAN口（0）。
@@ -2379,8 +2353,6 @@ lz_read_config_param() {
 
     local_local_ipsets_file="$( lz_get_file_cache_data "local_ipsets_file" "\"${PATH_DATA}/local_ipsets_data.txt\"" )" && local_exist="0"
 
-    local_private_ipsets_file="$( lz_get_file_cache_data "private_ipsets_file" "\"${PATH_DATA}/private_ipsets_data.txt\"" )" && local_exist="0"
-
     local_wan0_dest_tcp_port="$( lz_get_file_cache_data "wan0_dest_tcp_port" "" )" && {
         if grep -qE "^[ ]*wan0_dest_tcp_port=" "${PATH_CONFIGS}/lz_rule_config.sh"; then local_wan0_dest_tcp_port=""; else local_exist="0"; fi;
     }
@@ -2631,7 +2603,6 @@ lz_cfg_is_default() {
     [ "${local_high_wan_1_src_to_dst_addr}" != "5" ] && return 0
     [ "${local_high_wan_1_src_to_dst_addr_file}" != "\"${PATH_DATA}/high_wan_1_src_to_dst_addr.txt\"" ] && return 0
     [ "${local_local_ipsets_file}" != "\"${PATH_DATA}/local_ipsets_data.txt\"" ] && return 0
-    [ "${local_private_ipsets_file}" != "\"${PATH_DATA}/private_ipsets_data.txt\"" ] && return 0
     [ "${local_wan0_dest_tcp_port}" != "" ] && return 0
     [ "${local_wan0_dest_udp_port}" != "" ] && return 0
     [ "${local_wan0_dest_udplite_port}" != "" ] && return 0
@@ -2728,7 +2699,6 @@ lz_config_wan_2_src_to_dst_addr_file=${local_wan_2_src_to_dst_addr_file}
 lz_config_high_wan_1_src_to_dst_addr=${local_high_wan_1_src_to_dst_addr}
 lz_config_high_wan_1_src_to_dst_addr_file=${local_high_wan_1_src_to_dst_addr_file}
 lz_config_local_ipsets_file=${local_local_ipsets_file}
-lz_config_private_ipsets_file=${local_private_ipsets_file}
 lz_config_wan0_dest_tcp_port=${local_wan0_dest_tcp_port}
 lz_config_wan0_dest_udp_port=${local_wan0_dest_udp_port}
 lz_config_wan0_dest_udplite_port=${local_wan0_dest_udplite_port}
@@ -2827,7 +2797,6 @@ lz_config_wan_2_src_to_dst_addr_file=${local_ini_wan_2_src_to_dst_addr_file}
 lz_config_high_wan_1_src_to_dst_addr=${local_ini_high_wan_1_src_to_dst_addr}
 lz_config_high_wan_1_src_to_dst_addr_file=${local_ini_high_wan_1_src_to_dst_addr_file}
 lz_config_local_ipsets_file=${local_ini_local_ipsets_file}
-lz_config_private_ipsets_file=${local_ini_private_ipsets_file}
 lz_config_wan0_dest_tcp_port=${local_ini_wan0_dest_tcp_port}
 lz_config_wan0_dest_udp_port=${local_ini_wan0_dest_udp_port}
 lz_config_wan0_dest_udplite_port=${local_ini_wan0_dest_udplite_port}
@@ -3064,8 +3033,6 @@ lz_read_box_data() {
     local_ini_high_wan_1_src_to_dst_addr_file="$( lz_get_file_cache_data "lz_config_high_wan_1_src_to_dst_addr_file" "\"${PATH_DATA}/high_wan_1_src_to_dst_addr.txt\"" )" && local_exist="0"
 
     local_ini_local_ipsets_file="$( lz_get_file_cache_data "lz_config_local_ipsets_file" "\"${PATH_DATA}/local_ipsets_data.txt\"" )" && local_exist="0"
-
-    local_ini_private_ipsets_file="$( lz_get_file_cache_data "lz_config_private_ipsets_file" "\"${PATH_DATA}/private_ipsets_data.txt\"" )" && local_exist="0"
 
     local_ini_wan0_dest_tcp_port="$( lz_get_file_cache_data "lz_config_wan0_dest_tcp_port" "" )" && {
         if grep "^[ ]*lz_config_wan0_dest_tcp_port=" "${PATH_CONFIGS}/lz_rule_config.box"; then local_ini_wan0_dest_tcp_port=""; else local_exist="0"; fi;
@@ -3304,7 +3271,6 @@ lz_cfg_is_changed() {
     [ "${local_ini_high_wan_1_src_to_dst_addr}" != "${local_high_wan_1_src_to_dst_addr}" ] && local_high_wan_1_src_to_dst_addr_changed="1" && local_cfg_changed="1"
     [ "${local_ini_high_wan_1_src_to_dst_addr_file}" != "${local_high_wan_1_src_to_dst_addr_file}" ] && local_high_wan_1_src_to_dst_addr_file_changed="1" && local_cfg_changed="1"
     [ "${local_ini_local_ipsets_file}" != "${local_local_ipsets_file}" ] && local_local_ipsets_file_changed="1" && local_cfg_changed="1"
-    [ "${local_ini_private_ipsets_file}" != "${local_private_ipsets_file}" ] && local_private_ipsets_file_changed="1" && local_cfg_changed="1"
     [ "${local_ini_wan0_dest_tcp_port}" != "${local_wan0_dest_tcp_port}" ] && local_wan0_dest_tcp_port_changed="1" && local_cfg_changed="1"
     [ "${local_ini_wan0_dest_udp_port}" != "${local_wan0_dest_udp_port}" ] && local_wan0_dest_udp_port_changed="1" && local_cfg_changed="1"
     [ "${local_ini_wan0_dest_udplite_port}" != "${local_wan0_dest_udplite_port}" ] && local_wan0_dest_udplite_port_changed="1" && local_cfg_changed="1"
@@ -3405,7 +3371,6 @@ lz_restore_config() {
     [ "${local_high_wan_1_src_to_dst_addr_file_changed}" = "1" ] && sed -i "s:^[ \t]*high_wan_1_src_to_dst_addr_file=${local_high_wan_1_src_to_dst_addr_file}:high_wan_1_src_to_dst_addr_file=${local_ini_high_wan_1_src_to_dst_addr_file}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
 
     [ "${local_local_ipsets_file_changed}" = "1" ] && sed -i "s:^[ \t]*local_ipsets_file=${local_local_ipsets_file}:local_ipsets_file=${local_ini_local_ipsets_file}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_private_ipsets_file_changed}" = "1" ] && sed -i "s:^[ \t]*private_ipsets_file=${local_private_ipsets_file}:private_ipsets_file=${local_ini_private_ipsets_file}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
 
     [ "${local_wan0_dest_tcp_port_changed}" = "1" ] && sed -i "s|^[ ]*wan0_dest_tcp_port=${local_wan0_dest_tcp_port}|wan0_dest_tcp_port=${local_ini_wan0_dest_tcp_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
     [ "${local_wan0_dest_udp_port_changed}" = "1" ] && sed -i "s|^[ ]*wan0_dest_udp_port=${local_wan0_dest_udp_port}|wan0_dest_udp_port=${local_ini_wan0_dest_udp_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1

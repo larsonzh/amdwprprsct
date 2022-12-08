@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_address_query.sh v3.8.6
+# lz_rule_address_query.sh v3.8.7
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 网址信息查询脚本
@@ -637,8 +637,6 @@ lz_set_aq_parameter_variable() {
     aq_high_wan_1_src_to_dst_addr_port=
     aq_high_wan_1_src_to_dst_addr_port_file=
 
-    aq_private_ipsets_file=
-
     aq_route_local_ip=
     aq_route_local_ip_cidr_mask=
     aq_client_full_traffic_wan="0"
@@ -687,8 +685,6 @@ lz_unset_aq_parameter_variable() {
     unset aq_wan_2_src_to_dst_addr_port_file
     unset aq_high_wan_1_src_to_dst_addr_port
     unset aq_high_wan_1_src_to_dst_addr_port_file
-
-    unset aq_private_ipsets_file
 
     ## 卸载ISP网络运营商CIDR网段数据条目数变量
     lz_aq_unset_isp_data_item_total_variable
@@ -787,7 +783,6 @@ lz_aq_read_box_data() {
     aq_high_wan_1_src_to_dst_addr_port="$( lz_aq_get_file_cache_data "lz_config_high_wan_1_src_to_dst_addr_port" "5" )"
     aq_high_wan_1_src_to_dst_addr_port_file="$( lz_aq_get_file_cache_data "lz_config_high_wan_1_src_to_dst_addr_port_file" "${PATH_DATA}/high_wan_1_src_to_dst_addr_port.txt" )"
 
-    aq_private_ipsets_file="$( lz_aq_get_file_cache_data "lz_config_private_ipsets_file" "${PATH_DATA}/private_ipsets_data.txt" )"
     unset local_file_cache
 }
 
@@ -1047,9 +1042,7 @@ lz_query_address() {
                 ipset -q create lz_aq_ispip_tmp_sets nethash maxelem 4294967295 #--hashsize 1024 mexleme 65536
                 ipset -q flush lz_aq_ispip_tmp_sets
                 ipset -q add lz_aq_ispip_tmp_sets "${aq_route_local_ip}/${aq_route_local_ip_cidr_mask}"
-                ip route | grep -Ev 'default|nexthop' | grep -E "tap|tun" | awk '{print $1}' \
-                    | sed "s/^.*$/-! add lz_aq_ispip_tmp_sets &/g" \
-                    | awk '{print $0} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
+                ip route | awk '/pptp|tap|tun|wgs/ {system("ipset -q add lz_aq_ispip_tmp_sets "$1)}'
                 ipset -q test lz_aq_ispip_tmp_sets "${local_net_ip}" && local_isp_no="$(( AQ_ISP_TOTAL + 1 ))"
 
                 if [ "${local_isp_no}" = "0" ]; then
@@ -1086,13 +1079,6 @@ lz_query_address() {
                     ipset -q add lz_aq_ispip_tmp_sets "$( ip -o -4 addr list | grep "$( nvram get "wan1_ifname" | sed 's/ /\n/g' | sed -n 1p )" | awk '{print $4}' )"
 
                     ipset -q test lz_aq_ispip_tmp_sets "${local_net_ip}" && local_isp_no="$(( AQ_ISP_TOTAL + 3 ))"
-                fi
-
-                if [ "${local_isp_no}" = "0" ]; then
-                    [ "$( lz_aq_get_ipv4_data_file_item_total "${aq_private_ipsets_file}" )" -gt "0" ] && {
-                        lz_aq_add_net_address_sets "${aq_private_ipsets_file}" lz_aq_ispip_tmp_sets "0"
-                        ipset -q test lz_aq_ispip_tmp_sets "${local_net_ip}" && local_isp_no="$(( AQ_ISP_TOTAL + 4 ))"
-                    }
                 fi
             fi
 
