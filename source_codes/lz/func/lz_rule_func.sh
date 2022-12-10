@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v3.8.7
+# lz_rule_func.sh v3.8.8
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 #BEIGIN
@@ -1717,7 +1717,7 @@ lz_create_firewall_start_command() {
 ##     全局常量
 ## 返回值：无
 lz_create_update_ispip_data_scripts_file() {
-    cat > "${PATH_LZ}/${UPDATE_FILENAME}" <<LZ_EOF
+    cat > "${PATH_LZ}/${UPDATE_FILENAME}" <<UPDATE_ISPIP_DATA
 #!/bin/sh
 # ${UPDATE_FILENAME} ${LZ_VERSION}
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
@@ -1742,27 +1742,28 @@ fi
 exec ${LOCK_FILE_ID}<>"${LOCK_FILE}"
 flock -x "${LOCK_FILE_ID}"  > /dev/null 2>&1
 
+## 如果目标目录不存在就创建之
+[ ! -d "${PATH_DATA}" ] && mkdir -p "${PATH_DATA}"
+
 ## 创建临时下载目录
-if [ ! -d "${PATH_TMP_DATA}" ]; then
-    mkdir -p "${PATH_TMP_DATA}"
-fi
+[ ! -d "${PATH_TMP_DATA}" ] && mkdir -p "${PATH_TMP_DATA}"
 
 ## 删除临时下载目录中的所有文件
-rm -f "${PATH_TMP_DATA}"/* > /dev/null 2>&1
+rm -rf "${PATH_TMP_DATA}"/* > /dev/null 2>&1
 
 ## 创建ISP网络运营商CIDR网段数据文件URL列表
 cat > "${PATH_TMP_DATA}/${ISPIP_FILE_URL_LIST}" <<EOF
-${UPDATE_ISPIP_DATA_DOWNLOAD_URL}/${ISP_DATA_4}
-${UPDATE_ISPIP_DATA_DOWNLOAD_URL}/${ISP_DATA_3}
-${UPDATE_ISPIP_DATA_DOWNLOAD_URL}/${ISP_DATA_6}
-${UPDATE_ISPIP_DATA_DOWNLOAD_URL}/${ISP_DATA_5}
-${UPDATE_ISPIP_DATA_DOWNLOAD_URL}/${ISP_DATA_2}
-${UPDATE_ISPIP_DATA_DOWNLOAD_URL}/${ISP_DATA_1}
-${UPDATE_ISPIP_DATA_DOWNLOAD_URL}/${ISP_DATA_7}
-${UPDATE_ISPIP_DATA_DOWNLOAD_URL}/${ISP_DATA_0}
-${UPDATE_ISPIP_DATA_DOWNLOAD_URL}/${ISP_DATA_8}
-${UPDATE_ISPIP_DATA_DOWNLOAD_URL}/${ISP_DATA_9}
-${UPDATE_ISPIP_DATA_DOWNLOAD_URL}/${ISP_DATA_10}
+${ISP_DATA_0}
+${ISP_DATA_1}
+${ISP_DATA_2}
+${ISP_DATA_3}
+${ISP_DATA_4}
+${ISP_DATA_6}
+${ISP_DATA_5}
+${ISP_DATA_7}
+${ISP_DATA_8}
+${ISP_DATA_9}
+${ISP_DATA_10}
 EOF
 
 ## 下载及更新成功标志
@@ -1772,15 +1773,21 @@ dl_succeed="1"
 
 if [ "\${dl_succeed}" = "1" ]; then
     retry_count="1"
-    retry_limit=\$(( retry_count + ${ruid_retry_num} ))
+    retry_limit="\$(( retry_count + ${ruid_retry_num} ))"
     while [ "\${retry_count}" -le "\${retry_limit}" ]
     do
-        if [ ! -f "${PATH_DATA}/cookies.isp" ]; then
-            wget -nc -c --timeout=20 --random-wait --user-agent="Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US)" --prefer-family=IPv4 --referer="${UPDATE_ISPIP_DATA_DOWNLOAD_URL}" --save-cookies="${PATH_DATA}/cookies.isp" --keep-session-cookies --no-check-certificate -P "${PATH_TMP_DATA}" -i "${PATH_TMP_DATA}/${ISPIP_FILE_URL_LIST}"
-        else
-            wget -nc -c --timeout=20 --random-wait --user-agent="Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US)" --prefer-family=IPv4 --referer="${UPDATE_ISPIP_DATA_DOWNLOAD_URL}" --load-cookies="${PATH_DATA}/cookies.isp" --keep-session-cookies --no-check-certificate -P "${PATH_TMP_DATA}" -i "${PATH_TMP_DATA}/${ISPIP_FILE_URL_LIST}"
-        fi
-        if [ "\${?}" = "0" ]; then
+        [ ! -f "${PATH_DATA}/cookies.isp" ] && COOKIES_STR="--save-cookies=${PATH_DATA}/cookies.isp" || COOKIES_STR="--load-cookies=${PATH_DATA}/cookies.isp"
+        eval "wget -nc -c --timeout=20 --random-wait --user-agent=\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.5304.88 Safari/537.36 Edg/108.0.1462.46\" --referer=${UPDATE_ISPIP_DATA_DOWNLOAD_URL} \${COOKIES_STR} --keep-session-cookies --no-check-certificate -P ${PATH_TMP_DATA} -B ${UPDATE_ISPIP_DATA_DOWNLOAD_URL} -i ${PATH_TMP_DATA}/${ISPIP_FILE_URL_LIST}"
+        [ ! -f "${PATH_DATA}/cookies.isp" ] && COOKIES_STR="--save-cookies=${PATH_DATA}/cookies.isp" || COOKIES_STR="--load-cookies=${PATH_DATA}/cookies.isp"
+        eval "wget -q -nc -c --timeout=20 --random-wait --user-agent=\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.5304.88 Safari/537.36 Edg/108.0.1462.46\" --referer=${UPDATE_ISPIP_DATA_DOWNLOAD_URL} \${COOKIES_STR} --keep-session-cookies --no-check-certificate -P ${PATH_TMP_DATA} -B ${UPDATE_ISPIP_DATA_DOWNLOAD_URL} -i ${PATH_TMP_DATA}/${ISPIP_FILE_URL_LIST}"
+        for isp_file_name in \$( awk '/_cidr\.txt/ {print \$1}' "${PATH_TMP_DATA}/${ISPIP_FILE_URL_LIST}" 2> /dev/null )
+        do
+            [ -f "${PATH_TMP_DATA}/\${isp_file_name}" ] && continue
+            [ ! -f "${PATH_DATA}/cookies.isp" ] && COOKIES_STR="--save-cookies=${PATH_DATA}/cookies.isp" || COOKIES_STR="--load-cookies=${PATH_DATA}/cookies.isp"
+            eval "wget -nc -c --timeout=20 --random-wait --user-agent=\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.5304.88 Safari/537.36 Edg/108.0.1462.46\" --referer=${UPDATE_ISPIP_DATA_DOWNLOAD_URL} \${COOKIES_STR} --keep-session-cookies --no-check-certificate -O ${PATH_TMP_DATA}/lz_\${isp_file_name} ${UPDATE_ISPIP_DATA_DOWNLOAD_URL}/\${isp_file_name}"
+            [ -f "${PATH_TMP_DATA}/lz_\${isp_file_name}" ] && mv -f "${PATH_TMP_DATA}/lz_\${isp_file_name}" "${PATH_TMP_DATA}/\${isp_file_name}" > /dev/null 2>&1
+        done
+        if [ "\$( find "${PATH_TMP_DATA}" -name "*_cidr.txt" -print0 2> /dev/null | awk '{} END{print NR}' )" -ge "\$(( ${ISP_TOTAL} + 1 ))" ]; then
             dl_succeed="1"
             break
         else
@@ -1793,26 +1800,19 @@ fi
 
 if [ "\${dl_succeed}" = "1" ]; then
     echo "\$(lzdate)" [\$\$]: LZ "${LZ_VERSION}" download the ISP IP data files successfully. | tee -ai "${SYSLOG}" 2> /dev/null
-    ## 如果目标目录不存在就创建之
-    if [ ! -d "${PATH_DATA}" ]; then
-        mkdir -p "${PATH_DATA}"
-    fi
 
     ## 将新下载的ISP网络运营商CIDR网段数据文件移动至目标文件夹
-    mv -f "${PATH_TMP_DATA}"/*"_cidr.txt" "${PATH_DATA}" > /dev/null 2>&1
-    if [ "\${?}" = "0" ]; then dl_succeed="1"; else dl_succeed="0"; fi;
-
-    ## 删除临时ISP网络运营商CIDR网段数据文件
-    if [ "\${dl_succeed}" = "1" ]; then
-        echo "\$(lzdate)" [\$\$]: LZ "${LZ_VERSION}" remove the temporary files. | tee -ai "${SYSLOG}" 2> /dev/null
-        rm -f "${PATH_TMP_DATA}"/* > /dev/null 2>&1
-    fi
+    mv -f "${PATH_TMP_DATA}"/*"_cidr.txt" "${PATH_DATA}" > /dev/null 2>&1 && dl_succeed="1" || {
+        dl_succeed="0"
+        echo "\$(lzdate)" [\$\$]: LZ "${LZ_VERSION}" failed to copy the ISP IP data files. | tee -ai "${SYSLOG}" 2> /dev/null
+    }
 else
-    ## 删除临时下载目录中的所有文件
-    echo "\$(lzdate)" [\$\$]: LZ "${LZ_VERSION}" remove the temporary files. | tee -ai "${SYSLOG}" 2> /dev/null
-    rm -f "${PATH_TMP_DATA}"/* > /dev/null 2>&1
     echo "\$(lzdate)" [\$\$]: LZ "${LZ_VERSION}" failed to download the ISP IP data files. | tee -ai "${SYSLOG}" 2> /dev/null
 fi
+
+## 删除临时下载目录中的所有文件
+echo "\$(lzdate)" [\$\$]: LZ "${LZ_VERSION}" remove the temporary files. | tee -ai "${SYSLOG}" 2> /dev/null
+rm -rf "${PATH_TMP_DATA}"/* > /dev/null 2>&1
 
 ## 解除文件同步锁
 flock -u "${LOCK_FILE_ID}" > /dev/null 2>&1
@@ -1832,7 +1832,8 @@ fi
 echo | tee -ai "${SYSLOG}" 2> /dev/null
 
 #END
-LZ_EOF
+
+UPDATE_ISPIP_DATA
 
     chmod +x "${PATH_LZ}/${UPDATE_FILENAME}" > /dev/null 2>&1
 }

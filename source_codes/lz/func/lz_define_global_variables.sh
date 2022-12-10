@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_define_global_variables.sh v3.8.7
+# lz_define_global_variables.sh v3.8.8
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 # QnkgTFog5aaZ5aaZ5ZGc77yI6Juk6J+G5aKp5YS/77yJ（首次运行标识，切勿修改）
 
@@ -57,7 +57,7 @@ PATH_TMP_DATA="${PATH_TMP}/data"
 UPDATE_ISPIP_DATA_DOWNLOAD_URL="https://ispip.clang.cn"
 
 ## ISP网络运营商CIDR网段数据文件URL列表文件名
-ISPIP_FILE_URL_LIST="ispip_file_url_list.lst"
+ISPIP_FILE_URL_LIST="ispip_file_url_lst.txt"
 
 ## ISP网络运营商CIDR网段数据文件名（短文件名）
 ISP_DATA_0="all_cn_cidr.txt"
