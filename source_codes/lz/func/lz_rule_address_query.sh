@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_address_query.sh v3.8.8
+# lz_rule_address_query.sh v3.8.9
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 网址信息查询脚本
@@ -19,17 +19,17 @@ lz_define_aq_constant() {
     AQ_ISP_TOTAL="10"
 
     ## ISP网络运营商CIDR网段数据文件名（短文件名）
-    AQ_ISP_DATA_0="all_cn_cidr.txt"
-    AQ_ISP_DATA_1="chinatelecom_cidr.txt"
-    AQ_ISP_DATA_2="unicom_cnc_cidr.txt"
-    AQ_ISP_DATA_3="cmcc_cidr.txt"
-    AQ_ISP_DATA_4="crtc_cidr.txt"
-    AQ_ISP_DATA_5="cernet_cidr.txt"
-    AQ_ISP_DATA_6="gwbn_cidr.txt"
-    AQ_ISP_DATA_7="othernet_cidr.txt"
-    AQ_ISP_DATA_8="hk_cidr.txt"
-    AQ_ISP_DATA_9="mo_cidr.txt"
-    AQ_ISP_DATA_10="tw_cidr.txt"
+    AQ_ISP_DATA_0="lz_all_cn_cidr.txt"
+    AQ_ISP_DATA_1="lz_chinatelecom_cidr.txt"
+    AQ_ISP_DATA_2="lz_unicom_cnc_cidr.txt"
+    AQ_ISP_DATA_3="lz_cmcc_cidr.txt"
+    AQ_ISP_DATA_4="lz_crtc_cidr.txt"
+    AQ_ISP_DATA_5="lz_cernet_cidr.txt"
+    AQ_ISP_DATA_6="lz_gwbn_cidr.txt"
+    AQ_ISP_DATA_7="lz_othernet_cidr.txt"
+    AQ_ISP_DATA_8="lz_hk_cidr.txt"
+    AQ_ISP_DATA_9="lz_mo_cidr.txt"
+    AQ_ISP_DATA_10="lz_tw_cidr.txt"
 
     local local_index="1"
     until [ "${local_index}" -gt "$(( AQ_ISP_TOTAL + 6 ))" ]
@@ -758,7 +758,7 @@ lz_aq_read_box_data() {
     aq_custom_data_file_2="$( lz_aq_get_file_cache_data "lz_config_custom_data_file_2" "${PATH_DATA}/custom_data_2.txt" )"
     aq_wan_1_domain="$( lz_aq_get_file_cache_data "lz_config_wan_1_domain" "5" )"
     aq_wan_2_domain="$( lz_aq_get_file_cache_data "lz_config_wan_2_domain" "5" )"
-    if ! dnsmasq -v 2> /dev/null | grep -w 'ipset' | grep -qvw "no\-ipset"; then
+    if ! dnsmasq -v 2> /dev/null | grep -w 'ipset' | grep -qvw 'no[\-]ipset'; then
         [ "${aq_wan_1_domain}" = "0" ] && aq_wan_1_domain="5"
         [ "${aq_wan_2_domain}" = "0" ] && aq_wan_2_domain="5"
     fi
@@ -1048,8 +1048,8 @@ lz_query_address() {
                 if [ "${local_isp_no}" = "0" ]; then
                     ipset -q flush lz_aq_ispip_tmp_sets
                     ## 第一WAN口的DNS解析服务器网址
-                    ipset -q add lz_aq_ispip_tmp_sets "$( nvram get "wan0_dns" | sed 's/ /\n/g' | grep -v '0.0.0.0' | grep -v '127.0.0.1' | sed -n 1p | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}' )"
-                    ipset -q add lz_aq_ispip_tmp_sets "$( nvram get "wan0_dns" | sed 's/ /\n/g' | grep -v '0.0.0.0' | grep -v '127.0.0.1' | sed -n 2p | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}' )"
+                    ipset -q add lz_aq_ispip_tmp_sets "$( nvram get "wan0_dns" | sed 's/ /\n/g' | grep -v '0[\.]0[\.]0[\.]0' | grep -v '127[\.]0[\.]0[\.]1' | sed -n 1p | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}' )"
+                    ipset -q add lz_aq_ispip_tmp_sets "$( nvram get "wan0_dns" | sed 's/ /\n/g' | grep -v '0[\.]0[\.]0[\.]0' | grep -v '127[\.]0[\.]0[\.]1' | sed -n 2p | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}' )"
 
                     ## 加入第一WAN口外网IPv4网关地址
                     ipset -q add lz_aq_ispip_tmp_sets "$( ip -o -4 addr list | grep "$( nvram get "wan0_pppoe_ifname" | sed 's/ /\n/g' | sed -n 1p )" | awk '{print $6}' )"
@@ -1066,8 +1066,8 @@ lz_query_address() {
                 if [ "${local_isp_no}" = "0" ]; then
                     ipset -q flush lz_aq_ispip_tmp_sets
                     ## 第二WAN口的DNS解析服务器网址
-                    ipset -q add lz_aq_ispip_tmp_sets "$( nvram get "wan1_dns" | sed 's/ /\n/g' | grep -v '0.0.0.0' | grep -v '127.0.0.1' | sed -n 1p | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}' )"
-                    ipset -q add lz_aq_ispip_tmp_sets "$( nvram get "wan1_dns" | sed 's/ /\n/g' | grep -v '0.0.0.0' | grep -v '127.0.0.1' | sed -n 2p | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}' )"
+                    ipset -q add lz_aq_ispip_tmp_sets "$( nvram get "wan1_dns" | sed 's/ /\n/g' | grep -v '0[\.]0[\.]0[\.]0' | grep -v '127[\.]0[\.]0[\.]1' | sed -n 1p | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}' )"
+                    ipset -q add lz_aq_ispip_tmp_sets "$( nvram get "wan1_dns" | sed 's/ /\n/g' | grep -v '0[\.]0[\.]0[\.]0' | grep -v '127[\.]0[\.]0[\.]1' | sed -n 2p | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}' )"
 
                     ## 加入第二WAN口外网IPv4网关地址
                     ipset -q add lz_aq_ispip_tmp_sets "$( ip -o -4 addr list | grep "$( nvram get "wan1_pppoe_ifname" | sed 's/ /\n/g' | sed -n 1p )" | awk '{print $6}' )"

@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_initialize_config.sh v3.8.8
+# lz_initialize_config.sh v3.8.9
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 初始化脚本配置
@@ -2311,7 +2311,7 @@ lz_read_config_param() {
 
     local_wan_2_domain_file="$( lz_get_file_cache_data "wan_2_domain_file" "\"${PATH_DATA}/wan_2_domain.txt\"" )" && local_exist="0"
 
-    if ! dnsmasq -v 2> /dev/null | grep -w 'ipset' | grep -qvw "no\-ipset"; then
+    if ! dnsmasq -v 2> /dev/null | grep -w 'ipset' | grep -qvw 'no[\-]ipset'; then
         [ "${local_wan_1_domain}" = "0" ] && local_wan_1_domain="5" && local_exist="0"
         [ "${local_wan_2_domain}" = "0" ] && local_wan_2_domain="5" && local_exist="0"
     fi
@@ -2992,7 +2992,7 @@ lz_read_box_data() {
 
     local_ini_wan_2_domain_file="$( lz_get_file_cache_data "lz_config_wan_2_domain_file" "\"${PATH_DATA}/wan_2_domain.txt\"" )" && local_exist="0"
 
-    if ! dnsmasq -v 2> /dev/null | grep -w 'ipset' | grep -qvw "no\-ipset"; then
+    if ! dnsmasq -v 2> /dev/null | grep -w 'ipset' | grep -qvw 'no[\-]ipset'; then
         [ "${local_ini_wan_1_domain}" = "0" ] && local_ini_wan_1_domain="5" && local_exist="0"
         [ "${local_ini_wan_2_domain}" = "0" ] && local_ini_wan_2_domain="5" && local_exist="0"
     fi

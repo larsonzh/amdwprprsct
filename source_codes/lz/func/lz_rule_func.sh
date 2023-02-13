@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v3.8.8
+# lz_rule_func.sh v3.8.9
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 #BEIGIN
@@ -707,7 +707,7 @@ lz_get_route_info() {
     fi
 
     ## 输出显示路由器NVRAM使用情况
-    local local_nvram_usage="$( nvram show 2>&1 | grep -Eio 'size: [0-9]+ bytes \([0-9]+ left\)' | awk '{print $2" \/ "substr($4,2)+$2,$3}' | sed -n 1p )"
+    local local_nvram_usage="$( nvram show 2>&1 | grep -Eio "size: [0-9]+ bytes [\(][0-9]+ left[\)]" | awk '{print $2" \/ "substr($4,2)+$2,$3}' | sed -n 1p )"
     if [ -n "${local_nvram_usage}" ]; then
         echo "$(lzdate)" [$$]: "   NVRAM usage: ${local_nvram_usage}" | tee -ai "${SYSLOG}" 2> /dev/null
     fi
@@ -789,7 +789,7 @@ lz_get_route_info() {
         else
             echo "$(lzdate)" [$$]: "   Route Policy Mode: Mode 3" | tee -ai "${SYSLOG}" 2> /dev/null
         fi
-        if dnsmasq -v 2> /dev/null | grep -w 'ipset' | grep -qvw "no\-ipset"; then
+        if dnsmasq -v 2> /dev/null | grep -w 'ipset' | grep -qvw "no[\-]ipset"; then
             echo "$(lzdate)" [$$]: "   Route Domain Policy: Enable" | tee -ai "${SYSLOG}" 2> /dev/null
         else
             echo "$(lzdate)" [$$]: "   Route Domain Policy: Disable" | tee -ai "${SYSLOG}" 2> /dev/null
@@ -814,8 +814,8 @@ lz_get_route_info() {
     fi
     echo "$(lzdate)" [$$]: ---------------------------------------- | tee -ai "${SYSLOG}" 2> /dev/null
 
-    route_local_ip="$( echo "${route_local_ip}" | grep -Eo "([0-9]{1,3}[\.]){3}[0-9]{1,3}" )"
-    route_local_ip_mask="$( echo "${route_local_ip_mask}" | grep -Eo "([0-9]{1,3}[\.]){3}[0-9]{1,3}" )"
+    route_local_ip="$( echo "${route_local_ip}" | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}' )"
+    route_local_ip_mask="$( echo "${route_local_ip_mask}" | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}' )"
 }
 
 ## 处理系统负载均衡分流策略规则函数
@@ -1434,7 +1434,7 @@ lz_data_cleaning() {
         ## 获取系统原生第一WAN口的接口ID标识
         local local_udpxy_wan1_dev="$( nvram get "wan0_ifname" | grep -Eo 'vlan[0-9]*|eth[0-9]*' | sed -n 1p )"
         local local_igmp_proxy_conf_name="$( echo "${IGMP_PROXY_CONF_NAME}" | sed 's/[\.]conf.*$//' )"
-        local local_igmp_proxy_started="$( ps | grep "\/usr\/sbin\/igmpproxy" | grep "${PATH_TMP}\/${local_igmp_proxy_conf_name}" )"
+        local local_igmp_proxy_started="$( ps | grep "/usr/sbin/igmpproxy" | grep "${PATH_TMP}/${local_igmp_proxy_conf_name}" )"
         if [ -n "${local_igmp_proxy_started}" ]; then
             killall "igmpproxy" > /dev/null 2>&1
             sleep "1s"
@@ -1629,7 +1629,7 @@ lz_clear_interface_scripts() {
 
     ## 清除脚本生成的IGMP代理配置文件
     [ -f "${PATH_TMP}/${IGMP_PROXY_CONF_NAME}" ] && \
-        ! ip route show table "${LZ_IPTV}" | grep -q "default" && \
+        ! ip route show table "${LZ_IPTV}" | grep -qw 'default' && \
         rm -f "${PATH_TMP}/${IGMP_PROXY_CONF_NAME}" > /dev/null 2>&1
 
     ## 清除更新ISP网络运营商CIDR网段数据的脚本文件
@@ -1749,21 +1749,21 @@ flock -x "${LOCK_FILE_ID}"  > /dev/null 2>&1
 [ ! -d "${PATH_TMP_DATA}" ] && mkdir -p "${PATH_TMP_DATA}"
 
 ## 删除临时下载目录中的所有文件
-rm -rf "${PATH_TMP_DATA}"/* > /dev/null 2>&1
+rm -f "${PATH_TMP_DATA}/"* > /dev/null 2>&1
 
 ## 创建ISP网络运营商CIDR网段数据文件URL列表
 cat > "${PATH_TMP_DATA}/${ISPIP_FILE_URL_LIST}" <<EOF
-${ISP_DATA_0}
-${ISP_DATA_1}
-${ISP_DATA_2}
-${ISP_DATA_3}
-${ISP_DATA_4}
-${ISP_DATA_6}
-${ISP_DATA_5}
-${ISP_DATA_7}
-${ISP_DATA_8}
-${ISP_DATA_9}
-${ISP_DATA_10}
+${ISP_DATA_0#*lz_}
+${ISP_DATA_1#*lz_}
+${ISP_DATA_2#*lz_}
+${ISP_DATA_3#*lz_}
+${ISP_DATA_4#*lz_}
+${ISP_DATA_6#*lz_}
+${ISP_DATA_5#*lz_}
+${ISP_DATA_7#*lz_}
+${ISP_DATA_8#*lz_}
+${ISP_DATA_9#*lz_}
+${ISP_DATA_10#*lz_}
 EOF
 
 ## 下载及更新成功标志
@@ -1776,16 +1776,10 @@ if [ "\${dl_succeed}" = "1" ]; then
     retry_limit="\$(( retry_count + ${ruid_retry_num} ))"
     while [ "\${retry_count}" -le "\${retry_limit}" ]
     do
-        [ ! -f "${PATH_DATA}/cookies.isp" ] && COOKIES_STR="--save-cookies=${PATH_DATA}/cookies.isp" || COOKIES_STR="--load-cookies=${PATH_DATA}/cookies.isp"
-        eval "wget -nc -c --timeout=20 --random-wait --user-agent=\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.5304.88 Safari/537.36 Edg/108.0.1462.46\" --referer=${UPDATE_ISPIP_DATA_DOWNLOAD_URL} \${COOKIES_STR} --keep-session-cookies --no-check-certificate -P ${PATH_TMP_DATA} -B ${UPDATE_ISPIP_DATA_DOWNLOAD_URL} -i ${PATH_TMP_DATA}/${ISPIP_FILE_URL_LIST}"
-        [ ! -f "${PATH_DATA}/cookies.isp" ] && COOKIES_STR="--save-cookies=${PATH_DATA}/cookies.isp" || COOKIES_STR="--load-cookies=${PATH_DATA}/cookies.isp"
-        eval "wget -q -nc -c --timeout=20 --random-wait --user-agent=\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.5304.88 Safari/537.36 Edg/108.0.1462.46\" --referer=${UPDATE_ISPIP_DATA_DOWNLOAD_URL} \${COOKIES_STR} --keep-session-cookies --no-check-certificate -P ${PATH_TMP_DATA} -B ${UPDATE_ISPIP_DATA_DOWNLOAD_URL} -i ${PATH_TMP_DATA}/${ISPIP_FILE_URL_LIST}"
         for isp_file_name in \$( awk '/_cidr\.txt/ {print \$1}' "${PATH_TMP_DATA}/${ISPIP_FILE_URL_LIST}" 2> /dev/null )
         do
-            [ -f "${PATH_TMP_DATA}/\${isp_file_name}" ] && continue
             [ ! -f "${PATH_DATA}/cookies.isp" ] && COOKIES_STR="--save-cookies=${PATH_DATA}/cookies.isp" || COOKIES_STR="--load-cookies=${PATH_DATA}/cookies.isp"
             eval "wget -nc -c --timeout=20 --random-wait --user-agent=\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.5304.88 Safari/537.36 Edg/108.0.1462.46\" --referer=${UPDATE_ISPIP_DATA_DOWNLOAD_URL} \${COOKIES_STR} --keep-session-cookies --no-check-certificate -O ${PATH_TMP_DATA}/lz_\${isp_file_name} ${UPDATE_ISPIP_DATA_DOWNLOAD_URL}/\${isp_file_name}"
-            [ -f "${PATH_TMP_DATA}/lz_\${isp_file_name}" ] && mv -f "${PATH_TMP_DATA}/lz_\${isp_file_name}" "${PATH_TMP_DATA}/\${isp_file_name}" > /dev/null 2>&1
         done
         if [ "\$( find "${PATH_TMP_DATA}" -name "*_cidr.txt" -print0 2> /dev/null | awk '{} END{print NR}' )" -ge "\$(( ${ISP_TOTAL} + 1 ))" ]; then
             dl_succeed="1"
@@ -1801,6 +1795,8 @@ fi
 if [ "\${dl_succeed}" = "1" ]; then
     echo "\$(lzdate)" [\$\$]: LZ "${LZ_VERSION}" download the ISP IP data files successfully. | tee -ai "${SYSLOG}" 2> /dev/null
 
+    awk '/_cidr[\.]txt/ {system("rm -f ${PATH_DATA}/"\$1" > /dev/null 2>&1")}' "${PATH_TMP_DATA}/${ISPIP_FILE_URL_LIST}" 2> /dev/null
+
     ## 将新下载的ISP网络运营商CIDR网段数据文件移动至目标文件夹
     mv -f "${PATH_TMP_DATA}"/*"_cidr.txt" "${PATH_DATA}" > /dev/null 2>&1 && dl_succeed="1" || {
         dl_succeed="0"
@@ -1812,7 +1808,7 @@ fi
 
 ## 删除临时下载目录中的所有文件
 echo "\$(lzdate)" [\$\$]: LZ "${LZ_VERSION}" remove the temporary files. | tee -ai "${SYSLOG}" 2> /dev/null
-rm -rf "${PATH_TMP_DATA}"/* > /dev/null 2>&1
+rm -f "${PATH_TMP_DATA}"/* > /dev/null 2>&1
 
 ## 解除文件同步锁
 flock -u "${LOCK_FILE_ID}" > /dev/null 2>&1
@@ -1953,17 +1949,17 @@ lz_create_update_ispip_data_file() {
             lz_create_update_ispip_data_scripts_file
         else
             ## 路径改变
-            local_write_scripts="$( grep "rm -f \"${PATH_TMP_DATA}\"/\* > /dev/null 2>&1" "${PATH_LZ}/${UPDATE_FILENAME}" )"
+            local_write_scripts="$( grep "rm -f [\"]${PATH_TMP_DATA}[\"]/[\*] > /dev/null 2>&1" "${PATH_LZ}/${UPDATE_FILENAME}" )"
             if [ -z "${local_write_scripts}" ]; then
                 lz_create_update_ispip_data_scripts_file
             else
                 ## 下载站点改变
-                local_write_scripts="$( grep "## 去苍狼山庄（${UPDATE_ISPIP_DATA_DOWNLOAD_URL}/）下载ISP网络运营商CIDR网段数据文件" "${PATH_LZ}/${UPDATE_FILENAME}" )"
+                local_write_scripts="$( grep "[\-][\-]referer=${UPDATE_ISPIP_DATA_DOWNLOAD_URL}" "${PATH_LZ}/${UPDATE_FILENAME}" )"
                 if [ -z "${local_write_scripts}" ]; then
                     lz_create_update_ispip_data_scripts_file
                 else
                     ## 定时更新失败后重试次数改变
-                    local_write_scripts="$( grep "retry_limit=\$(( retry_count + ${ruid_retry_num} ))" "${PATH_LZ}/${UPDATE_FILENAME}" )"
+                    local_write_scripts="$( grep "retry_limit=[\"][\$][\(][\(] retry_count + ${ruid_retry_num} [\)][\)]" "${PATH_LZ}/${UPDATE_FILENAME}" )"
                     if [ -z "${local_write_scripts}" ]; then
                         lz_create_update_ispip_data_scripts_file
                     fi
@@ -2952,7 +2948,7 @@ lz_setup_custom_data_policy() {
 lz_initialize_ip_data_policy() {
     ## 获取路由器本地IP地址和本地网络掩码位数
     local local_ipv4_cidr_mask="0"
-    local local_route_local_ip_mask="$( echo "${route_local_ip_mask}" | grep -E "([0-9]{1,3}[\.]){3}[0-9]{1,3}" )"
+    local local_route_local_ip_mask="$( echo "${route_local_ip_mask}" | grep -E '([0-9]{1,3}[\.]){3}[0-9]{1,3}' )"
     if [ -n "${local_route_local_ip_mask}" ]; then
         ## ipv4网络掩码转换至掩码位函数
         ## 输入项：
@@ -3359,13 +3355,13 @@ lz_initialize_ip_data_policy() {
     fi
 
     ## 获取WAN口的DNS解析服务器网址
-    local local_isp_dns="$( nvram get "wan0_dns" | sed 's/ /\n/g' | grep -v "0.0.0.0" | grep -v "127.0.0.1" | sed -n 1p )"
+    local local_isp_dns="$( nvram get "wan0_dns" | sed 's/ /\n/g' | grep -v '0[\.]0[\.]0[\.]0' | grep -v '127[\.]0[\.]0[\.]1' | sed -n 1p )"
     local local_ifip_wan0_dns1="$( echo "${local_isp_dns}" | grep -E '([0-9]{1,3}[\.]){3}[0-9]{1,3}' )"
-    local_isp_dns="$( nvram get "wan0_dns" | sed 's/ /\n/g' | grep -v "0.0.0.0" | grep -v "127.0.0.1" | sed -n 2p )"
+    local_isp_dns="$( nvram get "wan0_dns" | sed 's/ /\n/g' |grep -v '0[\.]0[\.]0[\.]0' | grep -v '127[\.]0[\.]0[\.]1' | sed -n 2p )"
     local local_ifip_wan0_dns2="$( echo "${local_isp_dns}" | grep -E '([0-9]{1,3}[\.]){3}[0-9]{1,3}' )"
-    local_isp_dns="$( nvram get "wan1_dns" | sed 's/ /\n/g' | grep -v "0.0.0.0" | grep -v "127.0.0.1" | sed -n 1p )"
+    local_isp_dns="$( nvram get "wan1_dns" | sed 's/ /\n/g' | grep -v '0[\.]0[\.]0[\.]0' | grep -v '127[\.]0[\.]0[\.]1' | sed -n 1p )"
     local local_ifip_wan1_dns1="$( echo "${local_isp_dns}" | grep -E '([0-9]{1,3}[\.]){3}[0-9]{1,3}' )"
-    local_isp_dns="$( nvram get "wan1_dns" | sed 's/ /\n/g' | grep -v "0.0.0.0" | grep -v "127.0.0.1" | sed -n 2p )"
+    local_isp_dns="$( nvram get "wan1_dns" | sed 's/ /\n/g' | grep -v '0[\.]0[\.]0[\.]0' | grep -v '127[\.]0[\.]0[\.]1' | sed -n 2p )"
     local local_ifip_wan1_dns2="$( echo "${local_isp_dns}" | grep -E '([0-9]{1,3}[\.]){3}[0-9]{1,3}' )"
 
     local local_wan_ip=
@@ -3903,7 +3899,7 @@ EOF_OVPN_SCRIPTS_A
     while [ -f "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}" ]
     do
         ## 事件处理脚本内容为空
-        if ! echo "${local_openvpn_event_interface_scripts}" | grep -q "awk \'\/pptp\|tap\|tun\|wgs\/ {print"; then
+        if ! echo "${local_openvpn_event_interface_scripts}" | grep -q "awk [\'][\/]pptp[\|]tap[\|]tun[\|]wgs[\/] {print"; then
             ## 更新openvpn-event事件触发脚本
             ## 输入项：
             ##     $1--openvpn-event事件触发接口文件路径名
@@ -3921,7 +3917,7 @@ EOF_OVPN_SCRIPTS_A
         fi
 
         ## 优先级发生改变
-        if ! echo "${local_openvpn_event_interface_scripts}" | grep -q "== \"${IP_RULE_PRIO_VPN}\" {system(\"ip rule del prio"; then
+        if ! echo "${local_openvpn_event_interface_scripts}" | grep -q "== [\"]${IP_RULE_PRIO_VPN}[\"] [\{]system[\(][\"]ip rule del prio"; then
             llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
             break
         fi
@@ -3930,26 +3926,26 @@ EOF_OVPN_SCRIPTS_A
         if [ "${ovs_client_wan_port}" != "0" ] && [ "${ovs_client_wan_port}" != "1" ]; then
             ## 改变至按网段分流规则匹配出口
             ## 取消第一WAN口作为固定流量出口
-            if echo "${local_openvpn_event_interface_scripts}" | grep -q "ip rule add from \"\$1\" table ${WAN0} prio ${IP_RULE_PRIO_VPN}"; then
+            if echo "${local_openvpn_event_interface_scripts}" | grep -q "ip rule add from [\"][\$]1[\"] table ${WAN0} prio ${IP_RULE_PRIO_VPN}"; then
                 llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
                 break
             fi
 
             ## 取消第二WAN口作为固定流量出口
-            if echo "${local_openvpn_event_interface_scripts}" | grep -q "ip rule add from \"\$1\" table ${WAN1} prio ${IP_RULE_PRIO_VPN}"; then
+            if echo "${local_openvpn_event_interface_scripts}" | grep -q "ip rule add from [\"][\$]1[\"] table ${WAN1} prio ${IP_RULE_PRIO_VPN}"; then
                 llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
                 break
             fi
 
             if [ "${usage_mode}" != "0" ]; then
                 ## 静态模式时，需要阻止系统负载均衡为虚拟专网客户端分配访问外网出口
-                if ! echo "${local_openvpn_event_interface_scripts}" | grep -q "ipset -q -n list \"${BALANCE_IP_SET}\""; then
+                if ! echo "${local_openvpn_event_interface_scripts}" | grep -q "ipset -q -n list [\"]${BALANCE_IP_SET}[\"]"; then
                     llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
                     break
                 fi
             else
                 ## 动态模式时，虚拟专网客户端按网段分配访问外网出口
-                if echo "${local_openvpn_event_interface_scripts}" | grep -q "ipset -q -n list \"${BALANCE_IP_SET}\""; then
+                if echo "${local_openvpn_event_interface_scripts}" | grep -q "ipset -q -n list [\"]${BALANCE_IP_SET}[\"]"; then
                     llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
                     break
                 fi
@@ -3959,30 +3955,30 @@ EOF_OVPN_SCRIPTS_A
             ## 指定WAN口改变
             local local_ovs_client_wan="${WAN0}"
             [ "${ovs_client_wan_port}" = "1" ] && local_ovs_client_wan="${WAN1}"
-            if ! echo "${local_openvpn_event_interface_scripts}" | grep -q "ip rule add from \"\$1\" table ${local_ovs_client_wan} prio ${IP_RULE_PRIO_VPN}"; then
+            if ! echo "${local_openvpn_event_interface_scripts}" | grep -q "ip rule add from [\"][\$]1[\"] table ${local_ovs_client_wan} prio ${IP_RULE_PRIO_VPN}"; then
                 llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
                 break
             fi
 
             ## 阻止系统负载均衡为虚拟专网客户端分配访问外网的出口
-            if ! echo "${local_openvpn_event_interface_scripts}" | grep -q "ipset -q -n list \"${BALANCE_IP_SET}\""; then
+            if ! echo "${local_openvpn_event_interface_scripts}" | grep -q "ipset -q -n list [\"]${BALANCE_IP_SET}[\"]"; then
                 llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
                 break
             fi
         fi
 
         ## 动态分流模式时，需要阻止由系统通过负载均衡为虚拟专网客户端分配访问外网的出口
-        if ! echo "${local_openvpn_event_interface_scripts}" | grep -q "ipset -q -n list \"${LOCAL_IP_SET}\""; then
+        if ! echo "${local_openvpn_event_interface_scripts}" | grep -q "ipset -q -n list [\"]${LOCAL_IP_SET}[\"]"; then
             llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
             break
         else
             if [ "${ovs_client_wan_port}" = "0" ] || [ "${ovs_client_wan_port}" = "1" ]; then
-                if ! echo "${local_openvpn_event_interface_scripts}" | grep -q "\"-! add ${LOCAL_IP_SET} \"\$1\}"; then
+                if ! echo "${local_openvpn_event_interface_scripts}" | grep -q "[\"][\-][\!] add ${LOCAL_IP_SET} [\"][\$]1\}"; then
                     llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
                     break
                 fi
             else
-                if echo "${local_openvpn_event_interface_scripts}" | grep -q "\"-! add ${LOCAL_IP_SET} \"\$1\}"; then
+                if echo "${local_openvpn_event_interface_scripts}" | grep -q "[\"][\-][\!] add ${LOCAL_IP_SET} [\"][\$]1\}"; then
                     llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
                     break
                 fi
@@ -3990,7 +3986,7 @@ EOF_OVPN_SCRIPTS_A
         fi
 
         ## 阻止系统负载均衡对访问虚拟专网客户端的流量分配出口
-        if ! echo "${local_openvpn_event_interface_scripts}" | grep -q "ipset -q -n list \"${BALANCE_GUARD_IP_SET}\""; then
+        if ! echo "${local_openvpn_event_interface_scripts}" | grep -q "ipset -q -n list [\"]${BALANCE_GUARD_IP_SET}[\"]"; then
             llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
             break
         fi
@@ -5394,9 +5390,9 @@ lz_deployment_routing_policy() {
 
     if [ "${udpxy_used}" = "0" ]; then
         local local_igmp_proxy_conf_name="$( echo "${IGMP_PROXY_CONF_NAME}" | sed 's/[\.]conf.*$//' )"
-        local local_igmp_proxy_started="$( ps | grep "\/usr\/sbin\/igmpproxy" | grep "${PATH_TMP}\/${local_igmp_proxy_conf_name}" )"
-        local local_udpxy_wan1_started="$( ps | grep "\/usr\/sbin\/udpxy" | grep "\-m ${local_udpxy_wan1_dev} \-p ${wan1_udpxy_port} \-B ${wan1_udpxy_buffer} \-c ${wan1_udpxy_client_num}" )"
-        local local_udpxy_wan2_started="$( ps | grep "\/usr\/sbin\/udpxy" | grep "\-m ${local_udpxy_wan2_dev} \-p ${wan2_udpxy_port} \-B ${wan2_udpxy_buffer} \-c ${wan2_udpxy_client_num}" )"
+        local local_igmp_proxy_started="$( ps | grep "/usr/sbin/igmpproxy" | grep "${PATH_TMP}/${local_igmp_proxy_conf_name}" )"
+        local local_udpxy_wan1_started="$( ps | grep "/usr/sbin/udpxy" | grep "[\-]m ${local_udpxy_wan1_dev} [\-]p ${wan1_udpxy_port} [\-]B ${wan1_udpxy_buffer} [\-]c ${wan1_udpxy_client_num}" )"
+        local local_udpxy_wan2_started="$( ps | grep "/usr/sbin/udpxy" | grep "[\-]m ${local_udpxy_wan2_dev} [\-]p ${wan2_udpxy_port} [\-]B ${wan2_udpxy_buffer} [\-]c ${wan2_udpxy_client_num}" )"
         [ "${local_wan1_igmp_start}" = "1" ] && {
             if [ -n "${local_igmp_proxy_started}" ]; then
                 echo "$(lzdate)" [$$]: IGMP service in Primary WAN \( "${local_udpxy_wan1_dev}" \) has been started. | tee -ai "${SYSLOG}" 2> /dev/null
@@ -5500,9 +5496,9 @@ exec ${LOCK_FILE_ID}<>"${LOCK_FILE}"; flock -x "${LOCK_FILE_ID}" > /dev/null 2>&
 lzdate() { eval echo "\$( date +"%F %T" )"; }
 
 ipset -q destroy "${VPN_CLIENT_DAEMON_IP_SET_LOCK}"
-ps | grep "${VPN_CLIENT_DAEMON}" | grep -v "grep" | awk '{print \$1}' | xargs kill -9 > /dev/null 2>&1
+ps | grep "${VPN_CLIENT_DAEMON}" | grep -v 'grep' | awk '{print \$1}' | xargs kill -9 > /dev/null 2>&1
 sleep "1s"
-! ps | grep "${VPN_CLIENT_DAEMON}" | grep -qv "grep" && {
+! ps | grep "${VPN_CLIENT_DAEMON}" | grep -qv 'grep' && {
     cru d "${START_DAEMON_TIMEER_ID}" > /dev/null 2>&1
     nohup /bin/sh "${PATH_FUNC}/${VPN_CLIENT_DAEMON}" "${vpn_client_polling_time}" > /dev/null 2>&1 &
     sleep "1s"
@@ -5530,7 +5526,7 @@ EOF_START_DAEMON_SCRIPT
         fi
     fi
 
-    if ps | grep "${VPN_CLIENT_DAEMON}" | grep -qv "grep"; then
+    if ps | grep "${VPN_CLIENT_DAEMON}" | grep -qv 'grep'; then
         {
             echo "$(lzdate)" [$$]: The VPN client route daemon has been started.
             echo "$(lzdate)" [$$]: ----------------------------------------
@@ -5764,9 +5760,9 @@ lz_start_single_net_iptv_box_services() {
     ## 输出IPTV服务信息
     if [ "${udpxy_used}" = "0" ]; then
         local local_igmp_proxy_conf_name="$( echo "${IGMP_PROXY_CONF_NAME}" | sed 's/[\.]conf.*$//' )"
-        local local_igmp_proxy_started="$( ps | grep "\/usr\/sbin\/igmpproxy" | grep "${PATH_TMP}\/${local_igmp_proxy_conf_name}" )"
-        local local_udpxy_wan1_started="$( ps | grep "\/usr\/sbin\/udpxy" | grep "\-m ${iptv_wan0_ifname} \-p ${wan1_udpxy_port} \-B ${wan1_udpxy_buffer} \-c ${wan1_udpxy_client_num}" )"
-        local local_udpxy_wan2_started="$( ps | grep "\/usr\/sbin\/udpxy" | grep "\-m ${iptv_wan1_ifname} \-p ${wan2_udpxy_port} \-B ${wan2_udpxy_buffer} \-c ${wan2_udpxy_client_num}" )"
+        local local_igmp_proxy_started="$( ps | grep "/usr/sbin/igmpproxy" | grep "${PATH_TMP}/${local_igmp_proxy_conf_name}" )"
+        local local_udpxy_wan1_started="$( ps | grep "/usr/sbin/udpxy" | grep "[\-]m ${iptv_wan0_ifname} [\-]p ${wan1_udpxy_port} [\-]B ${wan1_udpxy_buffer} [\-]c ${wan1_udpxy_client_num}" )"
+        local local_udpxy_wan2_started="$( ps | grep "/usr/sbin/udpxy" | grep "[\-]m ${iptv_wan1_ifname} [\-]p ${wan2_udpxy_port} [\-]B ${wan2_udpxy_buffer} [\-]c ${wan2_udpxy_client_num}" )"
         [ "${local_wan_igmp_start}" = "1" ] && {
             if [ -n "${local_igmp_proxy_started}" ]; then
                 echo "$(lzdate)" [$$]: IGMP service \( "${iptv_interface_id}" \) has been started. | tee -ai "${SYSLOG}" 2> /dev/null

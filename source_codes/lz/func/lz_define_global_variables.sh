@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_define_global_variables.sh v3.8.8
+# lz_define_global_variables.sh v3.8.9
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 # QnkgTFog5aaZ5aaZ5ZGc77yI6Juk6J+G5aKp5YS/77yJ（首次运行标识，切勿修改）
 
@@ -60,17 +60,17 @@ UPDATE_ISPIP_DATA_DOWNLOAD_URL="https://ispip.clang.cn"
 ISPIP_FILE_URL_LIST="ispip_file_url_lst.txt"
 
 ## ISP网络运营商CIDR网段数据文件名（短文件名）
-ISP_DATA_0="all_cn_cidr.txt"
-ISP_DATA_1="chinatelecom_cidr.txt"
-ISP_DATA_2="unicom_cnc_cidr.txt"
-ISP_DATA_3="cmcc_cidr.txt"
-ISP_DATA_4="crtc_cidr.txt"
-ISP_DATA_5="cernet_cidr.txt"
-ISP_DATA_6="gwbn_cidr.txt"
-ISP_DATA_7="othernet_cidr.txt"
-ISP_DATA_8="hk_cidr.txt"
-ISP_DATA_9="mo_cidr.txt"
-ISP_DATA_10="tw_cidr.txt"
+ISP_DATA_0="lz_all_cn_cidr.txt"
+ISP_DATA_1="lz_chinatelecom_cidr.txt"
+ISP_DATA_2="lz_unicom_cnc_cidr.txt"
+ISP_DATA_3="lz_cmcc_cidr.txt"
+ISP_DATA_4="lz_crtc_cidr.txt"
+ISP_DATA_5="lz_cernet_cidr.txt"
+ISP_DATA_6="lz_gwbn_cidr.txt"
+ISP_DATA_7="lz_othernet_cidr.txt"
+ISP_DATA_8="lz_hk_cidr.txt"
+ISP_DATA_9="lz_mo_cidr.txt"
+ISP_DATA_10="lz_tw_cidr.txt"
 
 ## 国内ISP网络运营商总数
 ISP_TOTAL="10"

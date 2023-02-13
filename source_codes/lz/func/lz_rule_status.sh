@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_status.sh v3.8.8
+# lz_rule_status.sh v3.8.9
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 显示脚本运行状态脚本
@@ -33,17 +33,17 @@ lz_define_status_constant() {
     STATUS_ISP_TOTAL=10
 
     ## ISP网络运营商CIDR网段数据文件名（短文件名）
-    STATUS_ISP_DATA_0="all_cn_cidr.txt"
-    STATUS_ISP_DATA_1="chinatelecom_cidr.txt"
-    STATUS_ISP_DATA_2="unicom_cnc_cidr.txt"
-    STATUS_ISP_DATA_3="cmcc_cidr.txt"
-    STATUS_ISP_DATA_4="crtc_cidr.txt"
-    STATUS_ISP_DATA_5="cernet_cidr.txt"
-    STATUS_ISP_DATA_6="gwbn_cidr.txt"
-    STATUS_ISP_DATA_7="othernet_cidr.txt"
-    STATUS_ISP_DATA_8="hk_cidr.txt"
-    STATUS_ISP_DATA_9="mo_cidr.txt"
-    STATUS_ISP_DATA_10="tw_cidr.txt"
+    STATUS_ISP_DATA_0="lz_all_cn_cidr.txt"
+    STATUS_ISP_DATA_1="lz_chinatelecom_cidr.txt"
+    STATUS_ISP_DATA_2="lz_unicom_cnc_cidr.txt"
+    STATUS_ISP_DATA_3="lz_cmcc_cidr.txt"
+    STATUS_ISP_DATA_4="lz_crtc_cidr.txt"
+    STATUS_ISP_DATA_5="lz_cernet_cidr.txt"
+    STATUS_ISP_DATA_6="lz_gwbn_cidr.txt"
+    STATUS_ISP_DATA_7="lz_othernet_cidr.txt"
+    STATUS_ISP_DATA_8="lz_hk_cidr.txt"
+    STATUS_ISP_DATA_9="lz_mo_cidr.txt"
+    STATUS_ISP_DATA_10="lz_tw_cidr.txt"
 
     STATUS_CUSTOM_PREROUTING_CHAIN="LZPRTING"
     STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN="LZPRCNMK"
@@ -504,7 +504,7 @@ lz_read_box_data_status() {
 
     status_wan_2_domain="$( lz_get_file_cache_data_status "lz_config_wan_2_domain" "5" )"
 
-    if ! dnsmasq -v 2> /dev/null | grep -w 'ipset' | grep -qvw "no\-ipset"; then
+    if ! dnsmasq -v 2> /dev/null | grep -w 'ipset' | grep -qvw 'no[\-]ipset'; then
         [ "${status_wan_1_domain}" = "0" ] && status_wan_1_domain="5"
         [ "${status_wan_2_domain}" = "0" ] && status_wan_2_domain="5"
     fi
@@ -1092,7 +1092,7 @@ lz_get_route_status_info() {
     fi
 
     ## 输出显示路由器NVRAM使用情况
-    local local_nvram_usage="$( nvram show 2>&1 | grep -Eio 'size: [0-9]+ bytes \([0-9]+ left\)' | awk '{print $2" \/ "substr($4,2)+$2,$3}' | sed -n 1p )"
+    local local_nvram_usage="$( nvram show 2>&1 | grep -Eio "size: [0-9]+ bytes [\(][0-9]+ left[\)]" | awk '{print $2" \/ "substr($4,2)+$2,$3}' | sed -n 1p )"
     if [ -n "${local_nvram_usage}" ]; then
         echo "$(lzdate)" [$$]: "   NVRAM usage: ${local_nvram_usage}"
     fi
@@ -1173,7 +1173,7 @@ lz_get_route_status_info() {
         else
             echo "$(lzdate)" [$$]: "   Route Policy Mode: Mode 3"
         fi
-        if dnsmasq -v 2> /dev/null | grep -w 'ipset' | grep -qvw "no\-ipset"; then
+        if dnsmasq -v 2> /dev/null | grep -w 'ipset' | grep -qvw 'no[\-]ipset'; then
             echo "$(lzdate)" [$$]: "   Route Domain Policy: Enable"
         else
             echo "$(lzdate)" [$$]: "   Route Domain Policy: Disable"
@@ -1886,9 +1886,9 @@ lz_show_iptv_function_status() {
     [ "${status_wan2_udpxy_switch}" = "0" ] && local_wan2_udpxy_start="1"
 
     local local_igmp_proxy_conf_name="$( echo "${STATUS_IGMP_PROXY_CONF_NAME}" | sed 's/[\.]conf.*$//' )"
-    local local_igmp_proxy_started="$( ps | grep "\/usr\/sbin\/igmpproxy" | grep "${STATUS_PATH_TMP}\/${local_igmp_proxy_conf_name}" )"
-    local local_udpxy_wan1_started="$( ps | grep "\/usr\/sbin\/udpxy" | grep "\-m ${local_udpxy_wan1_dev} \-p ${status_wan1_udpxy_port} \-B ${status_wan1_udpxy_buffer} \-c ${status_wan1_udpxy_client_num}" )"
-    local local_udpxy_wan2_started="$( ps | grep "\/usr\/sbin\/udpxy" | grep "\-m ${local_udpxy_wan2_dev} \-p ${status_wan2_udpxy_port} \-B ${status_wan2_udpxy_buffer} \-c ${status_wan2_udpxy_client_num}" )"
+    local local_igmp_proxy_started="$( ps | grep "/usr/sbin/igmpproxy" | grep "${STATUS_PATH_TMP}/${local_igmp_proxy_conf_name}" )"
+    local local_udpxy_wan1_started="$( ps | grep "/usr/sbin/udpxy" | grep "[\-]m ${local_udpxy_wan1_dev} [\-]p ${status_wan1_udpxy_port} [\-]B ${status_wan1_udpxy_buffer} [\-]c ${status_wan1_udpxy_client_num}" )"
+    local local_udpxy_wan2_started="$( ps | grep "/usr/sbin/udpxy" | grep "[\-]m ${local_udpxy_wan2_dev} [\-]p ${status_wan2_udpxy_port} [\-]B ${status_wan2_udpxy_buffer} [\-]c ${status_wan2_udpxy_client_num}" )"
     [ "${local_wan1_igmp_start}" = "1" ] && {
         if [ -n "${local_igmp_proxy_started}" ]; then
             echo "$(lzdate)" [$$]: IGMP service in Primary WAN \( "${local_udpxy_wan1_dev}" \) has been started.
@@ -2088,9 +2088,9 @@ lz_show_single_net_iptv_status() {
     [ "${status_wan2_udpxy_switch}" = "0" ] && [ -n "${iptv_wan1_ifname}" ] && local_wan2_udpxy_start="1"
 
     local local_igmp_proxy_conf_name="$( echo "${STATUS_IGMP_PROXY_CONF_NAME}" | sed 's/[\.]conf.*$//' )"
-    local local_igmp_proxy_started="$( ps | grep "\/usr\/sbin\/igmpproxy" | grep "${STATUS_PATH_TMP}\/${local_igmp_proxy_conf_name}" )"
-    local local_udpxy_wan1_started="$( ps | grep "\/usr\/sbin\/udpxy" | grep "\-m ${iptv_wan0_ifname} \-p ${status_wan1_udpxy_port} \-B ${status_wan1_udpxy_buffer} \-c ${status_wan1_udpxy_client_num}" )"
-    local local_udpxy_wan2_started="$( ps | grep "\/usr\/sbin\/udpxy" | grep "\-m ${iptv_wan1_ifname} \-p ${status_wan2_udpxy_port} \-B ${status_wan2_udpxy_buffer} \-c ${status_wan2_udpxy_client_num}" )"
+    local local_igmp_proxy_started="$( ps | grep "/usr/sbin/igmpproxy" | grep "${STATUS_PATH_TMP}/${local_igmp_proxy_conf_name}" )"
+    local local_udpxy_wan1_started="$( ps | grep "/usr/sbin/udpxy" | grep "[\-]m ${iptv_wan0_ifname} [\-]p ${status_wan1_udpxy_port} [\-]B ${status_wan1_udpxy_buffer} [\-]c ${status_wan1_udpxy_client_num}" )"
+    local local_udpxy_wan2_started="$( ps | grep "/usr/sbin/udpxy" | grep "[\-]m ${iptv_wan1_ifname} [\-]p ${status_wan2_udpxy_port} [\-]B ${status_wan2_udpxy_buffer} [\-]c ${status_wan2_udpxy_client_num}" )"
     [ "${local_wan_igmp_start}" = "1" ] && {
         if [ -n "${local_igmp_proxy_started}" ]; then
             echo "$(lzdate)" [$$]: IGMP service \( "${iptv_interface_id}" \) has been started.

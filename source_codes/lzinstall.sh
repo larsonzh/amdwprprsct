@@ -1,5 +1,5 @@
 #!/bin/sh
-# lzinstall.sh v3.8.8
+# lzinstall.sh v3.8.9
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ script for asuswrt/merlin based router
@@ -9,7 +9,7 @@
 
 #BEIGIN
 
-LZ_VERSION=v3.8.8
+LZ_VERSION=v3.8.9
 TIMEOUT=10
 CURRENT_PATH="${0%/*}"
 [ "${CURRENT_PATH:0:1}" != '/' ] && CURRENT_PATH="$( pwd )${CURRENT_PATH#*.}"
@@ -29,7 +29,7 @@ lzdate() { eval echo "$( date +"%F %T" )"; }
 
 if [ -z "${USER}" ]; then
     {
-        echo "  The user name is empty and can\'t continue."
+        echo "  "The user name is empty and can\'t continue.
         echo -----------------------------------------------------------
         echo "  LZ script installation failed."
         echo -e "  $(lzdate)\n"
@@ -37,7 +37,7 @@ if [ -z "${USER}" ]; then
     exit 1
 elif [ "${USER}" = "root" ]; then
     {
-        echo "  The root user can\'t install this software."
+        echo "  "The root user can\'t install this software.
         echo "  Please log in with a different name."
         echo -----------------------------------------------------------
         echo "  LZ script installation failed."
@@ -64,7 +64,7 @@ if [ "${1}" = "entware" ]; then
     fi
     if [ -z "${AVAL_SPACE}" ]; then
         {
-            echo "  Entware can\'t be used or doesn\'t exist."
+            echo "  "Entware can\'t be used or doesn\'t exist.
             echo -----------------------------------------------------------
             echo "  LZ script installation failed."
             echo -e "  $(lzdate)\n"
