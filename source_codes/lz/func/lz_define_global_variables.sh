@@ -56,9 +56,6 @@ PATH_TMP_DATA="${PATH_TMP}/data"
 ## ISP网络运营商CIDR网段数据文件下载站点URL
 UPDATE_ISPIP_DATA_DOWNLOAD_URL="https://ispip.clang.cn"
 
-## ISP网络运营商CIDR网段数据文件URL列表文件名
-ISPIP_FILE_URL_LIST="ispip_file_url_lst.txt"
-
 ## ISP网络运营商CIDR网段数据文件名（短文件名）
 ISP_DATA_0="lz_all_cn_cidr.txt"
 ISP_DATA_1="lz_chinatelecom_cidr.txt"
