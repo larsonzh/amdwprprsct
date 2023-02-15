@@ -1751,20 +1751,8 @@ flock -x "${LOCK_FILE_ID}"  > /dev/null 2>&1
 ## 删除临时下载目录中的所有文件
 rm -f "${PATH_TMP_DATA}/"* > /dev/null 2>&1
 
-## 创建ISP网络运营商CIDR网段数据文件URL列表
-cat > "${PATH_TMP_DATA}/${ISPIP_FILE_URL_LIST}" <<EOF
-${ISP_DATA_0#*lz_}
-${ISP_DATA_1#*lz_}
-${ISP_DATA_2#*lz_}
-${ISP_DATA_3#*lz_}
-${ISP_DATA_4#*lz_}
-${ISP_DATA_6#*lz_}
-${ISP_DATA_5#*lz_}
-${ISP_DATA_7#*lz_}
-${ISP_DATA_8#*lz_}
-${ISP_DATA_9#*lz_}
-${ISP_DATA_10#*lz_}
-EOF
+## 创建ISP网络运营商CIDR网段数据文件列表
+ispip_file_list=\$( echo -e "${ISP_DATA_0#*lz_}\n${ISP_DATA_1#*lz_}\n${ISP_DATA_2#*lz_}\n${ISP_DATA_3#*lz_}\n${ISP_DATA_4#*lz_}\n${ISP_DATA_5#*lz_}\n${ISP_DATA_6#*lz_}\n${ISP_DATA_7#*lz_}\n${ISP_DATA_8#*lz_}\n${ISP_DATA_9#*lz_}\n${ISP_DATA_10#*lz_}" )
 
 ## 下载及更新成功标志
 dl_succeed="1"
@@ -1776,7 +1764,7 @@ if [ "\${dl_succeed}" = "1" ]; then
     retry_limit="\$(( retry_count + ${ruid_retry_num} ))"
     while [ "\${retry_count}" -le "\${retry_limit}" ]
     do
-        for isp_file_name in \$( awk '/_cidr\.txt/ {print \$1}' "${PATH_TMP_DATA}/${ISPIP_FILE_URL_LIST}" 2> /dev/null )
+        for isp_file_name in \${ispip_file_list}
         do
             [ ! -f "${PATH_DATA}/cookies.isp" ] && COOKIES_STR="--save-cookies=${PATH_DATA}/cookies.isp" || COOKIES_STR="--load-cookies=${PATH_DATA}/cookies.isp"
             eval "wget -nc -c --timeout=20 --random-wait --user-agent=\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.5304.88 Safari/537.36 Edg/108.0.1462.46\" --referer=${UPDATE_ISPIP_DATA_DOWNLOAD_URL} \${COOKIES_STR} --keep-session-cookies --no-check-certificate -O ${PATH_TMP_DATA}/lz_\${isp_file_name} ${UPDATE_ISPIP_DATA_DOWNLOAD_URL}/\${isp_file_name}"
@@ -1795,7 +1783,7 @@ fi
 if [ "\${dl_succeed}" = "1" ]; then
     echo "\$(lzdate)" [\$\$]: LZ "${LZ_VERSION}" download the ISP IP data files successfully. | tee -ai "${SYSLOG}" 2> /dev/null
 
-    awk '/_cidr[\.]txt/ {system("rm -f ${PATH_DATA}/"\$1" > /dev/null 2>&1")}' "${PATH_TMP_DATA}/${ISPIP_FILE_URL_LIST}" 2> /dev/null
+    echo "\${ispip_file_list}" | awk '/_cidr[\.]txt/ {system("[ -f ${PATH_DATA}/"\$1" ] && rm -f ${PATH_DATA}/"\$1" > /dev/null 2>&1")}'
 
     ## 将新下载的ISP网络运营商CIDR网段数据文件移动至目标文件夹
     mv -f "${PATH_TMP_DATA}"/*"_cidr.txt" "${PATH_DATA}" > /dev/null 2>&1 && dl_succeed="1" || {
@@ -1962,6 +1950,10 @@ lz_create_update_ispip_data_file() {
                     local_write_scripts="$( grep "retry_limit=[\"][\$][\(][\(] retry_count + ${ruid_retry_num} [\)][\)]" "${PATH_LZ}/${UPDATE_FILENAME}" )"
                     if [ -z "${local_write_scripts}" ]; then
                         lz_create_update_ispip_data_scripts_file
+                    else
+                        ## 缺少ISP网络运营商CIDR网段数据文件列表变量
+                        local_write_scripts="$( grep "[\$][\{]ispip_file_list[\}]" "${PATH_LZ}/${UPDATE_FILENAME}" )"
+                        [ -z "${local_write_scripts}" ] && lz_create_update_ispip_data_scripts_file
                     fi
                 fi
             fi
@@ -3992,31 +3984,40 @@ EOF_OVPN_SCRIPTS_A
         fi
 
         ## 检查PPTP项
-        if [ -n "$( nvram get "pptpd_enable" )" ] \
-            && ! echo "${local_openvpn_event_interface_scripts}" | grep -q "LZ PPTP VPN Server: Stop"; then
-            llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
-            break
-        elif echo "${local_openvpn_event_interface_scripts}" | grep -q "LZ PPTP VPN Server: Stop"; then
-            llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
-            break
+        if [ -n "$( nvram get "pptpd_enable" )" ]; then
+            if ! echo "${local_openvpn_event_interface_scripts}" | grep -q "LZ PPTP VPN Server: Stop"; then
+                llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
+                break
+            fi
+        else
+            if echo "${local_openvpn_event_interface_scripts}" | grep -q "LZ PPTP VPN Server: Stop"; then
+                llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
+                break
+            fi
         fi
 
         ## 检查IPSec项
-        if [ -n "$( nvram get "ipsec_server_enable" )" ] \
-            && ! echo "${local_openvpn_event_interface_scripts}" | grep -q "LZ IPSec VPN Subnet"; then
-            llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
-            break
-        elif echo "${local_openvpn_event_interface_scripts}" | grep -q "LZ IPSec VPN Subnet"; then
-            llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
-            break
+        if [ -n "$( nvram get "ipsec_server_enable" )" ]; then
+            if ! echo "${local_openvpn_event_interface_scripts}" | grep -q "LZ IPSec VPN Subnet"; then
+                llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
+                break
+            fi
+        else
+            if echo "${local_openvpn_event_interface_scripts}" | grep -q "LZ IPSec VPN Subnet"; then
+                llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
+                break
+            fi
         fi
 
         ## 检查WireGuard项
-        if [ -n "$( nvram get "wgs_enable" )" ] \
-            && ! echo "${local_openvpn_event_interface_scripts}" | grep -q "LZ WireGuard Server: Stop"; then
-            llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
-        elif echo "${local_openvpn_event_interface_scripts}" | grep -q "LZ WireGuard Server: Stop"; then
-            llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
+        if [ -n "$( nvram get "wgs_enable" )" ]; then
+            if ! echo "${local_openvpn_event_interface_scripts}" | grep -q "LZ WireGuard Server: Stop"; then
+                llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
+            fi
+        else
+            if echo "${local_openvpn_event_interface_scripts}" | grep -q "LZ WireGuard Server: Stop"; then
+                llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
+            fi
         fi
 
         break
