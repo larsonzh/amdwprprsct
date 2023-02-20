@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_address_query.sh v3.8.9
+# lz_rule_address_query.sh v3.9.0
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 网址信息查询脚本
@@ -882,7 +882,7 @@ lz_aq_resolve_ip() {
 ## 返回值：
 ##     显示网址信息
 lz_show_address_info() {
-    echo "$(lzdate)" [$$]: ----------------------------------------
+    echo "$(lzdate)" [$$]: ---------------------------------------------
     if [ -z "${6}" ]; then
         echo "$(lzdate)" [$$]: "  ${1}"
     else
@@ -936,7 +936,7 @@ lz_show_address_info() {
         echo "$(lzdate)" [$$]: "  Can't be resolved to an IPv4 address."
     fi
     if [ "${10}" = "0" ]; then
-        echo "$(lzdate)" [$$]: ----------------------------------------
+        echo "$(lzdate)" [$$]: ---------------------------------------------
         if [ -n "${7}" ]; then
             local local_dns_server_name="${8}"
             [ -z "${local_dns_server_name}" ] && local_dns_server_name="Anonymous DNS Host"
@@ -949,7 +949,7 @@ lz_show_address_info() {
             done
             echo "$(lzdate)" [$$]: "  Number of entries    ${9}"
             echo "$(lzdate)" [$$]: "  ${7}      ${local_space}${local_dns_server_name}"
-            echo "$(lzdate)" [$$]: ----------------------------------------
+            echo "$(lzdate)" [$$]: ---------------------------------------------
         fi
     fi
 }

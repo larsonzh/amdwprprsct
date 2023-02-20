@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule.sh v3.8.9
+# lz_rule.sh v3.9.0
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # 本软件采用CIDR（无类别域间路由，Classless Inter-Domain Routing）技术，是一个在Internet上创建附加地
@@ -80,7 +80,7 @@
 ## -------------全局数据定义及初始化-------------------
 
 ## 版本号
-LZ_VERSION=v3.8.9
+LZ_VERSION=v3.9.0
 
 ## 运行状态查询命令
 SHOW_STATUS="status"
@@ -112,17 +112,17 @@ if [ "${1}" != "${SHOW_STATUS}" ] && [ "${1}" != "${ADDRESS_QUERY}" ] && [ "${1}
         echo "$(lzdate)" [$$]:
         echo "$(lzdate)" [$$]: LZ "${LZ_VERSION}" script commands start......
         echo "$(lzdate)" [$$]: By LZ \(larsonzhang@gmail.com\)
-        echo "$(lzdate)" [$$]: ----------------------------------------
+        echo "$(lzdate)" [$$]: ---------------------------------------------
         echo "$(lzdate)" [$$]: Location: "${PATH_LZ}"
-        echo "$(lzdate)" [$$]: ----------------------------------------
+        echo "$(lzdate)" [$$]: ---------------------------------------------
     } | tee -ai "${SYSLOG}" 2> /dev/null
 else
     echo "$(lzdate)" [$$]:
     echo "$(lzdate)" [$$]: LZ "${LZ_VERSION}" script commands start......
     echo "$(lzdate)" [$$]: By LZ \(larsonzhang@gmail.com\)
-    echo "$(lzdate)" [$$]: ----------------------------------------
+    echo "$(lzdate)" [$$]: ---------------------------------------------
     echo "$(lzdate)" [$$]: Location: "${PATH_LZ}"
-    echo "$(lzdate)" [$$]: ----------------------------------------
+    echo "$(lzdate)" [$$]: ---------------------------------------------
 fi
 
 ## 调用自定义配置子例程宏定义
@@ -157,7 +157,7 @@ if [ "${1}" != "${FORCED_UNLOCKING}" ]; then
             && [ "${local_instance}" != "lz_${ADDRESS_QUERY}" ]; then
             unset local_instance
             echo "$(lzdate)" [$$]: The policy routing service is being started by another instance.
-            echo "$(lzdate)" [$$]: ----------------------------------------
+            echo "$(lzdate)" [$$]: ---------------------------------------------
             echo "$(lzdate)" [$$]: LZ "${LZ_VERSION}" script commands executed!
             echo "$(lzdate)" [$$]:
             ## 解除文件同步锁
@@ -234,7 +234,7 @@ lz_project_file_management() {
     }
     if [ "${local_scripts_file_exist}" = "0" ]; then
         echo "$(lzdate)" [$$]: Policy routing service can\'t be started. | tee -ai "${SYSLOG}" 2> /dev/null
-        [ "${1}" = "${ADDRESS_QUERY}" ] && echo "$(lzdate)" [$$]: ----------------------------------------
+        [ "${1}" = "${ADDRESS_QUERY}" ] && echo "$(lzdate)" [$$]: ---------------------------------------------
         return 1
     fi
 
@@ -276,6 +276,8 @@ lz_check_instance() {
 lz_instance_exit() {
     [ -f "${INSTANCE_LIST}" ] && ! grep -q 'lz_' "${INSTANCE_LIST}" && rm -f "${INSTANCE_LIST}" > /dev/null 2>&1
     [ -f "${LOCK_FILE}" ] && flock -u "${LOCK_FILE_ID}" > /dev/null 2>&1
+    sync > /dev/null 2>&1
+    [ -f /proc/sys/vm/drop_caches ] && echo 3 > /proc/sys/vm/drop_caches
 }
 
 ## ---------------------主执行脚本---------------------
@@ -392,7 +394,7 @@ __lz_main() {
     ## 置的策略路由服务，若“/jffs/firewall-start”中的“/jffs/scripts/lz/lz_rule.sh”引导启动命令未清除，路
     ## 由器重启、线路接入或断开、防火墙开关等事件都会导致自启动运行本脚本。
     if [ "${1}" = "stop" ] || [ "${1}" = "STOP" ]; then
-        echo "$(lzdate)" [$$]: ---------------------------------------- | tee -ai "${SYSLOG}" 2> /dev/null
+        echo "$(lzdate)" [$$]: --------------------------------------------- | tee -ai "${SYSLOG}" 2> /dev/null
 
         ## 清除接口脚本文件
         ## 输入项：
@@ -401,7 +403,7 @@ __lz_main() {
         ##     0--清除事件接口成功
         ##     1--未清除事件接口
         lz_clear_interface_scripts "${1}" && \
-            echo "$(lzdate)" [$$]: ---------------------------------------- | tee -ai "${SYSLOG}" 2> /dev/null
+            echo "$(lzdate)" [$$]: --------------------------------------------- | tee -ai "${SYSLOG}" 2> /dev/null
 
         ## 输出IPTV规则条目数至系统记录
         ## 输出当前单项分流规则的条目数至系统记录
@@ -512,7 +514,7 @@ __lz_main() {
     elif ip route show | grep -q default && [ "${ip_rule_exist}" = "0" ]; then
         {
             echo "$(lzdate)" [$$]: The router is connected to only one WAN.
-            echo "$(lzdate)" [$$]: ----------------------------------------
+            echo "$(lzdate)" [$$]: ---------------------------------------------
         } | tee -ai "${SYSLOG}" 2> /dev/null
 
         ## 启动单网络的IPTV机顶盒服务
@@ -529,7 +531,7 @@ __lz_main() {
         ##     0--清除事件接口成功
         ##     1--未清除事件接口
         lz_clear_interface_scripts "${1}" && \
-            echo "$(lzdate)" [$$]: ---------------------------------------- | tee -ai "${SYSLOG}" 2> /dev/null
+            echo "$(lzdate)" [$$]: --------------------------------------------- | tee -ai "${SYSLOG}" 2> /dev/null
 
         ## 输出IPTV规则条目数至系统记录
         ## 输出当前单项分流规则的条目数至系统记录
@@ -563,7 +565,7 @@ __lz_main() {
     else
         {
             echo "$(lzdate)" [$$]: The router isn\'t connected to any WAN.
-            echo "$(lzdate)" [$$]: ----------------------------------------
+            echo "$(lzdate)" [$$]: ---------------------------------------------
         } | tee -ai "${SYSLOG}" 2> /dev/null
 
         ## 清除接口脚本文件
@@ -573,10 +575,10 @@ __lz_main() {
         ##     0--清除事件接口成功
         ##     1--未清除事件接口
         lz_clear_interface_scripts "${1}" && \
-            echo "$(lzdate)" [$$]: ---------------------------------------- | tee -ai "${SYSLOG}" 2> /dev/null
+            echo "$(lzdate)" [$$]: --------------------------------------------- | tee -ai "${SYSLOG}" 2> /dev/null
         {
             echo "$(lzdate)" [$$]: "   No policy rule in use."
-            echo "$(lzdate)" [$$]: ----------------------------------------
+            echo "$(lzdate)" [$$]: ---------------------------------------------
             echo "$(lzdate)" [$$]: The policy routing service isn\'t running.
         } | tee -ai "${SYSLOG}" 2> /dev/null
     fi
@@ -648,7 +650,7 @@ if lz_project_file_management "${1}"; then
 
                 {
                     echo "$(lzdate)" [$$]: The policy routing service is being started by another instance.
-                    echo "$(lzdate)" [$$]: ----------------------------------------
+                    echo "$(lzdate)" [$$]: ---------------------------------------------
                     echo "$(lzdate)" [$$]: LZ "${LZ_VERSION}" script commands executed!
                     echo "$(lzdate)" [$$]:
                 } | tee -ai "${SYSLOG}" 2> /dev/null
@@ -683,12 +685,12 @@ fi
 
 if [ "${1}" != "${SHOW_STATUS}" ] && [ "${1}" != "${ADDRESS_QUERY}" ] && [ "${1}" != "${FORCED_UNLOCKING}" ]; then
     {
-        echo "$(lzdate)" [$$]: ----------------------------------------
+        echo "$(lzdate)" [$$]: ---------------------------------------------
         echo "$(lzdate)" [$$]: LZ "${LZ_VERSION}" script commands executed!
         echo "$(lzdate)" [$$]:
     } | tee -ai "${SYSLOG}" 2> /dev/null
 else
-    [ "${1}" != "${ADDRESS_QUERY}" ] && echo "$(lzdate)" [$$]: ----------------------------------------
+    [ "${1}" != "${ADDRESS_QUERY}" ] && echo "$(lzdate)" [$$]: ---------------------------------------------
     echo "$(lzdate)" [$$]: LZ "${LZ_VERSION}" script commands executed!
     echo "$(lzdate)" [$$]:
 fi
