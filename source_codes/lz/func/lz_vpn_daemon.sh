@@ -110,8 +110,7 @@ do
         WGS_ENABLE="$( nvram get "wgs_enable" )"
         [ "${WGS_ENABLE}" = "1" ] && [ -f "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}" ] \
             && /bin/sh "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}"
-        [ "${WGS_ENABLE}" = "0" ] && ipset -q list "${WIREGUARD_CLIENT_IP_SET}" | grep -qEo '([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}' \
-            && [ -f "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}" ] && /bin/sh "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}"
+        [ "${WGS_ENABLE}" = "0" ] && update_vpn_client_sub_route "wgs" "${WIREGUARD_CLIENT_IP_SET}"
     fi
     if [ "${PPTPD_ENABLE}" = "1" ]; then
         PPTPD_ENABLE="$( nvram get "pptpd_enable" )"
