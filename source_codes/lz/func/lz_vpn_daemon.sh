@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_vpn_daemon.sh v3.9.0
+# lz_vpn_daemon.sh v3.9.1
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 虚拟专网客户端路由刷新处理后台守护进程脚本
