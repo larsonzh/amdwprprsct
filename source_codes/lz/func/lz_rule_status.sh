@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_status.sh v3.9.1
+# lz_rule_status.sh v3.9.2
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 显示脚本运行状态脚本
@@ -375,6 +375,7 @@ lz_set_parameter_status_variable() {
     status_vpn_client_polling_time=
     status_ovs_client_wan_port=
     status_wan_access_port=
+    status_fancyss_support=
     status_route_cache=
     status_clear_route_cache_time_interval=
     status_iptv_igmp_switch=
@@ -448,6 +449,7 @@ lz_unset_parameter_status_variable() {
     unset status_ovs_client_wan_port
     unset status_vpn_client_polling_time
     unset status_wan_access_port
+    unset status_fancyss_support
     unset status_route_cache
     unset status_clear_route_cache_time_interval
     unset status_iptv_igmp_switch
@@ -627,6 +629,8 @@ lz_read_box_data_status() {
 
     ## 动态分流模式时，路由器主机内部应用访问外网WAN口采用"按网段分流规则匹配出口"与"由系统自动分配出口"等效
     [ "${status_usage_mode}" = "0" ] && [ "${status_wan_access_port}" = "2" ] && status_wan_access_port=5
+
+    status_fancyss_support="$( lz_get_file_cache_data_status "lz_config_fancyss_support" "5" )"
 
     status_route_cache="$( lz_get_file_cache_data_status "lz_config_route_cache" "0" )"
 
@@ -1247,6 +1251,11 @@ lz_get_route_status_info() {
         else
             echo "$(lzdate)" [$$]: "   Route Host Access Port: Primary WAN"
         fi
+        if [ "${status_fancyss_support}" = "0" ]; then
+            echo "$(lzdate)" [$$]: "   Route Fancyss Support: Enable"
+        else
+            echo "$(lzdate)" [$$]: "   Route Fancyss Support: Disable"
+        fi
         if [ "${status_route_cache}" = "0" ]; then
             echo "$(lzdate)" [$$]: "   Route Cache: Enable"
         else
@@ -1258,6 +1267,11 @@ lz_get_route_status_info() {
             echo "$(lzdate)" [$$]: "   Route Flush Cache: Every ${status_clear_route_cache_time_interval} hour${local_interval_suffix_str}"
         else
             echo "$(lzdate)" [$$]: "   Route Flush Cache: System"
+        fi
+        if [ "${drop_sys_caches}" = "0" ]; then
+            echo "$(lzdate)" [$$]: "   Drop System Caches: Enable"
+        else
+            echo "$(lzdate)" [$$]: "   Drop System Caches: Disable"
         fi
     fi
     echo "$(lzdate)" [$$]: ---------------------------------------------
@@ -1756,7 +1770,7 @@ lz_output_ispip_status_info() {
     if [ "${status_iptv_igmp_switch}" = "0" ] || [ "${status_iptv_igmp_switch}" = "1" ]; then
         [ "${status_iptv_access_mode}" = "2" ] && local_item_count="$( lz_get_ipv4_data_file_valid_item_total_status "${status_iptv_isp_ip_lst_file}" )" \
             && [ "${local_item_count}" -gt "0" ] && {
-            echo "$(lzdate)" [$$]: "   IPTVSrvIPLst    Available           ${local_item_count}"
+            echo "$(lzdate)" [$$]: "   IPTVSrvIPLst    Available       HD  ${local_item_count}"
             local_exist="1"
         }
     fi

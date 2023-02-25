@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_config.sh v3.9.1
+# lz_rule_config.sh v3.9.2
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # 本软件采用CIDR（无类别域间路由，Classless Inter-Domain Routing）技术，是一个在Internet上创建附加地
@@ -579,6 +579,11 @@ vpn_client_polling_time=5
 ## 部分版本的固件系统，已内部将DDNS绑定至第一WAN口，更改或可导致访问失败。
 wan_access_port=0
 
+## Fancyss服务支持
+## 0--启用；非0--禁用；取值范围：0~9
+## 缺省为禁用（5）。
+fancyss_support=5
+
 
 ## 三、运行设置
 
@@ -638,6 +643,12 @@ route_cache=0
 ## 0--禁用；1~24--时间间隔，以小时为单位。
 ## 缺省为每4小时清理一次。
 clear_route_cache_time_interval=4
+
+## 系统缓存清理
+## 0--启用；非0--禁用；取值范围：0~9
+## 缺省为启用（0）。
+## 在脚本执行结束时进行。若影响系统中其他程序运行，可禁用此功能。
+drop_sys_caches=0
 
 
 ## 四、IPTV设置

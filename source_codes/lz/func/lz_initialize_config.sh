@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_initialize_config.sh v3.9.1
+# lz_initialize_config.sh v3.9.2
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 初始化脚本配置
@@ -70,11 +70,13 @@ lz_variable_initialize() {
     local_ovs_client_wan_port=
     local_vpn_client_polling_time=
     local_wan_access_port=
+    local_fancyss_support=
     local_dn_pre_resolved=
     local_pre_dns=
     local_dn_cache_time=
     local_route_cache=
     local_clear_route_cache_time_interval=
+    local_drop_sys_caches=
     local_iptv_igmp_switch=
     local_igmp_version=
     local_hnd_br0_bcmmcast_mode=
@@ -159,11 +161,13 @@ lz_variable_initialize() {
     local_ini_ovs_client_wan_port=
     local_ini_vpn_client_polling_time=
     local_ini_wan_access_port=
+    local_ini_fancyss_support=
     local_ini_dn_pre_resolved=
     local_ini_pre_dns=
     local_ini_dn_cache_time=
     local_ini_route_cache=
     local_ini_clear_route_cache_time_interval=
+    local_ini_drop_sys_caches=
     local_ini_iptv_igmp_switch=
     local_ini_igmp_version=
     local_ini_hnd_br0_bcmmcast_mode=
@@ -247,11 +251,13 @@ lz_variable_initialize() {
     local_ovs_client_wan_port_changed="0"
     local_vpn_client_polling_time_changed="0"
     local_wan_access_port_changed="0"
+    local_fancyss_support_changed="0"
     local_dn_pre_resolved_changed="0"
     local_pre_dns_changed="0"
     local_dn_cache_time_changed="0"
     local_route_cache_changed="0"
     local_clear_route_cache_time_interval_changed="0"
+    local_drop_sys_caches_changed="0"
     local_iptv_igmp_switch_changed="0"
     local_igmp_version_changed="0"
     local_hnd_br0_bcmmcast_mode_changed="0"
@@ -349,11 +355,13 @@ lz_variable_uninitialize() {
     unset local_ini_ovs_client_wan_port
     unset local_ini_vpn_client_polling_time
     unset local_ini_wan_access_port
+    unset local_ini_fancyss_support
     unset local_ini_dn_pre_resolved
     unset local_ini_pre_dns
     unset local_ini_dn_cache_time
     unset local_ini_route_cache
     unset local_ini_clear_route_cache_time_interval
+    unset local_ini_drop_sys_caches
     unset local_ini_iptv_igmp_switch
     unset local_ini_igmp_version
     unset local_ini_hnd_br0_bcmmcast_mode
@@ -438,11 +446,13 @@ lz_variable_uninitialize() {
     unset local_ovs_client_wan_port
     unset local_vpn_client_polling_time
     unset local_wan_access_port
+    unset local_fancyss_support
     unset local_dn_pre_resolved
     unset local_pre_dns
     unset local_dn_cache_time
     unset local_route_cache
     unset local_clear_route_cache_time_interval
+    unset local_drop_sys_caches
     unset local_iptv_igmp_switch
     unset local_igmp_version
     unset local_hnd_br0_bcmmcast_mode
@@ -526,11 +536,13 @@ lz_variable_uninitialize() {
     unset local_ovs_client_wan_port_changed
     unset local_vpn_client_polling_time_changed
     unset local_wan_access_port_changed
+    unset local_fancyss_support_changed
     unset local_dn_pre_resolved_changed
     unset local_pre_dns_changed
     unset local_dn_cache_time_changed
     unset local_route_cache_changed
     unset local_clear_route_cache_time_interval_changed
+    unset local_drop_sys_caches_changed
     unset local_iptv_igmp_switch_changed
     unset local_igmp_version_changed
     unset local_hnd_br0_bcmmcast_mode_changed
@@ -1148,6 +1160,11 @@ vpn_client_polling_time=5
 ## 部分版本的固件系统，已内部将DDNS绑定至第一WAN口，更改或可导致访问失败。
 wan_access_port=0
 
+## Fancyss服务支持
+## 0--启用；非0--禁用；取值范围：0~9
+## 缺省为禁用（5）。
+fancyss_support=5
+
 
 ## 三、运行设置
 
@@ -1207,6 +1224,12 @@ route_cache=0
 ## 0--禁用；1~24--时间间隔，以小时为单位。
 ## 缺省为每4小时清理一次。
 clear_route_cache_time_interval=4
+
+## 系统缓存清理
+## 0--启用；非0--禁用；取值范围：0~9
+## 缺省为启用（0）。
+## 在脚本执行结束时进行。若影响系统中其他程序运行，可禁用此功能。
+drop_sys_caches=0
 
 
 ## 四、IPTV设置
@@ -1944,6 +1967,11 @@ vpn_client_polling_time=${local_vpn_client_polling_time}
 ## 部分版本的固件系统，已内部将DDNS绑定至第一WAN口，更改或可导致访问失败。
 wan_access_port=${local_wan_access_port}
 
+## Fancyss服务支持
+## 0--启用；非0--禁用；取值范围：0~9
+## 缺省为禁用（5）。
+fancyss_support=${local_fancyss_support}
+
 
 ## 三、运行设置
 
@@ -2003,6 +2031,12 @@ route_cache=${local_route_cache}
 ## 0--禁用；1~24--时间间隔，以小时为单位。
 ## 缺省为每4小时清理一次。
 clear_route_cache_time_interval=${local_clear_route_cache_time_interval}
+
+## 系统缓存清理
+## 0--启用；非0--禁用；取值范围：0~9
+## 缺省为启用（0）。
+## 在脚本执行结束时进行。若影响系统中其他程序运行，可禁用此功能。
+drop_sys_caches=${local_drop_sys_caches}
 
 
 ## 四、IPTV设置
@@ -2178,7 +2212,7 @@ lz_read_file_cache_buffer() {
 lz_get_file_data_item() {
     local local_retval="1"
     local local_default="$( echo "${2}" | sed 's/\"/##/g' )"
-    local local_data_item="$( grep -m 1 "^[ ]*${1}=" "${3}" \
+    local local_data_item="$( grep -m 1 "^[ ]*${1}=" "${3}" 2> /dev/null \
         | sed -e 's/[#].*$//g' -e 's/^[ \t]*//g' -e 's/[ \t][ \t]*/ /g' -e 's/^\([^=]*[=][^ =]*\).*$/\1/g' \
         -e 's/^\(.*[=][^\"][^\"]*\).*$/\1/g' -e 's/^\(.*[=][\"][^\"]*[\"]\).*$/\1/g' -e 's/^\(.*[=]\)[\"][^\"]*$/\1/g' \
         | awk -F "=" '{if ($2 == "" && "'"${local_default}"'" != "") print "#LOSE#"; else if ($2 == "" && "'"${local_default}"'" == "") print "#DEFAULT#"; else print $2}' )"
@@ -2208,7 +2242,7 @@ lz_get_file_data_item() {
 lz_get_file_cache_data() {
     local local_retval="1"
     local local_default="$( echo "${2}" | sed 's/\"/##/g' )"
-    local local_data_item="$( echo "${local_file_cache}" | grep -m 1 "^${1}=" \
+    local local_data_item="$( echo "${local_file_cache}" | grep -m 1 "^${1}=" 2> /dev/null \
     | awk -F "=" '{if ($2 == "" && "'"${local_default}"'" != "") print "#LOSE#"; else if ($2 == "" && "'"${local_default}"'" == "") print "#DEFAULT#"; else print $2}' )"
     local_data_item="$( echo "${local_data_item}" | sed 's/##/\"/g' )"
     if [ -z "${local_data_item}" ]; then
@@ -2410,6 +2444,9 @@ lz_read_config_param() {
     ## wan_access_port现在只能为0或1
     [ "${local_wan_access_port}" != "0" ] && [ "${local_wan_access_port}" != "1" ] && local_wan_access_port="0" && local_exist="0"
 
+    local_fancyss_support="$( lz_get_file_cache_data "fancyss_support" "5" )" && local_exist="0"
+    ! echo "${local_fancyss_support}" | grep -q '^[0-9]$' && local_fancyss_support="5" && local_exist="0"
+
     local_dn_pre_resolved="$( lz_get_file_cache_data "dn_pre_resolved" "0" )" && local_exist="0"
     ! echo "${local_dn_pre_resolved}" | grep -q '^[0-9]$' && local_dn_pre_resolved="0" && local_exist="0"
 
@@ -2427,6 +2464,9 @@ lz_read_config_param() {
 
     local_clear_route_cache_time_interval="$( lz_get_file_cache_data "clear_route_cache_time_interval" "4" )" && local_exist="0"
     ! echo "${local_clear_route_cache_time_interval}" | grep -qE '^[0-9]$|^[1][0-9]$|^[2][0-4]$' && local_clear_route_cache_time_interval="4" && local_exist="0"
+
+    local_drop_sys_caches="$( lz_get_file_cache_data "drop_sys_caches" "0" )" && local_exist="0"
+    ! echo "${local_drop_sys_caches}" | grep -q '^[0-9]$' && local_drop_sys_caches="0" && local_exist="0"
 
     local_iptv_igmp_switch="$( lz_get_file_cache_data "iptv_igmp_switch" "5" )" && local_exist="0"
     ! echo "${local_iptv_igmp_switch}" | grep -q '^[0-9]$' && local_iptv_igmp_switch="5" && local_exist="0"
@@ -2620,10 +2660,12 @@ lz_cfg_is_default() {
     [ "${local_ovs_client_wan_port}" != "0" ] && return 0
     [ "${local_vpn_client_polling_time}" != "5" ] && return 0
     [ "${local_wan_access_port}" != "0" ] && return 0
+    [ "${local_fancyss_support}" != "5" ] && return 0
     [ "${local_dn_pre_resolved}" != "0" ] && return 0
     [ "${local_pre_dns}" != "\"8.8.8.8\"" ] && return 0
     [ "${local_route_cache}" != "0" ] && return 0
     [ "${local_clear_route_cache_time_interval}" != "4" ] && return 0
+    [ "${local_drop_sys_caches}" != "0" ] && return 0
     [ "${local_iptv_igmp_switch}" != "5" ] && return 0
     [ "${local_igmp_version}" != "0" ] && return 0
     [ "${local_hnd_br0_bcmmcast_mode}" != "2" ] && return 0
@@ -2716,11 +2758,13 @@ lz_config_high_wan_1_src_to_dst_addr_port_file=${local_high_wan_1_src_to_dst_add
 lz_config_ovs_client_wan_port=${local_ovs_client_wan_port}
 lz_config_vpn_client_polling_time=${local_vpn_client_polling_time}
 lz_config_wan_access_port=${local_wan_access_port}
+lz_config_fancyss_support=${local_fancyss_support}
 lz_config_dn_pre_resolved=${local_dn_pre_resolved}
 lz_config_pre_dns=${local_pre_dns}
 lz_config_dn_cache_time=${local_dn_cache_time}
 lz_config_route_cache=${local_route_cache}
 lz_config_clear_route_cache_time_interval=${local_clear_route_cache_time_interval}
+lz_config_drop_sys_caches=${local_drop_sys_caches}
 lz_config_iptv_igmp_switch=${local_iptv_igmp_switch}
 lz_config_igmp_version=${local_igmp_version}
 lz_config_hnd_br0_bcmmcast_mode=${local_hnd_br0_bcmmcast_mode}
@@ -2814,11 +2858,13 @@ lz_config_high_wan_1_src_to_dst_addr_port_file=${local_ini_high_wan_1_src_to_dst
 lz_config_ovs_client_wan_port=${local_ini_ovs_client_wan_port}
 lz_config_vpn_client_polling_time=${local_ini_vpn_client_polling_time}
 lz_config_wan_access_port=${local_ini_wan_access_port}
+lz_config_fancyss_support=${local_ini_fancyss_support}
 lz_config_dn_pre_resolved=${local_ini_dn_pre_resolved}
 lz_config_pre_dns=${local_ini_pre_dns}
 lz_config_dn_cache_time=${local_ini_dn_cache_time}
 lz_config_route_cache=${local_ini_route_cache}
 lz_config_clear_route_cache_time_interval=${local_ini_clear_route_cache_time_interval}
+lz_config_drop_sys_caches=${local_ini_drop_sys_caches}
 lz_config_iptv_igmp_switch=${local_ini_iptv_igmp_switch}
 lz_config_igmp_version=${local_ini_igmp_version}
 lz_config_hnd_br0_bcmmcast_mode=${local_ini_hnd_br0_bcmmcast_mode}
@@ -3091,6 +3137,9 @@ lz_read_box_data() {
     ## wan_access_port现在只能为0或1
     [ "${local_ini_wan_access_port}" != "0" ] && [ "${local_ini_wan_access_port}" != "1" ] && local_ini_wan_access_port="0" && local_exist="0"
 
+    local_ini_fancyss_support="$( lz_get_file_cache_data "lz_config_fancyss_support" "5" )" && local_exist="0"
+    ! echo "${local_ini_fancyss_support}" | grep -q '^[0-9]$' && local_ini_fancyss_support="5" && local_exist="0"
+
     local_ini_dn_pre_resolved="$( lz_get_file_cache_data "lz_config_dn_pre_resolved" "0" )" && local_exist="0"
     ! echo "${local_ini_dn_pre_resolved}" | grep -q '^[0-9]$' && local_ini_dn_pre_resolved="0" && local_exist="0"
 
@@ -3108,6 +3157,9 @@ lz_read_box_data() {
 
     local_ini_clear_route_cache_time_interval="$( lz_get_file_cache_data "lz_config_clear_route_cache_time_interval" "4" )" && local_exist="0"
     ! echo "${local_ini_clear_route_cache_time_interval}" | grep -qE '^[0-9]$|^[1][0-9]$|^[2][0-4]$' && local_ini_clear_route_cache_time_interval="4" && local_exist="0"
+
+    local_ini_drop_sys_caches="$( lz_get_file_cache_data "lz_config_drop_sys_caches" "0" )" && local_exist="0"
+    ! echo "${local_ini_drop_sys_caches}" | grep -q '^[0-9]$' && local_ini_drop_sys_caches="0" && local_exist="0"
 
     local_ini_iptv_igmp_switch="$( lz_get_file_cache_data "lz_config_iptv_igmp_switch" "5" )" && local_exist="0"
     ! echo "${local_ini_iptv_igmp_switch}" | grep -q '^[0-9]$' && local_ini_iptv_igmp_switch="5" && local_exist="0"
@@ -3288,11 +3340,13 @@ lz_cfg_is_changed() {
     [ "${local_ini_ovs_client_wan_port}" != "${local_ovs_client_wan_port}" ] && local_ovs_client_wan_port_changed="1" && local_cfg_changed="1"
     [ "${local_ini_vpn_client_polling_time}" != "${local_vpn_client_polling_time}" ] && local_vpn_client_polling_time_changed="1" && local_cfg_changed="1"
     [ "${local_ini_wan_access_port}" != "${local_wan_access_port}" ] && local_wan_access_port_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_fancyss_support}" != "${local_fancyss_support}" ] && local_fancyss_support_changed="1" && local_cfg_changed="1"
     [ "${local_ini_dn_pre_resolved}" != "${local_dn_pre_resolved}" ] && local_dn_pre_resolved_changed="1" && local_cfg_changed="1"
     [ "${local_ini_pre_dns}" != "${local_pre_dns}" ] && local_pre_dns_changed="1" && local_cfg_changed="1"
     [ "${local_ini_dn_cache_time}" != "${local_dn_cache_time}" ] && local_dn_cache_time_changed="1" && local_cfg_changed="1"
     [ "${local_ini_route_cache}" != "${local_route_cache}" ] && local_route_cache_changed="1" && local_cfg_changed="1"
     [ "${local_ini_clear_route_cache_time_interval}" != "${local_clear_route_cache_time_interval}" ] && local_clear_route_cache_time_interval_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_drop_sys_caches}" != "${local_drop_sys_caches}" ] && local_drop_sys_caches_changed="1" && local_cfg_changed="1"
     [ "${local_ini_iptv_igmp_switch}" != "${local_iptv_igmp_switch}" ] && local_iptv_igmp_switch_changed="1" && local_cfg_changed="1"
     [ "${local_ini_igmp_version}" != "${local_igmp_version}" ] && local_igmp_version_changed="1" && local_cfg_changed="1"
     [ "${local_ini_hnd_br0_bcmmcast_mode}" != "${local_hnd_br0_bcmmcast_mode}" ] && local_hnd_br0_bcmmcast_mode_changed="1" && local_cfg_changed="1"
@@ -3392,11 +3446,13 @@ lz_restore_config() {
     [ "${local_ovs_client_wan_port_changed}" = "1" ] && sed -i "s:^[ \t]*ovs_client_wan_port=${local_ovs_client_wan_port}:ovs_client_wan_port=${local_ini_ovs_client_wan_port}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
     [ "${local_vpn_client_polling_time_changed}" = "1" ] && sed -i "s:^[ \t]*vpn_client_polling_time=${local_vpn_client_polling_time}:vpn_client_polling_time=${local_ini_vpn_client_polling_time}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
     [ "${local_wan_access_port_changed}" = "1" ] && sed -i "s:^[ \t]*wan_access_port=${local_wan_access_port}:wan_access_port=${local_ini_wan_access_port}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_fancyss_support_changed}" = "1" ] && sed -i "s:^[ \t]*fancyss_support=${local_fancyss_support}:fancyss_support=${local_ini_fancyss_support}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
     [ "${local_dn_pre_resolved_changed}" = "1" ] && sed -i "s:^[ \t]*dn_pre_resolved=${local_dn_pre_resolved}:dn_pre_resolved=${local_ini_dn_pre_resolved}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
     [ "${local_pre_dns_changed}" = "1" ] && sed -i "s:^[ \t]*pre_dns=${local_pre_dns}:pre_dns=${local_ini_pre_dns}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
     [ "${local_dn_cache_time_changed}" = "1" ] && sed -i "s:^[ \t]*dn_cache_time=${local_dn_cache_time}:dn_cache_time=${local_ini_dn_cache_time}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
     [ "${local_route_cache_changed}" = "1" ] && sed -i "s:^[ \t]*route_cache=${local_route_cache}:route_cache=${local_ini_route_cache}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
     [ "${local_clear_route_cache_time_interval_changed}" = "1" ] && sed -i "s:^[ \t]*clear_route_cache_time_interval=${local_clear_route_cache_time_interval}:clear_route_cache_time_interval=${local_ini_clear_route_cache_time_interval}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_drop_sys_caches_changed}" = "1" ] && sed -i "s:^[ \t]*drop_sys_caches=${local_drop_sys_caches}:drop_sys_caches=${local_ini_drop_sys_caches}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
 
     [ "${local_iptv_igmp_switch_changed}" = "1" ] && sed -i "s:^[ \t]*iptv_igmp_switch=${local_iptv_igmp_switch}:iptv_igmp_switch=${local_ini_iptv_igmp_switch}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
     [ "${local_igmp_version_changed}" = "1" ] && sed -i "s:^[ \t]*igmp_version=${local_igmp_version}:igmp_version=${local_ini_igmp_version}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1

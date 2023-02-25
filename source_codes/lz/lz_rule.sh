@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule.sh v3.9.1
+# lz_rule.sh v3.9.2
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # 本软件采用CIDR（无类别域间路由，Classless Inter-Domain Routing）技术，是一个在Internet上创建附加地
@@ -80,7 +80,7 @@
 ## -------------全局数据定义及初始化-------------------
 
 ## 版本号
-LZ_VERSION=v3.9.1
+LZ_VERSION=v3.9.2
 
 ## 运行状态查询命令
 SHOW_STATUS="status"
@@ -143,6 +143,15 @@ INSTANCE_LIST="${PATH_LOCK}/lz_rule_instance.lock"
 ## 同步锁文件ID
 LOCK_FILE_ID="555"
 
+## 系统缓存清理
+drop_sys_caches="0"
+
+## 第一WAN口路由表ID号
+WAN0="100"
+
+## 第二WAN口路由表ID号
+WAN1="200"
+
 if [ "${1}" != "${FORCED_UNLOCKING}" ]; then
     echo "lz_${1}" >> "${INSTANCE_LIST}"
     ## 设置文件同步锁
@@ -167,12 +176,6 @@ if [ "${1}" != "${FORCED_UNLOCKING}" ]; then
         unset local_instance
     fi
 fi
-
-## 第一WAN口路由表ID号
-WAN0=100
-
-## 第二WAN口路由表ID号
-WAN1=200
 
 ## 项目文件管理函数
 ## 输入项：
@@ -265,6 +268,7 @@ lz_check_instance() {
         || [ "${local_instance}" = "lz_${ADDRESS_QUERY}" ]; then
         return 1
     fi
+    drop_sys_caches="5"
     echo "$(lzdate)" [$$]: The policy routing service is being started by another instance. | tee -ai "${SYSLOG}" 2> /dev/null
     return 0
 }
@@ -276,8 +280,39 @@ lz_check_instance() {
 lz_instance_exit() {
     [ -f "${INSTANCE_LIST}" ] && ! grep -q 'lz_' "${INSTANCE_LIST}" && rm -f "${INSTANCE_LIST}" > /dev/null 2>&1
     [ -f "${LOCK_FILE}" ] && flock -u "${LOCK_FILE_ID}" > /dev/null 2>&1
-    sync > /dev/null 2>&1
-    [ -f /proc/sys/vm/drop_caches ] && echo 3 > /proc/sys/vm/drop_caches
+    if [ "${drop_sys_caches}" = "0" ]; then
+        sync > /dev/null 2>&1
+        [ -f /proc/sys/vm/drop_caches ] && echo 3 > /proc/sys/vm/drop_caches
+    fi
+}
+
+## 读取配置文件数据项函数
+## 输入项：
+##     $1--数据项名称
+##     $2--数据项缺省值
+##     $3--配置文件全路径文件名
+##     全局常量
+## 返回值：
+##     0--数据项读取成功
+##     1--文件或数据项不存在，或数据项值缺失，均以数据项缺省值输出
+lz_get_config_data_item() {
+    local local_retval="0"
+    local local_data_item="$( grep -m 1 "^[ ]*${1}=" "${3}" 2> /dev/null \
+        | sed -e 's/[#].*$//g' -e 's/^[ \t]*//g' -e 's/[ \t][ \t]*/ /g' -e 's/^\([^=]*[=][^ =]*\).*$/\1/g' \
+        -e 's/^\(.*[=][^\"][^\"]*\).*$/\1/g' -e 's/^\(.*[=][\"][^\"]*[\"]\).*$/\1/g' -e 's/^\(.*[=]\)[\"][^\"]*$/\1/g' \
+        | awk -F "=" '{if ($2 == "" && "'"${2}"'" != "") print "#LOSE#"; else if ($2 == "" && "'"${2}"'" == "") print "#DEFAULT#"; else print $2}' \
+        | sed 's/\"//g' )"
+    if [ -z "${local_data_item}" ]; then
+        local_data_item="${2}"
+        local_retval="1"
+    elif [ "${local_data_item}" = "#LOSE#" ]; then
+        local_data_item="${2}"
+        local_retval="1"
+    elif [ "${local_data_item}" = "#DEFAULT#" ]; then
+        local_data_item="${2}"
+    fi
+    echo "${local_data_item}"
+    return "${local_retval}"
 }
 
 ## ---------------------主执行脚本---------------------
@@ -583,6 +618,8 @@ __lz_main() {
         } | tee -ai "${SYSLOG}" 2> /dev/null
     fi
 }
+
+drop_sys_caches="$( lz_get_config_data_item "lz_config_drop_sys_caches" "0" "${PATH_CONFIGS}/lz_rule_config.box" )"
 
 ## 项目文件管理
 ## 输入项：

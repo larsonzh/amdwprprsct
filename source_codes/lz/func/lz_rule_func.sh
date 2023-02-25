@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v3.9.1
+# lz_rule_func.sh v3.9.2
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 #BEIGIN
@@ -832,6 +832,11 @@ lz_get_route_info() {
         else
             echo "$(lzdate)" [$$]: "   Route Host Access Port: Primary WAN" | tee -ai "${SYSLOG}" 2> /dev/null
         fi
+        if [ "${fancyss_support}" = "0" ]; then
+            echo "$(lzdate)" [$$]: "   Route Fancyss Support: Enable" | tee -ai "${SYSLOG}" 2> /dev/null
+        else
+            echo "$(lzdate)" [$$]: "   Route Fancyss Support: Disable" | tee -ai "${SYSLOG}" 2> /dev/null
+        fi
         if [ "${route_cache}" = "0" ]; then
             echo "$(lzdate)" [$$]: "   Route Cache: Enable" | tee -ai "${SYSLOG}" 2> /dev/null
         else
@@ -843,6 +848,11 @@ lz_get_route_info() {
             echo "$(lzdate)" [$$]: "   Route Flush Cache: Every ${clear_route_cache_time_interval} hour${local_interval_suffix_str}" | tee -ai "${SYSLOG}" 2> /dev/null
         else
             echo "$(lzdate)" [$$]: "   Route Flush Cache: System" | tee -ai "${SYSLOG}" 2> /dev/null
+        fi
+        if [ "${drop_sys_caches}" = "0" ]; then
+            echo "$(lzdate)" [$$]: "   Drop System Caches: Enable" | tee -ai "${SYSLOG}" 2> /dev/null
+        else
+            echo "$(lzdate)" [$$]: "   Drop System Caches: Disable" | tee -ai "${SYSLOG}" 2> /dev/null
         fi
     fi
     echo "$(lzdate)" [$$]: --------------------------------------------- | tee -ai "${SYSLOG}" 2> /dev/null
@@ -3646,7 +3656,7 @@ lz_initialize_ip_data_policy() {
 ##     全局变量及常量
 ## 返回值：无
 lz_ss_support() {
-    [ ! -f "${PATH_SS}/${SS_FILENAME}" ] && return
+    if [ "${fancyss_support}" != "0" ] || [ ! -f "${PATH_SS}/${SS_FILENAME}" ]; then return; fi;
     ## 获取SS服务运行参数
     local local_ss_enable="$( dbus get "ss_basic_enable" 2> /dev/null )"
     if [ -z "${local_ss_enable}" ] || [ "${local_ss_enable}" != "1" ]; then return; fi;
@@ -4616,7 +4626,7 @@ lz_output_ispip_info_to_system_records() {
     if [ "${iptv_igmp_switch}" = "0" ] || [ "${iptv_igmp_switch}" = "1" ]; then
         [ "${iptv_access_mode}" = "2" ] && local_item_count="$( lz_get_ipv4_data_file_valid_item_total "${iptv_isp_ip_lst_file}" )" \
             && [ "${local_item_count}" -gt "0" ] && {
-            echo "$(lzdate)" [$$]: "   IPTVSrvIPLst    Available           ${local_item_count}" | tee -ai "${SYSLOG}" 2> /dev/null
+            echo "$(lzdate)" [$$]: "   IPTVSrvIPLst    Available       HD  ${local_item_count}" | tee -ai "${SYSLOG}" 2> /dev/null
             local_exist="1"
         }
     fi
