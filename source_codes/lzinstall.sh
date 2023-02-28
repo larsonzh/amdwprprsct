@@ -1,5 +1,5 @@
 #!/bin/sh
-# lzinstall.sh v3.9.2
+# lzinstall.sh v3.9.3
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ script for asuswrt/merlin based router
@@ -9,14 +9,14 @@
 
 #BEIGIN
 
-LZ_VERSION=v3.9.2
+LZ_VERSION=v3.9.3
 TIMEOUT=10
 CURRENT_PATH="${0%/*}"
 [ "${CURRENT_PATH:0:1}" != '/' ] && CURRENT_PATH="$( pwd )${CURRENT_PATH#*.}"
 SYSLOG="/tmp/syslog.log"
 PATH_BASE="/jffs/scripts"
 [ "$( echo "${1}" | tr T t )" = t ] && PATH_BASE="${HOME}"
-lzdate() { eval echo "$( date +"%F %T" )"; }
+lzdate() { date +"%F %T"; }
 
 {
     echo 

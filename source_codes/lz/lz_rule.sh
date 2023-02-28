@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule.sh v3.9.2
+# lz_rule.sh v3.9.3
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # 本软件采用CIDR（无类别域间路由，Classless Inter-Domain Routing）技术，是一个在Internet上创建附加地
@@ -80,7 +80,7 @@
 ## -------------全局数据定义及初始化-------------------
 
 ## 版本号
-LZ_VERSION=v3.9.2
+LZ_VERSION=v3.9.3
 
 ## 运行状态查询命令
 SHOW_STATUS="status"
@@ -91,11 +91,14 @@ ADDRESS_QUERY="address"
 ## 解除运行锁命令
 FORCED_UNLOCKING="unlock"
 
+## ISP运营商网段数据文件更新状态标识
+ISPIP_DATA_UPDATE="update"
+
 ## 系统记录文件名
 SYSLOG="/tmp/syslog.log"
 
 ## 日期时间自定义格式显示
-lzdate() { eval echo "$( date +"%F %T" )"; }
+lzdate() { date +"%F %T"; }
 
 ## 项目文件部署路径
 PATH_BASE="/jffs/scripts"
@@ -275,14 +278,18 @@ lz_check_instance() {
 
 ## 实例退出处理函数
 ## 输入项：
+##     $1--主执行脚本运行输入参数
 ##     全局变量及常量
 ## 返回值：无
 lz_instance_exit() {
     [ -f "${INSTANCE_LIST}" ] && ! grep -q 'lz_' "${INSTANCE_LIST}" && rm -f "${INSTANCE_LIST}" > /dev/null 2>&1
     [ -f "${LOCK_FILE}" ] && flock -u "${LOCK_FILE_ID}" > /dev/null 2>&1
-    if [ "${drop_sys_caches}" = "0" ]; then
-        sync > /dev/null 2>&1
-        [ -f /proc/sys/vm/drop_caches ] && echo 3 > /proc/sys/vm/drop_caches
+    if [ "${drop_sys_caches}" = "0" ] && [ "${1}" != "${ISPIP_DATA_UPDATE}" ] && [ -f /proc/sys/vm/drop_caches ]; then
+        if [ "${1}" != "${SHOW_STATUS}" ] && [ "${1}" != "${ADDRESS_QUERY}" ] && [ "${1}" != "${FORCED_UNLOCKING}" ]; then
+            { ip route flush cache && sync && echo 3 > /proc/sys/vm/drop_caches && echo -e "$(lzdate) [$$]: LZ ${LZ_VERSION} Free Memory OK\n$(lzdate) [$$]:"; } | tee -ai "${SYSLOG}" 2> /dev/null
+        else
+            { ip route flush cache && sync && echo 3 > /proc/sys/vm/drop_caches && { echo "$(lzdate) [$$]:" >> "${SYSLOG}"; echo -e "$(lzdate) [$$]: LZ ${LZ_VERSION} Free Memory OK\n$(lzdate) [$$]:" | tee -ai "${SYSLOG}" 2> /dev/null; }; } 2> /dev/null
+        fi
     fi
 }
 
@@ -694,9 +701,10 @@ if lz_project_file_management "${1}"; then
 
                 ## 实例退出处理
                 ## 输入项：
+                ##     $1--主执行脚本运行输入参数
                 ##     全局变量及常量
                 ## 返回值：无
-                lz_instance_exit
+                lz_instance_exit "${1}"
 
                 exit
             fi
@@ -732,6 +740,6 @@ else
     echo "$(lzdate)" [$$]:
 fi
 
-lz_instance_exit
+lz_instance_exit "${1}"
 
 #END

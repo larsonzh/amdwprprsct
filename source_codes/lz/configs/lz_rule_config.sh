@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_config.sh v3.9.2
+# lz_rule_config.sh v3.9.3
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # 本软件采用CIDR（无类别域间路由，Classless Inter-Domain Routing）技术，是一个在Internet上创建附加地
@@ -639,16 +639,16 @@ dn_cache_time=864000
 ## 缺省为启用（0）。
 route_cache=0
 
-## 自动清理路由表缓存
-## 0--禁用；1~24--时间间隔，以小时为单位。
-## 缺省为每4小时清理一次。
-clear_route_cache_time_interval=4
-
 ## 系统缓存清理
 ## 0--启用；非0--禁用；取值范围：0~9
 ## 缺省为启用（0）。
-## 在脚本执行结束时进行。若影响系统中其他程序运行，可禁用此功能。
+## 在脚本执行结束时执行一次，同时会在“自动清理路由表及系统缓存”定时任务中进行。
 drop_sys_caches=0
+
+## 自动清理路由表及系统缓存
+## 0--禁用；1~24--时间间隔，以小时为单位。
+## 缺省为每4小时清理一次。
+clear_route_cache_time_interval=4
 
 
 ## 四、IPTV设置

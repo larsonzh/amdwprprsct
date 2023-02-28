@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v3.9.2
+# lz_rule_func.sh v3.9.3
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 #BEIGIN
@@ -1760,7 +1760,7 @@ lz_create_firewall_start_command() {
 ##     全局常量
 ## 返回值：无
 lz_create_update_ispip_data_scripts_file() {
-    cat > "${PATH_LZ}/${UPDATE_FILENAME}" <<UPDATE_ISPIP_DATA
+    cat > "${PATH_LZ}/${UPDATE_FILENAME}" <<UPDATE_ISPIP_DATA_A
 #!/bin/sh
 # ${UPDATE_FILENAME} ${LZ_VERSION}
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
@@ -1771,7 +1771,7 @@ lz_create_update_ispip_data_scripts_file() {
 
 #BEIGIN
 
-lzdate() { eval echo "\$( date +"%F %T" )"; }
+lzdate() { date +"%F %T"; }
 
 echo | tee -ai "${SYSLOG}" 2> /dev/null
 echo "\$(lzdate)" [\$\$]: LZ "${LZ_VERSION}" start to update the ISP IP data files... | tee -ai "${SYSLOG}" 2> /dev/null
@@ -1849,18 +1849,28 @@ if [ "\${dl_succeed}" = "1" ]; then
     if ipset -q test "${PROJECT_STATUS_SET}" "${PROJECT_START_ID}"; then
         if [ -f "${PATH_LZ}/${PROJECT_FILENAME}" ]; then
             echo "\$(lzdate)" [\$\$]: LZ "${LZ_VERSION}" restart lz_rule.sh ...... | tee -ai "${SYSLOG}" 2> /dev/null
-            sh "${PATH_LZ}/${PROJECT_FILENAME}"
+            sh "${PATH_LZ}/${PROJECT_FILENAME}" "${ISPIP_DATA_UPDATE}"
         fi
         echo "\$(lzdate)" [\$\$]: LZ "${LZ_VERSION}" update the ISP IP data files successfully. | tee -ai "${SYSLOG}" 2> /dev/null
     fi
 else
     echo "\$(lzdate)" [\$\$]: LZ "${LZ_VERSION}" failed to update the ISP IP data files. | tee -ai "${SYSLOG}" 2> /dev/null
 fi
-echo | tee -ai "${SYSLOG}" 2> /dev/null
+
+UPDATE_ISPIP_DATA_A
+    if [ "${drop_sys_caches}" = "0" ]; then
+    cat >> "${PATH_LZ}/${UPDATE_FILENAME}" <<UPDATE_ISPIP_DATA_B
+{ [ -f /proc/sys/vm/drop_caches ] && sync && echo 3 > /proc/sys/vm/drop_caches && echo -e "\$(lzdate) [\$\$]:\\n\$(lzdate) [\$\$]: LZ ${LZ_VERSION} Free Memory OK\\n\$(lzdate) [\$\$]:"; } | tee -ai "${SYSLOG}" 2> /dev/null
 
 #END
+UPDATE_ISPIP_DATA_B
+    else
+    cat >> "${PATH_LZ}/${UPDATE_FILENAME}" <<UPDATE_ISPIP_DATA_C
+echo \$(lzdate) [\$\$]: | tee -ai "${SYSLOG}" 2> /dev/null
 
-UPDATE_ISPIP_DATA
+#END
+UPDATE_ISPIP_DATA_C
+    fi
 
     chmod +x "${PATH_LZ}/${UPDATE_FILENAME}" > /dev/null 2>&1
 }
@@ -1949,7 +1959,7 @@ lz_establish_regularly_update_ispip_data_task() {
         local_ruid_day="$( echo "${local_regularly_update_ispip_data_info}" | awk '{print $3}' | cut -d '/' -f2 )"
         local_ruid_month="$( echo "${local_regularly_update_ispip_data_info}" | awk '{print $4}' )"
         local_ruid_week="$( echo "${local_regularly_update_ispip_data_info}" | awk '{print $5}' )"
-        [ -n "${local_ruid_day}" ] && {
+        if [ -n "${local_ruid_day}" ]; then
             local local_day_suffix_str="s"
             [ "${local_ruid_day}" = "1" ] && local_day_suffix_str=""
             {
@@ -1957,7 +1967,13 @@ lz_establish_regularly_update_ispip_data_task() {
                 echo "$(lzdate)" [$$]: "   Update ISP Data: ${local_ruid_hour}:${local_ruid_min} Every ${local_ruid_day} day${local_day_suffix_str}"
                 echo "$(lzdate)" [$$]: ---------------------------------------------
             } | tee -ai "${SYSLOG}" 2> /dev/null
-        }
+        else
+            ## 删除更新ISP网络运营商CIDR网段数据定时任务
+            cru d "${UPDATE_ISPIP_DATA_TIMEER_ID}" > /dev/null 2>&1
+            echo "$(lzdate)" [$$]: --------------------------------------------- | tee -ai "${SYSLOG}" 2> /dev/null
+        fi
+    else
+        echo "$(lzdate)" [$$]: --------------------------------------------- | tee -ai "${SYSLOG}" 2> /dev/null
     fi
 }
 
@@ -1996,7 +2012,17 @@ lz_create_update_ispip_data_file() {
                     else
                         ## 缺少ISP网络运营商CIDR网段数据文件列表变量
                         local_write_scripts="$( grep "[\$][\{]ispip_file_list[\}]" "${PATH_LZ}/${UPDATE_FILENAME}" )"
-                        [ -z "${local_write_scripts}" ] && lz_create_update_ispip_data_scripts_file
+                        if [ -z "${local_write_scripts}" ]; then
+                            lz_create_update_ispip_data_scripts_file
+                        else
+                            ## 系统缓存清理
+                            local_write_scripts="$( grep "/proc/sys/vm/drop_caches" "${PATH_LZ}/${UPDATE_FILENAME}" )"
+                            if [ -z "${local_write_scripts}" ]; then
+                                [ "${drop_sys_caches}" = "0" ] && lz_create_update_ispip_data_scripts_file
+                            else
+                                [ "${drop_sys_caches}" != "0" ] && lz_create_update_ispip_data_scripts_file
+                            fi
+                        fi
                     fi
                 fi
             fi
@@ -3707,7 +3733,7 @@ lz_add_openvpn_event_scripts() {
 [ ! -d "${PATH_LOCK}" ] && { mkdir -p "${PATH_LOCK}" > /dev/null 2>&1; chmod 777 "${PATH_LOCK}" > /dev/null 2>&1; }
 exec ${LOCK_FILE_ID}<>"${LOCK_FILE}"; flock -x "${LOCK_FILE_ID}" > /dev/null 2>&1;
 
-lzdate() { eval echo "\$( date +"%F %T" )"; }
+lzdate() { date +"%F %T"; }
 
 {
     echo "\$(lzdate)" [\$\$]:
@@ -5527,8 +5553,21 @@ lz_deployment_routing_policy() {
     lz_remove_unused_ipset
 
     ## 启动自动清理路由表缓存定时任务
-    [ "${clear_route_cache_time_interval}" -gt "0" ] && [ "${clear_route_cache_time_interval}" -le "24" ] \
-        && cru a "${CLEAR_ROUTE_CACHE_TIMEER_ID}" "8 */${clear_route_cache_time_interval} * * * ip route flush cache" > /dev/null 2>&1
+    if [ "${clear_route_cache_time_interval}" -gt "0" ] && [ "${clear_route_cache_time_interval}" -le "24" ]; then
+        local local_ruid_min="$( cru l | grep "#${UPDATE_ISPIP_DATA_TIMEER_ID}#" | awk '$1 ~ /^[0-9]$|^[0-5][0-9]$/ {print $1}' | sed 's/^[0]\([0-9]\)$/\1/g' )"
+        if [ -z "${local_ruid_min}" ]; then
+            local_ruid_min="8"
+        elif [ "${local_ruid_min}" -ge "30" ]; then
+            local_ruid_min="18"
+        else
+            local_ruid_min="48"
+        fi
+        if [ "${drop_sys_caches}" = "0" ]; then
+            cru a "${CLEAR_ROUTE_CACHE_TIMEER_ID}" "${local_ruid_min} */${clear_route_cache_time_interval} * * * { ip route flush cache && [ -f /proc/sys/vm/drop_caches ] && sync && echo 3 > /proc/sys/vm/drop_caches && echo -e \"\$( date +\"%F %T\" ) [\$\$]:\\n\$( date +\"%F %T\" ) [\$\$]: LZ ${LZ_VERSION} Free Memory OK\\n\$( date +\"%F %T\" ) [\$\$]:\" >> ${SYSLOG}; } 2> /dev/null" > /dev/null 2>&1
+        else
+            cru a "${CLEAR_ROUTE_CACHE_TIMEER_ID}" "${local_ruid_min} */${clear_route_cache_time_interval} * * * ip route flush cache 2> /dev/null" > /dev/null 2>&1
+        fi
+    fi
 
     ## 启动虚拟专网客户端路由刷新处理后台守护进程
     ## 虚拟专网客户端路由刷新处理后台守护进程
@@ -5553,8 +5592,6 @@ lz_deployment_routing_policy() {
 [ ! -d "${PATH_LOCK}" ] && { mkdir -p "${PATH_LOCK}" > /dev/null 2>&1; chmod 777 "${PATH_LOCK}" > /dev/null 2>&1; }
 exec ${LOCK_FILE_ID}<>"${LOCK_FILE}"; flock -x "${LOCK_FILE_ID}" > /dev/null 2>&1;
 
-lzdate() { eval echo "\$( date +"%F %T" )"; }
-
 ipset -q destroy "${VPN_CLIENT_DAEMON_IP_SET_LOCK}"
 ps | grep "${VPN_CLIENT_DAEMON}" | grep -v 'grep' | awk '{print \$1}' | xargs kill -9 > /dev/null 2>&1
 sleep "1s"
@@ -5564,11 +5601,11 @@ sleep "1s"
     sleep "1s"
     rm -f "${PATH_TMP}/${START_DAEMON_SCRIPT}" > /dev/null 2>&1
     {
-        echo "\$(lzdate)" [\$\$]:
-        echo "\$(lzdate)" [\$\$]: -----------------------------------------------
-        echo "\$(lzdate)" [\$\$]: The VPN client route daemon has been started again.
-        echo "\$(lzdate)" [\$\$]: -------- LZ "${LZ_VERSION}" VPN Client Daemon ----------
-        echo "\$(lzdate)" [\$\$]:
+        echo "\$( date +"%F %T" )" [\$\$]:
+        echo "\$( date +"%F %T" )" [\$\$]: -----------------------------------------------
+        echo "\$( date +"%F %T" )" [\$\$]: The VPN client route daemon has been started again.
+        echo "\$( date +"%F %T" )" [\$\$]: -------- LZ "${LZ_VERSION}" VPN Client Daemon ----------
+        echo "\$( date +"%F %T" )" [\$\$]:
     } >> "${SYSLOG}"
 }
 
