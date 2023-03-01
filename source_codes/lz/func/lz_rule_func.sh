@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v3.9.3
+# lz_rule_func.sh v3.9.4
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 #BEIGIN
@@ -1896,14 +1896,8 @@ lz_establish_regularly_update_ispip_data_task() {
         local_regularly_update_ispip_data_info="$( cru l | grep "#${UPDATE_ISPIP_DATA_TIMEER_ID}#" )"
         if [ -z "${local_regularly_update_ispip_data_info}" ]; then
             ## 创建定时任务
-            [ "${local_min}" = "*" ] && {
-                local_min="$( date +"%M" )"
-                echo "${local_min}" | grep -q "^[0][0-9]" && local_min="$( echo "${local_min}" | awk -F "0" '{print $2}' )"
-            }
-            [ "${local_hour}" = "*" ] && {
-                local_hour="$( date +"%H" )"
-                echo "${local_hour}" | grep -q "^[0][0-9]" && local_hour="$( echo "${local_hour}" | awk -F "0" '{print $2}' )"
-            }
+            [ "${local_min}" = "*" ] && local_min="$( date +"%M" | sed 's/^[0]\([0-9]\)$/\1/g' )"
+            [ "${local_hour}" = "*" ] && local_hour="$( date +"%H" | sed 's/^[0]\([0-9]\)$/\1/g' )"
             cru a "${UPDATE_ISPIP_DATA_TIMEER_ID}" "${local_min} ${local_hour} ${local_day} ${local_month} ${local_week} /bin/sh ${PATH_LZ}/${UPDATE_FILENAME}" > /dev/null 2>&1
         else
             local_ruid_min="$( echo "${local_regularly_update_ispip_data_info}" | awk '{print $1}' )"
@@ -1914,10 +1908,8 @@ lz_establish_regularly_update_ispip_data_task() {
             if [ "${local_min}" = "*" ] && [ "${local_hour}" = "*" ]; then
                 if [ "${local_day}" != "${local_ruid_day}" ] || [ "${local_month}" != "${local_ruid_month}" ] \
                     || [ "${local_week}" != "${local_ruid_week}" ] || [ "${local_ruid_min}" = "*" ] || [ "${local_ruid_hour}" = "*" ]; then
-                    local_min="$( date +"%M" )"
-                    echo "${local_min}" | grep -q "^[0][0-9]" && local_min="$( echo "${local_min}" | awk -F "0" '{print $2}' )"
-                    local_hour="$( date +"%H" )"
-                    echo "${local_hour}" | grep -q "^[0][0-9]" && local_hour="$( echo "${local_hour}" | awk -F "0" '{print $2}' )"
+                    local_min="$( date +"%M" | sed 's/^[0]\([0-9]\)$/\1/g' )"
+                    local_hour="$( date +"%H" | sed 's/^[0]\([0-9]\)$/\1/g' )"
                     ## 计划发生变化，修改既有定时任务
                     cru a "${UPDATE_ISPIP_DATA_TIMEER_ID}" "${local_min} ${local_hour} ${local_day} ${local_month} ${local_week} /bin/sh ${PATH_LZ}/${UPDATE_FILENAME}" > /dev/null 2>&1
                 fi
@@ -1925,8 +1917,7 @@ lz_establish_regularly_update_ispip_data_task() {
                 if [ "${local_hour}" != "${local_ruid_hour}" ] || [ "${local_day}" != "${local_ruid_day}" ] \
                     || [ "${local_month}" != "${local_ruid_month}" ] || [ "${local_week}" != "${local_ruid_week}" ] \
                     || [ "${local_ruid_min}" = "*" ] || [ "${local_ruid_hour}" = "*" ]; then
-                    local_min="$( date +"%M" )"
-                    echo "${local_min}" | grep -q "^[0][0-9]" && local_min="$( echo "${local_min}" | awk -F "0" '{print $2}' )"
+                    local_min="$( date +"%M" | sed 's/^[0]\([0-9]\)$/\1/g' )"
                     ## 计划发生变化，修改既有定时任务
                     cru a "${UPDATE_ISPIP_DATA_TIMEER_ID}" "${local_min} ${local_hour} ${local_day} ${local_month} ${local_week} /bin/sh ${PATH_LZ}/${UPDATE_FILENAME}" > /dev/null 2>&1
                 fi
@@ -1934,8 +1925,7 @@ lz_establish_regularly_update_ispip_data_task() {
                 if [ "${local_min}" != "${local_ruid_min}" ] || [ "${local_day}" != "${local_ruid_day}" ] \
                     || [ "${local_month}" != "${local_ruid_month}" ] || [ "${local_week}" != "${local_ruid_week}" ] \
                     || [ "${local_ruid_min}" = "*" ] || [ "${local_ruid_hour}" = "*" ]; then
-                    local_hour="$( date +"%H" )"
-                    echo "${local_hour}" | grep -q "^[0][0-9]" && local_hour="$( echo "${local_hour}" | awk -F "0" '{print $2}' )"
+                    local_hour="$( date +"%H" | sed 's/^[0]\([0-9]\)$/\1/g' )"
                     ## 计划发生变化，修改既有定时任务
                     cru a "${UPDATE_ISPIP_DATA_TIMEER_ID}" "${local_min} ${local_hour} ${local_day} ${local_month} ${local_week} /bin/sh ${PATH_LZ}/${UPDATE_FILENAME}" > /dev/null 2>&1
                 fi
@@ -5554,7 +5544,7 @@ lz_deployment_routing_policy() {
 
     ## 启动自动清理路由表缓存定时任务
     if [ "${clear_route_cache_time_interval}" -gt "0" ] && [ "${clear_route_cache_time_interval}" -le "24" ]; then
-        local local_ruid_min="$( cru l | grep "#${UPDATE_ISPIP_DATA_TIMEER_ID}#" | awk '$1 ~ /^[0-9]$|^[0-5][0-9]$/ {print $1}' | sed 's/^[0]\([0-9]\)$/\1/g' )"
+        local local_ruid_min="$( cru l | awk '$0 ~ "'"#${UPDATE_ISPIP_DATA_TIMEER_ID}#"'" && $1 ~ /^[0-9]$|^[0-5][0-9]$/ {print $1; exit}' | sed 's/^[0]\([0-9]\)$/\1/g' )"
         if [ -z "${local_ruid_min}" ]; then
             local_ruid_min="8"
         elif [ "${local_ruid_min}" -ge "30" ]; then

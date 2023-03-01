@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_initialize_config.sh v3.9.3
+# lz_initialize_config.sh v3.9.4
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 初始化脚本配置
@@ -2566,10 +2566,10 @@ EOF
     ! echo "${local_ruid_interval_day}" | grep -qE '^[0-9]$|^[2][0-9]$|^[3][0-1]$' && local_ruid_interval_day="5" && local_exist="0"
 
     local_ruid_timer_hour="$( lz_get_file_cache_data "ruid_timer_hour" "\*" )" && local_exist="0"
-    ! echo "${local_ruid_timer_hour}" | grep -qE '^[0-9]$|^[1][0-9]$|^[2][0-4]$' && local_ruid_timer_hour="*" && local_exist="0"
+    ! echo "${local_ruid_timer_hour}" | grep -qE '^[0-9]$|^[1][0-9]$|^[2][0-3]$|^[\*]$' && local_ruid_timer_hour="*" && local_exist="0"
 
     local_ruid_timer_min="$( lz_get_file_cache_data "ruid_timer_min" "\*" )" && local_exist="0"
-    ! echo "${local_ruid_timer_min}" | grep -qE '^[0-9]$|^[1-5][0-9]$' && local_ruid_timer_min="*" && local_exist="0"
+    ! echo "${local_ruid_timer_min}" | grep -qE '^[0-9]$|^[1-5][0-9]$|^[\*]$' && local_ruid_timer_min="*" && local_exist="0"
 
     local_ruid_retry_num="$( lz_get_file_cache_data "ruid_retry_num" "5" )" && local_exist="0"
     ! echo "${local_ruid_retry_num}" | grep -qE '^[0-9][0-9]*$' && local_ruid_retry_num="5" && local_exist="0"
@@ -3245,10 +3245,10 @@ lz_read_box_data() {
     ! echo "${local_ini_ruid_interval_day}" | grep -qE '^[0-9]$|^[2][0-9]$|^[3][0-1]$' && local_ini_ruid_interval_day="5" && local_exist="0"
 
     local_ini_ruid_timer_hour="$( lz_get_file_cache_data "lz_config_ruid_timer_hour" "\*" )" && local_exist="0"
-    ! echo "${local_ini_ruid_timer_hour}" | grep -qE '^[0-9]$|^[1][0-9]$|^[2][0-4]$' && local_ini_ruid_timer_hour="*" && local_exist="0"
+    ! echo "${local_ini_ruid_timer_hour}" | grep -qE '^[0-9]$|^[1][0-9]$|^[2][0-3]$|^[\*]$' && local_ini_ruid_timer_hour="*" && local_exist="0"
 
     local_ini_ruid_timer_min="$( lz_get_file_cache_data "lz_config_ruid_timer_min" "\*" )" && local_exist="0"
-    ! echo "${local_ini_ruid_timer_min}" | grep -qE '^[0-9]$|^[1-5][0-9]$' && local_ini_ruid_timer_min="*" && local_exist="0"
+    ! echo "${local_ini_ruid_timer_min}" | grep -qE '^[0-9]$|^[1-5][0-9]$|^[\*]$' && local_ini_ruid_timer_min="*" && local_exist="0"
 
     local_ini_ruid_retry_num="$( lz_get_file_cache_data "lz_config_ruid_retry_num" "5" )" && local_exist="0"
     ! echo "${local_ini_ruid_retry_num}" | grep -qE '^[0-9][0-9]*$' && local_ini_ruid_retry_num="5" && local_exist="0"

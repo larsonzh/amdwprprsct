@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_define_global_variables.sh v3.9.3
+# lz_define_global_variables.sh v3.9.4
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 # QnkgTFog5aaZ5aaZ5ZGc77yI6Juk6J+G5aKp5YS/77yJ（首次运行标识，切勿修改）
 
@@ -485,8 +485,8 @@ udpxy_used=5
 IGMP_PROXY_CONF_NAME="igmpproxy.conf"
 
 ## 定时更新ISP网络运营商CIDR网段数据时间参数定义（[*]表示未设置，每间隔多久用[*/数字]表示）
-ruid_min="${ruid_timer_min}"       ## 分钟（0-59）
-ruid_hour="${ruid_timer_hour}"     ## 小时（0-24）："ruid_hour=3"表示每天凌晨3点
+ruid_min="${ruid_timer_min}"       ## 分钟（0-59，*表示由系统指定）
+ruid_hour="${ruid_timer_hour}"     ## 小时（0-23，*表示由系统指定）："ruid_hour=3"表示每天凌晨3点
 ruid_day="*/${ruid_interval_day}"  ## 日期（1-31）："ruid_day=*/3"表示每隔3天
 ruid_month="*"                     ## 月份（1-12；或英文缩写Jan、Feb等）
 ruid_week="*"                      ## 周几（0-6，0为周日；或单词缩写Sun、Mon等）
