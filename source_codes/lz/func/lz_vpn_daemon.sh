@@ -51,80 +51,149 @@ ipset -q create "${VPN_CLIENT_DAEMON_IP_SET_LOCK}" list:set
 if [ "${1}" -gt "0" ] && [ "${1}" -le "60" ]; then POLLING_TIME="${1}"; else POLLING_TIME="5"; fi;
 POLLING_TIME="${POLLING_TIME}s"
 
-## 更新虚拟专网客户端子路由函数
+## 调用Open虚拟专网事件触发接口文件函数
 ## 输入项：
-##     $1--虚拟专网协议名称
-##     $2--虚拟专网客户端本地地址列表数据集名称
 ##     全局常量
-## 返回值：无
+## 返回值：
+##     0--成功
+##     1--失败
+call_openvpn_event_interface() {
+    [ -f "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}" ] \
+        && /bin/sh "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}" \
+        && return "0"
+    return "1"
+}
+
+## 更新PPTP/WGS虚拟专网客户端子路由函数
+## 输入项：
+##     全局常量及变量
+## 返回值：
+##     0--有更新
+##     1--无更新
 update_vpn_client_sub_route() {
-    local vpn_client_list="$( ip route show | awk '$0 ~ "'"${1}"'" {print $1}' )"
+    local vpn_client_list="$( ip route show | awk '/pptp|wgs/ {print $1}' )"
     if [ -n "${vpn_client_list}" ]; then
         local vpn_client=""
-        local vpn_client_sub_list="$( ip route show table "${WAN0}" | awk '$0 ~ "'"${1}"'" {print $1}' )"
+        local vpn_client_sub_list="$( ip route show table "${WAN0}" | awk '/pptp|wgs/ {print $1}' )"
         if [ -n "${vpn_client_sub_list}" ]; then
             for vpn_client in ${vpn_client_list}
             do
-                vpn_client="$( echo "${vpn_client_sub_list}" | grep "^${vpn_client}$" )"
-                [ -z "${vpn_client}" ] && break
+                ! echo "${vpn_client_sub_list}" | grep -q "^${vpn_client}$" \
+                    && call_openvpn_event_interface && return "0"
             done
             if [ -n "${vpn_client}" ]; then
-                vpn_client_sub_list="$( ip route show table "${WAN1}" | awk '$0 ~ "'"${1}"'" {print $1}' )"
+                vpn_client_sub_list="$( ip route show table "${WAN1}" | awk '/pptp|wgs/ {print $1}' )"
                 if [ -n "${vpn_client_sub_list}" ]; then
                     for vpn_client in ${vpn_client_list}
                     do
-                        vpn_client="$( echo "${vpn_client_sub_list}" | grep "^${vpn_client}$" )"
-                        [ -z "${vpn_client}" ] && break
+                        ! echo "${vpn_client_sub_list}" | grep -q "^${vpn_client}$" \
+                            && call_openvpn_event_interface && return "0"
                     done
                 else
-                    vpn_client=""
+                    call_openvpn_event_interface && return "0"
                 fi
             fi
-        fi
-        if [ -z "${vpn_client}" ]; then
-            [ -f "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}" ] && /bin/sh "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}"
         else
-            for vpn_client in $( ipset -q list "${2}" | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}' )
-            do
-                if ! echo "${vpn_client_list}" | grep -q "^${vpn_client}$"; then
-                    [ -f "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}" ] && /bin/sh "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}"
-                    break
-                fi
-            done
+            call_openvpn_event_interface && return "0"
         fi
+        for vpn_client in $( ipset -q list "${PPTP_CLIENT_IP_SET}" | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}' ) \
+            $( ipset -q list "${WIREGUARD_CLIENT_IP_SET}" | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}' )
+        do
+            ! echo "${vpn_client_list}" | grep -q "^${vpn_client}$" && call_openvpn_event_interface && return "0"
+        done
     else
-        ipset -q list "${2}" | grep -qEo '([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}' \
-            && [ -f "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}" ] && /bin/sh "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}"
+        ipset -q list "${PPTP_CLIENT_IP_SET}" | grep -qE '([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}' \
+            || ipset -q list "${WIREGUARD_CLIENT_IP_SET}" | grep -qE '([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}' \
+            && call_openvpn_event_interface && return "0"
     fi
+    return "1"
+}
+
+## 更新WGS虚拟专网客户端状态函数
+## 输入项：
+##     全局常量及变量
+## 返回值：
+##     0--有更新
+##     1--无更新
+update_wgs_client() {
+    call_openvpn_event_interface \
+        && {
+                PPTPD_ENABLE="$( nvram get "pptpd_enable" )"
+                IPSEC_SERVER_ENABLE="$( nvram get "ipsec_server_enable" )"
+                return "0"
+        }
+        return "1"
+}
+
+## 更新PPTP/WGS/IPSec虚拟专网客户端状态函数
+## 输入项：
+##     全局常量及变量
+## 返回值：
+##     0--有更新
+##     1--无更新
+update_vpn_client() {
+    if update_vpn_client_sub_route; then
+        PPTPD_ENABLE="$( nvram get "pptpd_enable" )"
+        IPSEC_SERVER_ENABLE="$( nvram get "ipsec_server_enable" )"
+        return "0"
+    else
+        if [ "${PPTPD_ENABLE}" = "1" ]; then
+            PPTPD_ENABLE="$( nvram get "pptpd_enable" )"
+            [ "${PPTPD_ENABLE}" = "0" ] \
+                && call_openvpn_event_interface \
+                && {
+                        IPSEC_SERVER_ENABLE="$( nvram get "ipsec_server_enable" )"
+                        return "0"
+                }
+        fi
+        if [ "${IPSEC_SERVER_ENABLE}" = "1" ]; then
+            IPSEC_SERVER_ENABLE="$( nvram get "ipsec_server_enable" )"
+            [ "${IPSEC_SERVER_ENABLE}" = "0" ] && call_openvpn_event_interface && return "0"
+        elif ipset -q list "${IPSEC_SUBNET_IP_SET}" | grep -qE '([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}'; then
+            call_openvpn_event_interface && return "0"
+        fi
+    fi
+    return "1"
 }
 
 while [ -n "$( ipset -q -n list ${VPN_CLIENT_DAEMON_IP_SET_LOCK} )" ]
 do
     [ ! -f "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}" ] && break
-    if [ "${WGS_ENABLE}" = "1" ]; then
-        WGS_ENABLE="$( nvram get "wgs_enable" )"
-        [ "${WGS_ENABLE}" = "0" ] && [ -f "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}" ] \
-            && /bin/sh "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}"
-        [ "${WGS_ENABLE}" = "1" ] && update_vpn_client_sub_route "wgs" "${WIREGUARD_CLIENT_IP_SET}"
-    elif [ "${WGS_ENABLE}" = "0" ]; then
-        WGS_ENABLE="$( nvram get "wgs_enable" )"
-        [ "${WGS_ENABLE}" = "1" ] && [ -f "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}" ] \
-            && /bin/sh "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}"
-        [ "${WGS_ENABLE}" = "0" ] && update_vpn_client_sub_route "wgs" "${WIREGUARD_CLIENT_IP_SET}"
-    fi
-    if [ "${PPTPD_ENABLE}" = "1" ]; then
-        PPTPD_ENABLE="$( nvram get "pptpd_enable" )"
-        [ "${PPTPD_ENABLE}" = "0" ] && [ -f "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}" ] \
-            && /bin/sh "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}"
-        [ "${PPTPD_ENABLE}" = "1" ] && update_vpn_client_sub_route "pptp" "${PPTP_CLIENT_IP_SET}"
-    fi
-    if [ "${IPSEC_SERVER_ENABLE}" = "1" ]; then
-        IPSEC_SERVER_ENABLE="$( nvram get "ipsec_server_enable" )"
-        [ "${IPSEC_SERVER_ENABLE}" = "0" ] && [ -f "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}" ] \
-            && /bin/sh "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}"
-    elif ipset -q list "${IPSEC_SUBNET_IP_SET}" | grep -qEo '([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}'; then
-        [ -f "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}" ] && /bin/sh "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}"
-    fi
+    while true
+    do
+        if [ "${WGS_ENABLE}" = "1" ]; then
+            WGS_ENABLE="$( nvram get "wgs_enable" )"
+            [ "${WGS_ENABLE}" = "0" ] && update_wgs_client && break
+            [ "${WGS_ENABLE}" = "1" ] && update_vpn_client && break
+        elif [ "${WGS_ENABLE}" = "0" ]; then
+            WGS_ENABLE="$( nvram get "wgs_enable" )"
+            [ "${WGS_ENABLE}" = "1" ] && update_wgs_client && break
+            [ "${WGS_ENABLE}" = "0" ] && update_vpn_client && break
+        else
+            if [ "${PPTPD_ENABLE}" = "1" ]; then
+                PPTPD_ENABLE="$( nvram get "pptpd_enable" )"
+                [ "${PPTPD_ENABLE}" = "0" ] \
+                    && call_openvpn_event_interface \
+                    && {
+                            IPSEC_SERVER_ENABLE="$( nvram get "ipsec_server_enable" )"
+                            break
+                    }
+                [ "${PPTPD_ENABLE}" = "1" ] \
+                    && update_vpn_client_sub_route \
+                    && {
+                            IPSEC_SERVER_ENABLE="$( nvram get "ipsec_server_enable" )"
+                            break
+                    }
+            fi
+            if [ "${IPSEC_SERVER_ENABLE}" = "1" ]; then
+                IPSEC_SERVER_ENABLE="$( nvram get "ipsec_server_enable" )"
+                [ "${IPSEC_SERVER_ENABLE}" = "0" ] && call_openvpn_event_interface
+            elif ipset -q list "${IPSEC_SUBNET_IP_SET}" | grep -qE '([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}'; then
+                call_openvpn_event_interface
+            fi
+        fi
+        break
+    done
     [ -z "${WGS_ENABLE}" ] && [ "${PPTPD_ENABLE}" != "1" ] && [ "${IPSEC_SERVER_ENABLE}" != "1" ] && break
     eval sleep "${POLLING_TIME}"
 done
