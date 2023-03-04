@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_vpn_daemon.sh v3.9.4
+# lz_vpn_daemon.sh v3.9.6
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 虚拟专网客户端路由刷新处理后台守护进程脚本
@@ -163,27 +163,34 @@ do
     do
         if [ "${WGS_ENABLE}" = "1" ]; then
             WGS_ENABLE="$( nvram get "wgs_enable" )"
-            [ "${WGS_ENABLE}" = "0" ] && update_wgs_client && break
-            [ "${WGS_ENABLE}" = "1" ] && update_vpn_client && break
+            if [ "${WGS_ENABLE}" = "0" ]; then
+                update_wgs_client && break
+            elif [ "${WGS_ENABLE}" = "1" ]; then
+                update_vpn_client && break
+            fi
         elif [ "${WGS_ENABLE}" = "0" ]; then
             WGS_ENABLE="$( nvram get "wgs_enable" )"
-            [ "${WGS_ENABLE}" = "1" ] && update_wgs_client && break
-            [ "${WGS_ENABLE}" = "0" ] && update_vpn_client && break
+            if [ "${WGS_ENABLE}" = "1" ]; then
+                update_wgs_client && break
+            elif [ "${WGS_ENABLE}" = "0" ]; then
+                update_vpn_client && break
+            fi
         else
             if [ "${PPTPD_ENABLE}" = "1" ]; then
                 PPTPD_ENABLE="$( nvram get "pptpd_enable" )"
-                [ "${PPTPD_ENABLE}" = "0" ] \
-                    && call_openvpn_event_interface \
-                    && {
-                            IPSEC_SERVER_ENABLE="$( nvram get "ipsec_server_enable" )"
-                            break
-                    }
-                [ "${PPTPD_ENABLE}" = "1" ] \
-                    && update_vpn_client_sub_route \
-                    && {
-                            IPSEC_SERVER_ENABLE="$( nvram get "ipsec_server_enable" )"
-                            break
-                    }
+                if [ "${PPTPD_ENABLE}" = "0" ]; then
+                    call_openvpn_event_interface \
+                        && {
+                                IPSEC_SERVER_ENABLE="$( nvram get "ipsec_server_enable" )"
+                                break
+                        }
+                elif [ "${PPTPD_ENABLE}" = "1" ]; then
+                    update_vpn_client_sub_route \
+                        && {
+                                IPSEC_SERVER_ENABLE="$( nvram get "ipsec_server_enable" )"
+                                break
+                        }
+                fi
             fi
             if [ "${IPSEC_SERVER_ENABLE}" = "1" ]; then
                 IPSEC_SERVER_ENABLE="$( nvram get "ipsec_server_enable" )"

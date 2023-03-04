@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_define_global_variables.sh v3.9.5
+# lz_define_global_variables.sh v3.9.6
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 # QnkgTFog5aaZ5aaZ5ZGc77yI6Juk6J+G5aKp5YS/77yJ（首次运行标识，切勿修改）
 
@@ -271,20 +271,20 @@ BALANCE_JUMP_FWMARK="0xcdcd"
 ## 策略规则基础优先级--25000（IP_RULE_PRIO）
 IP_RULE_PRIO="25000"
 
-## 国外运营商网段分流出口规则策略规则优先级--24999（IP_RULE_PRIO-1）
-IP_RULE_PRIO_FOREIGN_DATA="$(( IP_RULE_PRIO - 1 ))"
+## 虚拟专网客户端静态分流模式系统分配分流出口规则策略规则优先级--24999（IP_RULE_PRIO-1）
+IP_RULE_PRIO_STATIC_SYS_VPN="$(( IP_RULE_PRIO - 1 ))"
 
-## 国内运营商网段第一WAN口分流出口规则策略规则优先级--24998（IP_RULE_PRIO-2）
+## 国外运营商网段分流出口规则策略规则优先级--24998（IP_RULE_PRIO-2）
+IP_RULE_PRIO_FOREIGN_DATA="$(( IP_RULE_PRIO_STATIC_SYS_VPN - 1 ))"
+
+## 国内运营商网段第一WAN口分流出口规则策略规则优先级--24997（IP_RULE_PRIO-3）
 IP_RULE_PRIO_PREFERRDE_WAN_DATA="$(( IP_RULE_PRIO_FOREIGN_DATA - 1 ))"
 
-## 国内运营商网段第二WAN口分流出口规则策略规则优先级--24997（IP_RULE_PRIO-3）
+## 国内运营商网段第二WAN口分流出口规则策略规则优先级--24996（IP_RULE_PRIO-4）
 IP_RULE_PRIO_SECOND_WAN_DATA="$(( IP_RULE_PRIO_PREFERRDE_WAN_DATA - 1 ))"
 
-## 国外运营商网段主机分流出口规则策略规则优先级--24996（IP_RULE_PRIO-4）
-IP_RULE_PRIO_HOST_FOREIGN_DATA="$(( IP_RULE_PRIO_SECOND_WAN_DATA - 1 ))"
-
 ## 国内运营商网段主机报文第一WAN口分流出口规则策略规则优先级--24995（IP_RULE_PRIO-5）
-IP_RULE_PRIO_HOST_PREFERRDE_WAN_DATA="$(( IP_RULE_PRIO_HOST_FOREIGN_DATA - 1 ))"
+IP_RULE_PRIO_HOST_PREFERRDE_WAN_DATA="$(( IP_RULE_PRIO_SECOND_WAN_DATA - 1 ))"
 
 ## 国内运营商网段主机报文第二WAN口分流出口规则策略规则优先级--24994（IP_RULE_PRIO-6）
 IP_RULE_PRIO_HOST_SECOND_WAN_DATA="$(( IP_RULE_PRIO_HOST_PREFERRDE_WAN_DATA - 1 ))"
@@ -439,8 +439,11 @@ route_os_name="$( uname -o )"
 ## 路由器本地IP地址
 route_local_ip=
 
-## 路由器本地网络掩码
-route_local_ip_mask=
+## 路由器本地子网
+route_local_subnet=
+
+## 静态分流模式整体通道推送命令是否执行（0--未执行；1--已执行）
+command_from_all_executed="0"
 
 ## 线路1接口设备标识
 route_wan0_ifname="$( nvram get "wan0_pppoe_ifname" | grep -o 'ppp[0-9]*' | sed -n 1p )"

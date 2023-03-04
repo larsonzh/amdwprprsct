@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_status.sh v3.9.5
+# lz_rule_status.sh v3.9.6
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 显示脚本运行状态脚本
@@ -401,7 +401,6 @@ lz_set_parameter_status_variable() {
     status_route_hardware_type=
     status_route_os_name=
     status_route_local_ip=
-    status_route_local_ip_mask=
     status_ip_rule_exist=0
     status_adjust_traffic_policy="5"
 }
@@ -475,7 +474,6 @@ lz_unset_parameter_status_variable() {
     unset status_route_hardware_type
     unset status_route_os_name
     unset status_route_local_ip
-    unset status_route_local_ip_mask
     unset status_ip_rule_exist
     unset status_adjust_traffic_policy
 }
@@ -993,7 +991,6 @@ lz_get_policy_mode_status() {
 ##     status_route_hardware_type--路由器硬件类型，全局常量
 ##     status_route_os_name--路由器操作系统名称，全局常量
 ##     status_route_local_ip--路由器本地IP地址，全局变量
-##     status_route_local_ip_mask--路由器本地IP地址掩码，全局变量
 lz_get_route_status_info() {
     echo "$(lzdate)" [$$]: ---------------------------------------------
     ## 路由器硬件类型
@@ -1189,7 +1186,7 @@ lz_get_route_status_info() {
     local local_route_local_mac="Unknown"
     status_route_local_ip="Unknown"
     local local_route_local_bcast_ip="Unknown"
-    status_route_local_ip_mask="Unknown"
+    local local_route_local_ip_mask="Unknown"
 
     if [ -n "${local_route_local_info}" ]; then
         ## 获取路由器本地网络连接状态
@@ -1213,8 +1210,8 @@ lz_get_route_status_info() {
         [ -z "${local_route_local_bcast_ip}" ] && local_route_local_bcast_ip="Unknown"
 
         ## 获取路由器本地网络掩码
-        status_route_local_ip_mask="$( echo "${local_route_local_info}" | awk 'NR==2 {print $4}' | awk -F: '{print $2}' )"
-        [ -z "${status_route_local_ip_mask}" ] && status_route_local_ip_mask="Unknown"
+        local_route_local_ip_mask="$( echo "${local_route_local_info}" | awk 'NR==2 {print $4}' | awk -F: '{print $2}' )"
+        [ -z "${local_route_local_ip_mask}" ] && local_route_local_ip_mask="Unknown"
     fi
 
     ## 输出路由器网络状态基本信息至Asuswrt系统记录
@@ -1226,7 +1223,7 @@ lz_get_route_status_info() {
     echo "$(lzdate)" [$$]: "   Route HWaddr: ${local_route_local_mac}"
     echo "$(lzdate)" [$$]: "   Route Local IP Addr: ${status_route_local_ip}"
     echo "$(lzdate)" [$$]: "   Route Local Bcast: ${local_route_local_bcast_ip}"
-    echo "$(lzdate)" [$$]: "   Route Local Mask: ${status_route_local_ip_mask}"
+    echo "$(lzdate)" [$$]: "   Route Local Mask: ${local_route_local_ip_mask}"
 
     if ip route show | grep -q nexthop; then
         if [ "${status_usage_mode}" = "0" ]; then
@@ -1277,7 +1274,6 @@ lz_get_route_status_info() {
     echo "$(lzdate)" [$$]: ---------------------------------------------
 
     status_route_local_ip="$( echo "${status_route_local_ip}" | grep -Eo "([0-9]{1,3}[\.]){3}[0-9]{1,3}" )"
-    status_route_local_ip_mask="$( echo "${status_route_local_ip_mask}" | grep -Eo "([0-9]{1,3}[\.]){3}[0-9]{1,3}" )"
 }
 
 ## 显示更新ISP网络运营商CIDR网段数据定时任务函数
@@ -2310,7 +2306,6 @@ __status_main() {
     ##     status_route_hardware_type--路由器硬件类型，全局常量
     ##     status_route_os_name--路由器操作系统名称，全局常量
     ##     status_route_local_ip--路由器本地IP地址，全局变量
-    ##     status_route_local_ip_mask--路由器本地IP地址掩码，全局变量
     lz_get_route_status_info
 
     local local_stop_id=

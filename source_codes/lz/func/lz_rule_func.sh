@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v3.9.5
+# lz_rule_func.sh v3.9.6
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 #BEIGIN
@@ -552,6 +552,112 @@ lz_get_policy_mode() {
     return 0
 }
 
+## 计算8位掩码数的位数函数
+## 输入项：
+##     $1--8位掩码数
+## 返回值：
+##     0~8--8位掩码数的位数
+lz_cal_8bit_mask_bit_counter() {
+    local local_mask_bit_counter="0"
+    if [ "${1}" -ge "255" ]; then
+        let local_mask_bit_counter+="8"
+    elif [ "${1}" -ge "128" ]; then
+        let local_mask_bit_counter++
+        if [ "${1}" -ge "192" ]; then
+            let local_mask_bit_counter++
+            if [ "${1}" -ge "224" ]; then
+                let local_mask_bit_counter++
+                if [ "${1}" -ge "240" ]; then
+                    let local_mask_bit_counter++
+                    if [ "${1}" -ge "248" ]; then
+                        let local_mask_bit_counter++
+                        if [ "${1}" -ge "252" ]; then
+                            let local_mask_bit_counter++
+                            if [ "${1}" -ge "254" ]; then
+                                let local_mask_bit_counter++
+                            fi
+                        fi
+                    fi
+                fi
+            fi
+        fi
+    fi
+
+    return "${local_mask_bit_counter}"
+}
+
+## 计算ipv4网络地址掩码位数函数
+## 输入项：
+##     $1--ipv4网络地址掩码
+## 返回值：
+##     0~32--ipv4网络地址掩码位数
+lz_cal_ipv4_cidr_mask() {
+    local local_cidr_mask="0"
+    local local_ip_mask_1="$( echo "${1}" | awk -F "." '{print $1}' )"
+    local local_ip_mask_2="$( echo "${1}" | awk -F "." '{print $2}' )"
+    local local_ip_mask_3="$( echo "${1}" | awk -F "." '{print $3}' )"
+    local local_ip_mask_4="$( echo "${1}" | awk -F "." '{print $4}' )"
+    ## 计算8位掩码数的位数
+    ## 输入项：
+    ##     $1--8位掩码数
+    ## 返回值：
+    ##     0~8--8位掩码数的位数
+    lz_cal_8bit_mask_bit_counter "${local_ip_mask_1}"
+    local_cidr_mask="${?}"
+    if [ "${local_cidr_mask}" -ge "8" ]; then
+        ## 计算8位掩码数的位数
+        ## 输入项：
+        ##     $1--8位掩码数
+        ## 返回值：
+        ##     0~8--8位掩码数的位数
+        lz_cal_8bit_mask_bit_counter "${local_ip_mask_2}"
+        local_cidr_mask="$(( local_cidr_mask + ${?} ))"
+        if [ "${local_cidr_mask}" -ge "16" ]; then
+            ## 计算8位掩码数的位数
+            ## 输入项：
+            ##     $1--8位掩码数
+            ## 返回值：
+            ##     0~8--8位掩码数的位数
+            lz_cal_8bit_mask_bit_counter "${local_ip_mask_3}"
+            local_cidr_mask="$(( local_cidr_mask + ${?} ))"
+            if [ "${local_cidr_mask}" -ge "24" ]; then
+                ## 计算8位掩码数的位数
+                ## 输入项：
+                ##     $1--8位掩码数
+                ## 返回值：
+                ##     0~8--8位掩码数的位数
+                lz_cal_8bit_mask_bit_counter "${local_ip_mask_4}"
+                local_cidr_mask="$(( local_cidr_mask + ${?} ))"
+            fi
+        fi
+    fi
+
+    return "${local_cidr_mask}"
+}
+
+## ipv4网络掩码转换至掩码位函数
+## 输入项：
+##     $1--ipv4网络地址掩码
+## 返回值：
+##     0~32--ipv4网络地址掩码位数
+lz_netmask2cdr() {
+    local x="${1##*255.}"
+    set -- "0^^^128^192^224^240^248^252^254^" "$(( (${#1} - ${#x})*2 ))" "${x%%.*}"
+    x="${1%%"${3}"*}"
+    echo "$(( ${2} + (${#x}/4) ))"
+}
+
+## ipv4网络掩码位转换至掩码函数
+## 输入项：
+##     $1--ipv4网络地址掩码位数
+## 返回值：
+##     ipv4网络地址掩码
+lz_netcdr2mask() {
+    set -- "$(( 5 - (${1} / 8) ))" "255" "255" "255" "255" "$(( (255 << (8 - (${1} % 8))) & 255 ))" "0" "0" "0"
+    if [ "${1}" -gt "1" ]; then shift "${1}"; else shift; fi;
+    echo "${1-0}.${2-0}.${3-0}.${4-0}"
+}
+
 ## 获取路由器基本信息并输出至系统记录函数
 ## 输入项：
 ##     $1--主执行脚本运行输入参数
@@ -562,6 +668,7 @@ lz_get_policy_mode() {
 ## 返回值：
 ##     MATCH_SET--iptables设置操作符宏变量，全局常量
 ##     route_local_ip--路由器本地IP地址，全局变量
+##     route_local_subnet--路由器本地子网，全局变量
 lz_get_route_info() {
     echo "$(lzdate)" [$$]: --------------------------------------------- | tee -ai "${SYSLOG}" 2> /dev/null
     ## 匹配设置iptables操作符及输出显示路由器硬件类型
@@ -769,7 +876,7 @@ lz_get_route_info() {
     local local_route_local_mac="Unknown"
     route_local_ip="Unknown"
     local local_route_local_bcast_ip="Unknown"
-    route_local_ip_mask="Unknown"
+    local local_route_local_ip_mask="Unknown"
 
     if [ -n "${local_route_local_info}" ]; then
         ## 获取路由器本地网络连接状态
@@ -793,8 +900,8 @@ lz_get_route_info() {
         [ -z "${local_route_local_bcast_ip}" ] && local_route_local_bcast_ip="Unknown"
 
         ## 获取路由器本地网络掩码
-        route_local_ip_mask="$( echo "${local_route_local_info}" | awk 'NR==2 {print $4}' | awk -F: '{print $2}' )"
-        [ -z "${route_local_ip_mask}" ] && route_local_ip_mask="Unknown"
+        local_route_local_ip_mask="$( echo "${local_route_local_info}" | awk 'NR==2 {print $4}' | awk -F: '{print $2}' )"
+        [ -z "${local_route_local_ip_mask}" ] && local_route_local_ip_mask="Unknown"
     fi
 
     ## 输出路由器网络状态基本信息至Asuswrt系统记录
@@ -806,7 +913,7 @@ lz_get_route_info() {
         echo "$(lzdate)" [$$]: "   Route HWaddr: ${local_route_local_mac}"
         echo "$(lzdate)" [$$]: "   Route Local IP Addr: ${route_local_ip}"
         echo "$(lzdate)" [$$]: "   Route Local Bcast: ${local_route_local_bcast_ip}"
-        echo "$(lzdate)" [$$]: "   Route Local Mask: ${route_local_ip_mask}"
+        echo "$(lzdate)" [$$]: "   Route Local Mask: ${local_route_local_ip_mask}"
     } | tee -ai "${SYSLOG}" 2> /dev/null
 
     if ip route show | grep -q nexthop; then
@@ -858,7 +965,16 @@ lz_get_route_info() {
     echo "$(lzdate)" [$$]: --------------------------------------------- | tee -ai "${SYSLOG}" 2> /dev/null
 
     route_local_ip="$( echo "${route_local_ip}" | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}' )"
-    route_local_ip_mask="$( echo "${route_local_ip_mask}" | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}' )"
+    local_route_local_ip_mask="$( echo "${local_route_local_ip_mask}" | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}' )"
+    ## 获取路路由器本地子网
+    if [ -n "${route_local_ip}" ] && [ -n "${local_route_local_ip_mask}" ]; then
+        ## ipv4网络掩码转换至掩码位函数
+        ## 输入项：
+        ##     $1--ipv4网络地址掩码
+        ## 返回值：
+        ##     0~32--ipv4网络地址掩码位数
+        route_local_subnet="${route_local_ip%.*}.0/$( lz_netmask2cdr "${local_route_local_ip_mask}" )"
+    fi
 }
 
 ## 处理系统负载均衡分流策略规则函数
@@ -2027,112 +2143,6 @@ lz_create_update_ispip_data_file() {
     lz_establish_regularly_update_ispip_data_task "${1}"
 }
 
-## 计算8位掩码数的位数函数
-## 输入项：
-##     $1--8位掩码数
-## 返回值：
-##     0~8--8位掩码数的位数
-lz_cal_8bit_mask_bit_counter() {
-    local local_mask_bit_counter="0"
-    if [ "${1}" -ge "255" ]; then
-        let local_mask_bit_counter+="8"
-    elif [ "${1}" -ge "128" ]; then
-        let local_mask_bit_counter++
-        if [ "${1}" -ge "192" ]; then
-            let local_mask_bit_counter++
-            if [ "${1}" -ge "224" ]; then
-                let local_mask_bit_counter++
-                if [ "${1}" -ge "240" ]; then
-                    let local_mask_bit_counter++
-                    if [ "${1}" -ge "248" ]; then
-                        let local_mask_bit_counter++
-                        if [ "${1}" -ge "252" ]; then
-                            let local_mask_bit_counter++
-                            if [ "${1}" -ge "254" ]; then
-                                let local_mask_bit_counter++
-                            fi
-                        fi
-                    fi
-                fi
-            fi
-        fi
-    fi
-
-    return "${local_mask_bit_counter}"
-}
-
-## 计算ipv4网络地址掩码位数函数
-## 输入项：
-##     $1--ipv4网络地址掩码
-## 返回值：
-##     0~32--ipv4网络地址掩码位数
-lz_cal_ipv4_cidr_mask() {
-    local local_cidr_mask="0"
-    local local_ip_mask_1="$( echo "${1}" | awk -F "." '{print $1}' )"
-    local local_ip_mask_2="$( echo "${1}" | awk -F "." '{print $2}' )"
-    local local_ip_mask_3="$( echo "${1}" | awk -F "." '{print $3}' )"
-    local local_ip_mask_4="$( echo "${1}" | awk -F "." '{print $4}' )"
-    ## 计算8位掩码数的位数
-    ## 输入项：
-    ##     $1--8位掩码数
-    ## 返回值：
-    ##     0~8--8位掩码数的位数
-    lz_cal_8bit_mask_bit_counter "${local_ip_mask_1}"
-    local_cidr_mask="${?}"
-    if [ "${local_cidr_mask}" -ge "8" ]; then
-        ## 计算8位掩码数的位数
-        ## 输入项：
-        ##     $1--8位掩码数
-        ## 返回值：
-        ##     0~8--8位掩码数的位数
-        lz_cal_8bit_mask_bit_counter "${local_ip_mask_2}"
-        local_cidr_mask="$(( local_cidr_mask + ${?} ))"
-        if [ "${local_cidr_mask}" -ge "16" ]; then
-            ## 计算8位掩码数的位数
-            ## 输入项：
-            ##     $1--8位掩码数
-            ## 返回值：
-            ##     0~8--8位掩码数的位数
-            lz_cal_8bit_mask_bit_counter "${local_ip_mask_3}"
-            local_cidr_mask="$(( local_cidr_mask + ${?} ))"
-            if [ "${local_cidr_mask}" -ge "24" ]; then
-                ## 计算8位掩码数的位数
-                ## 输入项：
-                ##     $1--8位掩码数
-                ## 返回值：
-                ##     0~8--8位掩码数的位数
-                lz_cal_8bit_mask_bit_counter "${local_ip_mask_4}"
-                local_cidr_mask="$(( local_cidr_mask + ${?} ))"
-            fi
-        fi
-    fi
-
-    return "${local_cidr_mask}"
-}
-
-## ipv4网络掩码转换至掩码位函数
-## 输入项：
-##     $1--ipv4网络地址掩码
-## 返回值：
-##     0~32--ipv4网络地址掩码位数
-lz_netmask2cdr() {
-    local x="${1##*255.}"
-    set -- "0^^^128^192^224^240^248^252^254^" "$(( (${#1} - ${#x})*2 ))" "${x%%.*}"
-    x="${1%%"${3}"*}"
-    echo "$(( ${2} + (${#x}/4) ))"
-}
-
-## ipv4网络掩码位转换至掩码函数
-## 输入项：
-##     $1--ipv4网络地址掩码位数
-## 返回值：
-##     ipv4网络地址掩码
-lz_netcdr2mask() {
-    set -- "$(( 5 - (${1} / 8) ))" "255" "255" "255" "255" "$(( (255 << (8 - (${1} % 8))) & 255 ))" "0" "0" "0"
-    if [ "${1}" -gt "1" ]; then shift "${1}"; else shift; fi;
-    echo "${1-0}.${2-0}.${3-0}.${4-0}"
-}
-
 ## 创建或加载网段出口数据集函数
 ## 输入项：
 ##     $1--全路径网段数据文件名
@@ -2191,6 +2201,7 @@ lz_add_ed_net_address_sets() {
 ##     $2--WAN口路由表ID号
 ##     $3--策略规则优先级
 ##     $4--排除未知IP地址项（0--不排除；非0--排除）
+##     全局变量
 ## 返回值：无
 lz_add_ipv4_src_addr_list_binding_wan() {
     if [ ! -f "${1}" ] || [ -z "${2}" ]; then return; fi;
@@ -2207,7 +2218,12 @@ lz_add_ipv4_src_addr_list_binding_wan() {
                 && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
                 && NF >= "1" {system("ip rule add from "$1"'" table ${2} prio ${3} > /dev/null 2>&1"'")}'
         else
-            ip rule add from all table "${2}" prio "${3}" > /dev/null 2>&1
+            if [ -n "${route_local_subnet}" ]; then
+                ip rule add from "${route_local_subnet}" table "${2}" prio "${3}" > /dev/null 2>&1
+            else
+                ip rule add from all table "${2}" prio "${3}" > /dev/null 2>&1
+            fi
+            command_from_all_executed="1"
         fi
     else
         sed -e '/^[ \t]*[#]/d' -e 's/[#].*$//g' -e 's/[ \t][ \t]*/ /g' -e 's/^[ ]//' -e 's/[ ]$//' -e '/^[ ]*$/d' "${1}" 2> /dev/null \
@@ -2267,6 +2283,7 @@ lz_add_ed_ipv4_dst_addr_list_binding_wan() {
 ##     $1--全路径网段数据文件名
 ##     $2--WAN口路由表ID号
 ##     $3--策略规则优先级
+##     全局变量
 ## 返回值：无
 lz_add_ipv4_src_to_dst_addr_list_binding_wan() {
     if [ ! -f "${1}" ] || [ -z "${2}" ]; then return; fi;
@@ -2284,7 +2301,12 @@ lz_add_ipv4_src_to_dst_addr_list_binding_wan() {
             && $2 !~ /[3-9][0-9][0-9]/ && $2 !~ /[2][6-9][0-9]/ && $2 !~ /[2][5][6-9]/ && $2 !~ /[\/][4-9][0-9]/ && $2 !~ /[\/][3][3-9]/ \
             && NF >= "2" {system("ip rule add from "$1" to "$2"'" table ${2} prio ${3} > /dev/null 2>&1"'")}'
     else
-        ip rule add from all table "${2}" prio "${3}" > /dev/null 2>&1
+        if [ -n "${route_local_subnet}" ]; then
+            ip rule add from "${route_local_subnet}" table "${2}" prio "${3}" > /dev/null 2>&1
+        else
+            ip rule add from all table "${2}" prio "${3}" > /dev/null 2>&1
+        fi
+        command_from_all_executed="1"
     fi
 }
 
@@ -2465,6 +2487,7 @@ lz_high_client_src_addr_binding_wan() {
             ##     $2--WAN口路由表ID号
             ##     $3--策略规则优先级
             ##     $4--排除未知IP地址项（0--不排除；非0--排除）
+            ##     全局变量
             ## 返回值：无
             lz_add_ipv4_src_addr_list_binding_wan "${high_wan_2_client_src_addr_file}" "${WAN1}" "${IP_RULE_PRIO_HIGH_WAN_2_CLIENT_SRC_ADDR}" "0"
         fi
@@ -2997,18 +3020,7 @@ lz_setup_custom_data_policy() {
 ##     全局变量及常量
 ## 返回值：无
 lz_initialize_ip_data_policy() {
-    ## 获取路由器本地IP地址和本地网络掩码位数
-    local local_ipv4_cidr_mask="0"
-    local local_route_local_ip_mask="$( echo "${route_local_ip_mask}" | grep -E '([0-9]{1,3}[\.]){3}[0-9]{1,3}' )"
-    if [ -n "${local_route_local_ip_mask}" ]; then
-        ## ipv4网络掩码转换至掩码位函数
-        ## 输入项：
-        ##     $1--ipv4网络地址掩码
-        ## 返回值：
-        ##     0~32--ipv4网络地址掩码位数
-        local_ipv4_cidr_mask="$( lz_netmask2cdr "${local_route_local_ip_mask}" )"
-    fi
-
+    if [ -z "${route_local_ip}" ] || [ -z "${route_local_subnet}" ]; then return; fi;
     ## 哈希转发速率控制
     ## 输入项：
     ##     $1--自定义链名称
@@ -3016,146 +3028,142 @@ lz_initialize_ip_data_policy() {
     ##     $3--转发目标地址或网段
     ##     $4--转发速率：0~10000个包/秒。实测以太网数据包1500字节大小时，最大下载速率20MB/s（160Mbps）左右
     ## 返回值：无
-    if [ "${limit_client_download_speed}" = "0" ] && [ -n "${local_route_local_ip_mask}" ] \
-        && [ "${local_ipv4_cidr_mask}" != "0" ] && [ "${local_ipv4_cidr_mask}" != "32" ]; then
-        lz_hash_speed_limited "${CUSTOM_FORWARD_CHAIN}" "${HASH_FORWARD_NAME}" "${route_local_ip}/${local_ipv4_cidr_mask}" "10000"
-    fi
+    [ "${limit_client_download_speed}" = "0" ] && \
+        lz_hash_speed_limited "${CUSTOM_FORWARD_CHAIN}" "${HASH_FORWARD_NAME}" "${route_local_subnet}" "10000"
 
-    if [ -n "${local_route_local_ip_mask}" ] && [ "${local_ipv4_cidr_mask}" != "0" ] && [ "${local_ipv4_cidr_mask}" != "32" ]; then
+    if [ "${balance_chain_existing}" = "1" ]; then
+        ## 创建负载均衡门卫目标网址/网段数据集--阻止对访问该地址的网络流量进行负载均衡
+        ipset -q create "${BALANCE_GUARD_IP_SET}" nethash maxelem 4294967295 #--hashsize 1024 mexleme 65536
+        ipset -q flush "${BALANCE_GUARD_IP_SET}"
+        ipset -q add "${BALANCE_GUARD_IP_SET}" "${route_local_subnet}"
+        ## 创建不需要负载均衡的本地内网设备源网址/网段数据集
+        ipset -q create "${BALANCE_IP_SET}" nethash maxelem 4294967295 #--hashsize 1024 mexleme 65536
+        ipset -q flush "${BALANCE_IP_SET}"
+        if [ "${usage_mode}" != "0" ]; then
+            ## 静态分流模式：模式1、模式2
+            ipset -q add "${BALANCE_IP_SET}" "${route_local_subnet}"
+        else
+            ## 动态分流模式：模式3
+            ipset -q add "${BALANCE_IP_SET}" "${route_local_ip}"
+        fi
+    fi
+    ## 创建本地内网网址/网段数据集（仅用于动态分流模式，加入所有不进行netfilter目标访问网址/网段过滤的客户端源地址）
+    ipset -q create "${LOCAL_IP_SET}" nethash maxelem 4294967295 #--hashsize 1024 mexleme 65536
+    ipset -q flush "${LOCAL_IP_SET}"
+    ## 加载不受目标网址/网段匹配访问控制的本地客户端网址
+    if [ "$( lz_get_ipv4_data_file_valid_item_total "${local_ipsets_file}" )" -gt "0" ]; then
+        ## 创建或加载网段出口数据集
+        ## 输入项：
+        ##     $1--全路径网段数据文件名
+        ##     $2--网段数据集名称
+        ##     $3--0:正匹配数据，非0：反匹配（nomatch）数据
+        ## 返回值：
+        ##     网址/网段数据集--全局变量
+        [ "${usage_mode}" = "0" ] && lz_add_net_address_sets "${local_ipsets_file}" "${LOCAL_IP_SET}" "0"
+        ## 创建本地黑名单负载均衡客户端网址/网段数据集
+        lz_add_net_address_sets "${local_ipsets_file}" "${BLACK_CLT_SRC_SET}" "0"
+        [ "${balance_chain_existing}" = "1" ] && {
+            lz_add_net_address_sets "${local_ipsets_file}" "${BALANCE_GUARD_IP_SET}" "0"
+            lz_add_net_address_sets "${local_ipsets_file}" "${BALANCE_IP_SET}" "1"
+        }
+    fi
+    if [ "${usage_mode}" = "0" ]; then
+        ## 加载第一WAN口域名地址动态分流客户端IPv4网址/网段条目列表数据至负载均衡门卫目标网址/网段数据集
+        [ "${wan_1_domain}" = "0" ] && [ "${balance_chain_existing}" = "1" ] \
+            && [ "$( lz_get_ipv4_data_file_item_total "${wan_1_domain_client_src_addr_file}" )" -gt "0" ] \
+            && lz_add_net_address_sets "${wan_1_domain_client_src_addr_file}" "${BALANCE_GUARD_IP_SET}" "0"
+        ## 加载第二WAN口域名地址动态分流客户端IPv4网址/网段条目列表数据至负载均衡门卫目标网址/网段数据集
+        [ "${wan_2_domain}" = "0" ] && [ "${balance_chain_existing}" = "1" ] \
+            && [ "$( lz_get_ipv4_data_file_item_total "${wan_2_domain_client_src_addr_file}" )" -gt "0" ] \
+            && lz_add_net_address_sets "${wan_2_domain_client_src_addr_file}" "${BALANCE_GUARD_IP_SET}" "0"
+        ## 第一WAN口客户端IPv4网址/网段至预设IPv4目标网址/网段协议端口动态分流条目列表中的的源网址/网段数据至负载均衡门卫目标网址/网段数据集
+        ## 创建或加载客户端IPv4网址/网段至预设IPv4目标网址/网段协议端口动态分流条目列表数据中的源网址/网段至数据集
+        ## 输入项：
+        ##     $1--全路径网段数据文件名
+        ##     $2--网段数据集名称
+        ##     $3--0:正匹配数据，非0：反匹配（nomatch）数据
+        ## 返回值：
+        ##     网址/网段数据集--全局变量
+        [ "${wan_1_src_to_dst_addr_port}" = "0" ] && [ "${balance_chain_existing}" = "1" ] \
+            && [ "$( lz_get_ipv4_src_to_dst_data_file_item_total "${wan_1_src_to_dst_addr_port_file}" )" -gt "0" ] \
+            && lz_add_client_dest_port_src_address_sets "${wan_1_src_to_dst_addr_port_file}" "${BALANCE_GUARD_IP_SET}" "0"
+        ## 第二WAN口客户端IPv4网址/网段至预设IPv4目标网址/网段协议端口动态分流条目列表中的的源网址/网段数据至负载均衡门卫目标网址/网段数据集
+        [ "${wan_2_src_to_dst_addr_port}" = "0" ] && [ "${balance_chain_existing}" = "1" ] \
+            && [ "$( lz_get_ipv4_src_to_dst_data_file_item_total "${wan_2_src_to_dst_addr_port_file}" )" -gt "0" ] \
+            && lz_add_client_dest_port_src_address_sets "${wan_2_src_to_dst_addr_port_file}" "${BALANCE_GUARD_IP_SET}" "0"
+        ## 第一WAN口高优先级客户端IPv4网址/网段至预设IPv4目标网址/网段协议端口动态分流条目列表中的的源网址/网段数据至负载均衡门卫目标网址/网段数据集
+        [ "${high_wan_1_src_to_dst_addr_port}" = "0" ] && [ "${balance_chain_existing}" = "1" ] \
+            && [ "$( lz_get_ipv4_src_to_dst_data_file_item_total "${high_wan_1_src_to_dst_addr_port_file}" )" -gt "0" ] \
+            && lz_add_client_dest_port_src_address_sets "${high_wan_1_src_to_dst_addr_port_file}" "${BALANCE_GUARD_IP_SET}" "0"
+    fi
+    ## 加载排除绑定第一WAN口的客户端及源网址/网段列表数据
+    if [ "${wan_1_client_src_addr}" = "0" ] \
+        && [ "$( lz_get_ipv4_data_file_item_total "${wan_1_client_src_addr_file}" )" -gt "0" ]; then
+        [ "${usage_mode}" = "0" ] && lz_add_net_address_sets "${wan_1_client_src_addr_file}" "${LOCAL_IP_SET}" "0"
         if [ "${balance_chain_existing}" = "1" ]; then
-            ## 创建负载均衡门卫目标网址/网段数据集--阻止对访问该地址的网络流量进行负载均衡
-            ipset -q create "${BALANCE_GUARD_IP_SET}" nethash maxelem 4294967295 #--hashsize 1024 mexleme 65536
-            ipset -q flush "${BALANCE_GUARD_IP_SET}"
-            ipset -q add "${BALANCE_GUARD_IP_SET}" "${route_local_ip%.*}.0/${local_ipv4_cidr_mask}"
-            ## 创建不需要负载均衡的本地内网设备源网址/网段数据集
-            ipset -q create "${BALANCE_IP_SET}" nethash maxelem 4294967295 #--hashsize 1024 mexleme 65536
-            ipset -q flush "${BALANCE_IP_SET}"
-            if [ "${usage_mode}" != "0" ]; then
-                ## 静态分流模式：模式1、模式2
-                ipset -q add "${BALANCE_IP_SET}" "${route_local_ip%.*}.0/${local_ipv4_cidr_mask}"
-            else
-                ## 动态分流模式：模式3
-                ipset -q add "${BALANCE_IP_SET}" "${route_local_ip}"
-            fi
+            lz_add_net_address_sets "${wan_1_client_src_addr_file}" "${BALANCE_IP_SET}" "0"
+            lz_add_net_address_sets "${wan_1_client_src_addr_file}" "${BALANCE_GUARD_IP_SET}" "0"
         fi
-        ## 创建本地内网网址/网段数据集（仅用于动态分流模式，加入所有不进行netfilter目标访问网址/网段过滤的客户端源地址）
-        ipset -q create "${LOCAL_IP_SET}" nethash maxelem 4294967295 #--hashsize 1024 mexleme 65536
-        ipset -q flush "${LOCAL_IP_SET}"
-        ## 加载不受目标网址/网段匹配访问控制的本地客户端网址
-        if [ "$( lz_get_ipv4_data_file_valid_item_total "${local_ipsets_file}" )" -gt "0" ]; then
-            ## 创建或加载网段出口数据集
-            ## 输入项：
-            ##     $1--全路径网段数据文件名
-            ##     $2--网段数据集名称
-            ##     $3--0:正匹配数据，非0：反匹配（nomatch）数据
-            ## 返回值：
-            ##     网址/网段数据集--全局变量
-            [ "${usage_mode}" = "0" ] && lz_add_net_address_sets "${local_ipsets_file}" "${LOCAL_IP_SET}" "0"
-            ## 创建本地黑名单负载均衡客户端网址/网段数据集
-            lz_add_net_address_sets "${local_ipsets_file}" "${BLACK_CLT_SRC_SET}" "0"
-            [ "${balance_chain_existing}" = "1" ] && {
-                lz_add_net_address_sets "${local_ipsets_file}" "${BALANCE_GUARD_IP_SET}" "0"
-                lz_add_net_address_sets "${local_ipsets_file}" "${BALANCE_IP_SET}" "1"
-            }
+    fi
+    ## 加载排除绑定第二WAN口的客户端及源网址/网段列表数据
+    if [ "${wan_2_client_src_addr}" = "0" ] \
+        && [ "$( lz_get_ipv4_data_file_item_total "${wan_2_client_src_addr_file}" )" -gt "0" ]; then
+        [ "${usage_mode}" = "0" ] && lz_add_net_address_sets "${wan_2_client_src_addr_file}" "${LOCAL_IP_SET}" "0"
+        if [ "${balance_chain_existing}" = "1" ]; then
+            lz_add_net_address_sets "${wan_2_client_src_addr_file}" "${BALANCE_IP_SET}" "0"
+            lz_add_net_address_sets "${wan_2_client_src_addr_file}" "${BALANCE_GUARD_IP_SET}" "0"
         fi
-        if [ "${usage_mode}" = "0" ]; then
-            ## 加载第一WAN口域名地址动态分流客户端IPv4网址/网段条目列表数据至负载均衡门卫目标网址/网段数据集
-            [ "${wan_1_domain}" = "0" ] && [ "${balance_chain_existing}" = "1" ] \
-                && [ "$( lz_get_ipv4_data_file_item_total "${wan_1_domain_client_src_addr_file}" )" -gt "0" ] \
-                && lz_add_net_address_sets "${wan_1_domain_client_src_addr_file}" "${BALANCE_GUARD_IP_SET}" "0"
-            ## 加载第二WAN口域名地址动态分流客户端IPv4网址/网段条目列表数据至负载均衡门卫目标网址/网段数据集
-            [ "${wan_2_domain}" = "0" ] && [ "${balance_chain_existing}" = "1" ] \
-                && [ "$( lz_get_ipv4_data_file_item_total "${wan_2_domain_client_src_addr_file}" )" -gt "0" ] \
-                && lz_add_net_address_sets "${wan_2_domain_client_src_addr_file}" "${BALANCE_GUARD_IP_SET}" "0"
-            ## 第一WAN口客户端IPv4网址/网段至预设IPv4目标网址/网段协议端口动态分流条目列表中的的源网址/网段数据至负载均衡门卫目标网址/网段数据集
-            ## 创建或加载客户端IPv4网址/网段至预设IPv4目标网址/网段协议端口动态分流条目列表数据中的源网址/网段至数据集
-            ## 输入项：
-            ##     $1--全路径网段数据文件名
-            ##     $2--网段数据集名称
-            ##     $3--0:正匹配数据，非0：反匹配（nomatch）数据
-            ## 返回值：
-            ##     网址/网段数据集--全局变量
-            [ "${wan_1_src_to_dst_addr_port}" = "0" ] && [ "${balance_chain_existing}" = "1" ] \
-                && [ "$( lz_get_ipv4_src_to_dst_data_file_item_total "${wan_1_src_to_dst_addr_port_file}" )" -gt "0" ] \
-                && lz_add_client_dest_port_src_address_sets "${wan_1_src_to_dst_addr_port_file}" "${BALANCE_GUARD_IP_SET}" "0"
-            ## 第二WAN口客户端IPv4网址/网段至预设IPv4目标网址/网段协议端口动态分流条目列表中的的源网址/网段数据至负载均衡门卫目标网址/网段数据集
-            [ "${wan_2_src_to_dst_addr_port}" = "0" ] && [ "${balance_chain_existing}" = "1" ] \
-                && [ "$( lz_get_ipv4_src_to_dst_data_file_item_total "${wan_2_src_to_dst_addr_port_file}" )" -gt "0" ] \
-                && lz_add_client_dest_port_src_address_sets "${wan_2_src_to_dst_addr_port_file}" "${BALANCE_GUARD_IP_SET}" "0"
-            ## 第一WAN口高优先级客户端IPv4网址/网段至预设IPv4目标网址/网段协议端口动态分流条目列表中的的源网址/网段数据至负载均衡门卫目标网址/网段数据集
-            [ "${high_wan_1_src_to_dst_addr_port}" = "0" ] && [ "${balance_chain_existing}" = "1" ] \
-                && [ "$( lz_get_ipv4_src_to_dst_data_file_item_total "${high_wan_1_src_to_dst_addr_port_file}" )" -gt "0" ] \
-                && lz_add_client_dest_port_src_address_sets "${high_wan_1_src_to_dst_addr_port_file}" "${BALANCE_GUARD_IP_SET}" "0"
+    fi
+    ## 加载排除高优先级绑定第一WAN口的客户端及源网址/网段列表数据
+    if [ "${high_wan_1_client_src_addr}" = "0" ] \
+        && [ "$( lz_get_ipv4_data_file_item_total "${high_wan_1_client_src_addr_file}" )" -gt "0" ]; then
+        [ "${usage_mode}" = "0" ] && lz_add_net_address_sets "${high_wan_1_client_src_addr_file}" "${LOCAL_IP_SET}" "0"
+        if [ "${balance_chain_existing}" = "1" ]; then
+            lz_add_net_address_sets "${high_wan_1_client_src_addr_file}" "${BALANCE_IP_SET}" "0"
+            lz_add_net_address_sets "${high_wan_1_client_src_addr_file}" "${BALANCE_GUARD_IP_SET}" "0"
         fi
-        ## 加载排除绑定第一WAN口的客户端及源网址/网段列表数据
-        if [ "${wan_1_client_src_addr}" = "0" ] \
-            && [ "$( lz_get_ipv4_data_file_item_total "${wan_1_client_src_addr_file}" )" -gt "0" ]; then
-            [ "${usage_mode}" = "0" ] && lz_add_net_address_sets "${wan_1_client_src_addr_file}" "${LOCAL_IP_SET}" "0"
-            if [ "${balance_chain_existing}" = "1" ]; then
-                lz_add_net_address_sets "${wan_1_client_src_addr_file}" "${BALANCE_IP_SET}" "0"
-                lz_add_net_address_sets "${wan_1_client_src_addr_file}" "${BALANCE_GUARD_IP_SET}" "0"
-            fi
+    fi
+    ## 加载排除高优先级绑定第二WAN口的客户端及源网址/网段列表数据
+    if [ "${high_wan_2_client_src_addr}" = "0" ] \
+        && [ "$( lz_get_ipv4_data_file_item_total "${high_wan_2_client_src_addr_file}" )" -gt "0" ]; then
+        [ "${usage_mode}" = "0" ] && lz_add_net_address_sets "${high_wan_2_client_src_addr_file}" "${LOCAL_IP_SET}" "0"
+        if [ "${balance_chain_existing}" = "1" ]; then
+            lz_add_net_address_sets "${high_wan_2_client_src_addr_file}" "${BALANCE_IP_SET}" "0"
+            lz_add_net_address_sets "${high_wan_2_client_src_addr_file}" "${BALANCE_GUARD_IP_SET}" "0"
         fi
-        ## 加载排除绑定第二WAN口的客户端及源网址/网段列表数据
-        if [ "${wan_2_client_src_addr}" = "0" ] \
-            && [ "$( lz_get_ipv4_data_file_item_total "${wan_2_client_src_addr_file}" )" -gt "0" ]; then
-            [ "${usage_mode}" = "0" ] && lz_add_net_address_sets "${wan_2_client_src_addr_file}" "${LOCAL_IP_SET}" "0"
-            if [ "${balance_chain_existing}" = "1" ]; then
-                lz_add_net_address_sets "${wan_2_client_src_addr_file}" "${BALANCE_IP_SET}" "0"
-                lz_add_net_address_sets "${wan_2_client_src_addr_file}" "${BALANCE_GUARD_IP_SET}" "0"
-            fi
+    fi
+    ## 加载排除绑定第一WAN口的用户自定义源网址/网段至目标网址/网段列表中未指明目标网址/网段的源网址/网段数据
+    if [ "${wan_1_src_to_dst_addr}" = "0" ] \
+        && [ "$( lz_get_ipv4_src_to_dst_data_file_item_total "${wan_1_src_to_dst_addr_file}" )" -gt "0" ]; then
+        ## 创建或加载源网址/网段至目标网址/网段列表数据中未指明目标网址/网段的源网址/网段至数据集
+        ## 输入项：
+        ##     $1--全路径网段数据文件名
+        ##     $2--网段数据集名称
+        ##     $3--0:正匹配数据，非0：反匹配（nomatch）数据
+        ## 返回值：
+        ##     网址/网段数据集--全局变量
+        [ "${usage_mode}" = "0" ] && lz_add_src_net_address_sets "${wan_1_src_to_dst_addr_file}" "${LOCAL_IP_SET}" "0"
+        if [ "${balance_chain_existing}" = "1" ]; then
+            lz_add_src_net_address_sets "${wan_1_src_to_dst_addr_file}" "${BALANCE_IP_SET}" "0"
+            lz_add_src_net_address_sets "${wan_1_src_to_dst_addr_file}" "${BALANCE_GUARD_IP_SET}" "0"
         fi
-        ## 加载排除高优先级绑定第一WAN口的客户端及源网址/网段列表数据
-        if [ "${high_wan_1_client_src_addr}" = "0" ] \
-            && [ "$( lz_get_ipv4_data_file_item_total "${high_wan_1_client_src_addr_file}" )" -gt "0" ]; then
-            [ "${usage_mode}" = "0" ] && lz_add_net_address_sets "${high_wan_1_client_src_addr_file}" "${LOCAL_IP_SET}" "0"
-            if [ "${balance_chain_existing}" = "1" ]; then
-                lz_add_net_address_sets "${high_wan_1_client_src_addr_file}" "${BALANCE_IP_SET}" "0"
-                lz_add_net_address_sets "${high_wan_1_client_src_addr_file}" "${BALANCE_GUARD_IP_SET}" "0"
-            fi
+    fi
+    ## 加载排除绑定第二WAN口的用户自定义源网址/网段至目标网址/网段列表中未指明目标网址/网段的源网址/网段数据
+    if [ "${wan_2_src_to_dst_addr}" = "0" ] \
+        && [ "$( lz_get_ipv4_src_to_dst_data_file_item_total "${wan_2_src_to_dst_addr_file}" )" -gt "0" ]; then
+        [ "${usage_mode}" = "0" ] && lz_add_src_net_address_sets "${wan_2_src_to_dst_addr_file}" "${LOCAL_IP_SET}" "0"
+        if [ "${balance_chain_existing}" = "1" ]; then
+            lz_add_src_net_address_sets "${wan_2_src_to_dst_addr_file}" "${BALANCE_IP_SET}" "0"
+            lz_add_src_net_address_sets "${wan_2_src_to_dst_addr_file}" "${BALANCE_GUARD_IP_SET}" "0"
         fi
-        ## 加载排除高优先级绑定第二WAN口的客户端及源网址/网段列表数据
-        if [ "${high_wan_2_client_src_addr}" = "0" ] \
-            && [ "$( lz_get_ipv4_data_file_item_total "${high_wan_2_client_src_addr_file}" )" -gt "0" ]; then
-            [ "${usage_mode}" = "0" ] && lz_add_net_address_sets "${high_wan_2_client_src_addr_file}" "${LOCAL_IP_SET}" "0"
-            if [ "${balance_chain_existing}" = "1" ]; then
-                lz_add_net_address_sets "${high_wan_2_client_src_addr_file}" "${BALANCE_IP_SET}" "0"
-                lz_add_net_address_sets "${high_wan_2_client_src_addr_file}" "${BALANCE_GUARD_IP_SET}" "0"
-            fi
-        fi
-        ## 加载排除绑定第一WAN口的用户自定义源网址/网段至目标网址/网段列表中未指明目标网址/网段的源网址/网段数据
-        if [ "${wan_1_src_to_dst_addr}" = "0" ] \
-            && [ "$( lz_get_ipv4_src_to_dst_data_file_item_total "${wan_1_src_to_dst_addr_file}" )" -gt "0" ]; then
-            ## 创建或加载源网址/网段至目标网址/网段列表数据中未指明目标网址/网段的源网址/网段至数据集
-            ## 输入项：
-            ##     $1--全路径网段数据文件名
-            ##     $2--网段数据集名称
-            ##     $3--0:正匹配数据，非0：反匹配（nomatch）数据
-            ## 返回值：
-            ##     网址/网段数据集--全局变量
-            [ "${usage_mode}" = "0" ] && lz_add_src_net_address_sets "${wan_1_src_to_dst_addr_file}" "${LOCAL_IP_SET}" "0"
-            if [ "${balance_chain_existing}" = "1" ]; then
-                lz_add_src_net_address_sets "${wan_1_src_to_dst_addr_file}" "${BALANCE_IP_SET}" "0"
-                lz_add_src_net_address_sets "${wan_1_src_to_dst_addr_file}" "${BALANCE_GUARD_IP_SET}" "0"
-            fi
-        fi
-        ## 加载排除绑定第二WAN口的用户自定义源网址/网段至目标网址/网段列表中未指明目标网址/网段的源网址/网段数据
-        if [ "${wan_2_src_to_dst_addr}" = "0" ] \
-            && [ "$( lz_get_ipv4_src_to_dst_data_file_item_total "${wan_2_src_to_dst_addr_file}" )" -gt "0" ]; then
-            [ "${usage_mode}" = "0" ] && lz_add_src_net_address_sets "${wan_2_src_to_dst_addr_file}" "${LOCAL_IP_SET}" "0"
-            if [ "${balance_chain_existing}" = "1" ]; then
-                lz_add_src_net_address_sets "${wan_2_src_to_dst_addr_file}" "${BALANCE_IP_SET}" "0"
-                lz_add_src_net_address_sets "${wan_2_src_to_dst_addr_file}" "${BALANCE_GUARD_IP_SET}" "0"
-            fi
-        fi
-        ## 加载排除高优先级绑定第一WAN口的用户自定义源网址/网段至目标网址/网段列表中未指明目标网址/网段的源网址/网段数据
-        if [ "${high_wan_1_src_to_dst_addr}" = "0" ] \
-            && [ "$( lz_get_ipv4_src_to_dst_data_file_item_total "${high_wan_1_src_to_dst_addr_file}" )" -gt "0" ]; then
-            [ "${usage_mode}" = "0" ] && lz_add_src_net_address_sets "${high_wan_1_src_to_dst_addr_file}" "${LOCAL_IP_SET}" "0"
-            if [ "${balance_chain_existing}" = "1" ]; then
-                lz_add_src_net_address_sets "${high_wan_1_src_to_dst_addr_file}" "${BALANCE_IP_SET}" "0"
-                lz_add_src_net_address_sets "${high_wan_1_src_to_dst_addr_file}" "${BALANCE_GUARD_IP_SET}" "0"
-            fi
+    fi
+    ## 加载排除高优先级绑定第一WAN口的用户自定义源网址/网段至目标网址/网段列表中未指明目标网址/网段的源网址/网段数据
+    if [ "${high_wan_1_src_to_dst_addr}" = "0" ] \
+        && [ "$( lz_get_ipv4_src_to_dst_data_file_item_total "${high_wan_1_src_to_dst_addr_file}" )" -gt "0" ]; then
+        [ "${usage_mode}" = "0" ] && lz_add_src_net_address_sets "${high_wan_1_src_to_dst_addr_file}" "${LOCAL_IP_SET}" "0"
+        if [ "${balance_chain_existing}" = "1" ]; then
+            lz_add_src_net_address_sets "${high_wan_1_src_to_dst_addr_file}" "${BALANCE_IP_SET}" "0"
+            lz_add_src_net_address_sets "${high_wan_1_src_to_dst_addr_file}" "${BALANCE_GUARD_IP_SET}" "0"
         fi
     fi
 
@@ -3233,6 +3241,7 @@ lz_initialize_ip_data_policy() {
     ##     $2--WAN口路由表ID号
     ##     $3--策略规则优先级
     ##     $4--排除未知IP地址项（0--不排除；非0--排除）
+    ##     全局变量
     ## 返回值：无
     [ "${wan_2_client_src_addr}" = "0" ] && [ "$( lz_get_ipv4_data_file_item_total "${wan_2_client_src_addr_file}" )" -gt "0" ] \
         && lz_add_ipv4_src_addr_list_binding_wan "${wan_2_client_src_addr_file}" "${WAN1}" "${IP_RULE_PRIO_WAN_2_CLIENT_SRC_ADDR}" "0"
@@ -3739,7 +3748,7 @@ if [ "\$( nvram get "ipsec_server_enable" )" = "1" ]; then
     lz_nvram_ipsec_subnet_list="\$( nvram get "ipsec_profile_1" | sed 's/>/\n/g' | sed -n 15p | grep -Eo '([0-9]{1,3}[\.]){2}[0-9]{1,3}' | sed 's/^.*\$/&\.0\/24/' )"
     [ -z "\${lz_nvram_ipsec_subnet_list}" ] && lz_nvram_ipsec_subnet_list="\$( nvram get "ipsec_profile_2" | sed 's/>/\n/g' | sed -n 15p | grep -Eo '([0-9]{1,3}[\.]){2}[0-9]{1,3}' | sed 's/^.*\$/&\.0\/24/' )"
 fi
-ip rule show | awk -F: '\$1 == "${IP_RULE_PRIO_VPN}" {system("ip rule del prio "\$1" > /dev/null 2>&1")}'
+ip rule show | awk -F: '\$1 == "${IP_RULE_PRIO_VPN}" || \$1 == "${IP_RULE_PRIO_STATIC_SYS_VPN}" {system("ip rule del prio "\$1" > /dev/null 2>&1")}'
 if ! ip route show | grep -q nexthop; then
     echo "\$(lzdate)" [\$\$]: Non dual network operation mode. >> "${SYSLOG}"
 else
@@ -3752,8 +3761,8 @@ else
         fi
         lz_route_vpn_list="\$( echo "\${lz_route_list}" | awk '/pptp|tap|tun|wgs/ {print \$1}' )"
 EOF_OVPN_A
+    local local_ovs_client_wan="${WAN0}"
     if [ "${ovs_client_wan_port}" = "0" ] || [ "${ovs_client_wan_port}" = "1" ]; then
-        local local_ovs_client_wan="${WAN0}"
         [ "${ovs_client_wan_port}" = "1" ] && local_ovs_client_wan="${WAN1}"
         cat >> "${1}/${2}" <<EOF_OVPN_B
         echo "\${lz_route_vpn_list}" | awk 'NF != "0" {system("ip rule add from "\$1" table ${local_ovs_client_wan} prio ${IP_RULE_PRIO_VPN} > /dev/null 2>&1")}'
@@ -3767,8 +3776,11 @@ EOF_OVPN_A
             [ -n "\${lz_nvram_ipsec_subnet_list}" ] && echo "\${lz_nvram_ipsec_subnet_list}" | awk '{print "-! del ${BALANCE_IP_SET} "\$1"\n-! add ${BALANCE_IP_SET} "\$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
         fi
 EOF_OVPN_B
-    elif [ "${usage_mode}" != "0" ]; then
+    elif [ "${usage_mode}" != "0"  ]; then
+        [ "${policy_mode}" = "0" ] && local_ovs_client_wan="${WAN1}"
         cat >> "${1}/${2}" <<EOF_OVPN_C
+        echo "\${lz_route_vpn_list}" | awk 'NF != "0" {system("ip rule add from "\$1" table ${local_ovs_client_wan} prio ${IP_RULE_PRIO_STATIC_SYS_VPN} > /dev/null 2>&1")}'
+        echo "\${lz_nvram_ipsec_subnet_list}" | awk 'NF != "0" {system("ip rule add from "\$1" table ${local_ovs_client_wan} prio ${IP_RULE_PRIO_STATIC_SYS_VPN} > /dev/null 2>&1")}'
         if [ -n "\$( ipset -q -n list "${BALANCE_IP_SET}" )" ]; then
             [ -n "\${lz_ovpn_subnet_list}" ] && echo "\${lz_ovpn_subnet_list}" | awk '{print "-! del ${BALANCE_IP_SET} "\$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
             [ -n "\${lz_pptp_client_list}" ] && echo "\${lz_pptp_client_list}" | awk '{print "-! del ${BALANCE_IP_SET} "\$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
@@ -3968,7 +3980,7 @@ EOF_OVPN_SCRIPTS_A
         fi
 
         ## 优先级发生改变
-        if ! echo "${local_openvpn_event_interface_scripts}" | grep -q "== [\"]${IP_RULE_PRIO_VPN}[\"] [\{]system[\(][\"]ip rule del prio"; then
+        if ! echo "${local_openvpn_event_interface_scripts}" | grep -q "== [\"]${IP_RULE_PRIO_VPN}[\"] [\|][\|] [\$]1 == [\"]${IP_RULE_PRIO_STATIC_SYS_VPN}[\"] [\{]system[\(][\"]ip rule del prio"; then
             llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
             break
         fi
@@ -3994,9 +4006,29 @@ EOF_OVPN_SCRIPTS_A
                     llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
                     break
                 fi
+
+                ## 模式1时，需要整体推送第二WAN口；模式2时，需要整体推送第一WAN口
+                local local_ovs_client_wan="${WAN1}"
+                [ "${policy_mode}" = "1" ] && local_ovs_client_wan="${WAN0}"
+                if ! echo "${local_openvpn_event_interface_scripts}" | grep -q "ip rule add from [\"][\$]1[\"] table ${local_ovs_client_wan} prio ${IP_RULE_PRIO_STATIC_SYS_VPN}"; then
+                    llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
+                    break
+                fi
             else
                 ## 动态模式时，虚拟专网客户端按网段分配访问外网出口
                 if echo "${local_openvpn_event_interface_scripts}" | grep -q "ipset -q -n list [\"]${BALANCE_IP_SET}[\"]"; then
+                    llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
+                    break
+                fi
+
+                ## 动态模式时，无整体推送第一WAN口
+                if echo "${local_openvpn_event_interface_scripts}" | grep -q "ip rule add from [\"][\$]1[\"] table ${WAN0} prio ${IP_RULE_PRIO_STATIC_SYS_VPN}"; then
+                    llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
+                    break
+                fi
+
+                ## 动态模式时，无整体推送第二WAN口
+                if echo "${local_openvpn_event_interface_scripts}" | grep -q "ip rule add from [\"][\$]1[\"] table ${WAN1} prio ${IP_RULE_PRIO_STATIC_SYS_VPN}"; then
                     llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
                     break
                 fi
@@ -4013,6 +4045,18 @@ EOF_OVPN_SCRIPTS_A
 
             ## 阻止系统负载均衡为虚拟专网客户端分配访问外网的出口
             if ! echo "${local_openvpn_event_interface_scripts}" | grep -q "ipset -q -n list [\"]${BALANCE_IP_SET}[\"]"; then
+                llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
+                break
+            fi
+
+            ## 无整体推送第一WAN口
+            if echo "${local_openvpn_event_interface_scripts}" | grep -q "ip rule add from [\"][\$]1[\"] table ${WAN0} prio ${IP_RULE_PRIO_STATIC_SYS_VPN}"; then
+                llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
+                break
+            fi
+
+            ## 无整体推送第二WAN口
+            if echo "${local_openvpn_event_interface_scripts}" | grep -q "ip rule add from [\"][\$]1[\"] table ${WAN1} prio ${IP_RULE_PRIO_STATIC_SYS_VPN}"; then
                 llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
                 break
             fi
@@ -4148,14 +4192,16 @@ lz_vpn_support() {
     ##     全局变量及常量
     ## 返回值：无
     llz_vpn_client_rule_update() {
+        local local_ovs_client_wan="${WAN0}"
         if [ "${ovs_client_wan_port}" = "0" ] || [ "${ovs_client_wan_port}" = "1" ]; then
-            local local_ovs_client_wan="${WAN0}"
             [ "${ovs_client_wan_port}" = "1" ] && local_ovs_client_wan="${WAN1}"
             echo "${1}" | awk '{system("ip rule add from "$1"'" table ${local_ovs_client_wan} prio ${IP_RULE_PRIO_VPN} > /dev/null 2>&1"'")}'
             [ -n "$( ipset -q -n list "${BALANCE_IP_SET}" )" ] && {
                 echo "${1}" | awk '{print "'"-! del ${BALANCE_IP_SET} "'"$1"'"\n-! add ${BALANCE_IP_SET} "'"$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
             }
-        elif [ "${usage_mode}" != "0" ]; then
+        elif [ "${usage_mode}" != "0"  ]; then
+            [ "${policy_mode}" = "0" ] && local_ovs_client_wan="${WAN1}"
+            echo "${1}" | awk '{system("ip rule add from "$1"'" table ${local_ovs_client_wan} prio ${IP_RULE_PRIO_STATIC_SYS_VPN} > /dev/null 2>&1"'")}'
             [ -n "$( ipset -q -n list "${BALANCE_IP_SET}" )" ] && {
                 echo "${1}" | awk '{print "'"-! del ${BALANCE_IP_SET} "'"$1"'"\n-! add ${BALANCE_IP_SET} "'"$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
             }
@@ -4821,6 +4867,7 @@ lz_src_to_dst_addr_list_binding_wan() {
     ##     $1--全路径网段数据文件名
     ##     $2--WAN口路由表ID号
     ##     $3--策略规则优先级
+    ##     全局变量
     ## 返回值：无
     [ "${high_wan_1_src_to_dst_addr}" = "0" ] \
         && [ "$( lz_get_ipv4_src_to_dst_data_file_item_total "${high_wan_1_src_to_dst_addr_file}" )" -gt "0" ] \
@@ -5190,8 +5237,10 @@ lz_deployment_routing_policy() {
         local local_access_wan="${WAN0}"
         [ "${wan_access_port}" = "1" ] && local_access_wan="${WAN1}"
     #	ip rule add to 103.10.4.108 table "${local_access_wan}" prio "${IP_RULE_PRIO_INNER_ACCESS}" > /dev/null 2>&1
-        ip rule add from all to "${route_local_ip}" table "${local_access_wan}" prio "${IP_RULE_PRIO_INNER_ACCESS}" > /dev/null 2>&1
-        ip rule add from "${route_local_ip}" table "${local_access_wan}" prio "${IP_RULE_PRIO_INNER_ACCESS}" > /dev/null 2>&1
+        [ -n "${route_local_ip}" ] && {
+            ip rule add from all to "${route_local_ip}" table "${local_access_wan}" prio "${IP_RULE_PRIO_INNER_ACCESS}" > /dev/null 2>&1
+            ip rule add from "${route_local_ip}" table "${local_access_wan}" prio "${IP_RULE_PRIO_INNER_ACCESS}" > /dev/null 2>&1
+        }
     fi
 
     ## 用户自定义源网址/网段至目标网址/网段列表绑定WAN出口
@@ -5250,16 +5299,27 @@ lz_deployment_routing_policy() {
     ## 返回值：无
     lz_create_openvpn_event_command
 
-    if [ "${usage_mode}" != "0" ]; then
+    if [ "${usage_mode}" != "0" ] && [ "${command_from_all_executed}" = "0" ]; then
         ## 静态分流模式
-        [ "${policy_mode}" = "0" ] && ip rule add from all table "${WAN1}" prio "${IP_RULE_PRIO}" > /dev/null 2>&1
-        [ "${policy_mode}" = "1" ] && ip rule add from all table "${WAN0}" prio "${IP_RULE_PRIO}" > /dev/null 2>&1
+        [ "${policy_mode}" = "0" ] && {
+            if [ -n "${route_local_subnet}" ]; then
+                ip rule add from "${route_local_subnet}" table "${WAN1}" prio "${IP_RULE_PRIO}" > /dev/null 2>&1
+            else
+                ip rule add from all table "${WAN1}" prio "${IP_RULE_PRIO}" > /dev/null 2>&1
+            fi
+        }
+        [ "${policy_mode}" = "1" ] && {
+            if [ -n "${route_local_subnet}" ]; then
+                ip rule add from "${route_local_subnet}" table "${WAN0}" prio "${IP_RULE_PRIO}" > /dev/null 2>&1
+            else
+                ip rule add from all table "${WAN0}" prio "${IP_RULE_PRIO}" > /dev/null 2>&1
+            fi
+        }
     fi
 
     ## 禁用路由缓存
-    [ "${route_cache}" != "0" ] && {
-        [ -f "/proc/sys/net/ipv4/rt_cache_rebuild_count" ] && echo "-1" > "/proc/sys/net/ipv4/rt_cache_rebuild_count"
-    }
+    [ "${route_cache}" != "0" ] && [ -f "/proc/sys/net/ipv4/rt_cache_rebuild_count" ] \
+        && echo "-1" > "/proc/sys/net/ipv4/rt_cache_rebuild_count"
 
     ## 从系统中获取光猫网关地址
     local local_wan0_xgateway="$( nvram get "wan0_xgateway" | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}' | sed -n 1p )"
