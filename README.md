@@ -40,8 +40,8 @@ Asuswrt-Merlin dual WAN port router policy routing service configuration tool
 
 <strong>三、运行功能</strong>
 <ul><li>应用模式：可选择动态分流模式、静态分流模式两种应用模式中的一种。</li>
-<li>可设置是否启用路由表缓存功能。</li>
-<li>可设置是否启用系统缓存清理功能。</li>
+<li>可设置路由表缓存功能。</li>
+<li>可设置系统缓存清理功能。</li>
 <li>可设置自动清理路由表及系统缓存功能。</li></ul>
 
 <strong>四、IPTV功能</strong>
