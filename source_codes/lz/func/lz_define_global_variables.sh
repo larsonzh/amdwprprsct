@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_define_global_variables.sh v3.9.6
+# lz_define_global_variables.sh v3.9.7
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 # QnkgTFog5aaZ5aaZ5ZGc77yI6Juk6J+G5aKp5YS/77yJ（首次运行标识，切勿修改）
 
@@ -25,6 +25,9 @@ PROJECT_FILENAME="${PROJECT_ID}.sh"
 
 ## DNSMasq配置扩展全路径文件名
 DNSMASQ_CONF_ADD="/jffs/configs/dnsmasq.conf.add"
+
+## DNSMasq域名地址配置文件部署路径
+PATH_DNSMASQ_DOMAIN_CONF="${PATH_TMP}/dnsmasq"
 
 ## 第一WAN口域名地址配置文件名
 DOMAIN_WAN1_CONF="lz_wan1_domain.conf"

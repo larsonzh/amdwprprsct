@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v3.9.6
+# lz_rule_func.sh v3.9.7
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 #BEIGIN
@@ -1448,20 +1448,9 @@ lz_clear_ss_start_command() {
 ## 返回值：无
 lz_clear_dnsmasq_relation() {
     [ -f "${DNSMASQ_CONF_ADD}" ] && sed -i '/^[^#]*conf[\-]dir=[^#]*[\/]lz[\/]tmp/d' "${DNSMASQ_CONF_ADD}" > /dev/null 2>&1
-    if [ -f "${PATH_TMP}/${DOMAIN_WAN1_CONF}" ]; then
-        if [ "${wan_1_domain}" = "0" ]; then
-            sed -i '1,$d' "${PATH_TMP}/${DOMAIN_WAN1_CONF}" > /dev/null 2>&1
-        else
-            rm -f "${PATH_TMP}/${DOMAIN_WAN1_CONF}" > /dev/null 2>&1
-        fi
-    fi
-    if [ -f "${PATH_TMP}/${DOMAIN_WAN2_CONF}" ]; then
-        if [ "${wan_2_domain}" = "0" ]; then
-            sed -i '1,$d' "${PATH_TMP}/${DOMAIN_WAN2_CONF}" > /dev/null 2>&1
-        else
-            rm -f "${PATH_TMP}/${DOMAIN_WAN2_CONF}" > /dev/null 2>&1
-        fi
-    fi
+    [ -f "${PATH_TMP}/${DOMAIN_WAN1_CONF}" ] && rm -f "${PATH_TMP}/${DOMAIN_WAN1_CONF}" > /dev/null 2>&1
+    [ -f "${PATH_TMP}/${DOMAIN_WAN2_CONF}" ] && rm -f "${PATH_TMP}/${DOMAIN_WAN2_CONF}" > /dev/null 2>&1
+    [ -d "${PATH_DNSMASQ_DOMAIN_CONF}" ] && rm -rf "${PATH_DNSMASQ_DOMAIN_CONF}" > /dev/null 2>&1
 }
 
 ## 数据清理函数
@@ -2710,7 +2699,7 @@ lz_add_src_to_dst_netfilter_mark() {
 ##     $1--WAN口域名解析IPv4流量出口列表绑定参数
 ##     $2--WAN口域名解析IPv4流量出口列表绑定数据文件名
 ##     $3--WAN口域名地址数据集名称
-##     $4--WAN口域名地址配置文件名
+##     $4--WAN口域名地址配置全路径文件名
 ##     $5--WAN口名称
 ## 返回值：
 ##     0--成功
@@ -2719,8 +2708,7 @@ lz_create_domain_wan_set() {
     local retval="1" buf=""
     while true
     do
-        [ "${1}" != "0" ] && break
-        [ ! -f "${2}" ] && break
+        if [ "${1}" != "0" ] || [ ! -f "${2}" ] || [ -z "${3}" ] || [ -z "${4%/*}" ] || [ -z "${5}" ]; then break; fi;
         buf="$( sed -e "s/\'//g" -e 's/\"//g' -e 's/[ \t][ \t]*/ /g' -e 's/^[ ]*//g' -e '/^[#]/d' -e 's/[#].*$//g' -e 's/^\([^ ]*\).*$/\1/g' \
                 -e 's/^[^ ]*[\:][\/][\/]//g' -e 's/^[^ ]\{0,6\}[\:]//g' -e 's/[\/]*$//g' -e 's/[ ]*$//g' -e '/^[\.]*$/d' -e '/^[\.]*[^\.]*$/d' \
                 -e '/^[ ]*$/d' "${2}" 2> /dev/null | tr '[:A-Z:]' '[:a-z:]' | awk '{print $1}' )"
@@ -2728,6 +2716,10 @@ lz_create_domain_wan_set() {
         ipset -q create "${3}" hash:ip maxelem 4294967295 timeout "${dn_cache_time}" forceadd #--hashsize 1024 mexleme 65536
         ipset -q flush "${3}"
         [ -z "$( ipset -q -n list "${3}" )" ] && break
+        if [ ! -d "${4%/*}" ]; then
+            mkdir -p "${4%/*}" > /dev/null 2>&1
+            chmod -R 775 "${4%/*}"/* > /dev/null 2>&1
+        fi
         echo "${buf}" | awk 'NF != "0" {print "ipset\=\/"$1"'"\/${3}"'"}' > "${4}" 2> /dev/null
         if [ ! -f "${4}" ]; then
             ipset -q destroy "${3}"
@@ -2781,13 +2773,13 @@ lz_setup_domain_policy() {
     ##     $1--WAN口域名解析IPv4流量出口列表绑定参数
     ##     $2--WAN口域名解析IPv4流量出口列表绑定数据文件名
     ##     $3--WAN口域名地址数据集名称
-    ##     $4--WAN口域名地址配置文件名
+    ##     $4--WAN口域名地址配置全路径文件名
     ##     $5--WAN口名称
     ## 返回值：
     ##     0--成功
     ##     1--失败
     if [ "$( lz_get_ipv4_data_file_item_total "${wan_2_domain_client_src_addr_file}" )" -gt "0" ] \
-        && lz_create_domain_wan_set "${wan_2_domain}" "${wan_2_domain_file}" "${DOMAIN_SET_1}" "${PATH_TMP}/${DOMAIN_WAN2_CONF}" "Secondary WAN"; then
+        && lz_create_domain_wan_set "${wan_2_domain}" "${wan_2_domain_file}" "${DOMAIN_SET_1}" "${PATH_DNSMASQ_DOMAIN_CONF}/${DOMAIN_WAN2_CONF}" "Secondary WAN"; then
         while true
         do
             ## 创建或加载网段出口数据集
@@ -2829,7 +2821,7 @@ lz_setup_domain_policy() {
     fi
     ## 第一WAN口
     if [ "$( lz_get_ipv4_data_file_item_total "${wan_1_domain_client_src_addr_file}" )" -gt "0" ] \
-        && lz_create_domain_wan_set "${wan_1_domain}" "${wan_1_domain_file}" "${DOMAIN_SET_0}" "${PATH_TMP}/${DOMAIN_WAN1_CONF}" "Primary WAN"; then
+        && lz_create_domain_wan_set "${wan_1_domain}" "${wan_1_domain_file}" "${DOMAIN_SET_0}" "${PATH_DNSMASQ_DOMAIN_CONF}/${DOMAIN_WAN1_CONF}" "Primary WAN"; then
         while true
         do
             lz_add_net_address_sets "${wan_1_domain_client_src_addr_file}" "${DOMAIN_CLT_SRC_SET_0}" "0"
@@ -2848,11 +2840,13 @@ lz_setup_domain_policy() {
     ## 建立dnsmasq关联
     if [ "${local_sucess_1}" = "0" ] || [ "${local_sucess_2}" = "0" ]; then
         [ ! -d "/jffs/configs" ] && mkdir -p "/jffs/configs" > /dev/null 2>&1
-        chmod 775 "/jffs/configs" > /dev/null 2>&1
+        chmod -R 775 "/jffs/configs"/* > /dev/null 2>&1
         [ ! -f "${DNSMASQ_CONF_ADD}" ] && touch "${DNSMASQ_CONF_ADD}" > /dev/null 2>&1
-        echo "conf-dir=${PATH_TMP}" >> "${DNSMASQ_CONF_ADD}" 2> /dev/null
+        echo "conf-dir=${PATH_DNSMASQ_DOMAIN_CONF}" >> "${DNSMASQ_CONF_ADD}" 2> /dev/null
         ## 重启dnsmasq服务
         service restart_dnsmasq > /dev/null 2>&1
+    else
+        [ -d "${PATH_DNSMASQ_DOMAIN_CONF}" ] && rm -rf "${PATH_DNSMASQ_DOMAIN_CONF}" > /dev/null 2>&1
     fi
 }
 
