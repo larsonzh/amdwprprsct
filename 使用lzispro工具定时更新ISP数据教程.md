@@ -32,6 +32,6 @@ Multi process parallel acquisition tool for IP address data of ISP network opera
 
 **lzispro** 的具体安装和使用参照 **lzispro** 项目内的 **README.md** 内容。
 
-# 设定 lzispro 运行参数
+# lzispro 运行参数
 
 在将 **lzispro** 与 **LZ 路由器双线路策略分流脚本** 关联起来之前，首先要对 **lzispro** 的 **并行查询处理多进程数量「PARA_QUERY_PROC_NUM」** 参数进行设定。
