@@ -141,5 +141,4 @@ custom_clear_scripts_filename="/jffs/scripts/lzispro/lzdeltask.sh"
 
 ## 解除
 
-在脚本应用关联成功和定时任务启动后，如需停止 **使用 lzispro 工具定时更新 ISP 数据**，可在 **LZ 路由器双线路策略分流脚本**  的脚本配置文件  **/jffs/scripts/lz/configs/lz_rule_config.sh** 中，找到 **外置用户自定义双线路脚本「custom_dualwan_scripts」** 参数项，将其参数改为 **5**，重启 **LZ 路由器双线路策略分流脚本**时会自动将 **lzispro** 定时任务从系统中清除，然后用户就可根据需要，酌情将各脚本相关参数和软件部署恢复之前状态。
-
+在脚本应用关联成功和定时任务启动后，如需停止 **使用 lzispro 工具定时更新 ISP 数据**，可在 **LZ 路由器双线路策略分流脚本**  的脚本配置文件  **/jffs/scripts/lz/configs/lz_rule_config.sh** 中，找到 **外置用户自定义双线路脚本「custom_dualwan_scripts」** 参数项，将其参数改为 **5**，重启 **LZ 路由器双线路策略分流脚本** 时会自动将 **lzispro** 定时任务从系统中清除，然后用户就可根据需要，酌情将各脚本相关参数和软件部署恢复之前状态。
