@@ -32,7 +32,7 @@ Multi process parallel acquisition tool for IP address data of ISP network opera
 
 **lzispro** 具体的部署及使用参照 **lzispro** 项目内的 **README.md** 内容。
 
-## 设置参数
+## 设置
 
 在将 **lzispro** 与 **LZ 路由器双线路策略分流脚本** 关联之前，需先确定 **lzispro** 的 **并行查询处理多进程数量「PARA_QUERY_PROC_NUM」** 参数。
 
@@ -51,7 +51,7 @@ SYSLOG="/tmp/syslog.log"             # 将运行信息输出到路由器系统�
 
 其他参数项保持缺省即可。
 
-## 编写脚本
+## 编写
 
 在路由器 **/jffs/scripts/lzispro** 目录下编写下面三个简单的 **Shell** 命令脚本。可使用 **vi** 命令，或其他文本编制工具，一定确保脚本是 **UFT-8(LF)** 格式，否则无法在 **Linux** 环境下执行。
 
@@ -102,9 +102,9 @@ chmod +x "/jffs/scripts/lzispro/lzaddtask.sh"
 chmod +x "/jffs/scripts/lzispro/lzdeltask.sh"
 ```
 
-## 关联脚本
+## 关联
 
-在前述步骤完成后，即可在 **LZ 路由器双线路策略分流脚本** 的脚本配置文件 **/jffs/scripts/lz/configs/lz_rule_config.sh** 中实现与 **lzispro** 工具的关联应用。
+在前述步骤完成后，即可在 **LZ 路由器双线路策略分流脚本** 的脚本配置文件 **/jffs/scripts/lz/configs/lz_rule_config.sh** 中实现与 **lzispro** 工具的应用关联。
 
 打开脚本配置文件 **lz_rule_config.sh**，在文件最后的 **五、外置脚本设置** 部分，找到相关参数项，按如下修改参数设置：
 
