@@ -26,7 +26,7 @@ Multi process parallel acquisition tool for IP address data of ISP network opera
 
     https://gitee.com/larsonzh
 
-## 部署和使用
+## 部署
 
 若 **LZ 路由器双线路策略分流脚本** 位于路由器的 **/jffs/scripts** 目录，方便起见，将 **lzispro** 工具也安装到此目录。该目录中，**lz** 是前者项目目录，**lzispro** 是后者项目目录，相互独立，不要混在一起。
 
