@@ -55,3 +55,18 @@ SYSLOG="/tmp/syslog.log"             # 将运行信息输出到路由器系统�
 
 在路由器 **/jffs/scripts/lzispro** 目录里编制如下三个简单的 **Shell** 命令脚本。可使用 **vi** 命令，或其他文本编制工具，一定要确保脚本是 **UFT-8(LF)** 格式，否则无法在 **Linux** 环境下执行。
 
+- 引导启动脚本（**lzstart.sh**）
+```markdown
+#!/bin/sh
+
+exec 555<>"/var/lock/lz_rule.lock"
+flock -x 555 > /dev/null 2>&1
+sh /jffs/scripts/lzispro/lzispro.sh && success="ok"
+flock -u 555 > /dev/null 2>&1
+
+[ "${success}" ] && sh /jffs/scripts/lz/lz_rule.sh
+
+```
+该脚本的作用是引导启动 **lzispro** 工具，同时与 **LZ 路由器双线路策略分流脚本** 保持进程同步，防止两个脚本在运行过程中发生数据读写冲突，造成数据处理错误。
+
+
