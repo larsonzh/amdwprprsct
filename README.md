@@ -64,6 +64,7 @@ Asuswrt-Merlin dual WAN port router policy routing service configuration tool
 <strong>六、相关资料</strong>
 <ul><li>华硕改版固件路由器双线路双拨策略分流方案教程（入门必读）</li>
 <li>LZ路由器双线路双拨策略分流脚本小白安装教程（入门必读）</li>
+<li>使用lzispro工具定时更新ISP数据教程</li>
 <li>IPTV之路由器单双线接入方式的超简单实现教程</li>
 <li>双线路双拨路由器IPTV设置小白教程</li>
 <li>北京联通IPTV机顶盒如何通过无线连接路由器实现收看电视？</li>
