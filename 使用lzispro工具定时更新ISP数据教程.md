@@ -12,7 +12,7 @@
 
 Multi process parallel acquisition tool for IP address data of ISP network operators in China
 
-## 下载地址
+## 下载
 
 - 百度网盘
 
