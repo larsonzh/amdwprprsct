@@ -1,10 +1,10 @@
 # 使用 lzispro 工具定时更新 ISP 数据教程
 
-Tutorial on Regularly Updating ISP Data Using the lzispro Tool
+***Tutorial on Regularly Updating ISP Data Using the lzispro Tool***
 
 **LZ 路由器双线路策略分流脚本** 软件上使用第三方数据源（ 苍狼山庄 https://ispip.clang.cn ）对 ISP 网络运营商 CIDR 网段数据源进行更新，特点是源于 APNIC 最新资料，下载速度快，无需用户自己对数据做后期处理，使用方便，关键还免费。
 
-若用户想自己拥有数据源，或希望有个备份手段，避免第三方故障，作者为此编制了一个开源的 **lzispro** 工具脚本，能在华硕梅林固件路由器上直接从 APNIC 下载 IP 基础信息，采用多进程并行查询方式高速归类数据，并通过 CIDR 算法对网段数据聚合压缩，最终生成中国区网络运营商的精准数据。
+若用户想自己拥有数据源，或希望有个备份手段，避免第三方故障，作者为此编制了一个开源的 **lzispro** 工具脚本（ https://github.com/larsonzh/lzispro.git ），能在华硕梅林固件路由器上直接从 APNIC 下载 IP 基础信息，采用多进程并行查询方式高速归类数据，并通过 CIDR 算法对网段数据聚合压缩，最终生成中国区网络运营商的精准数据。
 
 ## lzispro 全称
 
@@ -38,7 +38,7 @@ Multi process parallel acquisition tool for IP address data of ISP network opera
 
 该参数缺省值为 **4** 个进程，运行时间较长，建议先单独运行几次该工具脚本，根据路由器 **CPU** 负荷及网络情况，逐渐增大该参数以获取比较短的运行时长。**CPU** 平均资源占用率控制在 **60 ~ 70 %** 较为合适，对路由器其他功能影响不大。
 
-本人华硕 GT-AX6000 梅林固件路由器，四核心 ARM CPU，主频 2.0 MHz，照此方法将上述参数定为 **48**，网络状况不差时，一般可 6 分钟左右运行完成。
+本人华硕 GT-AX6000 梅林固件路由器，四核心 ARM CPU，主频 2.0 MHz，照此方法将上述参数定为 **48**，网络状况不差时，一般可 6 分钟左右完成运行。
 
 根据前述部署路径，打开 **lzispro.sh** 文件，在文件前部分找到相关参数项，按如下修改参数设置：
 
@@ -91,6 +91,7 @@ cru d LZISPRO
 
 ```
 </ul>
+
 以上三个脚本编写完成后，需在系统中赋予可执行权限，可在 **SSH** 终端命令行窗口中使用如下命令：
 
 ```markdown
@@ -99,4 +100,36 @@ chmod +x "/jffs/scripts/lzispro/lzaddtask.sh"
 chmod +x "/jffs/scripts/lzispro/lzdeltask.sh"
 ```
 
+## 关联脚本
 
+在前述步骤完成后，即可在 **LZ 路由器双线路策略分流脚本** 的脚本配置文件 **/jffs/scripts/lz/configs/lz_rule_config.sh** 中实现与 **lzispro** 工具的关联应用。
+
+打开脚本配置文件 **lz_rule_config.sh**，在文件最后的 **五、外置脚本设置** 部分，找到相关参数项，按如下修改参数设置：
+
+```markdown
+## 外置用户自定义双线路脚本
+## 0--执行，仅在双线路同时接通WAN口网络条件下执行；非0--禁用；取值范围：0~9
+## 缺省为禁用（5）。
+custom_dualwan_scripts=0
+
+## 外置用户自定义双线路脚本文件全路径文件名
+## 文件路径、名称可自定义和修改，文件路径及名称不得为空。
+## 缺省为"/jffs/scripts/lz/custom_dualwan_scripts.sh"。
+## 该文件由用户创建，文件编码格式为UTF-8(LF)，首行代码且顶齐第一个字符开始必须为：#!bin/sh
+custom_dualwan_scripts_filename="/jffs/scripts/lzispro/lzaddtask.sh"
+
+## 外置用户自定义清理资源脚本
+## 0--执行；非0--禁用；取值范围：0~9
+## 缺省为禁用（5）。
+custom_clear_scripts=0
+
+## 外置用户自定义清理资源脚本文件全路径文件名
+## 文件路径、名称可自定义和修改，文件路径及名称不得为空。
+## 缺省为"/jffs/scripts/lz/custom_clear_scripts.sh"
+## 该文件由用户创建，文件编码格式为UTF-8(LF)，首行代码且顶齐第一个字符开始必须为：#!bin/sh
+custom_clear_scripts_filename="/jffs/scripts/lzispro/lzdeltask.sh"
+
+```
+
+至此，重启 **LZ 路由器双线路策略分流脚本**，即可完成 **使用 lzispro 工具定时更新 ISP 数据** 的全部设置。随着 **LZ 路由器双线路策略分流脚本** 启动，**lzispro** 工具将自动实现系统定时任务添加和运行，路由器重启后定时任务也不会丢失。
+ 
