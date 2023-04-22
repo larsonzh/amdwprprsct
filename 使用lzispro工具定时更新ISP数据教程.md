@@ -39,3 +39,19 @@ Multi process parallel acquisition tool for IP address data of ISP network opera
 该参数缺省值为 **4** 个进程，运行时间较长，建议先单独运行几次该工具脚本，根据路由器 **CPU** 负荷及网络情况，逐渐增大该参数以获取比较短的运行时长。**CPU** 平均资源占用率控制在 **60 ~ 70 %** 较为合适，对路由器其他功能影响不大。
 
 本人华硕 GT-AX6000 梅林固件路由器，四核心 ARM CPU，主频 2.0 MHz，照此方法将上述参数定为 **48**，网络状况不差时，一般可 6 分钟左右运行完成。
+
+根据前述部署路径，打开 **lzispro.sh** 文件，在文件前部分找到相关参数项，按如下修改参数设置：
+
+```markdown
+PATH_CIDR="/jffs/scripts/lz/data"    # 将 IPv4 CIDR 数据输出到「LZ 路由器双线路策略分流脚本」的 data 目录。
+IPV6_DATA="5"                        # 不需要 IPv6 数据。
+PARA_QUERY_PROC_NUM="48"             # 修改为前面测试后确定的「并行查询处理多进程数量」，48 只是示例。
+SYSLOG="/tmp/syslog.log"             # 将运行信息输出到路由器系统记录中。去掉该行前面的 # 号即可。
+```
+
+其他参数项保持缺省即可。
+
+# 脚本
+
+在路由器 **/jffs/scripts/lzispro** 目录里编制如下三个简单的 **Shell** 命令脚本。可使用 **vi** 命令，或其他文本编制工具，一定要确保脚本是 **UFT-8(LF)** 格式，否则无法在 **Linux** 环境下执行。
+
