@@ -26,7 +26,7 @@ Multi process parallel acquisition tool for IP address data of ISP network opera
 
     https://gitee.com/larsonzh
 
-# 部署和使用
+## 部署和使用
 
 若 **LZ 路由器双线路策略分流脚本** 位于路由器的 **/jffs/scripts** 目录，方便起见，将 **lzispro** 工具也安装到此目录。该目录中，**lz** 是前者项目目录，**lzispro** 是后者项目目录，相互独立，不要混在一起。
 
@@ -49,13 +49,13 @@ PARA_QUERY_PROC_NUM="48"             # 修改为前面测试后确定的「并�
 SYSLOG="/tmp/syslog.log"             # 将运行信息输出到路由器系统记录中。去掉该行前面的 # 号即可。
 ```
 
-    其他参数项保持缺省即可。
+其他参数项保持缺省即可。
 
 ## 编写脚本
 
 在路由器 **/jffs/scripts/lzispro** 目录下编写下面三个简单的 **Shell** 命令脚本。可使用 **vi** 命令，或其他文本编制工具，一定确保脚本是 **UFT-8(LF)** 格式，否则无法在 **Linux** 环境下执行。
 
-- 引导启动脚本 **lzstart.sh**
+- 引导启动脚本 **lzstart.sh**<ul>
 
 ```markdown
 #!/bin/sh
@@ -69,9 +69,9 @@ flock -u 555 > /dev/null 2>&1
 
 ```
 
-  该脚本的作用是引导启动 **lzispro** 工具，同时与 **LZ 路由器双线路策略分流脚本** 保持进程同步，防止两个脚本在运行过程中发生数据读写冲突，造成数据处理错误。
+该脚本的作用是引导启动 **lzispro** 工具，同时与 **LZ 路由器双线路策略分流脚本** 保持进程同步，防止两个脚本在运行过程中发生数据读写冲突，造成数据处理错误。</ul>
 
-- 添加定时任务脚本 **lzaddtask.sh**
+- 添加定时任务脚本 **lzaddtask.sh**<ul>
 
 ```markdown
 #!/bin/sh
@@ -80,9 +80,9 @@ cru a LZISPRO "13 4 */3 * * sh /jffs/scripts/lzispro/lzstart.sh"
 
 ```
 
-  **LZISPRO** 作为该任务在系统中的唯一标识，每隔三天，在凌诚 4 点 13 分运行一次 **lzisprou** 工具。**cru** 定时任务命令使用方法请自行学习。
+**LZISPRO** 作为该任务在系统中的唯一标识，每隔三天，在凌诚 4 点 13 分运行一次 **lzisprou** 工具。**cru** 定时任务命令使用方法请自行学习。</ul>
 
-- 删除定时任务脚本 **lzdeltask.sh**
+- 删除定时任务脚本 **lzdeltask.sh**<ul>
 
 ```markdown
 #!/bin/sh
@@ -90,7 +90,7 @@ cru a LZISPRO "13 4 */3 * * sh /jffs/scripts/lzispro/lzstart.sh"
 cru d LZISPRO
 
 ```
-
+</ul>
 以上三个脚本编写完成后，需在系统中赋予可执行权限，可在 **SSH** 终端命令行窗口中使用如下命令：
 
 ```markdown
