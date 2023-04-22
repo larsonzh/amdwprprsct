@@ -26,16 +26,16 @@ Multi process parallel acquisition tool for IP address data of ISP network opera
 
     https://gitee.com/larsonzh
 
-# lzispro 安装 & 运行
+# 部署和使用
 
 若 **LZ 路由器双线路策略分流脚本** 位于路由器的 **/jffs/scripts** 目录，方便起见，将 **lzispro** 工具也安装到此目录。该目录中，**lz** 是前者的项目目录，**lzispro** 是后者的项目目录，相互独立，不要混在一起。
 
-**lzispro** 的具体安装和使用参照 **lzispro** 项目内的 **README.md** 内容。
+**lzispro** 具体的部署及使用参照 **lzispro** 项目内的 **README.md** 内容。
 
 # lzispro 运行参数
 
-在将 **lzispro** 与 **LZ 路由器双线路策略分流脚本** 关联起来之前，首先要对 **lzispro** 的 **并行查询处理多进程数量「PARA_QUERY_PROC_NUM」** 参数进行设定。
+在将 **lzispro** 与 **LZ 路由器双线路策略分流脚本** 关联之前，需先确定 **lzispro** 的 **并行查询处理多进程数量「PARA_QUERY_PROC_NUM」** 参数。
 
-**lzispro** 的 **并行查询处理多进程数量「PARA_QUERY_PROC_NUM」** 参数缺省值为 **4** 个进程，建议先通过单独运行几次该工具脚本，根据路由器 **CPU** 负荷及网络情况，逐渐增大该参数以获取比较短的运行时长。**CPU** 平均资源占用率控制在 **60 ~ 70 %** 较为合适，对路由器其他功能影响不大。
+**并行查询处理多进程数量「PARA_QUERY_PROC_NUM」** 参数缺省值为 **4** 个进程，运行时间较长，建议先单独运行几次该工具脚本，根据路由器 **CPU** 负荷及网络情况，逐渐增大该参数以获取比较短的运行时长。**CPU** 平均资源占用率控制在 **60 ~ 70 %** 较为合适，对路由器其他功能影响不大。
 
-本人华硕 GT-AX6000 梅林固件路由器，四核心 ARM CPU，主频 2.0 MHz，照此方法将上述参数定为 **48**，网络状况不差时，该工具一般在 6 分钟左右运行完成。
+本人华硕 GT-AX6000 梅林固件路由器，四核心 ARM CPU，主频 2.0 MHz，照此方法将上述参数定为 **48**，网络状况不差时，该工具一般可 6 分钟左右运行完成。
