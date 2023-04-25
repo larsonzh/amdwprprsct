@@ -10,7 +10,7 @@
 
 - https://gitee.com/larsonzh/amdwprprsct.git （镜像）
 
-若用户想拥有自主数据源，或希望有个备份手段，避免第三方故障，或出出学习目的，更深入了解和掌握相关原理和算法，作者为此编制了一个能兼容多种 Linux 平台环境，且开源的 **lzispro** 工具脚本（ https://github.com/larsonzh/lzispro.git ）。
+若用户想拥有自主数据源，或希望有个备份手段，避免第三方故障，或出于学习目的，更深入了解和掌握相关原理和算法，作者为此编制了一个能兼容多种 Linux 平台环境，且开源的 **lzispro** 工具脚本（ https://github.com/larsonzh/lzispro.git ）。
 
 作为对小型设备的支持，该工具能在华硕梅林固件路由器上直接从 APNIC 下载 IP 基础信息，采用多进程并行查询方式高速归类数据，并通过 CIDR 算法对网段数据聚合压缩，最终生成中国区网络运营商的精准数据。
 
