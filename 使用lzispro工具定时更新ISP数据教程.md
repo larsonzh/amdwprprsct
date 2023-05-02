@@ -70,10 +70,10 @@ SYSLOG="/tmp/syslog.log"             # 将运行信息输出到路由器系统�
 
 exec 555<>"/var/lock/lz_rule.lock"
 flock -x 555 > /dev/null 2>&1
-sh /jffs/scripts/lzispro/lzispro.sh && success="ok"
+[ -f "/jffs/scripts/lzispro/lzispro.sh" ] && sh /jffs/scripts/lzispro/lzispro.sh && success="ok"
 flock -u 555 > /dev/null 2>&1
 
-[ "${success}" ] && sh /jffs/scripts/lz/lz_rule.sh
+[ "${success}" ] && [ -f "/jffs/scripts/lz/lz_rule.sh" ] && sh /jffs/scripts/lz/lz_rule.sh
 
 ```
 
@@ -84,7 +84,7 @@ flock -u 555 > /dev/null 2>&1
 ```markdown
 #!/bin/sh
 
-cru a LZISPRO "13 4 */3 * * sh /jffs/scripts/lzispro/lzstart.sh"
+cru a LZISPRO "13 4 */3 * * [ -f "/jffs/scripts/lzispro/lzstart.sh" ] && sh /jffs/scripts/lzispro/lzstart.sh"
 
 ```
 
