@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_initialize_config.sh v3.9.7
+# lz_initialize_config.sh v3.9.8
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 初始化脚本配置
@@ -287,7 +287,7 @@ lz_variable_initialize() {
     local_custom_clear_scripts_changed="0"
     local_custom_clear_scripts_filename_changed="0"
 
-    local_default=1
+    local_default="1"
     local_changed="0"
     local_reinstall="0"
 }
@@ -2211,11 +2211,11 @@ lz_read_file_cache_buffer() {
 ##     非0--数据项读取成功
 lz_get_file_data_item() {
     local local_retval="1"
-    local local_default="$( echo "${2}" | sed 's/\"/##/g' )"
+    local local_local_default="$( echo "${2}" | sed 's/\"/##/g' )"
     local local_data_item="$( grep -m 1 "^[ ]*${1}=" "${3}" 2> /dev/null \
         | sed -e 's/[#].*$//g' -e 's/^[ \t]*//g' -e 's/[ \t][ \t]*/ /g' -e 's/^\([^=]*[=][^ =]*\).*$/\1/g' \
         -e 's/^\(.*[=][^\"][^\"]*\).*$/\1/g' -e 's/^\(.*[=][\"][^\"]*[\"]\).*$/\1/g' -e 's/^\(.*[=]\)[\"][^\"]*$/\1/g' \
-        | awk -F "=" '{if ($2 == "" && "'"${local_default}"'" != "") print "#LOSE#"; else if ($2 == "" && "'"${local_default}"'" == "") print "#DEFAULT#"; else print $2}' )"
+        | awk -F "=" '{if ($2 == "" && "'"${local_local_default}"'" != "") print "#LOSE#"; else if ($2 == "" && "'"${local_local_default}"'" == "") print "#DEFAULT#"; else print $2}' )"
     local_data_item="$( echo "${local_data_item}" | sed 's/##/\"/g' )"
     if [ -z "${local_data_item}" ]; then
         local_data_item="${2}"
@@ -2241,9 +2241,9 @@ lz_get_file_data_item() {
 ##     非0--数据项读取成功
 lz_get_file_cache_data() {
     local local_retval="1"
-    local local_default="$( echo "${2}" | sed 's/\"/##/g' )"
+    local local_local_default="$( echo "${2}" | sed 's/\"/##/g' )"
     local local_data_item="$( echo "${local_file_cache}" | grep -m 1 "^${1}=" 2> /dev/null \
-    | awk -F "=" '{if ($2 == "" && "'"${local_default}"'" != "") print "#LOSE#"; else if ($2 == "" && "'"${local_default}"'" == "") print "#DEFAULT#"; else print $2}' )"
+    | awk -F "=" '{if ($2 == "" && "'"${local_local_default}"'" != "") print "#LOSE#"; else if ($2 == "" && "'"${local_local_default}"'" == "") print "#DEFAULT#"; else print $2}' )"
     local_data_item="$( echo "${local_data_item}" | sed 's/##/\"/g' )"
     if [ -z "${local_data_item}" ]; then
         local_data_item="${2}"
@@ -3750,8 +3750,7 @@ lz_read_config_param
 ## 返回值：
 ##     1--缺省状态
 ##     0--非缺省状态
-lz_cfg_is_default
-local_default="${?}"
+lz_cfg_is_default && local_default="0"
 
 if [ ! -f "${PATH_CONFIGS}/lz_rule_config.box" ]; then
     ## lz_rule_config.box不存在，属新安装脚本
@@ -3776,8 +3775,7 @@ else
     ## 返回值：
     ##     1--已改变
     ##     0--未改变
-    lz_cfg_is_changed
-    local_changed="${?}"
+    ! lz_cfg_is_changed && local_changed="1"
 
     [ "${local_ini_udpxy_used}" != "${local_udpxy_used}" ] && local_udpxy_used_changed="1"
     if [ "${local_udpxy_used_changed}" = "1" ]; then
