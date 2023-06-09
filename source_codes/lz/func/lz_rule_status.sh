@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_status.sh v3.9.8
+# lz_rule_status.sh v3.9.9
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 显示脚本运行状态脚本
@@ -509,6 +509,11 @@ lz_get_file_cache_data_status() {
 ##     全局常量及变量
 ## 返回值：无
 lz_read_box_data_status() {
+    ## 删除lz_rule_config.box中的重复参数项
+    awk -v x="0" '$1 ~ /^[a-zA-Z0-9_-][a-zA-Z0-9_-]*[=]/ && i[substr($1, 1, index($1, "="))]++ \
+        {x++; printf " -e '\''%ss\/\^\.\*\$\/#\&\/g'\''", NR} END{if (x != "0") printf "\n"}' "${PATH_CONFIGS}/lz_rule_config.box" \
+        | awk 'NF != "0" {system("sed -i"$0" -e '\''\/\^#\/d'\'' ""'"${PATH_CONFIGS}/lz_rule_config.box"'")}'
+    ## 加载配置参数文件缓冲区
     local_file_cache="$( awk '$1 ~ /^[a-zA-Z0-9_-][a-zA-Z0-9_-]*[=]/ {print $1}' "${PATH_CONFIGS}/lz_rule_config.box" \
             | sed -e 's/[#].*$//g' -e 's/^[ \t]*//g' -e 's/[ \t][ \t]*/ /g' -e 's/^\([^=]*[=][^ =]*\).*$/\1/g' \
             -e 's/^\(.*[=][^\"][^\"]*\).*$/\1/g' -e 's/^\(.*[=][\"][^\"]*[\"]\).*$/\1/g' \

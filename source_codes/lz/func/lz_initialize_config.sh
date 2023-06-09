@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_initialize_config.sh v3.9.8
+# lz_initialize_config.sh v3.9.9
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 初始化脚本配置
@@ -3725,6 +3725,11 @@ if [ ! -f "${PATH_CONFIGS}/lz_rule_config.sh" ]; then
     let local_reinstall++
 fi
 
+## 注释lz_rule_config.sh中的重复参数项
+awk -v x="0" '$1 ~ /^[a-zA-Z0-9_-][a-zA-Z0-9_-]*[=]/ && i[substr($1, 1, index($1, "="))]++ \
+    {x++; printf " -e '\''%ss\/\^\.\*\$\/###\&\/g'\''", NR} END{if (x != "0") printf "\n"}' "${PATH_CONFIGS}/lz_rule_config.sh" \
+    | awk 'NF != "0" {system("sed -i"$0" ""'"${PATH_CONFIGS}/lz_rule_config.sh"'")}'
+
 if [ "${1}" = "default" ]; then
     ## 恢复缺省设置
     ## 恢复缺省配置数据文件
@@ -3761,6 +3766,11 @@ if [ ! -f "${PATH_CONFIGS}/lz_rule_config.box" ]; then
     ## 返回值：无
     lz_backup_config
 else
+    ## 删除lz_rule_config.box中的重复参数项
+    awk -v x="0" '$1 ~ /^[a-zA-Z0-9_-][a-zA-Z0-9_-]*[=]/ && i[substr($1, 1, index($1, "="))]++ \
+        {x++; printf " -e '\''%ss\/\^\.\*\$\/#\&\/g'\''", NR} END{if (x != "0") printf "\n"}' "${PATH_CONFIGS}/lz_rule_config.box" \
+        | awk 'NF != "0" {system("sed -i"$0" -e '\''\/\^#\/d'\'' ""'"${PATH_CONFIGS}/lz_rule_config.box"'")}'
+
     ## 存在lz_rule_config.box，取出其中的配置参数
     ## 读取lz_rule_config.box中的配置参数
     ## 输入项：
