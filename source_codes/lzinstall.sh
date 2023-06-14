@@ -1,5 +1,5 @@
 #!/bin/sh
-# lzinstall.sh v4.0.0
+# lzinstall.sh v4.0.1
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ script for asuswrt/merlin based router
@@ -9,7 +9,7 @@
 
 #BEIGIN
 
-LZ_VERSION=v4.0.0
+LZ_VERSION=v4.0.1
 TIMEOUT=10
 CURRENT_PATH="${0%/*}"
 [ "${CURRENT_PATH:0:1}" != '/' ] && CURRENT_PATH="$( pwd )${CURRENT_PATH#*.}"
