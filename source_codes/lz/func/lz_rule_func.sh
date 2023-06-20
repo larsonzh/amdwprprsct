@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v4.0.1
+# lz_rule_func.sh v4.0.2
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 #BEIGIN
@@ -1423,20 +1423,19 @@ lz_set_hnd_bcmmcast_if() {
     [ "${2}" != "0" ] && [ "${2}" != "1" ] && [ "${2}" != "2" ] && return "${reval}"
     [ "${3}" != "0" ] && [ "${3}" != "1" ] && [ "${3}" != "2" ] && return "${reval}"
     [ -n "${1}" ] && {
-        bcmmcastctl show 2> /dev/null | grep -w "${1}:" | grep -q MLD && {
+        bcmmcastctl show -i "${1}" 2> /dev/null | grep -q MLD && {
             if [ "${2}" = "0" ] || [ "${2}" = "2" ]; then
                 bcmmcastctl rate -i "${1}" -p 2 -r 0  > /dev/null 2>&1
-                bcmmcastctl l2l -i "${1}" -p 2 -e 1  > /dev/null 2>&1
                 bcmmcastctl mode -i "${1}" -p 2 -m "${3}" > /dev/null 2>&1 && let reval++
             fi
         }
-        bcmmcastctl show 2> /dev/null | grep -w "${1}:" | grep -q IGMP && {
+        bcmmcastctl show -i "${1}" 2> /dev/null | grep -q IGMP && {
             if [ "${2}" = "0" ] || [ "${2}" = "1" ]; then
                 bcmmcastctl rate -i "${1}" -p 1 -r 0  > /dev/null 2>&1
-                bcmmcastctl l2l -i "${1}" -p 1 -e 1  > /dev/null 2>&1
                 bcmmcastctl mode -i "${1}" -p 1 -m "${3}" > /dev/null 2>&1 && let reval++
             fi
         }
+        bcmmcastctl blog -e 1  > /dev/null 2>&1
         [ "${2}" = "0" ] && {
             if [ "${reval}" = "3" ]; then reval="0"; else reval="1"; fi;
         }
@@ -1465,6 +1464,82 @@ lz_clear_dnsmasq_relation() {
     [ -f "${PATH_TMP}/${DOMAIN_WAN2_CONF}" ] && rm -f "${PATH_TMP}/${DOMAIN_WAN2_CONF}" > /dev/null 2>&1
     [ -d "${PATH_DNSMASQ_DOMAIN_CONF}" ] && rm -rf "${PATH_DNSMASQ_DOMAIN_CONF}" > /dev/null 2>&1
 }
+
+## 初始化组播路由及udpxy函数
+## 输入项：
+##     全局变量及常量
+## 返回值：无
+lz_init_mr_udpxy() {
+    ## 恢复系统的IGMP代理、组播路由、核心网桥IGMP组播数据侦测方式及udpxy至脚本启动前状态
+    [ "${udpxy_used}" != "0" ] && return
+    ## 获取系统原生第一WAN口的接口ID标识
+    local local_udpxy_wan0_dev="$( nvram get "wan0_ifname" | grep -Eo 'vlan[0-9]*|eth[0-9]*' | sed -n 1p )"
+    [ -z "${local_udpxy_wan0_dev}" ] && local_udpxy_wan0_dev="eht0"
+
+    local local_igmp_start="0"
+
+    ## 恢复系统IGMP代理
+    local local_igmps_name="$( which igmpproxy 2> /dev/null )"
+    if ! ps | awk -v x="0" '$5 ~ /\/igmpproxy$/ && !/awk/ {system("kill -9 "$1" > /dev/null 2>&1"); x++;} END{if (x != "0") exit(1)}' \
+        && [ -n "${local_igmps_name}" ]; then
+        sleep "1s"
+        cat > "/tmp/igmpproxy.conf" <<EOF
+phyint ${local_udpxy_wan0_dev} upstream ratelimit 0 threshold 1 altnet 0.0.0.0/0
+phyint br0 downstream ratelimit 0 threshold 1
+EOF
+        eval "${local_igmps_name}" "/tmp/igmpproxy.conf" > /dev/null 2>&1
+        local_igmp_start="1"
+        echo "$(lzdate)" [$$]: IGMP proxy service has been reset. | tee -ai "${SYSLOG}" 2> /dev/null
+    fi
+
+    ## 恢复系统组播路由
+    ps | awk '$5 ~ /\/mcpd$/ && !/awk/ {system("kill -9 "$1" > /dev/null 2>&1")}'
+    sleep "1s"
+    local local_mcrs_name="$( which mcpd 2> /dev/null )"
+    if [ -n "${local_mcrs_name}" ]; then
+        eval "${local_mcrs_name}" > /dev/null 2>&1 &
+        [ "$( nvram get "mr_enable_x" )" = "1" ] && {
+                local_igmp_start="1"
+                echo "$(lzdate)" [$$]: Multicast routing service has been reset. | tee -ai "${SYSLOG}" 2> /dev/null
+            }
+    fi
+    [ -f "${PATH_TMP}/${MULTICAST_CONF_NAME}" ] && rm -f "${PATH_TMP}/${MULTICAST_CONF_NAME}"
+
+    ## 恢复系统核心网桥IGMP组播数据侦测方式
+    ## 设置hnd/axhnd/axhnd.675x平台核心网桥IGMP接口
+    ## 输入项：
+    ##     $1--接口标识
+    ##     $2--0：IGMP&MLD；1：IGMP；2：MLD
+    ##     $3--0：disabled；1：standard；2：blocking
+    ## 返回值：
+    ##     0--成功
+    ##     1--失败
+    lz_set_hnd_bcmmcast_if "br0" "0" "2" && [ "${local_igmp_start}" = "1" ] \
+        && echo "$(lzdate)" [$$]: Bridge IGMP snooping service has been reset. | tee -ai "${SYSLOG}" 2> /dev/null
+
+    ## 恢复系统udpxy
+    ps | awk '$5 ~ /\/udpxy$/ && !/awk/ {system("kill -9 "$1" > /dev/null 2>&1")}'
+    sleep "1s"
+    local local_udpxys_name="$( which udpxy 2> /dev/null )"
+    if [ -n "${local_udpxys_name}" ]; then
+        local local_udpxy_enable_x="$( nvram get "udpxy_enable_x" | grep -Eo '^[1-9][0-9]{0,4}$' | sed -n 1p )"
+        if [ -n "${local_udpxy_enable_x}" ]; then
+            local local_udpxy_clients="$( nvram get "udpxy_clients" | grep -Eo '^[1-9][0-9]{0,3}$' | sed -n 1p )"
+            [ -n "${local_udpxy_clients}" ] && [ "${local_udpxy_clients}" -ge "1" ] && [ "${local_udpxy_clients}" -le "5000" ] \
+                && eval "${local_udpxys_name}" -m "${local_udpxy_wan0_dev}" -p "${local_udpxy_enable_x}" -B "65536" -c "${local_udpxy_clients}" -a "br0" > /dev/null 2>&1
+        fi
+        [ "${local_igmp_start}" = "1" ] && echo "$(lzdate)" [$$]: UDPXY service has been reset. | tee -ai "${SYSLOG}" 2> /dev/null
+    fi
+
+    ## 设置udpxy_used参数
+    ## 输入项：
+    ##     $1--0或5
+    ##     全局变量及常量
+    ## 返回值：
+    ##     udpxy_used--设置后的值，全局变量
+    lz_set_udpxy_used_value "5"
+}
+
 
 ## 数据清理函数
 ## 输入项：
@@ -1584,70 +1659,11 @@ lz_data_cleaning() {
         [ "${local_cc_item}" = "0" ] && echo "1" > "/proc/sys/net/netfilter/nf_conntrack_checksum"
     }
 
-    ## 设置IGMP组播管理协议版本号
-    [ -f "/proc/sys/net/ipv4/conf/all/force_igmp_version" ] && {
-        local local_igmp_version="$( cat "/proc/sys/net/ipv4/conf/all/force_igmp_version" )"
-        [ "${local_igmp_version}" != "${igmp_version}" ] && echo "${igmp_version}" > "/proc/sys/net/ipv4/conf/all/force_igmp_version"
-    }
-
-    ## 关闭IGMP及udpxy
-    if [ "${udpxy_used}" = "0" ]; then
-        ## 获取系统原生第一WAN口的接口ID标识
-        local local_udpxy_wan1_dev="$( nvram get "wan0_ifname" | grep -Eo 'vlan[0-9]*|eth[0-9]*' | sed -n 1p )"
-        local local_igmp_proxy_conf_name="$( echo "${IGMP_PROXY_CONF_NAME}" | sed 's/[\.]conf.*$//' )"
-        local local_igmp_proxy_started="$( ps | grep "/usr/sbin/igmpproxy" | grep "${PATH_TMP}/${local_igmp_proxy_conf_name}" )"
-        if [ -n "${local_igmp_proxy_started}" ]; then
-            killall "igmpproxy" > /dev/null 2>&1
-            sleep "1s"
-
-            echo "$(lzdate)" [$$]: IGMP service has been closed. | tee -ai "${SYSLOG}" 2> /dev/null
-
-            if [ -f "/tmp/igmpproxy.conf" ] && [ -n "${local_udpxy_wan1_dev}" ]; then
-                if ! grep phyint "/tmp/igmpproxy.conf" | grep "upstream" | grep -q "${local_udpxy_wan1_dev}"; then
-                    cat > "/tmp/igmpproxy.conf" <<EOF
-phyint ${local_udpxy_wan1_dev} upstream ratelimit 0 threshold 1 altnet 0.0.0.0/0
-phyint br0 downstream ratelimit 0 threshold 1
-EOF
-                fi
-                [ -f "/tmp/igmpproxy.conf" ] && /usr/sbin/igmpproxy "/tmp/igmpproxy.conf" > /dev/null 2>&1
-            fi
-        else
-            ## 设置hnd/axhnd/axhnd.675x平台核心网桥IGMP接口
-            ## 输入项：
-            ##     $1--接口标识
-            ##     $2--0：IGMP&MLD；1：IGMP；2：MLD
-            ##     $3--0：disabled；1：standard；2：blocking
-            ## 返回值：
-            ##     0--成功
-            ##     1--失败
-            lz_set_hnd_bcmmcast_if "br0" "0" "2"
-        fi
-
-        killall "udpxy" > /dev/null 2>&1
-        sleep "1s"
-
-        ## 设置udpxy_used参数
-        ## 输入项：
-        ##     $1--0或5
-        ##     全局变量及常量
-        ## 返回值：
-        ##     udpxy_used--设置后的值，全局变量
-        lz_set_udpxy_used_value "5"
-
-        echo "$(lzdate)" [$$]: All of UDPXY services have been cleared. | tee -ai "${SYSLOG}" 2> /dev/null
-
-        local local_udpxy_enable_x="$( nvram get "udpxy_enable_x" | grep -Eo '^[1-9][0-9]{0,4}$' | sed -n 1p )"
-        if [ -n "${local_udpxy_enable_x}" ]; then
-            local local_udpxy_clients="$( nvram get "udpxy_clients" | grep -Eo '^[1-9][0-9]{0,3}$' | sed -n 1p )"
-            if [ -n "${local_udpxy_clients}" ]; then
-                if [ "${local_udpxy_clients}" -ge "1" ] && [ "${local_udpxy_clients}" -le "5000" ]; then
-                    [ -n "${local_udpxy_wan1_dev}" ] && {
-                        /usr/sbin/udpxy -m "${local_udpxy_wan1_dev}" -p "${local_udpxy_enable_x}" -B "65536" -c "${local_udpxy_clients}" -a "br0" > /dev/null 2>&1
-                    }
-                fi
-            fi
-        fi
-    fi
+    ## 初始化组播路由及udpxy
+    ## 输入项：
+    ##     全局变量及常量
+    ## 返回值：无
+    lz_init_mr_udpxy
 
     ## 清除用户自定义脚本数据
     ## 输入项：
@@ -4994,62 +5010,11 @@ lz_add_src_sets_to_dst_ip_rules() {
 ##     $1--IPTV线路在路由器内的接口设备ID（vlanx，pppx，ethx；x--数字编号）
 ##     $2--IPTV机顶盒访问IPTV线路光猫网关地址
 ##     全局变量及常量
-## 返回值：无
+## 返回值：
+##     0--成功
+##     1--失败
 lz_start_iptv_box_services() {
-    if [ -z "${1}" ] || [ -z "${2}" ]; then return; fi;
-    ## 向系统策略路由库中添加双向访问网络路径规则
-    ## 输入项：
-    ##     $1--IPv4网址/网段地址列表全路径文件名
-    ##     $2--路由表ID
-    ##     $3--IP规则优先级
-    ## 返回值：无
-    if [ "${iptv_access_mode}" = "1" ]; then
-        [ -f "${iptv_box_ip_lst_file}" ] && \
-            lz_add_dual_ip_rules "${iptv_box_ip_lst_file}" "${LZ_IPTV}" "${IP_RULE_PRIO_IPTV}"
-    else
-        if [ -f "${iptv_box_ip_lst_file}" ] && [ -f "${iptv_isp_ip_lst_file}" ]; then
-            ## 获取IPv4网址/网段地址列表文件中的列表数据
-            ## 输入项：
-            ##     $1--IPv4网址/网段地址列表全路径文件名
-            ## 返回值：
-            ##     数据列表
-            local ip_list_item=
-            for ip_list_item in $( lz_get_ipv4_list_from_data_file "${iptv_box_ip_lst_file}" )
-            do
-                ## 添加从源地址到目标地址列表访问网络路径规则
-                ## 输入项：
-                ##     $1--IPv4源网址/网段地址
-                ##     $2--IPv4目标网址/网段地址列表全路径文件名
-                ##     $3--路由表ID
-                ##     $4--IP规则优先级
-                ## 返回值：无
-                lz_add_src_to_dst_sets_ip_rules "${ip_list_item}" "${iptv_isp_ip_lst_file}" "${LZ_IPTV}" "${IP_RULE_PRIO_IPTV}"
-            done
-
-            ## 获取IPv4网址/网段地址列表文件中的列表数据
-            ## 输入项：
-            ##     $1--IPv4网址/网段地址列表全路径文件名
-            ## 返回值：
-            ##     数据列表
-            for ip_list_item in $( lz_get_ipv4_list_from_data_file "${iptv_box_ip_lst_file}" )
-            do
-                ## 添加从源地址列表到目标地址访问网络路径规则
-                ## 输入项：
-                ##     $1--IPv4源网址/网段地址列表全路径文件名
-                ##     $2--IPv4目标网址/网段地址
-                ##     $3--路由表ID
-                ##     $4--IP规则优先级
-                ## 返回值：无
-                lz_add_src_sets_to_dst_ip_rules "${iptv_isp_ip_lst_file}" "${ip_list_item}" "${LZ_IPTV}" "${IP_RULE_PRIO_IPTV}"
-            done
-        fi
-    fi
-
-    ## 刷新路由器路由表缓存
-    ip route flush cache > /dev/null 2>&1
-
-    ! ip rule show | grep -q "^${IP_RULE_PRIO_IPTV}:" && return
-
+    if [ -z "${1}" ] || [ -z "${2}" ] || [ ! -f "${iptv_box_ip_lst_file}" ]; then return "1"; fi;
     ## 向IPTV路由表中添加路由项
     ip route show | awk '!/default|nexthop/ && NF!=0 {system("ip route add "$0"'" table ${LZ_IPTV} > /dev/null 2>&1"'")}'
     ip route add default via "${2}" dev "${1}" table "${LZ_IPTV}" > /dev/null 2>&1
@@ -5057,54 +5022,80 @@ lz_start_iptv_box_services() {
     ## 刷新路由器路由表缓存
     ip route flush cache > /dev/null 2>&1
 
-    ## 如果接入指定的IPTV接口设备失败，则清理所添加资源
-    if ! ip route show table "${LZ_IPTV}" | grep -q "default"; then
+    if ! ip route show table "${LZ_IPTV}" | grep -qw "default"; then
+        ## 清空系统中已有IPTV路由表
+        ## 输入项：
+        ##     全局常量
+        ## 返回值：无
+        lz_clear_iptv_route
+        ## 刷新路由器路由表缓存
+        ip route flush cache > /dev/null 2>&1
+        return "1"
+    fi
+
+    ## 向系统策略路由库中添加双向访问网络路径规则
+    ## 输入项：
+    ##     $1--IPv4网址/网段地址列表全路径文件名
+    ##     $2--路由表ID
+    ##     $3--IP规则优先级
+    ## 返回值：无
+    if [ "${iptv_access_mode}" = "1" ]; then
+        lz_add_dual_ip_rules "${iptv_box_ip_lst_file}" "${LZ_IPTV}" "${IP_RULE_PRIO_IPTV}"
+    elif [ -f "${iptv_isp_ip_lst_file}" ]; then
+        local ip_list_item=
+        ## 获取IPv4网址/网段地址列表文件中的列表数据
+        ## 输入项：
+        ##     $1--IPv4网址/网段地址列表全路径文件名
+        ## 返回值：
+        ##     数据列表
+        for ip_list_item in $( lz_get_ipv4_list_from_data_file "${iptv_box_ip_lst_file}" )
+        do
+            ## 添加从源地址到目标地址列表访问网络路径规则
+            ## 输入项：
+            ##     $1--IPv4源网址/网段地址
+            ##     $2--IPv4目标网址/网段地址列表全路径文件名
+            ##     $3--路由表ID
+            ##     $4--IP规则优先级
+            ## 返回值：无
+            lz_add_src_to_dst_sets_ip_rules "${ip_list_item}" "${iptv_isp_ip_lst_file}" "${LZ_IPTV}" "${IP_RULE_PRIO_IPTV}"
+        done
+
+        ## 获取IPv4网址/网段地址列表文件中的列表数据
+        ## 输入项：
+        ##     $1--IPv4网址/网段地址列表全路径文件名
+        ## 返回值：
+        ##     数据列表
+        for ip_list_item in $( lz_get_ipv4_list_from_data_file "${iptv_box_ip_lst_file}" )
+        do
+            ## 添加从源地址列表到目标地址访问网络路径规则
+            ## 输入项：
+            ##     $1--IPv4源网址/网段地址列表全路径文件名
+            ##     $2--IPv4目标网址/网段地址
+            ##     $3--路由表ID
+            ##     $4--IP规则优先级
+            ## 返回值：无
+            lz_add_src_sets_to_dst_ip_rules "${iptv_isp_ip_lst_file}" "${ip_list_item}" "${LZ_IPTV}" "${IP_RULE_PRIO_IPTV}"
+        done
+    fi
+
+    ## 刷新路由器路由表缓存
+    ip route flush cache > /dev/null 2>&1
+
+    if ! ip rule show  | grep -q "^${IP_RULE_PRIO_IPTV}:"; then
         ## 清除系统策略路由库中已有IPTV规则
         ## 输入项：
         ##     $1--是否显示统计信息（1--显示；其它字符--不显示）
         ##     全局常量
         ## 返回值：无
         lz_del_iptv_rule
-
         ## 清空系统中已有IPTV路由表
-        ## 输入项：
-        ##     全局常量
-        ## 返回值：无
         lz_clear_iptv_route
-
         ## 刷新路由器路由表缓存
         ip route flush cache > /dev/null 2>&1
-    else
-        if [ -f "${iptv_box_ip_lst_file}" ]; then
-            if [ "${balance_chain_existing}" = "1" ]; then
-                ## 创建或加载网段出口数据集函数
-                ## 输入项：
-                ##     $1--全路径网段数据文件名
-                ##     $2--网段数据集名称
-                ##     $3--0:正匹配数据，非0：反匹配（nomatch）数据
-                ## 返回值：
-                ##     网址/网段数据集--全局变量
-                lz_add_net_address_sets "${iptv_box_ip_lst_file}" "${BALANCE_IP_SET}" "0"
-                lz_add_net_address_sets "${iptv_box_ip_lst_file}" "${BALANCE_GUARD_IP_SET}" "0"
-            fi
-
-            ## 根据IPTV机顶盒访问IPTV线路方式阻止对IPTV流量按运营商网段动态分流
-            if [ "${usage_mode}" = "0" ]; then
-                if [ "${iptv_access_mode}" = "1" ]; then
-                    ## 直连IPTV线路时，机顶盒全部流量采用静态分流，须在动态分流中屏蔽其流量输出
-                    lz_add_net_address_sets "${iptv_box_ip_lst_file}" "${LOCAL_IP_SET}" "0"
-                elif [ -f "${iptv_isp_ip_lst_file}" ] && iptables -t mangle -L PREROUTING 2> /dev/null | grep -q "${CUSTOM_PREROUTING_CHAIN}"; then
-                    ## 按服务地址访问时，机顶盒IPTV流量采静态分流，其他流量按运营商网段动态分流
-                    lz_add_net_address_sets "${iptv_box_ip_lst_file}" "${IPTV_BOX_IP_SET}" "0"
-                    lz_add_net_address_sets "${iptv_isp_ip_lst_file}" "${IPTV_ISP_IP_SET}" "0"
-                    if [ "$( lz_get_ipset_total_number "${IPTV_BOX_IP_SET}" )" -gt "0" ] && [ "$( lz_get_ipset_total_number "${IPTV_ISP_IP_SET}" )" -gt "0" ]; then
-                        ## 创建阻止被运营商网段分流，提前跳出的防火墙规则
-                        eval "iptables -t mangle -I ${CUSTOM_PREROUTING_CHAIN} -m state --state NEW -m set ${MATCH_SET} ${IPTV_BOX_IP_SET} src -m set ${MATCH_SET} ${IPTV_ISP_IP_SET} dst -j RETURN > /dev/null 2>&1"
-                    fi
-                fi
-            fi
-        fi
+        return "1"
     fi
+
+    return "0"
 }
 
 ## 在系统负载均衡规则链中插入自定义规则函数
@@ -5220,6 +5211,15 @@ lz_remove_unused_ipset() {
 
     ## IPTV网络服务IP网址/网段数据集名称
     ipset -q destroy "${IPTV_ISP_IP_SET}"
+}
+
+## 显示路由表变量函数
+## 输入项：
+##     $1--路由表变量
+## 返回值：
+##     路由表列表
+lz_show_routing_table() {
+    echo "${1}"
 }
 
 ## 部署流量路由策略函数
@@ -5339,151 +5339,269 @@ lz_deployment_routing_policy() {
     [ "${route_cache}" != "0" ] && [ -f "/proc/sys/net/ipv4/rt_cache_rebuild_count" ] \
         && echo "-1" > "/proc/sys/net/ipv4/rt_cache_rebuild_count"
 
-    ## 从系统中获取光猫网关地址
-    local local_wan0_xgateway="$( nvram get "wan0_xgateway" | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}' | sed -n 1p )"
-    local local_wan1_xgateway="$( nvram get "wan1_xgateway" | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}' | sed -n 1p )"
+    ## 从系统中获取本地网络接口设备标识
+    local iptv_wan0_ifname="$( nvram get "wan0_ifname" | grep -Eo 'vlan[0-9]*|eth[0-9]*' | sed -n 1p )"
+    local iptv_wan1_ifname="$( nvram get "wan1_ifname" | grep -Eo 'vlan[0-9]*|eth[0-9]*' | sed -n 1p )"
 
-    ## 启动IGMP或UDPXY（IPTV模式支持）
-    local local_wan1_udpxy_start="0"
-    local local_wan2_udpxy_start="0"
-    local local_wan1_igmp_start="0"
-    local local_wan2_igmp_start="0"
-    local local_udpxy_wan1_dev=""
-    local local_udpxy_wan2_dev=""
-    if [ "${iptv_igmp_switch}" = "0" ] || [ "${wan1_udpxy_switch}" = "0" ]; then
-        if [ "${wan1_iptv_mode}" = "0" ]; then
-            local_udpxy_wan1_dev="$( nvram get "wan0_pppoe_ifname" | grep -o 'ppp[0-9]*' | sed -n 1p )"
-            if [ -n "${local_udpxy_wan1_dev}" ]; then
-                local_wan0_xgateway="$( ip route show table "${WAN0}" | awk '/default/ && $0 ~ "'"${local_udpxy_wan1_dev}"'" {print $3}' | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}' | sed -n 1p )"
+    ## pppoe接口设备标识
+    local iptv_wan0_pppoe_ifname="$( nvram get "wan0_pppoe_ifname" | grep -o 'ppp[0-9]*' | sed -n 1p )"
+    local iptv_wan1_pppoe_ifname="$( nvram get "wan1_pppoe_ifname" | grep -o 'ppp[0-9]*' | sed -n 1p )"
+
+    ## 获取路由表
+    local rt_wan0="$( ip route show table "${WAN0}" )"
+    local rt_wan1="$( ip route show table "${WAN1}" )"
+
+    local local_info=
+    if [ -z "${iptv_wan0_ifname}" ]; then
+        [ -z "${local_info}" ] && echo "$(lzdate)" [$$]: --------------------------------------------- | tee -ai "${SYSLOG}" 2> /dev/null
+        echo "$(lzdate)" [$$]: Primary WAN fault. | tee -ai "${SYSLOG}" 2> /dev/null
+        local_info="1"
+        ## 显示路由表变量
+        ## 输入项：
+        ##     $1--路由表变量
+        ## 返回值：
+        ##     路由表列表
+    elif { ! lz_show_routing_table "${rt_wan0}" | grep -qw "${iptv_wan0_ifname}" \
+        || ! lz_show_routing_table "${rt_wan1}" | awk '$1 == "default" && $5 == "'"${iptv_wan0_ifname}"'" {exit(1)}'; }; then
+        [ -z "${local_info}" ] && echo "$(lzdate)" [$$]: --------------------------------------------- | tee -ai "${SYSLOG}" 2> /dev/null
+        echo "$(lzdate)" [$$]: Primary WAN \( "${iptv_wan0_ifname}" \) fault. | tee -ai "${SYSLOG}" 2> /dev/null
+        local_info="1"
+    fi
+    [ -n "${iptv_wan0_ifname}" ] && [ -n "${iptv_wan0_pppoe_ifname}" ] \
+        && ! lz_show_routing_table "${rt_wan0}" | awk '$1 == "default" && $5 == "'"${iptv_wan0_ifname}"'" {exit(1)}' \
+        && lz_show_routing_table "${rt_wan0}" | awk '$1 == "default" && $5 == "'"${iptv_wan0_pppoe_ifname}"'" {exit(1)}' && {
+            [ -z "${local_info}" ] && echo "$(lzdate)" [$$]: --------------------------------------------- | tee -ai "${SYSLOG}" 2> /dev/null
+            echo "$(lzdate)" [$$]: Primary WAN \( "${iptv_wan0_ifname}" "${iptv_wan0_pppoe_ifname}" \) fault. | tee -ai "${SYSLOG}" 2> /dev/null
+            local_info="1"
+        }
+    [ -n "${iptv_wan0_pppoe_ifname}" ] \
+        && ! lz_show_routing_table "${rt_wan1}" | awk '$1 == "default" && $5 == "'"${iptv_wan0_pppoe_ifname}"'" {exit(1)}' && {
+            [ -z "${local_info}" ] && echo "$(lzdate)" [$$]: --------------------------------------------- | tee -ai "${SYSLOG}" 2> /dev/null
+            echo "$(lzdate)" [$$]: Primary WAN \( "${iptv_wan0_pppoe_ifname}" \) fault. | tee -ai "${SYSLOG}" 2> /dev/null
+            local_info="1"
+        }
+    if [ -z "${iptv_wan1_ifname}" ]; then
+        [ -z "${local_info}" ] && echo "$(lzdate)" [$$]: --------------------------------------------- | tee -ai "${SYSLOG}" 2> /dev/null
+        echo "$(lzdate)" [$$]: Secondary WAN fault. | tee -ai "${SYSLOG}" 2> /dev/null
+        local_info="1"
+    elif { ! lz_show_routing_table "${rt_wan1}" | grep -qw "${iptv_wan1_ifname}" \
+        || ! lz_show_routing_table "${rt_wan0}" | awk '$1 == "default" && $5 == "'"${iptv_wan1_ifname}"'" {exit(1)}'; }; then
+        [ -z "${local_info}" ] && echo "$(lzdate)" [$$]: --------------------------------------------- | tee -ai "${SYSLOG}" 2> /dev/null
+        echo "$(lzdate)" [$$]: Secondary WAN \( "${iptv_wan1_ifname}" \) fault. | tee -ai "${SYSLOG}" 2> /dev/null
+        local_info="1"
+    fi
+    [ -n "${iptv_wan1_ifname}" ] && [ -n "${iptv_wan1_pppoe_ifname}" ] \
+        && ! lz_show_routing_table "${rt_wan1}" | awk '$1 == "default" && $5 == "'"${iptv_wan1_ifname}"'" {exit(1)}' \
+        && lz_show_routing_table "${rt_wan1}" | awk '$1 == "default" && $5 == "'"${iptv_wan1_pppoe_ifname}"'" {exit(1)}' && {
+            [ -z "${local_info}" ] && echo "$(lzdate)" [$$]: --------------------------------------------- | tee -ai "${SYSLOG}" 2> /dev/null
+            echo "$(lzdate)" [$$]: Secondary WAN \( "${iptv_wan1_ifname}" "${iptv_wan1_pppoe_ifname}" \) fault. | tee -ai "${SYSLOG}" 2> /dev/null
+            local_info="1"
+        }
+    [ -n "${iptv_wan1_pppoe_ifname}" ] \
+        && ! lz_show_routing_table "${rt_wan0}" | awk '$1 == "default" && $5 == "'"${iptv_wan1_pppoe_ifname}"'" {exit(1)}' && {
+            [ -z "${local_info}" ] && echo "$(lzdate)" [$$]: --------------------------------------------- | tee -ai "${SYSLOG}" 2> /dev/null
+            echo "$(lzdate)" [$$]: Secondary WAN \( "${iptv_wan1_pppoe_ifname}" \) fault. | tee -ai "${SYSLOG}" 2> /dev/null
+            local_info="1"
+        }
+
+    ## 获取IPTV接口ID标识和网关地址
+    local iptv_interface_id_0=
+    local iptv_getway_ip_0=
+    local iptv_interface_id_1=
+    local iptv_getway_ip_1=
+
+    if [ "${wan1_iptv_mode}" != "0" ] && [ -n "${iptv_wan0_ifname}" ]; then
+        eval "$( lz_show_routing_table "${rt_wan0}" | awk '$1 == "default" && $3 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ && $5 == "'"${iptv_wan0_ifname}"'" \
+            {printf "iptv_interface_id_0=%s\niptv_getway_ip_0=%s\n", $5,$3; exit}' )"
+        [ -z "${iptv_interface_id_0}" ] && [ -n "${iptv_wan0_pppoe_ifname}" ] \
+            && ! lz_show_routing_table "${rt_wan0}" | awk '$1 == "default" && $5 == "'"${iptv_wan0_pppoe_ifname}"'" {exit(1)}' \
+            && ! lz_show_routing_table "${rt_wan0}" | awk '$2 == "dev" && $3 == "'"${iptv_wan0_ifname}"'" {exit(1)}' && {
+                [ -z "${local_info}" ] && echo "$(lzdate)" [$$]: --------------------------------------------- | tee -ai "${SYSLOG}" 2> /dev/null
+                echo "$(lzdate)" [$$]: Primary WAN -- Enable VPN + DHCP Connection: No -\> Yes | tee -ai "${SYSLOG}" 2> /dev/null
+                local_info="1"
+            }
+    elif [ "${wan1_iptv_mode}" = "0" ] && [ -n "${iptv_wan0_pppoe_ifname}" ]; then
+        eval "$( lz_show_routing_table "${rt_wan0}" | awk '$1 == "default" && $3 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ && $5 == "'"${iptv_wan0_pppoe_ifname}"'" \
+            {printf "iptv_interface_id_0=%s\niptv_getway_ip_0=%s\n", $5,$3; exit}' )"
+    fi
+    if [ "${wan2_iptv_mode}" != "0" ] && [ -n "${iptv_wan1_ifname}" ]; then
+        eval "$( lz_show_routing_table "${rt_wan1}" | awk '$1 == "default" && $3 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ && $5 == "'"${iptv_wan1_ifname}"'" \
+            {printf "iptv_interface_id_1=%s\niptv_getway_ip_1=%s\n", $5,$3; exit}' )"
+        [ -z "${iptv_interface_id_1}" ] && [ -n "${iptv_wan1_pppoe_ifname}" ] \
+            && ! lz_show_routing_table "${rt_wan1}" | awk '$1 == "default" && $5 == "'"${iptv_wan1_pppoe_ifname}"'" {exit(1)}' \
+            && ! lz_show_routing_table "${rt_wan1}" | awk '$2 == "dev" && $3 == "'"${iptv_wan1_ifname}"'" {exit(1)}' && {
+                [ -z "${local_info}" ] && echo "$(lzdate)" [$$]: --------------------------------------------- | tee -ai "${SYSLOG}" 2> /dev/null
+                echo "$(lzdate)" [$$]: Secondary WAN -- Enable VPN + DHCP Connection: No -\> Yes | tee -ai "${SYSLOG}" 2> /dev/null
+                local_info="1"
+            }
+    elif [ "${wan2_iptv_mode}" = "0" ] && [ -n "${iptv_wan1_pppoe_ifname}" ]; then
+        eval "$( lz_show_routing_table "${rt_wan1}" | awk '$1 == "default" && $3 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ && $5 == "'"${iptv_wan1_pppoe_ifname}"'" \
+            {printf "iptv_interface_id_1=%s\niptv_getway_ip_1=%s\n", $5,$3; exit}' )"
+    fi
+
+    [ "${local_info}" = "1" ] && echo "$(lzdate)" [$$]: Warning: Please check and repair the router. | tee -ai "${SYSLOG}" 2> /dev/null
+
+    ## 获取IGMP接口ID标识和网关地址
+    local iptv_interface_id=
+    local iptv_getway_ip=
+    if [ -n "${iptv_interface_id_0}" ] && [ "${iptv_igmp_switch}" = "0" ]; then
+        iptv_interface_id="${iptv_interface_id_0}"
+        iptv_getway_ip="${iptv_getway_ip_0}"
+    elif [ -n "${iptv_interface_id_1}" ] && [ "${iptv_igmp_switch}" = "1" ]; then
+        iptv_interface_id="${iptv_interface_id_1}"
+        iptv_getway_ip="${iptv_getway_ip_1}"
+    fi
+
+    local local_wan_igmp_start=
+    local local_wan_mcpd_start=
+    local local_hnd_bcmmcastctl_start=
+
+    ## 启动IGMP
+    if [ -n "${iptv_interface_id}" ]; then
+        if ! which bcmmcastctl > /dev/null 2>&1; then
+            local local_igmps_name="$( which igmpproxy 2> /dev/null )"
+            if ! ps | awk -v x="0" '$5 ~ /\/igmpproxy$/ && !/awk/ {system("kill -9 "$1" > /dev/null 2>&1"); x++;} END{if (x != "0") exit(1)}' \
+                && [ -n "${local_igmps_name}" ]; then
+                sleep "1s"
+                ## 生成IGMP代理配置文件
+                ## 输入项：
+                ##     $1--文件路径
+                ##     $2--IGMP代理配置文件
+                ##     $3--IPv4组播源地址/接口
+                ## 返回值：
+                ##     0--成功
+                ##     255--失败
+                if lz_start_igmp_proxy_conf "${PATH_TMP}" "${IGMP_PROXY_CONF_NAME}" "${iptv_interface_id}"; then
+                    eval "${local_igmps_name}" "${PATH_TMP}/${IGMP_PROXY_CONF_NAME}" > /dev/null 2>&1
+                    local_wan_igmp_start="1"
+                    ## 设置udpxy_used参数
+                    ## 输入项：
+                    ##     $1--0或5
+                    ##     全局变量及常量
+                    ## 返回值：
+                    ##     udpxy_used--设置后的值，全局变量
+                    lz_set_udpxy_used_value "0"
+                fi
             else
-                local_udpxy_wan1_dev="$( nvram get "wan0_ifname" | grep -Eo 'vlan[0-9]*|eth[0-9]*' | sed -n 1p )"
+                local_wan_igmp_start="2"
             fi
         else
-            local_udpxy_wan1_dev="$( nvram get "wan0_ifname" | grep -Eo 'vlan[0-9]*|eth[0-9]*' | sed -n 1p )"
+            ## 设置多播
+            local local_mcrs_name="$( which mcpd 2> /dev/null )"
+            if [ "$( nvram get "mr_enable_x" )" = "1" ] \
+                && ! ps | awk -v x="0" '$5 ~ /\/mcpd$/ && !/awk/ {system("kill -9 "$1" > /dev/null 2>&1"); x++;} END{if (x != "0") exit(1)}' \
+                && [ -n "${local_mcrs_name}" ] \
+                && [ -f "/var/${MULTICAST_CONF_NAME}" ]; then
+                sleep "1s"
+                awk -v ifn="${iptv_interface_id}" \
+                    '{
+                        if ($1 == "igmp-proxy-interfaces")
+                            print $1,ifn
+                        else if ($1 == "igmp-mcast-interfaces")
+                            print $1,ifn
+                        else
+                            print $0
+                    }' "/var/${MULTICAST_CONF_NAME}" > "${PATH_TMP}/${MULTICAST_CONF_NAME}"
+                chmod 664 "${PATH_TMP}/${MULTICAST_CONF_NAME}"
+                eval "${local_mcrs_name}" "${PATH_TMP}/${MULTICAST_CONF_NAME}" > /dev/null 2>&1 &
+                local_wan_mcpd_start="1"
+                lz_set_udpxy_used_value "0"
+            else
+                local_wan_mcpd_start="2"
+            fi
+            ## 设置hnd/axhnd/axhnd.675x平台核心网桥IGMP接口
+            ## 输入项：
+            ##     $1--接口标识
+            ##     $2--0：IGMP&MLD；1：IGMP；2：MLD
+            ##     $3--0：disabled；1：standard；2：blocking
+            ## 返回值：
+            ##     0--成功
+            ##     1--失败
+            if [ "${local_wan_mcpd_start}" = "1" ] && lz_set_hnd_bcmmcast_if "br0" "0" "${hnd_br0_bcmmcast_mode}"; then
+                local_hnd_bcmmcastctl_start="1"
+                lz_set_udpxy_used_value "0"
+            fi
         fi
     fi
-    if which bcmmcastctl > /dev/null 2>&1; then
-        ## 设置hnd/axhnd/axhnd.675x平台核心网桥IGMP接口
+
+    if  [ "${local_wan_igmp_start}" = "1" ] || [ "${local_wan_mcpd_start}" = "1" ]; then
+        ## 启动IPTV机顶盒服务
         ## 输入项：
-        ##     $1--接口标识
-        ##     $2--0：IGMP&MLD；1：IGMP；2：MLD
-        ##     $3--0：disabled；1：standard；2：blocking
+        ##     $1--IPTV线路在路由器内的接口设备ID（vlanx，pppx，ethx；x--数字编号）
+        ##     $2--IPTV机顶盒访问IPTV线路光猫网关地址
+        ##     全局变量及常量
         ## 返回值：
         ##     0--成功
         ##     1--失败
-        lz_set_hnd_bcmmcast_if "br0" "0" "${hnd_br0_bcmmcast_mode}"
-        ## 设置udpxy_used参数
-        ## 输入项：
-        ##     $1--0或5
-        ##     全局变量及常量
-        ## 返回值：
-        ##     udpxy_used--设置后的值，全局变量
-        lz_set_udpxy_used_value "0"
-    fi
-    if [ "${iptv_igmp_switch}" = "0" ] && [ -n "${local_udpxy_wan1_dev}" ] && [ -n "${local_wan0_xgateway}" ]; then
-        if ! which bcmmcastctl > /dev/null 2>&1; then
-            ## 生成IGMP代理配置文件
-            ## 输入项：
-            ##     $1--文件路径
-            ##     $2--IGMP代理配置文件
-            ##     $3--IPv4组播源地址/接口
-            ## 返回值：
-            ##     0--成功
-            ##     255--失败
-            if lz_start_igmp_proxy_conf "${PATH_TMP}" "${IGMP_PROXY_CONF_NAME}" "${local_udpxy_wan1_dev}"; then
-                killall "igmpproxy" > /dev/null 2>&1
-                sleep "1s"
-                /usr/sbin/igmpproxy "${PATH_TMP}/${IGMP_PROXY_CONF_NAME}" > /dev/null 2>&1
-                local_wan1_igmp_start="1"
-                ## 设置udpxy_used参数
+        if lz_start_iptv_box_services "${iptv_interface_id}" "${iptv_getway_ip}"; then
+            if [ "${balance_chain_existing}" = "1" ]; then
+                ## 创建或加载网段出口数据集函数
                 ## 输入项：
-                ##     $1--0或5
-                ##     全局变量及常量
+                ##     $1--全路径网段数据文件名
+                ##     $2--网段数据集名称
+                ##     $3--0:正匹配数据，非0：反匹配（nomatch）数据
                 ## 返回值：
-                ##     udpxy_used--设置后的值，全局变量
-                lz_set_udpxy_used_value "0"
+                ##     网址/网段数据集--全局变量
+                lz_add_net_address_sets "${iptv_box_ip_lst_file}" "${BALANCE_IP_SET}" "0"
+                lz_add_net_address_sets "${iptv_box_ip_lst_file}" "${BALANCE_GUARD_IP_SET}" "0"
             fi
-        fi
-        ## 启动IPTV机顶盒服务
-        ## 输入项：
-        ##     $1--IPTV线路在路由器内的接口设备ID（vlanx，pppx，ethx；x--数字编号）
-        ##     $2--IPTV机顶盒访问IPTV线路光猫网关地址
-        ##     全局变量及常量
-        ## 返回值：无
-        lz_start_iptv_box_services "${local_udpxy_wan1_dev}" "${local_wan0_xgateway}"
-    fi
-    if [ "${wan1_udpxy_switch}" = "0" ]; then
-        killall "udpxy" > /dev/null 2>&1
-        sleep "1s"
-        if [ -n "${local_udpxy_wan1_dev}" ] && [ -n "${local_wan0_xgateway}" ]; then
-            /usr/sbin/udpxy -m "${local_udpxy_wan1_dev}" -p "${wan1_udpxy_port}" -B "${wan1_udpxy_buffer}" -c "${wan1_udpxy_client_num}" -a "br0" > /dev/null 2>&1
-        fi
-        local_wan1_udpxy_start="1"
-        ## 设置udpxy_used参数
-        ## 输入项：
-        ##     $1--0或5
-        ##     全局变量及常量
-        ## 返回值：
-        ##     udpxy_used--设置后的值，全局变量
-        lz_set_udpxy_used_value "0"
-    fi
-    if [ "${iptv_igmp_switch}" = "1" ] || [ "${wan2_udpxy_switch}" = "0" ]; then
-        if [ "${wan2_iptv_mode}" = "0" ]; then
-            local_udpxy_wan2_dev="$( nvram get "wan1_pppoe_ifname" | grep -o 'ppp[0-9]*' | sed -n 1p )"
-            if [ -n "${local_udpxy_wan2_dev}" ]; then
-                local_wan1_xgateway="$( ip route show table "${WAN1}" | awk '/default/ && $0 ~ "'"${local_udpxy_wan2_dev}"'" {print $3}' | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}' | sed -n 1p )"
-            else
-                local_udpxy_wan2_dev="$( nvram get "wan1_ifname" | grep -Eo 'vlan[0-9]*|eth[0-9]*' | sed -n 1p )"
+            ## 根据IPTV机顶盒访问IPTV线路方式阻止对IPTV流量按运营商网段动态分流
+            if [ "${usage_mode}" = "0" ]; then
+                if [ "${iptv_access_mode}" = "1" ]; then
+                    ## 直连IPTV线路时，机顶盒全部流量采用静态分流，须在动态分流中屏蔽其流量输出
+                    lz_add_net_address_sets "${iptv_box_ip_lst_file}" "${LOCAL_IP_SET}" "0"
+                elif [ -f "${iptv_isp_ip_lst_file}" ] && iptables -t mangle -L PREROUTING 2> /dev/null | grep -q "${CUSTOM_PREROUTING_CHAIN}"; then
+                    ## 按服务地址访问时，机顶盒IPTV流量采静态分流，其他流量按运营商网段动态分流
+                    lz_add_net_address_sets "${iptv_box_ip_lst_file}" "${IPTV_BOX_IP_SET}" "0"
+                    lz_add_net_address_sets "${iptv_isp_ip_lst_file}" "${IPTV_ISP_IP_SET}" "0"
+                    if [ "$( lz_get_ipset_total_number "${IPTV_BOX_IP_SET}" )" -gt "0" ] && [ "$( lz_get_ipset_total_number "${IPTV_ISP_IP_SET}" )" -gt "0" ]; then
+                        ## 创建阻止被运营商网段分流，提前跳出的防火墙规则
+                        eval "iptables -t mangle -I ${CUSTOM_PREROUTING_CHAIN} -m state --state NEW -m set ${MATCH_SET} ${IPTV_BOX_IP_SET} src -m set ${MATCH_SET} ${IPTV_ISP_IP_SET} dst -j RETURN > /dev/null 2>&1"
+                    fi
+                fi
             fi
+            lz_set_udpxy_used_value "0"
+        fi
+    fi
+
+    ## 启动UDPXY
+    local local_wan1_udpxy_start=
+    local local_wan2_udpxy_start=
+    local local_udpxys_name="$( which udpxy 2> /dev/null )"
+    if [ "${wan1_udpxy_switch}" = "0" ] && [ -n "${iptv_interface_id_0}" ]; then
+        if [ -n "${local_udpxys_name}" ] \
+            && { ! ps | awk '$5 ~ /\/igmpproxy$/ && !/awk/ {exit(1)}' \
+            || { ! ps | awk '$5 ~ /\/mcpd$/ && !/awk/ {exit(1)}' && [ "$( nvram get "mr_enable_x" )" = "1" ]; }; }; then
+            ps | awk '$5 ~ /\/udpxy$/ && $9 == "'"${wan1_udpxy_port}"'" && !/awk/ {system("kill -9 "$1" > /dev/null 2>&1")}'
+            sleep "1s"
+            eval "${local_udpxys_name}" -m "${iptv_interface_id_0}" -p "${wan1_udpxy_port}" -B "${wan1_udpxy_buffer}" -c "${wan1_udpxy_client_num}" -a "br0" > /dev/null 2>&1
+            local_wan1_udpxy_start="1"
+            lz_set_udpxy_used_value "0"
         else
-            local_udpxy_wan2_dev="$( nvram get "wan1_ifname" | grep -Eo 'vlan[0-9]*|eth[0-9]*' | sed -n 1p )"
+            local_wan1_udpxy_start="2"
         fi
     fi
-    if [ "${iptv_igmp_switch}" = "1" ] && [ "${local_wan1_igmp_start}" = "0" ] && [ -n "${local_udpxy_wan2_dev}" ] && [ -n "${local_wan1_xgateway}" ]; then
-        if ! which bcmmcastctl > /dev/null 2>&1; then
-            ## 生成IGMP代理配置文件
-            ## 输入项：
-            ##     $1--文件路径
-            ##     $2--IGMP代理配置文件
-            ##     $3--IPv4组播源地址/接口
-            ## 返回值：
-            ##     0--成功
-            ##     255--失败
-            if lz_start_igmp_proxy_conf "${PATH_TMP}" "${IGMP_PROXY_CONF_NAME}" "${local_udpxy_wan2_dev}"; then
-                killall "igmpproxy" > /dev/null 2>&1
-                sleep "1s"
-                /usr/sbin/igmpproxy "${PATH_TMP}/${IGMP_PROXY_CONF_NAME}" > /dev/null 2>&1
-                local_wan2_igmp_start="1"
-                ## 设置udpxy_used参数
-                ## 输入项：
-                ##     $1--0或5
-                ##     全局变量及常量
-                ## 返回值：
-                ##     udpxy_used--设置后的值，全局变量
-                lz_set_udpxy_used_value "0"
-            fi
+    if [ "${wan2_udpxy_switch}" = "0" ] && [ -n "${iptv_interface_id_1}" ]; then
+        if [ -n "${local_udpxys_name}" ] \
+            && { ! ps | awk '$5 ~ /\/igmpproxy$/ && !/awk/ {exit(1)}' \
+            || { ! ps | awk '$5 ~ /\/mcpd$/ && !/awk/ {exit(1)}' && [ "$( nvram get "mr_enable_x" )" = "1" ]; }; }; then
+            ps | awk '$5 ~ /\/udpxy$/ && $9 == "'"${wan2_udpxy_port}"'" && !/awk/ {system("kill -9 "$1" > /dev/null 2>&1")}'
+            sleep "1s"
+            eval "${local_udpxys_name}" -m "${iptv_interface_id_1}" -p "${wan2_udpxy_port}" -B "${wan2_udpxy_buffer}" -c "${wan2_udpxy_client_num}" -a "br0" > /dev/null 2>&1
+            local_wan2_udpxy_start="1"
+            lz_set_udpxy_used_value "0"
+        else
+            local_wan2_udpxy_start="2"
         fi
-        ## 启动IPTV机顶盒服务
-        ## 输入项：
-        ##     $1--IPTV线路在路由器内的接口设备ID（vlanx，pppx，ethx；x--数字编号）
-        ##     $2--IPTV机顶盒访问IPTV线路光猫网关地址
-        ##     全局变量及常量
-        ## 返回值：无
-        lz_start_iptv_box_services "${local_udpxy_wan2_dev}" "${local_wan1_xgateway}"
     fi
-    if [ "${wan2_udpxy_switch}" = "0" ]; then
-        [ "${local_wan1_udpxy_start}" = "0" ] && { killall "udpxy" > /dev/null 2>&1; sleep "1s"; }
-        if [ -n "${local_udpxy_wan2_dev}" ] && [ -n "${local_wan1_xgateway}" ]; then
-            /usr/sbin/udpxy -m "${local_udpxy_wan2_dev}" -p "${wan2_udpxy_port}" -B "${wan2_udpxy_buffer}" -c "${wan2_udpxy_client_num}" -a "br0" > /dev/null 2>&1
-        fi
-        local_wan2_udpxy_start="1"
-        ## 设置udpxy_used参数
-        ## 输入项：
-        ##     $1--0或5
-        ##     全局变量及常量
-        ## 返回值：
-        ##     udpxy_used--设置后的值，全局变量
-        lz_set_udpxy_used_value "0"
+
+    if [ "${local_wan_igmp_start}" = "2" ] || [ "${local_wan_mcpd_start}" = "2" ] \
+        || [ "${local_wan1_udpxy_start}" = "2" ] || [ "${local_wan2_udpxy_start}" = "2" ]; then
+        {
+            echo "$(lzdate)" [$$]: ---------------------------------------------
+            echo "$(lzdate)" [$$]: IPTV service can\'t be used.
+            echo "$(lzdate)" [$$]: Enable multicast routing: Disable -\> Enable
+        } | tee -ai "${SYSLOG}" 2> /dev/null
     fi
 
     ## 执行用户自定义双线路脚本文件
@@ -5523,68 +5641,69 @@ lz_deployment_routing_policy() {
     fi
 
     if [ "${udpxy_used}" = "0" ]; then
-        local local_igmp_proxy_conf_name="$( echo "${IGMP_PROXY_CONF_NAME}" | sed 's/[\.]conf.*$//' )"
-        local local_igmp_proxy_started="$( ps | grep "/usr/sbin/igmpproxy" | grep "${PATH_TMP}/${local_igmp_proxy_conf_name}" )"
-        local local_udpxy_wan1_started="$( ps | grep "/usr/sbin/udpxy" | grep "[\-]m ${local_udpxy_wan1_dev} [\-]p ${wan1_udpxy_port} [\-]B ${wan1_udpxy_buffer} [\-]c ${wan1_udpxy_client_num}" )"
-        local local_udpxy_wan2_started="$( ps | grep "/usr/sbin/udpxy" | grep "[\-]m ${local_udpxy_wan2_dev} [\-]p ${wan2_udpxy_port} [\-]B ${wan2_udpxy_buffer} [\-]c ${wan2_udpxy_client_num}" )"
-        [ "${local_wan1_igmp_start}" = "1" ] && {
+        ## 输出IPTV服务信息
+        local local_igmp_proxy_started="$( ps | awk '$5 ~ /\/igmpproxy$/ && $6 == "'"${PATH_TMP}/${IGMP_PROXY_CONF_NAME}"'" && !/awk/' )"
+        local local_mcpd_started="$( ps | awk '$5 ~ /\/mcpd$/ && $6 == "'"${PATH_TMP}/${MULTICAST_CONF_NAME}"'" && !/awk/' )"
+        local local_udpxy_wan1_started=
+        [ -n "${iptv_interface_id_0}" ] && local_udpxy_wan1_started="$( ps | awk '$5 ~ /\/udpxy$/ && $7 == "'"${iptv_interface_id_0}"'" && $9 == "'"${wan1_udpxy_port}"'" && !/awk/' )"
+        local local_udpxy_wan2_started=
+        [ -n "${iptv_interface_id_1}" ] && local_udpxy_wan2_started="$( ps | awk '$5 ~ /\/udpxy$/ && $7 == "'"${iptv_interface_id_1}"'" && $9 == "'"${wan2_udpxy_port}"'" && !/awk/' )"
+        [ "${local_wan_igmp_start}" = "1" ] && {
             if [ -n "${local_igmp_proxy_started}" ]; then
-                echo "$(lzdate)" [$$]: IGMP service in Primary WAN \( "${local_udpxy_wan1_dev}" \) has been started. | tee -ai "${SYSLOG}" 2> /dev/null
+                echo "$(lzdate)" [$$]: IGMP service \( "${iptv_interface_id}" \) has been started. | tee -ai "${SYSLOG}" 2> /dev/null
             else
-                if ! which bcmmcastctl > /dev/null 2>&1; then
-                    echo "$(lzdate)" [$$]: Start IGMP service in Primary WAN \( "${local_udpxy_wan1_dev}" \) failure. | tee -ai "${SYSLOG}" 2> /dev/null
-                fi
+                echo "$(lzdate)" [$$]: Start IGMP service \( "${iptv_interface_id}" \) failure. | tee -ai "${SYSLOG}" 2> /dev/null
             fi
         }
-        [ "${local_wan2_igmp_start}" = "1" ] && {
-            if [ -n "${local_igmp_proxy_started}" ]; then
-                echo "$(lzdate)" [$$]: IGMP service in Secondary WAN \( "${local_udpxy_wan2_dev}" \) has been started. | tee -ai "${SYSLOG}" 2> /dev/null
+        [ "${local_wan_mcpd_start}" = "1" ] && {
+            if [ -n "${local_mcpd_started}" ]; then
+                echo "$(lzdate)" [$$]: Multicast routing service \( "${iptv_interface_id}" \) has been started. | tee -ai "${SYSLOG}" 2> /dev/null
             else
-                if ! which bcmmcastctl > /dev/null 2>&1; then
-                    echo "$(lzdate)" [$$]: Start IGMP service in Secondary WAN \( "${local_udpxy_wan2_dev}" \) failure. | tee -ai "${SYSLOG}" 2> /dev/null
-                fi
+                echo "$(lzdate)" [$$]: Start Multicast routing service \( "${iptv_interface_id}" \) failure. | tee -ai "${SYSLOG}" 2> /dev/null
             fi
+        }
+        [ "${local_hnd_bcmmcastctl_start}" = "1" ] && {
+            local igmp_snooping_mode="$( bcmmcastctl show -i br0 -p 1 | awk 'NF >= "6" {
+                    str=""
+                    if ($6 == "0,")
+                        str="Disabled"
+                    else if ($6 == "1,")
+                        str="Standard"
+                    else if ($6 == "2,")
+                        str="Blocking"
+                    print str
+                    exit
+                }' )"
+            [ -n "${igmp_snooping_mode}" ] && echo "$(lzdate)" [$$]: Bridge IGMP Snooping Mode: "${igmp_snooping_mode}" | tee -ai "${SYSLOG}" 2> /dev/null
         }
         [ "${local_wan1_udpxy_start}" = "1" ] && {
             if [ -n "${local_udpxy_wan1_started}" ]; then
-                echo "$(lzdate)" [$$]: UDPXY service in Primary WAN \( "${route_local_ip}:${wan1_udpxy_port}" "${local_udpxy_wan1_dev}" \) has been started. | tee -ai "${SYSLOG}" 2> /dev/null
+                echo "$(lzdate)" [$$]: UDPXY service \( "${route_local_ip}:${wan1_udpxy_port}" "${iptv_interface_id_0}" \) has been started. | tee -ai "${SYSLOG}" 2> /dev/null
             else
-                echo "$(lzdate)" [$$]: Start UDPXY service in Primary WAN \( "${route_local_ip}:${wan1_udpxy_port}" "${local_udpxy_wan1_dev}" \) failure. | tee -ai "${SYSLOG}" 2> /dev/null
+                echo "$(lzdate)" [$$]: Start UDPXY service \( "${route_local_ip}:${wan1_udpxy_port}" "${iptv_interface_id_0}" \) failure. | tee -ai "${SYSLOG}" 2> /dev/null
             fi
         }
         [ "${local_wan2_udpxy_start}" = "1" ] && {
             if [ -n "${local_udpxy_wan2_started}" ]; then
-                echo "$(lzdate)" [$$]: UDPXY service in Secondary WAN \( "${route_local_ip}:${wan2_udpxy_port}" "${local_udpxy_wan2_dev}" \) has been started. | tee -ai "${SYSLOG}" 2> /dev/null
+                echo "$(lzdate)" [$$]: UDPXY service \( "${route_local_ip}:${wan2_udpxy_port}" "${iptv_interface_id_1}" \) has been started. | tee -ai "${SYSLOG}" 2> /dev/null
             else
-                echo "$(lzdate)" [$$]: Start UDPXY service in Secondary WAN \( "${route_local_ip}:${wan2_udpxy_port}" "${local_udpxy_wan2_dev}" \) failure. | tee -ai "${SYSLOG}" 2> /dev/null
+                echo "$(lzdate)" [$$]: Start UDPXY service \( "${route_local_ip}:${wan2_udpxy_port}" "${iptv_interface_id_1}" \) failure. | tee -ai "${SYSLOG}" 2> /dev/null
             fi
         }
-        [ "${iptv_igmp_switch}" = "0" ] && {
+        { [ "${local_wan_igmp_start}" = "1" ] || [ "${local_wan_mcpd_start}" = "1" ]; } && [ -n "${iptv_interface_id}" ] && {
             if ip route show table "${LZ_IPTV}" | grep -q "default"; then
-                echo "$(lzdate)" [$$]: IPTV STB can be connected to "${local_udpxy_wan1_dev}" interface for use. | tee -ai "${SYSLOG}" 2> /dev/null
+                echo "$(lzdate)" [$$]: IPTV STB can be connected to "${iptv_interface_id}" interface for use. | tee -ai "${SYSLOG}" 2> /dev/null
                 if [ "${iptv_access_mode}" = "1" ]; then
                     echo "$(lzdate)" [$$]: "IPTV Access Mode: Direct Connection" | tee -ai "${SYSLOG}" 2> /dev/null
                 else
                     echo "$(lzdate)" [$$]: "IPTV Access Mode: Service Address" | tee -ai "${SYSLOG}" 2> /dev/null
                 fi
             else
-                echo "$(lzdate)" [$$]: Connection "${local_udpxy_wan1_dev}" IPTV interface failure !!! | tee -ai "${SYSLOG}" 2> /dev/null
+                echo "$(lzdate)" [$$]: Connection "${iptv_interface_id}" IPTV interface failure !!! | tee -ai "${SYSLOG}" 2> /dev/null
             fi
         }
-        [ "${iptv_igmp_switch}" = "1" ] && {
-            if ip route show table "${LZ_IPTV}" | grep -q "default"; then
-                echo "$(lzdate)" [$$]: IPTV STB can be connected to "${local_udpxy_wan2_dev}" interface for use. | tee -ai "${SYSLOG}" 2> /dev/null
-                if [ "${iptv_access_mode}" = "1" ]; then
-                    echo "$(lzdate)" [$$]: "IPTV Access Mode: Direct Connection" | tee -ai "${SYSLOG}" 2> /dev/null
-                else
-                    echo "$(lzdate)" [$$]: "IPTV Access Mode: Service Address" | tee -ai "${SYSLOG}" 2> /dev/null
-                fi
-            else
-                echo "$(lzdate)" [$$]: Connection "${local_udpxy_wan2_dev}" IPTV interface failure !!! | tee -ai "${SYSLOG}" 2> /dev/null
-            fi
-        }
-        if [ "${iptv_igmp_switch}" = "0" ] || [ "${iptv_igmp_switch}" = "1" ] || [ "${local_wan1_udpxy_start}" = "1" ] \
-            || [ "${local_wan2_udpxy_start}" = "1" ]; then
+        if [ -n "${local_wan_igmp_start}" ] || [ -n "${local_wan_mcpd_start}" ] \
+            || [ -n "${local_wan1_udpxy_start}" ] || [ -n "${local_wan2_udpxy_start}" ]; then
             echo "$(lzdate)" [$$]: --------------------------------------------- | tee -ai "${SYSLOG}" 2> /dev/null
         fi
     fi
@@ -5705,265 +5824,290 @@ lz_start_single_net_iptv_box_services() {
     local iptv_wan0_pppoe_ifname="$( nvram get "wan0_pppoe_ifname" | grep -o 'ppp[0-9]*' | sed -n 1p )"
     local iptv_wan1_pppoe_ifname="$( nvram get "wan1_pppoe_ifname" | grep -o 'ppp[0-9]*' | sed -n 1p )"
 
+    ## 获取路由表
+    local rt_main="$( ip route show )"
+
+    local local_info=
+    [ -z "${iptv_wan0_ifname}" ] && [ -n "${iptv_wan0_pppoe_ifname}" ] && {
+        local_info="1"
+        echo "$(lzdate)" [$$]: Primary WAN fault. | tee -ai "${SYSLOG}" 2> /dev/null
+    }
+    ## 显示路由表变量
+    ## 输入项：
+    ##     $1--路由表变量
+    ## 返回值：
+    ##     路由表列表
+    [ -n "${iptv_wan0_ifname}" ] && [ -n "${iptv_wan0_pppoe_ifname}" ] \
+        && ! lz_show_routing_table "${rt_main}" | awk '$1 == "default" && $5 == "'"${iptv_wan0_ifname}"'" {exit(1)}' \
+        && lz_show_routing_table "${rt_main}" | awk '$1 == "default" && $5 == "'"${iptv_wan0_pppoe_ifname}"'" {exit(1)}' \
+        && local_info="1" \
+        && echo "$(lzdate)" [$$]: Primary WAN \( "${iptv_wan0_pppoe_ifname}" \) fault. | tee -ai "${SYSLOG}" 2> /dev/null
+    [ -z "${iptv_wan1_ifname}" ] && [ -n "${iptv_wan1_pppoe_ifname}" ] && {
+        local_info="1"
+        echo "$(lzdate)" [$$]: Secondary WAN fault. | tee -ai "${SYSLOG}" 2> /dev/null
+    }
+    [ -n "${iptv_wan1_ifname}" ] && [ -n "${iptv_wan1_pppoe_ifname}" ] \
+        && ! lz_show_routing_table "${rt_main}" | awk '$1 == "default" && $5 == "'"${iptv_wan1_ifname}"'" {exit(1)}' \
+        && lz_show_routing_table "${rt_main}" | awk '$1 == "default" && $5 == "'"${iptv_wan1_pppoe_ifname}"'" {exit(1)}' \
+        && local_info="1" \
+        && echo "$(lzdate)" [$$]: Secondary WAN \( "${iptv_wan1_pppoe_ifname}" \) fault. | tee -ai "${SYSLOG}" 2> /dev/null
+    [ -n "${iptv_wan0_pppoe_ifname}" ] && [ -n "${iptv_wan1_pppoe_ifname}" ] \
+        && local_info="1" \
+        && echo "$(lzdate)" [$$]: Dual WAN \( PPPoE \) load balancing failed to start normally. | tee -ai "${SYSLOG}" 2> /dev/null
+    [ -n "${iptv_wan0_ifname}" ] && [ -n "${iptv_wan1_ifname}" ] \
+        && ! lz_show_routing_table "${rt_main}" | awk '$1 == "default" && $5 == "'"${iptv_wan0_ifname}"'" {exit(1)}' \
+        && ! lz_show_routing_table "${rt_main}" | awk '$1 == "default" && $5 == "'"${iptv_wan1_ifname}"'" {exit(1)}' \
+        && local_info="1" \
+        && echo "$(lzdate)" [$$]: Dual WAN \( DHCP \) load balancing failed to start normally. | tee -ai "${SYSLOG}" 2> /dev/null
+    [ -n "${iptv_wan0_pppoe_ifname}" ] && [ -n "${iptv_wan1_ifname}" ] \
+        && ! lz_show_routing_table "${rt_main}" | awk '$1 == "default" && $5 == "'"${iptv_wan0_pppoe_ifname}"'" {exit(1)}' \
+        && ! lz_show_routing_table "${rt_main}" | awk '$1 == "default" && $5 == "'"${iptv_wan1_ifname}"'" {exit(1)}' \
+        && local_info="1" \
+        && echo "$(lzdate)" [$$]: Dual WAN \( "${iptv_wan0_pppoe_ifname}" -- "${iptv_wan1_ifname}" \) load balancing failed to start normally. | tee -ai "${SYSLOG}" 2> /dev/null
+    [ -n "${iptv_wan0_ifname}" ] && [ -n "${iptv_wan1_pppoe_ifname}" ] \
+        && ! lz_show_routing_table "${rt_main}" | awk '$1 == "default" && $5 == "'"${iptv_wan0_ifname}"'" {exit(1)}' \
+        && ! lz_show_routing_table "${rt_main}" | awk '$1 == "default" && $5 == "'"${iptv_wan1_pppoe_ifname}"'" {exit(1)}' \
+        && local_info="1" \
+        && echo "$(lzdate)" [$$]: Dual WAN \( "${iptv_wan0_ifname}" -- "${iptv_wan1_pppoe_ifname}" \) load balancing failed to start normally. | tee -ai "${SYSLOG}" 2> /dev/null
+
     ## 获取IPTV接口ID标识和网关地址
     local iptv_interface_id_0=
     local iptv_getway_ip_0=
     local iptv_interface_id_1=
     local iptv_getway_ip_1=
+
     if [ "${wan1_iptv_mode}" != "0" ] && [ -n "${iptv_wan0_ifname}" ]; then
-        eval "$( ip route show | awk '$1 ~ /default/ && $3 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ && $5 == "'"${iptv_wan0_ifname}"'" \
+        eval "$( lz_show_routing_table "${rt_main}" | awk '$1 == "default" && $3 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ && $5 == "'"${iptv_wan0_ifname}"'" \
             {printf "iptv_interface_id_0=%s\niptv_getway_ip_0=%s\n", $5,$3; exit}' )"
+        [ -z "${iptv_interface_id_0}" ] && [ -n "${iptv_wan0_pppoe_ifname}" ] \
+            && ! lz_show_routing_table "${rt_main}" | awk '$1 == "default" && $5 == "'"${iptv_wan0_pppoe_ifname}"'" {exit(1)}' \
+            && ! lz_show_routing_table "${rt_main}" | awk '$2 == "dev" && $3 == "'"${iptv_wan0_ifname}"'" {exit(1)}' \
+            && local_info="1" \
+            && echo "$(lzdate)" [$$]: Primary WAN -- Enable VPN + DHCP Connection: No -\> Yes | tee -ai "${SYSLOG}" 2> /dev/null
     elif [ "${wan1_iptv_mode}" = "0" ] && [ -n "${iptv_wan0_pppoe_ifname}" ]; then
-        eval "$( ip route show | awk '$1 ~ /default/ && $3 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ && $5 == "'"${iptv_wan0_pppoe_ifname}"'" \
+        eval "$( lz_show_routing_table "${rt_main}" | awk '$1 == "default" && $3 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ && $5 == "'"${iptv_wan0_pppoe_ifname}"'" \
             {printf "iptv_interface_id_0=%s\niptv_getway_ip_0=%s\n", $5,$3; exit}' )"
     fi
     if [ "${wan2_iptv_mode}" != "0" ] && [ -n "${iptv_wan1_ifname}" ]; then
-        eval "$( ip route show | awk '$1 ~ /default/ && $3 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ && $5 == "'"${iptv_wan1_ifname}"'" \
+        eval "$( lz_show_routing_table "${rt_main}" | awk '$1 == "default" && $3 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ && $5 == "'"${iptv_wan1_ifname}"'" \
             {printf "iptv_interface_id_1=%s\niptv_getway_ip_1=%s\n", $5,$3; exit}' )"
+        [ -z "${iptv_interface_id_1}" ] && [ -n "${iptv_wan1_pppoe_ifname}" ] \
+            && ! lz_show_routing_table "${rt_main}" | awk '$1 == "default" && $5 == "'"${iptv_wan1_pppoe_ifname}"'" {exit(1)}' \
+            && ! lz_show_routing_table "${rt_main}" | awk '$2 == "dev" && $3 == "'"${iptv_wan1_ifname}"'" {exit(1)}' \
+            && local_info="1" \
+            && echo "$(lzdate)" [$$]: Secondary WAN -- Enable VPN + DHCP Connection: No -\> Yes | tee -ai "${SYSLOG}" 2> /dev/null
     elif [ "${wan2_iptv_mode}" = "0" ] && [ -n "${iptv_wan1_pppoe_ifname}" ]; then
-        eval "$( ip route show | awk '$1 ~ /default/ && $3 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ && $5 == "'"${iptv_wan1_pppoe_ifname}"'" \
-            {printf "iptv_interface_id_1=%s\iptv_getway_ip_1=%s\n", $5,$3; exit}' )"
+        eval "$( lz_show_routing_table "${rt_main}" | awk '$1 == "default" && $3 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ && $5 == "'"${iptv_wan1_pppoe_ifname}"'" \
+            {printf "iptv_interface_id_1=%s\niptv_getway_ip_1=%s\n", $5,$3; exit}' )"
     fi
 
-    local local_wan_igmp_start="0"
+    [ "${local_info}" = "1" ] && {
+        echo "$(lzdate)" [$$]: Warning: Please check and repair the router.
+        echo "$(lzdate)" [$$]: ---------------------------------------------
+    } | tee -ai "${SYSLOG}" 2> /dev/null
+
+    ## 获取IGMP接口ID标识和网关地址
+    local iptv_interface_id=
+    local iptv_getway_ip=
+    if [ -n "${iptv_interface_id_0}" ] && [ "${iptv_igmp_switch}" = "0" ]; then
+        iptv_interface_id="${iptv_interface_id_0}"
+        iptv_getway_ip="${iptv_getway_ip_0}"
+    elif [ -n "${iptv_interface_id_1}" ] && [ "${iptv_igmp_switch}" = "1" ]; then
+        iptv_interface_id="${iptv_interface_id_1}"
+        iptv_getway_ip="${iptv_getway_ip_1}"
+    fi
+
+    local local_wan_igmp_start=
+    local local_wan_mcpd_start=
+    local local_hnd_bcmmcastctl_start=
+
     ## 启动IGMP
-    if ! which bcmmcastctl > /dev/null 2>&1; then
-        ## 生成IGMP代理配置文件
-        ## 输入项：
-        ##     $1--文件路径
-        ##     $2--IGMP代理配置文件
-        ##     $3--IPv4组播源地址/接口
-        ## 返回值：
-        ##     0--成功
-        ##     255--失败
-        if [ -n "${iptv_interface_id_0}" ] && [ "${iptv_igmp_switch}" = "0" ] \
-            && lz_start_igmp_proxy_conf "${PATH_TMP}" "${IGMP_PROXY_CONF_NAME}" "${iptv_interface_id_0}"; then
-            killall "igmpproxy" > /dev/null 2>&1
-            sleep "1s"
-            /usr/sbin/igmpproxy "${PATH_TMP}/${IGMP_PROXY_CONF_NAME}" > /dev/null 2>&1
-            local_wan_igmp_start="1"
-            ## 设置udpxy_used参数
+    if [ -n "${iptv_interface_id}" ]; then
+        if ! which bcmmcastctl > /dev/null 2>&1; then
+            local local_igmps_name="$( which igmpproxy 2> /dev/null )"
+            if ! ps | awk -v x="0" '$5 ~ /\/igmpproxy$/ && !/awk/ {system("kill -9 "$1" > /dev/null 2>&1"); x++;} END{if (x != "0") exit(1)}' \
+                && [ -n "${local_igmps_name}" ]; then
+                sleep "1s"
+                ## 生成IGMP代理配置文件
+                ## 输入项：
+                ##     $1--文件路径
+                ##     $2--IGMP代理配置文件
+                ##     $3--IPv4组播源地址/接口
+                ## 返回值：
+                ##     0--成功
+                ##     255--失败
+                if lz_start_igmp_proxy_conf "${PATH_TMP}" "${IGMP_PROXY_CONF_NAME}" "${iptv_interface_id}"; then
+                    eval "${local_igmps_name}" "${PATH_TMP}/${IGMP_PROXY_CONF_NAME}" > /dev/null 2>&1
+                    local_wan_igmp_start="1"
+                    ## 设置udpxy_used参数
+                    ## 输入项：
+                    ##     $1--0或5
+                    ##     全局变量及常量
+                    ## 返回值：
+                    ##     udpxy_used--设置后的值，全局变量
+                    lz_set_udpxy_used_value "0"
+                fi
+            else
+                local_wan_igmp_start="2"
+            fi
+        else
+            ## 设置多播
+            local local_mcrs_name="$( which mcpd 2> /dev/null )"
+            if [ "$( nvram get "mr_enable_x" )" = "1" ] \
+                && ! ps | awk -v x="0" '$5 ~ /\/mcpd$/ && !/awk/ {system("kill -9 "$1" > /dev/null 2>&1"); x++;} END{if (x != "0") exit(1)}' \
+                && [ -n "${local_mcrs_name}" ] \
+                && [ -f "/var/${MULTICAST_CONF_NAME}" ]; then
+                sleep "1s"
+                awk -v ifn="${iptv_interface_id}" \
+                    '{
+                        if ($1 == "igmp-proxy-interfaces")
+                            print $1,ifn
+                        else if ($1 == "igmp-mcast-interfaces")
+                            print $1,ifn
+                        else
+                            print $0
+                    }' "/var/${MULTICAST_CONF_NAME}" > "${PATH_TMP}/${MULTICAST_CONF_NAME}"
+                chmod 664 "${PATH_TMP}/${MULTICAST_CONF_NAME}"
+                eval "${local_mcrs_name}" "${PATH_TMP}/${MULTICAST_CONF_NAME}" > /dev/null 2>&1 &
+                local_wan_mcpd_start="1"
+                lz_set_udpxy_used_value "0"
+            else
+                local_wan_mcpd_start="2"
+            fi
+            ## 设置hnd/axhnd/axhnd.675x平台核心网桥IGMP接口
             ## 输入项：
-            ##     $1--0或5
-            ##     全局变量及常量
+            ##     $1--接口标识
+            ##     $2--0：IGMP&MLD；1：IGMP；2：MLD
+            ##     $3--0：disabled；1：standard；2：blocking
             ## 返回值：
-            ##     udpxy_used--设置后的值，全局变量
-            lz_set_udpxy_used_value "0"
-        elif [ -n "${iptv_interface_id_1}" ] && [ "${iptv_igmp_switch}" = "1" ] \
-            && lz_start_igmp_proxy_conf "${PATH_TMP}" "${IGMP_PROXY_CONF_NAME}" "${iptv_interface_id_1}"; then
-            killall "igmpproxy" > /dev/null 2>&1
-            sleep "1s"
-            /usr/sbin/igmpproxy "${PATH_TMP}/${IGMP_PROXY_CONF_NAME}" > /dev/null 2>&1
-            local_wan_igmp_start="1"
-            lz_set_udpxy_used_value "0"
+            ##     0--成功
+            ##     1--失败
+            if [ "${local_wan_mcpd_start}" = "1" ] && lz_set_hnd_bcmmcast_if "br0" "0" "${hnd_br0_bcmmcast_mode}"; then
+                local_hnd_bcmmcastctl_start="1"
+                lz_set_udpxy_used_value "0"
+            fi
         fi
-    elif [ -n "${iptv_interface_id_0}" ] || [ -n "${iptv_interface_id_1}" ]; then
-        ## 设置hnd/axhnd/axhnd.675x平台核心网桥IGMP接口
+    fi
+
+    ## 设置IPTV机顶盒接入路由
+    if  [ "${local_wan_igmp_start}" = "1" ] || [ "${local_wan_mcpd_start}" = "1" ]; then
+        ## 启动IPTV机顶盒服务
         ## 输入项：
-        ##     $1--接口标识
-        ##     $2--0：IGMP&MLD；1：IGMP；2：MLD
-        ##     $3--0：disabled；1：standard；2：blocking
+        ##     $1--IPTV线路在路由器内的接口设备ID（vlanx，pppx，ethx；x--数字编号）
+        ##     $2--IPTV机顶盒访问IPTV线路光猫网关地址
+        ##     全局变量及常量
         ## 返回值：
         ##     0--成功
         ##     1--失败
-        lz_set_hnd_bcmmcast_if "br0" "0" "${hnd_br0_bcmmcast_mode}"
-        local_wan_igmp_start="1"
-        ## 设置udpxy_used参数
-        ## 输入项：
-        ##     $1--0或5
-        ##     全局变量及常量
-        ## 返回值：
-        ##     udpxy_used--设置后的值，全局变量
-        lz_set_udpxy_used_value "0"
-    fi
-
-    if  [ -f "${iptv_box_ip_lst_file}" ] && { { [ -n "${iptv_interface_id_0}" ] && [ "${iptv_igmp_switch}" = "0" ]; } \
-        || { [ -n "${iptv_interface_id_1}" ] && [ "${iptv_igmp_switch}" = "1" ]; }; }; then
-        ## 向IPTV路由表中添加路由项
-        ip route show | awk '!/default|nexthop/ && NF!=0 {system("ip route add "$0"'" table ${LZ_IPTV} > /dev/null 2>&1"'")}'
-        if [ -n "${iptv_interface_id_0}" ] && [ "${iptv_igmp_switch}" = "0" ]; then
-            ip route add default via "${iptv_getway_ip_0}" dev "${iptv_interface_id_0}" table "${LZ_IPTV}" > /dev/null 2>&1
-        else
-            ip route add default via "${iptv_getway_ip_1}" dev "${iptv_interface_id_1}" table "${LZ_IPTV}" > /dev/null 2>&1
-        fi
-
-        ## 刷新路由器路由表缓存
-        ip route flush cache > /dev/null 2>&1
-
-        if ip route show table "${LZ_IPTV}" | grep -q "default"; then
-            ## 向系统策略路由库中添加双向访问网络路径规则
-            ## 输入项：
-            ##     $1--IPv4网址/网段地址列表全路径文件名
-            ##     $2--路由表ID
-            ##     $3--IP规则优先级
-            ## 返回值：无
-            if [ "${iptv_access_mode}" = "1" ]; then
-                lz_add_dual_ip_rules "${iptv_box_ip_lst_file}" "${LZ_IPTV}" "${IP_RULE_PRIO_IPTV}"
-            elif [ -f "${iptv_isp_ip_lst_file}" ]; then
-                local ip_list_item=
-                ## 获取IPv4网址/网段地址列表文件中的列表数据
-                ## 输入项：
-                ##     $1--IPv4网址/网段地址列表全路径文件名
-                ## 返回值：
-                ##     数据列表
-                for ip_list_item in $( lz_get_ipv4_list_from_data_file "${iptv_box_ip_lst_file}" )
-                do
-                    ## 添加从源地址到目标地址列表访问网络路径规则
-                    ## 输入项：
-                    ##     $1--IPv4源网址/网段地址
-                    ##     $2--IPv4目标网址/网段地址列表全路径文件名
-                    ##     $3--路由表ID
-                    ##     $4--IP规则优先级
-                    ## 返回值：无
-                    lz_add_src_to_dst_sets_ip_rules "${ip_list_item}" "${iptv_isp_ip_lst_file}" "${LZ_IPTV}" "${IP_RULE_PRIO_IPTV}"
-                done
-
-                ## 获取IPv4网址/网段地址列表文件中的列表数据
-                ## 输入项：
-                ##     $1--IPv4网址/网段地址列表全路径文件名
-                ## 返回值：
-                ##     数据列表
-                for ip_list_item in $( lz_get_ipv4_list_from_data_file "${iptv_box_ip_lst_file}" )
-                do
-                    ## 添加从源地址列表到目标地址访问网络路径规则
-                    ## 输入项：
-                    ##     $1--IPv4源网址/网段地址列表全路径文件名
-                    ##     $2--IPv4目标网址/网段地址
-                    ##     $3--路由表ID
-                    ##     $4--IP规则优先级
-                    ## 返回值：无
-                    lz_add_src_sets_to_dst_ip_rules "${iptv_isp_ip_lst_file}" "${ip_list_item}" "${LZ_IPTV}" "${IP_RULE_PRIO_IPTV}"
-                done
-            fi
-
-            ## 刷新路由器路由表缓存
-            ip route flush cache > /dev/null 2>&1
-
-            if ! ip rule show  | grep -q "^${IP_RULE_PRIO_IPTV}:"; then
-                ## 清除系统策略路由库中已有IPTV规则
-                ## 输入项：
-                ##     $1--是否显示统计信息（1--显示；其它字符--不显示）
-                ##     全局常量
-                ## 返回值：无
-                lz_del_iptv_rule
-
-                ## 清空系统中已有IPTV路由表
-                ## 输入项：
-                ##     全局常量
-                ## 返回值：无
-                lz_clear_iptv_route
-
-                ## 刷新路由器路由表缓存
-                ip route flush cache > /dev/null 2>&1
-            fi
-        else
-            ## 清空系统中已有IPTV路由表
-            ## 输入项：
-            ##     全局常量
-            ## 返回值：无
-            lz_clear_iptv_route
-
-            ## 刷新路由器路由表缓存
-            ip route flush cache > /dev/null 2>&1
-        fi
+        lz_start_iptv_box_services "${iptv_interface_id}" "${iptv_getway_ip}" && lz_set_udpxy_used_value "0"
     fi
 
     ## 启动UDPXY
-    local local_wan1_udpxy_start="0"
-    local local_wan2_udpxy_start="0"
+    local local_wan1_udpxy_start=
+    local local_wan2_udpxy_start=
+    local local_udpxys_name="$( which udpxy 2> /dev/null )"
     if [ "${wan1_udpxy_switch}" = "0" ] && [ -n "${iptv_interface_id_0}" ]; then
-        killall "udpxy" > /dev/null 2>&1
-        sleep "1s"
-        /usr/sbin/udpxy -m "${iptv_interface_id_0}" -p "${wan1_udpxy_port}" -B "${wan1_udpxy_buffer}" -c "${wan1_udpxy_client_num}" -a "br0" > /dev/null 2>&1
-        local_wan1_udpxy_start="1"
-        ## 设置udpxy_used参数
-        ## 输入项：
-        ##     $1--0或5
-        ##     全局变量及常量
-        ## 返回值：
-        ##     udpxy_used--设置后的值，全局变量
-        lz_set_udpxy_used_value "0"
+        if [ -n "${local_udpxys_name}" ] \
+            && { ! ps | awk '$5 ~ /\/igmpproxy$/ && !/awk/ {exit(1)}' \
+            || { ! ps | awk '$5 ~ /\/mcpd$/ && !/awk/ {exit(1)}' && [ "$( nvram get "mr_enable_x" )" = "1" ]; }; }; then
+            ps | awk '$5 ~ /\/udpxy$/ && $9 == "'"${wan1_udpxy_port}"'" && !/awk/ {system("kill -9 "$1" > /dev/null 2>&1")}'
+            sleep "1s"
+            eval "${local_udpxys_name}" -m "${iptv_interface_id_0}" -p "${wan1_udpxy_port}" -B "${wan1_udpxy_buffer}" -c "${wan1_udpxy_client_num}" -a "br0" > /dev/null 2>&1
+            local_wan1_udpxy_start="1"
+            lz_set_udpxy_used_value "0"
+        else
+            local_wan1_udpxy_start="2"
+        fi
     fi
     if [ "${wan2_udpxy_switch}" = "0" ] && [ -n "${iptv_interface_id_1}" ]; then
-        [ "${local_wan1_udpxy_start}" = "0" ] && { killall "udpxy" > /dev/null 2>&1; sleep "1s"; }
-        /usr/sbin/udpxy -m "${iptv_interface_id_1}" -p "${wan2_udpxy_port}" -B "${wan2_udpxy_buffer}" -c "${wan2_udpxy_client_num}" -a "br0" > /dev/null 2>&1
-        local_wan2_udpxy_start="1"
-        ## 设置udpxy_used参数
-        ## 输入项：
-        ##     $1--0或5
-        ##     全局变量及常量
-        ## 返回值：
-        ##     udpxy_used--设置后的值，全局变量
-        lz_set_udpxy_used_value "0"
+        if [ -n "${local_udpxys_name}" ] \
+            && { ! ps | awk '$5 ~ /\/igmpproxy$/ && !/awk/ {exit(1)}' \
+            || { ! ps | awk '$5 ~ /\/mcpd$/ && !/awk/ {exit(1)}' && [ "$( nvram get "mr_enable_x" )" = "1" ]; }; }; then
+            ps | awk '$5 ~ /\/udpxy$/ && $9 == "'"${wan2_udpxy_port}"'" && !/awk/ {system("kill -9 "$1" > /dev/null 2>&1")}'
+            sleep "1s"
+            eval "${local_udpxys_name}" -m "${iptv_interface_id_1}" -p "${wan2_udpxy_port}" -B "${wan2_udpxy_buffer}" -c "${wan2_udpxy_client_num}" -a "br0" > /dev/null 2>&1
+            local_wan2_udpxy_start="1"
+            lz_set_udpxy_used_value "0"
+        else
+            local_wan2_udpxy_start="2"
+        fi
     fi
 
+    if [ "${local_wan_igmp_start}" = "2" ] || [ "${local_wan_mcpd_start}" = "2" ] \
+        || [ "${local_wan1_udpxy_start}" = "2" ] || [ "${local_wan2_udpxy_start}" = "2" ]; then
+        {
+            echo "$(lzdate)" [$$]: IPTV service can\'t be used.
+            echo "$(lzdate)" [$$]: Enable multicast routing: Disable -\> Enable
+            echo "$(lzdate)" [$$]: ---------------------------------------------
+        } | tee -ai "${SYSLOG}" 2> /dev/null
+    fi
+
+    [ "${udpxy_used}" != "0" ] && return
+
     ## 输出IPTV服务信息
-    if [ "${udpxy_used}" = "0" ]; then
-        local local_igmp_proxy_conf_name="$( echo "${IGMP_PROXY_CONF_NAME}" | sed 's/[\.]conf.*$//' )"
-        local local_igmp_proxy_started="$( ps | grep "/usr/sbin/igmpproxy" | grep "${PATH_TMP}/${local_igmp_proxy_conf_name}" )"
-        local local_udpxy_wan1_started=
-        [ -n "${iptv_interface_id_0}" ] && local_udpxy_wan1_started="$( ps | grep "/usr/sbin/udpxy" | grep "[\-]m ${iptv_interface_id_0} [\-]p ${wan1_udpxy_port} [\-]B ${wan1_udpxy_buffer} [\-]c ${wan1_udpxy_client_num}" )"
-        local local_udpxy_wan2_started=
-        [ -n "${iptv_interface_id_1}" ] && local_udpxy_wan2_started="$( ps | grep "/usr/sbin/udpxy" | grep "[\-]m ${iptv_interface_id_1} [\-]p ${wan2_udpxy_port} [\-]B ${wan2_udpxy_buffer} [\-]c ${wan2_udpxy_client_num}" )"
-        [ "${local_wan_igmp_start}" = "1" ] && {
-            if [ -n "${local_igmp_proxy_started}" ]; then
-                if [ -n "${iptv_interface_id_0}" ] && [ "${iptv_igmp_switch}" = "0" ]; then
-                    echo "$(lzdate)" [$$]: IGMP service \( "${iptv_interface_id_0}" \) has been started. | tee -ai "${SYSLOG}" 2> /dev/null
-                elif [ -n "${iptv_interface_id_1}" ] && [ "${iptv_igmp_switch}" = "1" ]; then
-                    echo "$(lzdate)" [$$]: IGMP service \( "${iptv_interface_id_1}" \) has been started. | tee -ai "${SYSLOG}" 2> /dev/null
-                fi
-            else
-                if ! which bcmmcastctl > /dev/null 2>&1; then
-                    if [ -n "${iptv_interface_id_0}" ] && [ "${iptv_igmp_switch}" = "0" ]; then
-                        echo "$(lzdate)" [$$]: Start IGMP service \( "${iptv_interface_id_0}" \) failure. | tee -ai "${SYSLOG}" 2> /dev/null
-                    elif [ -n "${iptv_interface_id_1}" ] && [ "${iptv_igmp_switch}" = "1" ]; then
-                        echo "$(lzdate)" [$$]: Start IGMP service \( "${iptv_interface_id_1}" \) failure. | tee -ai "${SYSLOG}" 2> /dev/null
-                    fi
-                fi
-            fi
-        }
-        [ "${local_wan1_udpxy_start}" = "1" ] && {
-            if [ -n "${local_udpxy_wan1_started}" ]; then
-                echo "$(lzdate)" [$$]: UDPXY service \( "${route_local_ip}:${wan1_udpxy_port}" "${iptv_interface_id_0}" \) has been started. | tee -ai "${SYSLOG}" 2> /dev/null
-            else
-                echo "$(lzdate)" [$$]: Start UDPXY service \( "${route_local_ip}:${wan1_udpxy_port}" "${iptv_interface_id_0}" \) failure. | tee -ai "${SYSLOG}" 2> /dev/null
-            fi
-        }
-        [ "${local_wan2_udpxy_start}" = "1" ] && {
-            if [ -n "${local_udpxy_wan2_started}" ]; then
-                echo "$(lzdate)" [$$]: UDPXY service \( "${route_local_ip}:${wan2_udpxy_port}" "${iptv_interface_id_1}" \) has been started. | tee -ai "${SYSLOG}" 2> /dev/null
-            else
-                echo "$(lzdate)" [$$]: Start UDPXY service \( "${route_local_ip}:${wan2_udpxy_port}" "${iptv_interface_id_1}" \) failure. | tee -ai "${SYSLOG}" 2> /dev/null
-            fi
-        }
-        if [ -n "${iptv_interface_id_0}" ] && [ "${iptv_igmp_switch}" = "0" ]; then
-            if ip route show table "${LZ_IPTV}" | grep -q "default"; then
-                echo "$(lzdate)" [$$]: IPTV STB can be connected to "${iptv_interface_id_0}" interface for use. | tee -ai "${SYSLOG}" 2> /dev/null
-                if [ "${iptv_access_mode}" = "1" ]; then
-                    echo "$(lzdate)" [$$]: "IPTV Access Mode: Direct Connection" | tee -ai "${SYSLOG}" 2> /dev/null
-                else
-                    echo "$(lzdate)" [$$]: "IPTV Access Mode: Service Address" | tee -ai "${SYSLOG}" 2> /dev/null
-                fi
-            else
-                echo "$(lzdate)" [$$]: Connection "${iptv_interface_id_0}" IPTV interface failure !!! | tee -ai "${SYSLOG}" 2> /dev/null
-            fi
-        elif [ -n "${iptv_interface_id_1}" ] && [ "${iptv_igmp_switch}" = "1" ]; then
-            if ip route show table "${LZ_IPTV}" | grep -q "default"; then
-                echo "$(lzdate)" [$$]: IPTV STB can be connected to "${iptv_interface_id_1}" interface for use. | tee -ai "${SYSLOG}" 2> /dev/null
-                if [ "${iptv_access_mode}" = "1" ]; then
-                    echo "$(lzdate)" [$$]: "IPTV Access Mode: Direct Connection" | tee -ai "${SYSLOG}" 2> /dev/null
-                else
-                    echo "$(lzdate)" [$$]: "IPTV Access Mode: Service Address" | tee -ai "${SYSLOG}" 2> /dev/null
-                fi
-            else
-                echo "$(lzdate)" [$$]: Connection "${iptv_interface_id_1}" IPTV interface failure !!! | tee -ai "${SYSLOG}" 2> /dev/null
-            fi
+    local local_igmp_proxy_started="$( ps | awk '$5 ~ /\/igmpproxy$/ && $6 == "'"${PATH_TMP}/${IGMP_PROXY_CONF_NAME}"'" && !/awk/' )"
+    local local_mcpd_started="$( ps | awk '$5 ~ /\/mcpd$/ && $6 == "'"${PATH_TMP}/${MULTICAST_CONF_NAME}"'" && !/awk/' )"
+    local local_udpxy_wan1_started=
+    [ -n "${iptv_interface_id_0}" ] && local_udpxy_wan1_started="$( ps | awk '$5 ~ /\/udpxy$/ && $7 == "'"${iptv_interface_id_0}"'" && $9 == "'"${wan1_udpxy_port}"'" && !/awk/' )"
+    local local_udpxy_wan2_started=
+    [ -n "${iptv_interface_id_1}" ] && local_udpxy_wan2_started="$( ps | awk '$5 ~ /\/udpxy$/ && $7 == "'"${iptv_interface_id_1}"'" && $9 == "'"${wan2_udpxy_port}"'" && !/awk/' )"
+    [ "${local_wan_igmp_start}" = "1" ] && {
+        if [ -n "${local_igmp_proxy_started}" ]; then
+            echo "$(lzdate)" [$$]: IGMP service \( "${iptv_interface_id}" \) has been started. | tee -ai "${SYSLOG}" 2> /dev/null
+        else
+            echo "$(lzdate)" [$$]: Start IGMP service \( "${iptv_interface_id}" \) failure. | tee -ai "${SYSLOG}" 2> /dev/null
         fi
-        if { [ -n "${iptv_interface_id_0}" ] && [ "${iptv_igmp_switch}" = "0" ]; } \
-            || { [ -n "${iptv_interface_id_1}" ] && [ "${iptv_igmp_switch}" = "1" ]; } \
-            || [ "${local_wan1_udpxy_start}" = "1" ] || [ "${local_wan2_udpxy_start}" = "1" ]; then
-            echo "$(lzdate)" [$$]: --------------------------------------------- | tee -ai "${SYSLOG}" 2> /dev/null
+    }
+    [ "${local_wan_mcpd_start}" = "1" ] && {
+        if [ -n "${local_mcpd_started}" ]; then
+            echo "$(lzdate)" [$$]: Multicast routing service \( "${iptv_interface_id}" \) has been started. | tee -ai "${SYSLOG}" 2> /dev/null
+        else
+            echo "$(lzdate)" [$$]: Start Multicast routing service \( "${iptv_interface_id}" \) failure. | tee -ai "${SYSLOG}" 2> /dev/null
         fi
+    }
+    [ "${local_hnd_bcmmcastctl_start}" = "1" ] && {
+        local igmp_snooping_mode="$( bcmmcastctl show -i br0 -p 1 | awk 'NF >= "6" {
+                str=""
+                if ($6 == "0,")
+                    str="Disabled"
+                else if ($6 == "1,")
+                    str="Standard"
+                else if ($6 == "2,")
+                    str="Blocking"
+                print str
+                exit
+            }' )"
+        [ -n "${igmp_snooping_mode}" ] && echo "$(lzdate)" [$$]: Bridge IGMP Snooping Mode: "${igmp_snooping_mode}" | tee -ai "${SYSLOG}" 2> /dev/null
+    }
+    [ "${local_wan1_udpxy_start}" = "1" ] && {
+        if [ -n "${local_udpxy_wan1_started}" ]; then
+            echo "$(lzdate)" [$$]: UDPXY service \( "${route_local_ip}:${wan1_udpxy_port}" "${iptv_interface_id_0}" \) has been started. | tee -ai "${SYSLOG}" 2> /dev/null
+        else
+            echo "$(lzdate)" [$$]: Start UDPXY service \( "${route_local_ip}:${wan1_udpxy_port}" "${iptv_interface_id_0}" \) failure. | tee -ai "${SYSLOG}" 2> /dev/null
+        fi
+    }
+    [ "${local_wan2_udpxy_start}" = "1" ] && {
+        if [ -n "${local_udpxy_wan2_started}" ]; then
+            echo "$(lzdate)" [$$]: UDPXY service \( "${route_local_ip}:${wan2_udpxy_port}" "${iptv_interface_id_1}" \) has been started. | tee -ai "${SYSLOG}" 2> /dev/null
+        else
+            echo "$(lzdate)" [$$]: Start UDPXY service \( "${route_local_ip}:${wan2_udpxy_port}" "${iptv_interface_id_1}" \) failure. | tee -ai "${SYSLOG}" 2> /dev/null
+        fi
+    }
+    { [ "${local_wan_igmp_start}" = "1" ] || [ "${local_wan_mcpd_start}" = "1" ]; } && [ -n "${iptv_interface_id}" ] && {
+        if ip route show table "${LZ_IPTV}" | grep -q "default"; then
+            echo "$(lzdate)" [$$]: IPTV STB can be connected to "${iptv_interface_id}" interface for use. | tee -ai "${SYSLOG}" 2> /dev/null
+            if [ "${iptv_access_mode}" = "1" ]; then
+                echo "$(lzdate)" [$$]: "IPTV Access Mode: Direct Connection" | tee -ai "${SYSLOG}" 2> /dev/null
+            else
+                echo "$(lzdate)" [$$]: "IPTV Access Mode: Service Address" | tee -ai "${SYSLOG}" 2> /dev/null
+            fi
+        else
+            echo "$(lzdate)" [$$]: Connection "${iptv_interface_id}" IPTV interface failure !!! | tee -ai "${SYSLOG}" 2> /dev/null
+        fi
+    }
+    if [ -n "${local_wan_igmp_start}" ] || [ -n "${local_wan_mcpd_start}" ] \
+        || [ -n "${local_wan1_udpxy_start}" ] || [ -n "${local_wan2_udpxy_start}" ]; then
+        echo "$(lzdate)" [$$]: --------------------------------------------- | tee -ai "${SYSLOG}" 2> /dev/null
     fi
 }
 

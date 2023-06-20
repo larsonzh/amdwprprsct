@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_define_global_variables.sh v4.0.1
+# lz_define_global_variables.sh v4.0.2
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 # QnkgTFog5aaZ5aaZ5ZGc77yI6Juk6J+G5aKp5YS/77yJ（首次运行标识，切勿修改）
 
@@ -448,14 +448,6 @@ route_local_subnet=
 ## 静态分流模式整体通道推送命令是否执行（0--未执行；1--已执行）
 command_from_all_executed="0"
 
-## 线路1接口设备标识
-route_wan0_ifname="$( nvram get "wan0_pppoe_ifname" | grep -o 'ppp[0-9]*' | sed -n 1p )"
-[ -z "${route_wan0_ifname}" ] && route_wan0_ifname="$( nvram get "wan0_ifname" | grep -Eo 'eth[0-9]*|vlan[0-9]*' | sed -n 1p )"
-
-## 线路2接口设备标识
-route_wan1_ifname="$( nvram get "wan1_pppoe_ifname" | grep -o 'ppp[0-9]*' | sed -n 1p )"
-[ -z "${route_wan1_ifname}" ] && route_wan1_ifname="$( nvram get "wan1_ifname" | grep -Eo 'eth[0-9]*|vlan[0-9]*' | sed -n 1p )"
-
 ## 系统负载均衡防火墙过滤规则链是否存在（384固件使用）
 balance_chain_existing=0
 
@@ -489,6 +481,9 @@ udpxy_used=5
 
 ## IGMP代理配置文件名（后缀必须为.conf）
 IGMP_PROXY_CONF_NAME="igmpproxy.conf"
+
+## 多播配置文件名（HND机型）
+MULTICAST_CONF_NAME="mcpd.conf"
 
 ## 定时更新ISP网络运营商CIDR网段数据时间参数定义（[*]表示未设置，每间隔多久用[*/数字]表示）
 ruid_min="${ruid_timer_min}"       ## 分钟（0-59，*表示由系统指定）

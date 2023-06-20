@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_initialize_config.sh v4.0.1
+# lz_initialize_config.sh v4.0.2
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 初始化脚本配置
@@ -78,7 +78,6 @@ lz_variable_initialize() {
     local_clear_route_cache_time_interval=
     local_drop_sys_caches=
     local_iptv_igmp_switch=
-    local_igmp_version=
     local_hnd_br0_bcmmcast_mode=
     local_iptv_access_mode=
     local_iptv_box_ip_lst_file=
@@ -169,7 +168,6 @@ lz_variable_initialize() {
     local_ini_clear_route_cache_time_interval=
     local_ini_drop_sys_caches=
     local_ini_iptv_igmp_switch=
-    local_ini_igmp_version=
     local_ini_hnd_br0_bcmmcast_mode=
     local_ini_iptv_access_mode=
     local_ini_iptv_box_ip_lst_file=
@@ -259,7 +257,6 @@ lz_variable_initialize() {
     local_clear_route_cache_time_interval_changed="0"
     local_drop_sys_caches_changed="0"
     local_iptv_igmp_switch_changed="0"
-    local_igmp_version_changed="0"
     local_hnd_br0_bcmmcast_mode_changed="0"
     local_iptv_access_mode_changed="0"
     local_iptv_box_ip_lst_file_changed="0"
@@ -363,7 +360,6 @@ lz_variable_uninitialize() {
     unset local_ini_clear_route_cache_time_interval
     unset local_ini_drop_sys_caches
     unset local_ini_iptv_igmp_switch
-    unset local_ini_igmp_version
     unset local_ini_hnd_br0_bcmmcast_mode
     unset local_ini_iptv_access_mode
     unset local_ini_iptv_box_ip_lst_file
@@ -454,7 +450,6 @@ lz_variable_uninitialize() {
     unset local_clear_route_cache_time_interval
     unset local_drop_sys_caches
     unset local_iptv_igmp_switch
-    unset local_igmp_version
     unset local_hnd_br0_bcmmcast_mode
     unset local_iptv_access_mode
     unset local_iptv_box_ip_lst_file
@@ -544,7 +539,6 @@ lz_variable_uninitialize() {
     unset local_clear_route_cache_time_interval_changed
     unset local_drop_sys_caches_changed
     unset local_iptv_igmp_switch_changed
-    unset local_igmp_version_changed
     unset local_hnd_br0_bcmmcast_mode_changed
     unset local_iptv_access_mode_changed
     unset local_iptv_box_ip_lst_file_changed
@@ -1234,21 +1228,18 @@ clear_route_cache_time_interval=4
 
 ## 四、IPTV设置
 
-## IPTV机顶盒IPv4播放源接入口及IGMP组播数据转内网传输代理
+## IPTV播放源或IGMP组播数据转内网传输代理接入口
 ## 0--第一WAN口；1--第二WAN口；>1--禁用；取值范围：0~9
 ## 缺省为禁用（5）。
-## 用于指定IPTV机顶盒播放源接入口，可将IPTV组播数据从路由器WAN出口外的IPv4组播源地址/接口转入本地内网供
-## IPTV机顶盒使用，确保IPTV机顶盒可全功能完整使用。
-## 当接入的两条线路都有IPTV播放源时，连接到路由器上的所有IPTV机顶盒只能同时使用其中一路的播放源。
-## 部分hnd/axhnd机型（如RT-AC86U、RU-AX88U等）需在路由器IPTV设置界面内同时开启IGMP相关功能，方可使用。
+## 用于指定IPTV播放源接入口，可将IPTV组播数据从路由器WAN出口外的IPv4组播源地址/接口转入本地内网供播放设
+## 备，并可确保IPTV机顶盒可全功能完整使用。
+## 只要指定一个接入口，任一个WAN口的“UDPXY组播数据转HTTP流传输代理”功能项才可正常使用。
+## 当接入的两条线路都有播放源时，连接到路由器上的所有IPTV机顶盒和网络组播播放终端只能同时使用其中该功能项
+## 选定的一路播放源，HTTP网络串流播放终端可任意使用两条线路的播放源。
+## 注意：在路由器后台的IPTV设置界面内将“启动组播路由”项设置为“启用”状态后，本功能项才可正常使用。
 iptv_igmp_switch=5
 
-## IGMP组播管理协议版本号
-## 0--未定义；1--IGMPv1；2--IGMPv2；3--IGMPv3；取值范围：0~3
-## 缺省为未定义（0）；修改请慎重；用于IPTV模式网际媒体数据传输。
-igmp_version=0
-
-## hnd平台机型核心网桥组播控制方式
+## hnd平台机型核心网桥IGMP组播数据侦测方式
 ## 0--禁用；1--标准方式；2--阻塞方式；取值范围：0~2
 ## 缺省为阻塞方式（2）。
 ## 此参数仅对hnd/axhnd/axhnd.675x等hnd平台机型路由器有效，IPTV机顶盒不能正常播放节目时可尝试调整此参数。
@@ -1291,6 +1282,9 @@ wan1_iptv_mode=5
 ## 0--启用；非0--禁用；取值范围：0~9
 ## 缺省为禁用（5）；用于IPTV模式网际媒体数据传输。
 ## 可将IPTV组播数据转为HTTP数据流供内网客户端进行流式播放，能同时支持多个播放器，避免内网广播风暴。
+## 本功能项使用前必须在“IPTV播放源或IGMP组播数据转内网传输代理接入口”功能项中任意指定一个接入口（也可以
+## 是第二WAN口）。
+## 注意：在路由器后台的IPTV设置界面内将“启动组播路由”项设置为“启用”状态后，本功能项才可正常使用。
 wan1_udpxy_switch=5
 
 ## 第一WAN口UDPXY端口号
@@ -1317,6 +1311,9 @@ wan2_iptv_mode=5
 ## 0--启用；非0--禁用；取值范围：0~9
 ## 缺省为禁用（5）；用于IPTV模式网际媒体数据传输。
 ## 可将IPTV组播数据转为HTTP数据流供内网客户端进行流式播放，能同时支持多个播放器，避免内网广播风暴。
+## 本功能项使用前必须在“IPTV播放源或IGMP组播数据转内网传输代理接入口”功能项中任意指定一个接入口（也可以
+## 是第一WAN口）。
+## 注意：在路由器后台的IPTV设置界面内将“启动组播路由”项设置为“启用”状态后，本功能项才可正常使用。
 wan2_udpxy_switch=5
 
 ## 第二WAN口UDPXY端口号
@@ -2041,21 +2038,18 @@ clear_route_cache_time_interval=${local_clear_route_cache_time_interval}
 
 ## 四、IPTV设置
 
-## IPTV机顶盒IPv4播放源接入口及IGMP组播数据转内网传输代理
+## IPTV播放源或IGMP组播数据转内网传输代理接入口
 ## 0--第一WAN口；1--第二WAN口；>1--禁用；取值范围：0~9
 ## 缺省为禁用（5）。
-## 用于指定IPTV机顶盒播放源接入口，可将IPTV组播数据从路由器WAN出口外的IPv4组播源地址/接口转入本地内网供
-## IPTV机顶盒使用，确保IPTV机顶盒可全功能完整使用。
-## 当接入的两条线路都有IPTV播放源时，连接到路由器上的所有IPTV机顶盒只能同时使用其中一路的播放源。
-## 部分hnd/axhnd机型（如RT-AC86U、RU-AX88U等）需在路由器IPTV设置界面内同时开启IGMP相关功能，方可使用。
+## 用于指定IPTV播放源接入口，可将IPTV组播数据从路由器WAN出口外的IPv4组播源地址/接口转入本地内网供播放设
+## 备，并可确保IPTV机顶盒可全功能完整使用。
+## 只要指定一个接入口，任一个WAN口的“UDPXY组播数据转HTTP流传输代理”功能项才可正常使用。
+## 当接入的两条线路都有播放源时，连接到路由器上的所有IPTV机顶盒和网络组播播放终端只能同时使用其中该功能项
+## 选定的一路播放源，HTTP网络串流播放终端可任意使用两条线路的播放源。
+## 注意：在路由器后台的IPTV设置界面内将“启动组播路由”项设置为“启用”状态后，本功能项才可正常使用。
 iptv_igmp_switch=${local_iptv_igmp_switch}
 
-## IGMP组播管理协议版本号
-## 0--未定义；1--IGMPv1；2--IGMPv2；3--IGMPv3；取值范围：0~3
-## 缺省为未定义（0）；修改请慎重；用于IPTV模式网际媒体数据传输。
-igmp_version=${local_igmp_version}
-
-## hnd平台机型核心网桥组播控制方式
+## hnd平台机型核心网桥IGMP组播数据侦测方式
 ## 0--禁用；1--标准方式；2--阻塞方式；取值范围：0~2
 ## 缺省为阻塞方式（2）。
 ## 此参数仅对hnd/axhnd/axhnd.675x等hnd平台机型路由器有效，IPTV机顶盒不能正常播放节目时可尝试调整此参数。
@@ -2098,6 +2092,9 @@ wan1_iptv_mode=${local_wan1_iptv_mode}
 ## 0--启用；非0--禁用；取值范围：0~9
 ## 缺省为禁用（5）；用于IPTV模式网际媒体数据传输。
 ## 可将IPTV组播数据转为HTTP数据流供内网客户端进行流式播放，能同时支持多个播放器，避免内网广播风暴。
+## 本功能项使用前必须在“IPTV播放源或IGMP组播数据转内网传输代理接入口”功能项中任意指定一个接入口（也可以
+## 是第二WAN口）。
+## 注意：在路由器后台的IPTV设置界面内将“启动组播路由”项设置为“启用”状态后，本功能项才可正常使用。
 wan1_udpxy_switch=${local_wan1_udpxy_switch}
 
 ## 第一WAN口UDPXY端口号
@@ -2124,6 +2121,9 @@ wan2_iptv_mode=${local_wan2_iptv_mode}
 ## 0--启用；非0--禁用；取值范围：0~9
 ## 缺省为禁用（5）；用于IPTV模式网际媒体数据传输。
 ## 可将IPTV组播数据转为HTTP数据流供内网客户端进行流式播放，能同时支持多个播放器，避免内网广播风暴。
+## 本功能项使用前必须在“IPTV播放源或IGMP组播数据转内网传输代理接入口”功能项中任意指定一个接入口（也可以
+## 是第一WAN口）。
+## 注意：在路由器后台的IPTV设置界面内将“启动组播路由”项设置为“启用”状态后，本功能项才可正常使用。
 wan2_udpxy_switch=${local_wan2_udpxy_switch}
 
 ## 第二WAN口UDPXY端口号
@@ -2471,9 +2471,6 @@ lz_read_config_param() {
     local_iptv_igmp_switch="$( lz_get_file_cache_data "iptv_igmp_switch" "5" )" && local_exist="0"
     ! echo "${local_iptv_igmp_switch}" | grep -q '^[0-9]$' && local_iptv_igmp_switch="5" && local_exist="0"
 
-    local_igmp_version="$( lz_get_file_cache_data "igmp_version" "0" )" && local_exist="0"
-    ! echo "${local_igmp_version}" | grep -q '^[0-3]$' && local_igmp_version="0" && local_exist="0"
-
     local_hnd_br0_bcmmcast_mode="$( lz_get_file_cache_data "hnd_br0_bcmmcast_mode" "2" )" && local_exist="0"
     ! echo "${local_hnd_br0_bcmmcast_mode}" | grep -q '^[0-2]$' && local_hnd_br0_bcmmcast_mode="2" && local_exist="0"
 
@@ -2667,7 +2664,6 @@ lz_cfg_is_default() {
     [ "${local_clear_route_cache_time_interval}" != "4" ] && return 0
     [ "${local_drop_sys_caches}" != "0" ] && return 0
     [ "${local_iptv_igmp_switch}" != "5" ] && return 0
-    [ "${local_igmp_version}" != "0" ] && return 0
     [ "${local_hnd_br0_bcmmcast_mode}" != "2" ] && return 0
     [ "${local_iptv_access_mode}" != "1" ] && return 0
     [ "${local_iptv_box_ip_lst_file}" != "\"${PATH_DATA}/iptv_box_ip_lst.txt\"" ] && return 0
@@ -2766,7 +2762,6 @@ lz_config_route_cache=${local_route_cache}
 lz_config_clear_route_cache_time_interval=${local_clear_route_cache_time_interval}
 lz_config_drop_sys_caches=${local_drop_sys_caches}
 lz_config_iptv_igmp_switch=${local_iptv_igmp_switch}
-lz_config_igmp_version=${local_igmp_version}
 lz_config_hnd_br0_bcmmcast_mode=${local_hnd_br0_bcmmcast_mode}
 lz_config_iptv_access_mode=${local_iptv_access_mode}
 lz_config_iptv_box_ip_lst_file=${local_iptv_box_ip_lst_file}
@@ -2866,7 +2861,6 @@ lz_config_route_cache=${local_ini_route_cache}
 lz_config_clear_route_cache_time_interval=${local_ini_clear_route_cache_time_interval}
 lz_config_drop_sys_caches=${local_ini_drop_sys_caches}
 lz_config_iptv_igmp_switch=${local_ini_iptv_igmp_switch}
-lz_config_igmp_version=${local_ini_igmp_version}
 lz_config_hnd_br0_bcmmcast_mode=${local_ini_hnd_br0_bcmmcast_mode}
 lz_config_iptv_access_mode=${local_ini_iptv_access_mode}
 lz_config_iptv_box_ip_lst_file=${local_ini_iptv_box_ip_lst_file}
@@ -3164,9 +3158,6 @@ lz_read_box_data() {
     local_ini_iptv_igmp_switch="$( lz_get_file_cache_data "lz_config_iptv_igmp_switch" "5" )" && local_exist="0"
     ! echo "${local_ini_iptv_igmp_switch}" | grep -q '^[0-9]$' && local_ini_iptv_igmp_switch="5" && local_exist="0"
 
-    local_ini_igmp_version="$( lz_get_file_cache_data "lz_config_igmp_version" "0" )" && local_exist="0"
-    ! echo "${local_ini_igmp_version}" | grep -q '^[0-3]$' && local_ini_igmp_version="0" && local_exist="0"
-
     local_ini_hnd_br0_bcmmcast_mode="$( lz_get_file_cache_data "lz_config_hnd_br0_bcmmcast_mode" "2" )" && local_exist="0"
     ! echo "${local_ini_hnd_br0_bcmmcast_mode}" | grep -q '^[0-2]$' && local_ini_hnd_br0_bcmmcast_mode="2" && local_exist="0"
 
@@ -3348,7 +3339,6 @@ lz_cfg_is_changed() {
     [ "${local_ini_clear_route_cache_time_interval}" != "${local_clear_route_cache_time_interval}" ] && local_clear_route_cache_time_interval_changed="1" && local_cfg_changed="1"
     [ "${local_ini_drop_sys_caches}" != "${local_drop_sys_caches}" ] && local_drop_sys_caches_changed="1" && local_cfg_changed="1"
     [ "${local_ini_iptv_igmp_switch}" != "${local_iptv_igmp_switch}" ] && local_iptv_igmp_switch_changed="1" && local_cfg_changed="1"
-    [ "${local_ini_igmp_version}" != "${local_igmp_version}" ] && local_igmp_version_changed="1" && local_cfg_changed="1"
     [ "${local_ini_hnd_br0_bcmmcast_mode}" != "${local_hnd_br0_bcmmcast_mode}" ] && local_hnd_br0_bcmmcast_mode_changed="1" && local_cfg_changed="1"
     [ "${local_ini_iptv_access_mode}" != "${local_iptv_access_mode}" ] && local_iptv_access_mode_changed="1" && local_cfg_changed="1"
     [ "${local_ini_iptv_box_ip_lst_file}" != "${local_iptv_box_ip_lst_file}" ] && local_iptv_box_ip_lst_file_changed="1" && local_cfg_changed="1"
@@ -3455,7 +3445,6 @@ lz_restore_config() {
     [ "${local_drop_sys_caches_changed}" = "1" ] && sed -i "s:^[ \t]*drop_sys_caches=${local_drop_sys_caches}:drop_sys_caches=${local_ini_drop_sys_caches}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
 
     [ "${local_iptv_igmp_switch_changed}" = "1" ] && sed -i "s:^[ \t]*iptv_igmp_switch=${local_iptv_igmp_switch}:iptv_igmp_switch=${local_ini_iptv_igmp_switch}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_igmp_version_changed}" = "1" ] && sed -i "s:^[ \t]*igmp_version=${local_igmp_version}:igmp_version=${local_ini_igmp_version}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
     [ "${local_hnd_br0_bcmmcast_mode_changed}" = "1" ] && sed -i "s:^[ \t]*hnd_br0_bcmmcast_mode=${local_hnd_br0_bcmmcast_mode}:hnd_br0_bcmmcast_mode=${local_ini_hnd_br0_bcmmcast_mode}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
     [ "${local_iptv_access_mode_changed}" = "1" ] && sed -i "s:^[ \t]*iptv_access_mode=${local_iptv_access_mode}:iptv_access_mode=${local_ini_iptv_access_mode}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
     [ "${local_iptv_box_ip_lst_file_changed}" = "1" ] && sed -i "s:^[ \t]*iptv_box_ip_lst_file=${local_iptv_box_ip_lst_file}:iptv_box_ip_lst_file=${local_ini_iptv_box_ip_lst_file}:" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
