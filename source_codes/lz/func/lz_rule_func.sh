@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v4.0.2
+# lz_rule_func.sh v4.0.3
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 #BEIGIN
@@ -5352,6 +5352,10 @@ lz_deployment_routing_policy() {
     local rt_wan1="$( ip route show table "${WAN1}" )"
 
     local local_info=
+    [ "$( nvram get "wan0_proto" )" = "pppoe" ] && [ -z "$( nvram get "wan0_pppoe_ifname" )" ] && {
+        local_info="1"
+        echo "$(lzdate)" [$$]: Primary WAN PPPoE fault. | tee -ai "${SYSLOG}" 2> /dev/null
+    }
     if [ -z "${iptv_wan0_ifname}" ]; then
         [ -z "${local_info}" ] && echo "$(lzdate)" [$$]: --------------------------------------------- | tee -ai "${SYSLOG}" 2> /dev/null
         echo "$(lzdate)" [$$]: Primary WAN fault. | tee -ai "${SYSLOG}" 2> /dev/null
@@ -5380,6 +5384,10 @@ lz_deployment_routing_policy() {
             echo "$(lzdate)" [$$]: Primary WAN \( "${iptv_wan0_pppoe_ifname}" \) fault. | tee -ai "${SYSLOG}" 2> /dev/null
             local_info="1"
         }
+    [ "$( nvram get "wan1_proto" )" = "pppoe" ] && [ -z "$( nvram get "wan1_pppoe_ifname" )" ] && {
+        local_info="1"
+        echo "$(lzdate)" [$$]: Secondary WAN PPPoE fault. | tee -ai "${SYSLOG}" 2> /dev/null
+    }
     if [ -z "${iptv_wan1_ifname}" ]; then
         [ -z "${local_info}" ] && echo "$(lzdate)" [$$]: --------------------------------------------- | tee -ai "${SYSLOG}" 2> /dev/null
         echo "$(lzdate)" [$$]: Secondary WAN fault. | tee -ai "${SYSLOG}" 2> /dev/null
@@ -5415,7 +5423,8 @@ lz_deployment_routing_policy() {
             {printf "iptv_interface_id_0=%s\niptv_getway_ip_0=%s\n", $5,$3; exit}' )"
         [ -z "${iptv_interface_id_0}" ] && [ -n "${iptv_wan0_pppoe_ifname}" ] \
             && ! lz_show_routing_table "${rt_wan0}" | awk '$1 == "default" && $5 == "'"${iptv_wan0_pppoe_ifname}"'" {exit(1)}' \
-            && ! lz_show_routing_table "${rt_wan0}" | awk '$2 == "dev" && $3 == "'"${iptv_wan0_ifname}"'" {exit(1)}' && {
+            && ! lz_show_routing_table "${rt_wan0}" | awk '$2 == "dev" && $3 == "'"${iptv_wan0_ifname}"'" {exit(1)}' \
+            && [ "$( nvram get "wan0_vpndhcp" )" != "1" ] && {
                 [ -z "${local_info}" ] && echo "$(lzdate)" [$$]: --------------------------------------------- | tee -ai "${SYSLOG}" 2> /dev/null
                 echo "$(lzdate)" [$$]: Primary WAN -- Enable VPN + DHCP Connection: No -\> Yes | tee -ai "${SYSLOG}" 2> /dev/null
                 local_info="1"
@@ -5429,7 +5438,8 @@ lz_deployment_routing_policy() {
             {printf "iptv_interface_id_1=%s\niptv_getway_ip_1=%s\n", $5,$3; exit}' )"
         [ -z "${iptv_interface_id_1}" ] && [ -n "${iptv_wan1_pppoe_ifname}" ] \
             && ! lz_show_routing_table "${rt_wan1}" | awk '$1 == "default" && $5 == "'"${iptv_wan1_pppoe_ifname}"'" {exit(1)}' \
-            && ! lz_show_routing_table "${rt_wan1}" | awk '$2 == "dev" && $3 == "'"${iptv_wan1_ifname}"'" {exit(1)}' && {
+            && ! lz_show_routing_table "${rt_wan1}" | awk '$2 == "dev" && $3 == "'"${iptv_wan1_ifname}"'" {exit(1)}' \
+            && [ "$( nvram get "wan1_vpndhcp" )" != "1" ] && {
                 [ -z "${local_info}" ] && echo "$(lzdate)" [$$]: --------------------------------------------- | tee -ai "${SYSLOG}" 2> /dev/null
                 echo "$(lzdate)" [$$]: Secondary WAN -- Enable VPN + DHCP Connection: No -\> Yes | tee -ai "${SYSLOG}" 2> /dev/null
                 local_info="1"
@@ -5828,6 +5838,11 @@ lz_start_single_net_iptv_box_services() {
     local rt_main="$( ip route show )"
 
     local local_info=
+    [ "$( nvram get "wan0_enable" )" = "1" ] && [ "$( nvram get "wan0_proto" )" = "pppoe" ] \
+        && [ -z "$( nvram get "wan0_pppoe_ifname" )" ] && {
+        local_info="1"
+        echo "$(lzdate)" [$$]: Primary WAN PPPoE fault. | tee -ai "${SYSLOG}" 2> /dev/null
+    }
     [ -z "${iptv_wan0_ifname}" ] && [ -n "${iptv_wan0_pppoe_ifname}" ] && {
         local_info="1"
         echo "$(lzdate)" [$$]: Primary WAN fault. | tee -ai "${SYSLOG}" 2> /dev/null
@@ -5841,7 +5856,12 @@ lz_start_single_net_iptv_box_services() {
         && ! lz_show_routing_table "${rt_main}" | awk '$1 == "default" && $5 == "'"${iptv_wan0_ifname}"'" {exit(1)}' \
         && lz_show_routing_table "${rt_main}" | awk '$1 == "default" && $5 == "'"${iptv_wan0_pppoe_ifname}"'" {exit(1)}' \
         && local_info="1" \
-        && echo "$(lzdate)" [$$]: Primary WAN \( "${iptv_wan0_pppoe_ifname}" \) fault. | tee -ai "${SYSLOG}" 2> /dev/null
+        && echo "$(lzdate)" [$$]: Primary WAN \( "${iptv_wan0_pppoe_ifname}" \) PPPoE fault. | tee -ai "${SYSLOG}" 2> /dev/null
+    [ "$( nvram get "wan1_enable" )" = "1" ] && [ "$( nvram get "wan1_proto" )" = "pppoe" ] \
+        && [ -z "$( nvram get "wan1_pppoe_ifname" )" ] && {
+        local_info="1"
+        echo "$(lzdate)" [$$]: Secondary WAN PPPoE fault. | tee -ai "${SYSLOG}" 2> /dev/null
+    }
     [ -z "${iptv_wan1_ifname}" ] && [ -n "${iptv_wan1_pppoe_ifname}" ] && {
         local_info="1"
         echo "$(lzdate)" [$$]: Secondary WAN fault. | tee -ai "${SYSLOG}" 2> /dev/null
@@ -5850,25 +5870,11 @@ lz_start_single_net_iptv_box_services() {
         && ! lz_show_routing_table "${rt_main}" | awk '$1 == "default" && $5 == "'"${iptv_wan1_ifname}"'" {exit(1)}' \
         && lz_show_routing_table "${rt_main}" | awk '$1 == "default" && $5 == "'"${iptv_wan1_pppoe_ifname}"'" {exit(1)}' \
         && local_info="1" \
-        && echo "$(lzdate)" [$$]: Secondary WAN \( "${iptv_wan1_pppoe_ifname}" \) fault. | tee -ai "${SYSLOG}" 2> /dev/null
-    [ -n "${iptv_wan0_pppoe_ifname}" ] && [ -n "${iptv_wan1_pppoe_ifname}" ] \
+        && echo "$(lzdate)" [$$]: Secondary WAN \( "${iptv_wan1_pppoe_ifname}" \) PPPoE fault. | tee -ai "${SYSLOG}" 2> /dev/null
+    [ "$( nvram get "wan0_enable" )" = "1" ] && [ "$( nvram get "wan1_enable" )" = "1" ] \
+        && [ -n "$( nvram get "wan0_proto_t" )" ] && [ -n "$( nvram get "wan1_proto_t" )" ] \
         && local_info="1" \
-        && echo "$(lzdate)" [$$]: Dual WAN \( PPPoE \) load balancing failed to start normally. | tee -ai "${SYSLOG}" 2> /dev/null
-    [ -n "${iptv_wan0_ifname}" ] && [ -n "${iptv_wan1_ifname}" ] \
-        && ! lz_show_routing_table "${rt_main}" | awk '$1 == "default" && $5 == "'"${iptv_wan0_ifname}"'" {exit(1)}' \
-        && ! lz_show_routing_table "${rt_main}" | awk '$1 == "default" && $5 == "'"${iptv_wan1_ifname}"'" {exit(1)}' \
-        && local_info="1" \
-        && echo "$(lzdate)" [$$]: Dual WAN \( DHCP \) load balancing failed to start normally. | tee -ai "${SYSLOG}" 2> /dev/null
-    [ -n "${iptv_wan0_pppoe_ifname}" ] && [ -n "${iptv_wan1_ifname}" ] \
-        && ! lz_show_routing_table "${rt_main}" | awk '$1 == "default" && $5 == "'"${iptv_wan0_pppoe_ifname}"'" {exit(1)}' \
-        && ! lz_show_routing_table "${rt_main}" | awk '$1 == "default" && $5 == "'"${iptv_wan1_ifname}"'" {exit(1)}' \
-        && local_info="1" \
-        && echo "$(lzdate)" [$$]: Dual WAN \( "${iptv_wan0_pppoe_ifname}" -- "${iptv_wan1_ifname}" \) load balancing failed to start normally. | tee -ai "${SYSLOG}" 2> /dev/null
-    [ -n "${iptv_wan0_ifname}" ] && [ -n "${iptv_wan1_pppoe_ifname}" ] \
-        && ! lz_show_routing_table "${rt_main}" | awk '$1 == "default" && $5 == "'"${iptv_wan0_ifname}"'" {exit(1)}' \
-        && ! lz_show_routing_table "${rt_main}" | awk '$1 == "default" && $5 == "'"${iptv_wan1_pppoe_ifname}"'" {exit(1)}' \
-        && local_info="1" \
-        && echo "$(lzdate)" [$$]: Dual WAN \( "${iptv_wan0_ifname}" -- "${iptv_wan1_pppoe_ifname}" \) load balancing failed to start normally. | tee -ai "${SYSLOG}" 2> /dev/null
+        && echo "$(lzdate)" [$$]: Dual WAN \( "$( nvram get "wan0_proto" )" -- "$( nvram get "wan1_proto" )" \) startup failed. | tee -ai "${SYSLOG}" 2> /dev/null
 
     ## 获取IPTV接口ID标识和网关地址
     local iptv_interface_id_0=
@@ -5882,6 +5888,7 @@ lz_start_single_net_iptv_box_services() {
         [ -z "${iptv_interface_id_0}" ] && [ -n "${iptv_wan0_pppoe_ifname}" ] \
             && ! lz_show_routing_table "${rt_main}" | awk '$1 == "default" && $5 == "'"${iptv_wan0_pppoe_ifname}"'" {exit(1)}' \
             && ! lz_show_routing_table "${rt_main}" | awk '$2 == "dev" && $3 == "'"${iptv_wan0_ifname}"'" {exit(1)}' \
+            && [ "$( nvram get "wan0_vpndhcp" )" != "1" ] \
             && local_info="1" \
             && echo "$(lzdate)" [$$]: Primary WAN -- Enable VPN + DHCP Connection: No -\> Yes | tee -ai "${SYSLOG}" 2> /dev/null
     elif [ "${wan1_iptv_mode}" = "0" ] && [ -n "${iptv_wan0_pppoe_ifname}" ]; then
@@ -5894,6 +5901,7 @@ lz_start_single_net_iptv_box_services() {
         [ -z "${iptv_interface_id_1}" ] && [ -n "${iptv_wan1_pppoe_ifname}" ] \
             && ! lz_show_routing_table "${rt_main}" | awk '$1 == "default" && $5 == "'"${iptv_wan1_pppoe_ifname}"'" {exit(1)}' \
             && ! lz_show_routing_table "${rt_main}" | awk '$2 == "dev" && $3 == "'"${iptv_wan1_ifname}"'" {exit(1)}' \
+            && [ "$( nvram get "wan1_vpndhcp" )" != "1" ] \
             && local_info="1" \
             && echo "$(lzdate)" [$$]: Secondary WAN -- Enable VPN + DHCP Connection: No -\> Yes | tee -ai "${SYSLOG}" 2> /dev/null
     elif [ "${wan2_iptv_mode}" = "0" ] && [ -n "${iptv_wan1_pppoe_ifname}" ]; then

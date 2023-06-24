@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_status.sh v4.0.2
+# lz_rule_status.sh v4.0.3
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 显示脚本运行状态脚本
@@ -1962,6 +1962,10 @@ lz_show_iptv_function_status() {
     local rt_wan1="$( ip route show table "${WAN1}" )"
 
     local local_info=
+    [ "$( nvram get "wan0_proto" )" = "pppoe" ] && [ -z "$( nvram get "wan0_pppoe_ifname" )" ] && {
+        local_info="1"
+        echo "$(lzdate)" [$$]: Primary WAN PPPoE fault.
+    }
     if [ -z "${iptv_wan0_ifname}" ]; then
         local_info="1"
         echo "$(lzdate)" [$$]: Primary WAN fault.
@@ -1986,6 +1990,10 @@ lz_show_iptv_function_status() {
             local_info="1"
             echo "$(lzdate)" [$$]: Primary WAN \( "${iptv_wan0_pppoe_ifname}" \) fault.
         }
+    [ "$( nvram get "wan1_proto" )" = "pppoe" ] && [ -z "$( nvram get "wan1_pppoe_ifname" )" ] && {
+        local_info="1"
+        echo "$(lzdate)" [$$]: Secondary WAN PPPoE fault.
+    }
     if [ -z "${iptv_wan1_ifname}" ]; then
         local_info="1"
         echo "$(lzdate)" [$$]: Secondary WAN fault.
@@ -2017,7 +2025,8 @@ lz_show_iptv_function_status() {
             {printf "iptv_interface_id_0=%s\niptv_getway_ip_0=%s\n", $5,$3; exit}' )"
         [ -z "${iptv_interface_id_0}" ] && [ -n "${iptv_wan0_pppoe_ifname}" ] \
             && ! lz_show_routing_table_status "${rt_wan0}" | awk '$1 == "default" && $5 == "'"${iptv_wan0_pppoe_ifname}"'" {exit(1)}' \
-            && ! lz_show_routing_table_status "${rt_wan0}" | awk '$2 == "dev" && $3 == "'"${iptv_wan0_ifname}"'" {exit(1)}' && {
+            && ! lz_show_routing_table_status "${rt_wan0}" | awk '$2 == "dev" && $3 == "'"${iptv_wan0_ifname}"'" {exit(1)}' \
+            && [ "$( nvram get "wan0_vpndhcp" )" != "1" ] && {
                 local_info="1"
                 echo "$(lzdate)" [$$]: Primary WAN -- Enable VPN + DHCP Connection: No -\> Yes
             }
@@ -2030,7 +2039,8 @@ lz_show_iptv_function_status() {
             {printf "iptv_interface_id_1=%s\niptv_getway_ip_1=%s\n", $5,$3; exit}' )"
         [ -z "${iptv_interface_id_1}" ] && [ -n "${iptv_wan1_pppoe_ifname}" ] \
             && ! lz_show_routing_table_status "${rt_wan1}" | awk '$1 == "default" && $5 == "'"${iptv_wan1_pppoe_ifname}"'" {exit(1)}' \
-            && ! lz_show_routing_table_status "${rt_wan1}" | awk '$2 == "dev" && $3 == "'"${iptv_wan1_ifname}"'" {exit(1)}' && {
+            && ! lz_show_routing_table_status "${rt_wan1}" | awk '$2 == "dev" && $3 == "'"${iptv_wan1_ifname}"'" {exit(1)}' \
+            && [ "$( nvram get "wan1_vpndhcp" )" != "1" ] && {
                 local_info="1"
                 echo "$(lzdate)" [$$]: Secondary WAN -- Enable VPN + DHCP Connection: No -\> Yes
             }
@@ -2274,11 +2284,16 @@ lz_show_single_net_iptv_status() {
     local rt_main="$( ip route show )"
 
     local local_info=
+    [ "$( nvram get "wan0_enable" )" = "1" ] && [ "$( nvram get "wan0_proto" )" = "pppoe" ] \
+        && [ -z "$( nvram get "wan0_pppoe_ifname" )" ] && {
+        local_info="1"
+        echo "$(lzdate)" [$$]: Primary WAN PPPoE fault.
+    }
     [ -z "${iptv_wan0_ifname}" ] && [ -n "${iptv_wan0_pppoe_ifname}" ] && {
         local_info="1"
         echo "$(lzdate)" [$$]: Primary WAN fault.
     }
-    ## 显示路由表变量状态
+    ## 显示路由表变量
     ## 输入项：
     ##     $1--路由表变量
     ## 返回值：
@@ -2287,7 +2302,12 @@ lz_show_single_net_iptv_status() {
         && ! lz_show_routing_table_status "${rt_main}" | awk '$1 == "default" && $5 == "'"${iptv_wan0_ifname}"'" {exit(1)}' \
         && lz_show_routing_table_status "${rt_main}" | awk '$1 == "default" && $5 == "'"${iptv_wan0_pppoe_ifname}"'" {exit(1)}' \
         && local_info="1" \
-        && echo "$(lzdate)" [$$]: Primary WAN \( "${iptv_wan0_pppoe_ifname}" \) fault.
+        && echo "$(lzdate)" [$$]: Primary WAN \( "${iptv_wan0_pppoe_ifname}" \) PPPoE fault.
+    [ "$( nvram get "wan1_enable" )" = "1" ] && [ "$( nvram get "wan1_proto" )" = "pppoe" ] \
+        && [ -z "$( nvram get "wan1_pppoe_ifname" )" ] && {
+        local_info="1"
+        echo "$(lzdate)" [$$]: Secondary WAN PPPoE fault.
+    }
     [ -z "${iptv_wan1_ifname}" ] && [ -n "${iptv_wan1_pppoe_ifname}" ] && {
         local_info="1"
         echo "$(lzdate)" [$$]: Secondary WAN fault.
@@ -2296,25 +2316,11 @@ lz_show_single_net_iptv_status() {
         && ! lz_show_routing_table_status "${rt_main}" | awk '$1 == "default" && $5 == "'"${iptv_wan1_ifname}"'" {exit(1)}' \
         && lz_show_routing_table_status "${rt_main}" | awk '$1 == "default" && $5 == "'"${iptv_wan1_pppoe_ifname}"'" {exit(1)}' \
         && local_info="1" \
-        && echo "$(lzdate)" [$$]: Secondary WAN \( "${iptv_wan1_pppoe_ifname}" \) fault.
-    [ -n "${iptv_wan0_pppoe_ifname}" ] && [ -n "${iptv_wan1_pppoe_ifname}" ] \
+        && echo "$(lzdate)" [$$]: Secondary WAN \( "${iptv_wan1_pppoe_ifname}" \) PPPoE fault.
+    [ "$( nvram get "wan0_enable" )" = "1" ] && [ "$( nvram get "wan1_enable" )" = "1" ] \
+        && [ -n "$( nvram get "wan0_proto_t" )" ] && [ -n "$( nvram get "wan1_proto_t" )" ] \
         && local_info="1" \
-        && echo "$(lzdate)" [$$]: Dual WAN \( PPPoE \) load balancing failed to start normally.
-    [ -n "${iptv_wan0_ifname}" ] && [ -n "${iptv_wan1_ifname}" ] \
-        && ! lz_show_routing_table_status "${rt_main}" | awk '$1 == "default" && $5 == "'"${iptv_wan0_ifname}"'" {exit(1)}' \
-        && ! lz_show_routing_table_status "${rt_main}" | awk '$1 == "default" && $5 == "'"${iptv_wan1_ifname}"'" {exit(1)}' \
-        && local_info="1" \
-        && echo "$(lzdate)" [$$]: Dual WAN \( DHCP \) load balancing failed to start normally.
-    [ -n "${iptv_wan0_pppoe_ifname}" ] && [ -n "${iptv_wan1_ifname}" ] \
-        && ! lz_show_routing_table_status "${rt_main}" | awk '$1 == "default" && $5 == "'"${iptv_wan0_pppoe_ifname}"'" {exit(1)}' \
-        && ! lz_show_routing_table_status "${rt_main}" | awk '$1 == "default" && $5 == "'"${iptv_wan1_ifname}"'" {exit(1)}' \
-        && local_info="1" \
-        && echo "$(lzdate)" [$$]: Dual WAN \( "${iptv_wan0_pppoe_ifname}" -- "${iptv_wan1_ifname}" \) load balancing failed to start normally.
-    [ -n "${iptv_wan0_ifname}" ] && [ -n "${iptv_wan1_pppoe_ifname}" ] \
-        && ! lz_show_routing_table_status "${rt_main}" | awk '$1 == "default" && $5 == "'"${iptv_wan0_ifname}"'" {exit(1)}' \
-        && ! lz_show_routing_table_status "${rt_main}" | awk '$1 == "default" && $5 == "'"${iptv_wan1_pppoe_ifname}"'" {exit(1)}' \
-        && local_info="1" \
-        && echo "$(lzdate)" [$$]: Dual WAN \( "${iptv_wan0_ifname}" -- "${iptv_wan1_pppoe_ifname}" \) load balancing failed to start normally.
+        && echo "$(lzdate)" [$$]: Dual WAN \( "$( nvram get "wan0_proto" )" -- "$( nvram get "wan1_proto" )" \) startup failed.
 
     ## 获取IPTV接口ID标识和网关地址
     local iptv_interface_id_0=
@@ -2328,6 +2334,7 @@ lz_show_single_net_iptv_status() {
         [ -z "${iptv_interface_id_0}" ] && [ -n "${iptv_wan0_pppoe_ifname}" ] \
             && ! lz_show_routing_table_status "${rt_main}" | awk '$1 == "default" && $5 == "'"${iptv_wan0_pppoe_ifname}"'" {exit(1)}' \
             && ! lz_show_routing_table_status "${rt_main}" | awk '$2 == "dev" && $3 == "'"${iptv_wan0_ifname}"'" {exit(1)}' \
+            && [ "$( nvram get "wan0_vpndhcp" )" != "1" ] \
             && local_info="1" \
             && echo "$(lzdate)" [$$]: Primary WAN -- Enable VPN + DHCP Connection: No -\> Yes
     elif [ "${status_wan1_iptv_mode}" = "0" ] && [ -n "${iptv_wan0_pppoe_ifname}" ]; then
@@ -2340,6 +2347,7 @@ lz_show_single_net_iptv_status() {
         [ -z "${iptv_interface_id_1}" ] && [ -n "${iptv_wan1_pppoe_ifname}" ] \
             && ! lz_show_routing_table_status "${rt_main}" | awk '$1 == "default" && $5 == "'"${iptv_wan1_pppoe_ifname}"'" {exit(1)}' \
             && ! lz_show_routing_table_status "${rt_main}" | awk '$2 == "dev" && $3 == "'"${iptv_wan1_ifname}"'" {exit(1)}' \
+            && [ "$( nvram get "wan1_vpndhcp" )" != "1" ] \
             && local_info="1" \
             && echo "$(lzdate)" [$$]: Secondary WAN -- Enable VPN + DHCP Connection: No -\> Yes
     elif [ "${status_wan2_iptv_mode}" = "0" ] && [ -n "${iptv_wan1_pppoe_ifname}" ]; then
