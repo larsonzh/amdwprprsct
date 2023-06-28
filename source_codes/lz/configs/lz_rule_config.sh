@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_config.sh v4.0.3
+# lz_rule_config.sh v4.0.4
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # 本软件采用CIDR（无类别域间路由，Classless Inter-Domain Routing）技术，是一个在Internet上创建附加地
@@ -699,7 +699,7 @@ iptv_box_ip_lst_file="/jffs/scripts/lz/data/iptv_box_ip_lst.txt"
 iptv_isp_ip_lst_file="/jffs/scripts/lz/data/iptv_isp_ip_lst.txt"
 
 ## 第一WAN口IPTV连接方式
-## 0--PPPoE；1--静态IP；>1--DHCP或IPoE；取值范围：0~9
+## 0--PPPoE（虚拟拨号端口 ppp0）；1--静态IP（以太网口）；>1--DHCP或IPoE（以太网口）；取值范围：0~9
 ## 缺省为DHCP或IPoE方式获取IPTV终端的IP地址（5）；用于IPTV模式网际媒体数据传输。
 wan1_iptv_mode=5
 
@@ -728,7 +728,7 @@ wan1_udpxy_buffer=65536
 wan1_udpxy_client_num=10
 
 ## 第二WAN口IPTV连接方式
-## 0--PPPoE；1--静态IP；>1--DHCP或IPoE；取值范围：0~9
+## 0--PPPoE（虚拟拨号端口 ppp1）；1--静态IP（以太网口）；>1--DHCP或IPoE（以太网口）；取值范围：0~9
 ## 缺省为DHCP或IPoE方式获取IPTV终端的IP地址（5）；用于IPTV模式网际媒体数据传输。
 wan2_iptv_mode=5
 

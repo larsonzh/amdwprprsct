@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule.sh v4.0.3
+# lz_rule.sh v4.0.4
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # 本软件采用CIDR（无类别域间路由，Classless Inter-Domain Routing）技术，是一个在Internet上创建附加地
@@ -80,7 +80,7 @@
 ## -------------全局数据定义及初始化-------------------
 
 ## 版本号
-LZ_VERSION=v4.0.3
+LZ_VERSION=v4.0.4
 
 ## 运行状态查询命令
 SHOW_STATUS="status"
@@ -257,6 +257,15 @@ lz_project_file_management() {
     return 0
 }
 
+## 更新DDNS服务函数
+## 输入项：无
+## 返回值：无
+lz_update_ddns() {
+    [ "${UPDATE_DDNS_ENABLE}" ] \
+        && [ "$( nvram get "ddns_enable_x" )" = "1" ] && [ "$( nvram get "ddns_updated" )" != "1" ] \
+        && service restart_ddns_le > /dev/null 2>&1
+}
+
 ## 运行实例检测函数
 ## 输入项：
 ##     $1--主执行脚本运行输入参数
@@ -291,6 +300,10 @@ lz_instance_exit() {
             { ip route flush cache && sync && echo 3 > /proc/sys/vm/drop_caches && { echo "$(lzdate) [$$]:" >> "${SYSLOG}"; echo -e "$(lzdate) [$$]: LZ ${LZ_VERSION} Free Memory OK\n$(lzdate) [$$]:" | tee -ai "${SYSLOG}" 2> /dev/null; }; } 2> /dev/null
         fi
     fi
+    ## 更新DDNS服务
+    ## 输入项：无
+    ## 返回值：无
+    lz_update_ddns
 }
 
 ## 读取配置文件数据项函数
@@ -516,6 +529,9 @@ __lz_main() {
 
     ## 双线路
     if ip route show | grep -q nexthop && [ "${ip_rule_exist}" = "0" ]; then
+        [ "$( nvram get "wan0_enable" )" = "1" ] && [ "$( nvram get "wan1_enable" )" = "1" ] \
+            && [ -n "$( nvram get "wan0_proto_t" )" ] && [ -n "$( nvram get "wan1_proto_t" )" ] \
+            && echo "$(lzdate)" [$$]: Dual WAN \( "$( nvram get "wan0_proto" )" -- "$( nvram get "wan1_proto" )" \) has been started. | tee -ai "${SYSLOG}" 2> /dev/null
         {
             echo "$(lzdate)" [$$]: The router has successfully joined into two WANs.
             echo "$(lzdate)" [$$]: Policy routing service is being started......
@@ -551,6 +567,8 @@ __lz_main() {
         ##     全局变量及常量
         ## 返回值：无
         lz_ss_support
+
+        UPDATE_DDNS_ENABLE="0"
 
     ## 单线路
     elif ip route show | grep -q default && [ "${ip_rule_exist}" = "0" ]; then
@@ -602,6 +620,8 @@ __lz_main() {
         ##     全局变量及常量
         ## 返回值：无
         lz_ss_support
+
+        UPDATE_DDNS_ENABLE="0"
 
     ## 无外网连接
     else
