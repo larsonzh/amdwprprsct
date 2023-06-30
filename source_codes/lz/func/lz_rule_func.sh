@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v4.0.3
+# lz_rule_func.sh v4.0.5
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 #BEIGIN
@@ -3790,7 +3790,7 @@ else
     if [ -n "\${lz_route_list}" ]; then
         echo "\${lz_route_list}" | awk 'NF != "0" {system("ip route add "\$0" table ${WAN0} > /dev/null 2>&1")}'
         echo "\${lz_route_list}" | awk 'NF != "0" {system("ip route add "\$0" table ${WAN1} > /dev/null 2>&1")}'
-        if ip route show table "${LZ_IPTV}" | grep -q "default"; then
+        if ip route show table "${LZ_IPTV}" | grep -qw "default"; then
             echo "\${lz_route_list}" | awk 'NF != "0" {system("ip route add "\$0" table ${LZ_IPTV} > /dev/null 2>&1")}'
         fi
         lz_route_vpn_list="\$( echo "\${lz_route_list}" | awk '/pptp|tap|tun|wgs/ {print \$1}' )"
@@ -4709,23 +4709,25 @@ lz_output_ispip_info_to_system_records() {
         echo "$(lzdate)" [$$]: "   LocalIPBlcLst   Load Balancing      ${local_item_count}" | tee -ai "${SYSLOG}" 2> /dev/null
         local_exist="1"
     }
-    local_item_count="$( lz_get_ipv4_data_file_valid_item_total "${iptv_box_ip_lst_file}" )"
-    [ "${local_item_count}" -gt "0" ] && {
-        if [ "${iptv_igmp_switch}" = "0" ]; then
-            echo "$(lzdate)" [$$]: "   IPTVSTBIPLst    Primary WAN${local_primary_wan_hd}  ${local_item_count}" | tee -ai "${SYSLOG}" 2> /dev/null
-            local_exist="1"
-        elif [ "${iptv_igmp_switch}" = "1" ]; then
-            echo "$(lzdate)" [$$]: "   IPTVSTBIPLst    Secondary WAN${local_secondary_wan_hd}  ${local_item_count}" | tee -ai "${SYSLOG}" 2> /dev/null
-            local_exist="1"
+    ip route show table "${LZ_IPTV}" | grep -qw "default" && {
+        local_item_count="$( lz_get_ipv4_data_file_valid_item_total "${iptv_box_ip_lst_file}" )"
+        [ "${local_item_count}" -gt "0" ] && {
+            if [ "${iptv_igmp_switch}" = "0" ]; then
+                echo "$(lzdate)" [$$]: "   IPTVSTBIPLst    Primary WAN${local_primary_wan_hd}  ${local_item_count}" | tee -ai "${SYSLOG}" 2> /dev/null
+                local_exist="1"
+            elif [ "${iptv_igmp_switch}" = "1" ]; then
+                echo "$(lzdate)" [$$]: "   IPTVSTBIPLst    Secondary WAN${local_secondary_wan_hd}  ${local_item_count}" | tee -ai "${SYSLOG}" 2> /dev/null
+                local_exist="1"
+            fi
+        }
+        if [ "${iptv_igmp_switch}" = "0" ] || [ "${iptv_igmp_switch}" = "1" ]; then
+            [ "${iptv_access_mode}" = "2" ] && local_item_count="$( lz_get_ipv4_data_file_valid_item_total "${iptv_isp_ip_lst_file}" )" \
+                && [ "${local_item_count}" -gt "0" ] && {
+                echo "$(lzdate)" [$$]: "   IPTVSrvIPLst    Available       HD  ${local_item_count}" | tee -ai "${SYSLOG}" 2> /dev/null
+                local_exist="1"
+            }
         fi
     }
-    if [ "${iptv_igmp_switch}" = "0" ] || [ "${iptv_igmp_switch}" = "1" ]; then
-        [ "${iptv_access_mode}" = "2" ] && local_item_count="$( lz_get_ipv4_data_file_valid_item_total "${iptv_isp_ip_lst_file}" )" \
-            && [ "${local_item_count}" -gt "0" ] && {
-            echo "$(lzdate)" [$$]: "   IPTVSrvIPLst    Available       HD  ${local_item_count}" | tee -ai "${SYSLOG}" 2> /dev/null
-            local_exist="1"
-        }
-    fi
     [ "${high_wan_1_src_to_dst_addr}" = "0" ] && local_item_count="$( lz_get_ipv4_src_to_dst_data_file_item_total "${high_wan_1_src_to_dst_addr_file}" )" \
         && [ "${local_item_count}" -gt "0" ] && {
         echo "$(lzdate)" [$$]: "   HiSrcToDstLst   Primary WAN${local_primary_wan_hd}  ${local_item_count}" | tee -ai "${SYSLOG}" 2> /dev/null
@@ -5562,6 +5564,12 @@ lz_deployment_routing_policy() {
                 lz_set_udpxy_used_value "0"
             fi
         fi
+    elif [ "${iptv_igmp_switch}" = "0" ] || [ "${iptv_igmp_switch}" = "1" ]; then
+        if ! which bcmmcastctl > /dev/null 2>&1; then
+            ps | awk '$5 ~ /\/igmpproxy$/ && !/awk/ {exit(1)}' && local_wan_igmp_start="2"
+        elif [ "$( nvram get "mr_enable_x" )" != "1" ] || ps | awk '$5 ~ /\/mcpd$/ && !/awk/ {exit(1)}'; then
+            local_wan_mcpd_start="2"
+        fi
     fi
 
     if  [ "${local_wan_igmp_start}" = "1" ] || [ "${local_wan_mcpd_start}" = "1" ]; then
@@ -5609,9 +5617,7 @@ lz_deployment_routing_policy() {
     local local_wan2_udpxy_start=
     local local_udpxys_name="$( which udpxy 2> /dev/null )"
     if [ "${wan1_udpxy_switch}" = "0" ] && [ -n "${iptv_interface_id_0}" ]; then
-        if [ -n "${local_udpxys_name}" ] \
-            && { ! ps | awk '$5 ~ /\/igmpproxy$/ && !/awk/ {exit(1)}' \
-            || { ! ps | awk '$5 ~ /\/mcpd$/ && !/awk/ {exit(1)}' && [ "$( nvram get "mr_enable_x" )" = "1" ]; }; }; then
+        if [ -n "${local_udpxys_name}" ]; then
             ps | awk '$5 ~ /\/udpxy$/ && $9 == "'"${wan1_udpxy_port}"'" && !/awk/ {system("kill -9 "$1" > /dev/null 2>&1")}'
             sleep "1s"
             eval "${local_udpxys_name}" -m "${iptv_interface_id_0}" -p "${wan1_udpxy_port}" -B "${wan1_udpxy_buffer}" -c "${wan1_udpxy_client_num}" -a "br0" > /dev/null 2>&1
@@ -5622,9 +5628,7 @@ lz_deployment_routing_policy() {
         fi
     fi
     if [ "${wan2_udpxy_switch}" = "0" ] && [ -n "${iptv_interface_id_1}" ]; then
-        if [ -n "${local_udpxys_name}" ] \
-            && { ! ps | awk '$5 ~ /\/igmpproxy$/ && !/awk/ {exit(1)}' \
-            || { ! ps | awk '$5 ~ /\/mcpd$/ && !/awk/ {exit(1)}' && [ "$( nvram get "mr_enable_x" )" = "1" ]; }; }; then
+        if [ -n "${local_udpxys_name}" ]; then
             ps | awk '$5 ~ /\/udpxy$/ && $9 == "'"${wan2_udpxy_port}"'" && !/awk/ {system("kill -9 "$1" > /dev/null 2>&1")}'
             sleep "1s"
             eval "${local_udpxys_name}" -m "${iptv_interface_id_1}" -p "${wan2_udpxy_port}" -B "${wan2_udpxy_buffer}" -c "${wan2_udpxy_client_num}" -a "br0" > /dev/null 2>&1
@@ -5635,11 +5639,10 @@ lz_deployment_routing_policy() {
         fi
     fi
 
-    if [ "${local_wan_igmp_start}" = "2" ] || [ "${local_wan_mcpd_start}" = "2" ] \
-        || [ "${local_wan1_udpxy_start}" = "2" ] || [ "${local_wan2_udpxy_start}" = "2" ]; then
+    if [ "${local_wan_igmp_start}" = "2" ] || [ "${local_wan_mcpd_start}" = "2" ]; then
         {
             echo "$(lzdate)" [$$]: ---------------------------------------------
-            echo "$(lzdate)" [$$]: IPTV service can\'t be used.
+            echo "$(lzdate)" [$$]: IPTV STB \& Multicast service can\'t be used.
             echo "$(lzdate)" [$$]: Enable multicast routing: Disable -\> Enable
         } | tee -ai "${SYSLOG}" 2> /dev/null
     fi
@@ -5722,7 +5725,7 @@ lz_deployment_routing_policy() {
             echo "$(lzdate)" [$$]: IGMP service \( "${iptv_interface_id}" \) failure. | tee -ai "${SYSLOG}" 2> /dev/null
         fi
         line_enable="1"
-    elif ! ps | awk '$5 ~ /\/igmpproxy$/ && !/awk/ {exit(1)}'; then
+    elif ! which bcmmcastctl > /dev/null 2>&1; then
         if [ -n "${iptv_interface_id}" ]; then
             echo "$(lzdate)" [$$]: IGMP service \( "${iptv_interface_id}" \) failure. | tee -ai "${SYSLOG}" 2> /dev/null
             line_enable="1"
@@ -5756,7 +5759,7 @@ lz_deployment_routing_policy() {
             echo "$(lzdate)" [$$]: Multicast routing service \( "${iptv_interface_id}" \) failure. | tee -ai "${SYSLOG}" 2> /dev/null
         fi
         line_enable="1"
-    elif ! ps | awk '$5 ~ /\/mcpd$/ && !/awk/ {exit(1)}' && [ "$( nvram get "mr_enable_x" )" = "1" ]; then
+    elif which bcmmcastctl > /dev/null 2>&1; then
         if [ -n "${iptv_interface_id}" ]; then
             echo "$(lzdate)" [$$]: Multicast routing service \( "${iptv_interface_id}" \) failure. | tee -ai "${SYSLOG}" 2> /dev/null
             line_enable="1"
@@ -5842,8 +5845,10 @@ lz_deployment_routing_policy() {
         fi
         line_enable="1"
     fi
+    local iptv_box_item_count="$( lz_get_ipv4_data_file_valid_item_total "${iptv_box_ip_lst_file}" )"
+    local iptv_isp_item_count="$( lz_get_ipv4_data_file_valid_item_total "${iptv_isp_ip_lst_file}" )"
     if { [ "${local_wan_igmp_start}" = "1" ] || [ "${local_wan_mcpd_start}" = "1" ]; } && [ -n "${iptv_interface_id}" ]; then
-        if ip route show table "${LZ_IPTV}" | grep -q "default"; then
+        if ip route show table "${LZ_IPTV}" | grep -qw "default"; then
             echo "$(lzdate)" [$$]: IPTV STB can be connected to "${iptv_interface_id}" interface for use. | tee -ai "${SYSLOG}" 2> /dev/null
             if [ "${iptv_access_mode}" = "1" ]; then
                 echo "$(lzdate)" [$$]: "IPTV Access Mode: Direct Connection" | tee -ai "${SYSLOG}" 2> /dev/null
@@ -5851,10 +5856,13 @@ lz_deployment_routing_policy() {
                 echo "$(lzdate)" [$$]: "IPTV Access Mode: Service Address" | tee -ai "${SYSLOG}" 2> /dev/null
             fi
         else
-            echo "$(lzdate)" [$$]: Connection "${iptv_interface_id}" IPTV interface failure. | tee -ai "${SYSLOG}" 2> /dev/null
+            { { [ "${iptv_access_mode}" = "1" ] && [ "${iptv_box_item_count}" -gt "0" ]; } \
+                || { [ "${iptv_access_mode}" != "1" ] && [ "${iptv_box_item_count}" -gt "0" ] && [ "${iptv_isp_item_count}" -gt "0" ]; }; } \
+                && echo "$(lzdate)" [$$]: Connection "${iptv_interface_id}" IPTV interface failure. | tee -ai "${SYSLOG}" 2> /dev/null
         fi
         line_enable="1"
-    else
+    elif { [ "${iptv_access_mode}" = "1" ] && [ "${iptv_box_item_count}" -gt "0" ]; } \
+        || { [ "${iptv_access_mode}" != "1" ] && [ "${iptv_box_item_count}" -gt "0" ] && [ "${iptv_isp_item_count}" -gt "0" ]; }; then
         if [ -n "${iptv_interface_id}" ]; then
             echo "$(lzdate)" [$$]: Connection "${iptv_interface_id}" IPTV interface failure. | tee -ai "${SYSLOG}" 2> /dev/null
             line_enable="1"
@@ -6003,6 +6011,12 @@ lz_start_single_net_iptv_box_services() {
     local rt_main="$( ip route show )"
 
     local local_info=
+    [ -n "${iptv_wan0_ifname}" ] && [ -n "${iptv_wan1_ifname}" ] \
+        && ! lz_show_routing_table "${rt_main}" | awk '$1 == "default" && $5 == "'"${iptv_wan0_ifname}"'" {exit(1)}' \
+        && ! lz_show_routing_table "${rt_main}" | awk '$1 == "default" && $5 == "'"${iptv_wan1_ifname}"'" {exit(1)}' && {
+        local_info="1"
+        echo "$(lzdate)" [$$]: Bad default interface \( "${iptv_wan0_ifname}" \& "${iptv_wan1_ifname}" \) paths in Routing table. | tee -ai "${SYSLOG}" 2> /dev/null
+    }
     if [ "$( nvram get "wan0_enable" )" = "1" ]; then
         [ -z "${iptv_wan0_ifname}" ] && {
             local_info="1"
@@ -6202,6 +6216,12 @@ lz_start_single_net_iptv_box_services() {
                 lz_set_udpxy_used_value "0"
             fi
         fi
+    elif [ "${iptv_igmp_switch}" = "0" ] || [ "${iptv_igmp_switch}" = "1" ]; then
+        if ! which bcmmcastctl > /dev/null 2>&1; then
+            ps | awk '$5 ~ /\/igmpproxy$/ && !/awk/ {exit(1)}' && local_wan_igmp_start="2"
+        elif [ "$( nvram get "mr_enable_x" )" != "1" ] || ps | awk '$5 ~ /\/mcpd$/ && !/awk/ {exit(1)}'; then
+            local_wan_mcpd_start="2"
+        fi
     fi
 
     ## 设置IPTV机顶盒接入路由
@@ -6222,9 +6242,7 @@ lz_start_single_net_iptv_box_services() {
     local local_wan2_udpxy_start=
     local local_udpxys_name="$( which udpxy 2> /dev/null )"
     if [ "${wan1_udpxy_switch}" = "0" ] && [ -n "${iptv_interface_id_0}" ]; then
-        if [ -n "${local_udpxys_name}" ] \
-            && { ! ps | awk '$5 ~ /\/igmpproxy$/ && !/awk/ {exit(1)}' \
-            || { ! ps | awk '$5 ~ /\/mcpd$/ && !/awk/ {exit(1)}' && [ "$( nvram get "mr_enable_x" )" = "1" ]; }; }; then
+        if [ -n "${local_udpxys_name}" ]; then
             ps | awk '$5 ~ /\/udpxy$/ && $9 == "'"${wan1_udpxy_port}"'" && !/awk/ {system("kill -9 "$1" > /dev/null 2>&1")}'
             sleep "1s"
             eval "${local_udpxys_name}" -m "${iptv_interface_id_0}" -p "${wan1_udpxy_port}" -B "${wan1_udpxy_buffer}" -c "${wan1_udpxy_client_num}" -a "br0" > /dev/null 2>&1
@@ -6235,9 +6253,7 @@ lz_start_single_net_iptv_box_services() {
         fi
     fi
     if [ "${wan2_udpxy_switch}" = "0" ] && [ -n "${iptv_interface_id_1}" ]; then
-        if [ -n "${local_udpxys_name}" ] \
-            && { ! ps | awk '$5 ~ /\/igmpproxy$/ && !/awk/ {exit(1)}' \
-            || { ! ps | awk '$5 ~ /\/mcpd$/ && !/awk/ {exit(1)}' && [ "$( nvram get "mr_enable_x" )" = "1" ]; }; }; then
+        if [ -n "${local_udpxys_name}" ]; then
             ps | awk '$5 ~ /\/udpxy$/ && $9 == "'"${wan2_udpxy_port}"'" && !/awk/ {system("kill -9 "$1" > /dev/null 2>&1")}'
             sleep "1s"
             eval "${local_udpxys_name}" -m "${iptv_interface_id_1}" -p "${wan2_udpxy_port}" -B "${wan2_udpxy_buffer}" -c "${wan2_udpxy_client_num}" -a "br0" > /dev/null 2>&1
@@ -6248,10 +6264,9 @@ lz_start_single_net_iptv_box_services() {
         fi
     fi
 
-    if [ "${local_wan_igmp_start}" = "2" ] || [ "${local_wan_mcpd_start}" = "2" ] \
-        || [ "${local_wan1_udpxy_start}" = "2" ] || [ "${local_wan2_udpxy_start}" = "2" ]; then
+    if [ "${local_wan_igmp_start}" = "2" ] || [ "${local_wan_mcpd_start}" = "2" ]; then
         {
-            echo "$(lzdate)" [$$]: IPTV service can\'t be used.
+            echo "$(lzdate)" [$$]: IPTV STB \& Multicast service can\'t be used.
             echo "$(lzdate)" [$$]: Enable multicast routing: Disable -\> Enable
             echo "$(lzdate)" [$$]: ---------------------------------------------
         } | tee -ai "${SYSLOG}" 2> /dev/null
@@ -6299,7 +6314,7 @@ lz_start_single_net_iptv_box_services() {
             echo "$(lzdate)" [$$]: IGMP service \( "${iptv_interface_id}" \) failure. | tee -ai "${SYSLOG}" 2> /dev/null
         fi
         line_enable="1"
-    elif ! ps | awk '$5 ~ /\/igmpproxy$/ && !/awk/ {exit(1)}'; then
+    elif ! which bcmmcastctl > /dev/null 2>&1; then
         if [ -n "${iptv_interface_id}" ]; then
             echo "$(lzdate)" [$$]: IGMP service \( "${iptv_interface_id}" \) failure. | tee -ai "${SYSLOG}" 2> /dev/null
             line_enable="1"
@@ -6333,7 +6348,7 @@ lz_start_single_net_iptv_box_services() {
             echo "$(lzdate)" [$$]: Multicast routing service \( "${iptv_interface_id}" \) failure. | tee -ai "${SYSLOG}" 2> /dev/null
         fi
         line_enable="1"
-    elif ! ps | awk '$5 ~ /\/mcpd$/ && !/awk/ {exit(1)}' && [ "$( nvram get "mr_enable_x" )" = "1" ]; then
+    elif which bcmmcastctl > /dev/null 2>&1; then
         if [ -n "${iptv_interface_id}" ]; then
             echo "$(lzdate)" [$$]: Multicast routing service \( "${iptv_interface_id}" \) failure. | tee -ai "${SYSLOG}" 2> /dev/null
             line_enable="1"
@@ -6419,8 +6434,10 @@ lz_start_single_net_iptv_box_services() {
         fi
         line_enable="1"
     fi
+    local iptv_box_item_count="$( lz_get_ipv4_data_file_valid_item_total "${iptv_box_ip_lst_file}" )"
+    local iptv_isp_item_count="$( lz_get_ipv4_data_file_valid_item_total "${iptv_isp_ip_lst_file}" )"
     if { [ "${local_wan_igmp_start}" = "1" ] || [ "${local_wan_mcpd_start}" = "1" ]; } && [ -n "${iptv_interface_id}" ]; then
-        if ip route show table "${LZ_IPTV}" | grep -q "default"; then
+        if ip route show table "${LZ_IPTV}" | grep -qw "default"; then
             echo "$(lzdate)" [$$]: IPTV STB can be connected to "${iptv_interface_id}" interface for use. | tee -ai "${SYSLOG}" 2> /dev/null
             if [ "${iptv_access_mode}" = "1" ]; then
                 echo "$(lzdate)" [$$]: "IPTV Access Mode: Direct Connection" | tee -ai "${SYSLOG}" 2> /dev/null
@@ -6428,10 +6445,13 @@ lz_start_single_net_iptv_box_services() {
                 echo "$(lzdate)" [$$]: "IPTV Access Mode: Service Address" | tee -ai "${SYSLOG}" 2> /dev/null
             fi
         else
-            echo "$(lzdate)" [$$]: Connection "${iptv_interface_id}" IPTV interface failure. | tee -ai "${SYSLOG}" 2> /dev/null
+            { { [ "${iptv_access_mode}" = "1" ] && [ "${iptv_box_item_count}" -gt "0" ]; } \
+                || { [ "${iptv_access_mode}" != "1" ] && [ "${iptv_box_item_count}" -gt "0" ] && [ "${iptv_isp_item_count}" -gt "0" ]; }; } \
+                && echo "$(lzdate)" [$$]: Connection "${iptv_interface_id}" IPTV interface failure. | tee -ai "${SYSLOG}" 2> /dev/null
         fi
         line_enable="1"
-    else
+    elif { [ "${iptv_access_mode}" = "1" ] && [ "${iptv_box_item_count}" -gt "0" ]; } \
+        || { [ "${iptv_access_mode}" != "1" ] && [ "${iptv_box_item_count}" -gt "0" ] && [ "${iptv_isp_item_count}" -gt "0" ]; }; then
         if [ -n "${iptv_interface_id}" ]; then
             echo "$(lzdate)" [$$]: Connection "${iptv_interface_id}" IPTV interface failure. | tee -ai "${SYSLOG}" 2> /dev/null
             line_enable="1"
