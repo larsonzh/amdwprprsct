@@ -3,9 +3,11 @@ Asuswrt-Merlin dual WAN port router policy routing service configuration tool
 
 华硕改版固件路由器外网双线路接入策略路由服务配置工具
 
-<strong>v4.0.5</strong>
+<strong>v4.0.6</strong>
 
 本软件不是为实现网络带速叠加应用而设计，也不专注于实现路由器多个出口链路网络或带宽的聚合，而是用于在双线路接入路由器的不同网络出口之间精准控制网络访问经由路径，可有效解决路由器双线路接入时不能正常登录和访问网站，以及网络访问卡慢、断流、不稳定等问题，提高路由器使用的稳定性、流畅性和带宽资源利用率，挖掘和发挥设备潜能和剩余价值，减少设备重复采购，改善电磁环境，提高生活质量。避免因WiFi信号太多，经常为切换使用SSID而纠结，预防选择恐惧症。
+
+软件具有 Web 操作页面，直接嵌入 Asuswrt-Merlin 原生界面，风格保持一致，支持梅林 384.5 及以上的固件版本。页面位于「外部网络(WAN) - 策略路由」，程序启动时自动挂载，全程提供内容详尽的悬浮式帮助。如未出现「 策略路由」页面，说明所用固件不支持该功能。
 
 <strong>主要功能</strong>
 
@@ -61,7 +63,11 @@ Asuswrt-Merlin dual WAN port router policy routing service configuration tool
 
 ![LZ脚本流程图](https://user-images.githubusercontent.com/73221087/222945301-ab12ff64-9fd6-4398-9b3f-6cebb7cdea21.jpg)
 
-<strong>六、相关资料</strong>
+<strong>六、应用界面</strong>
+
+![lz_rule](https://github.com/larsonzh/amdwprprsct/assets/73221087/2d3fbb5e-1b1c-470f-9394-bda8cc0735e7)
+
+<strong>七、相关资料</strong>
 <ul><li>华硕改版固件路由器双线路双拨策略分流方案教程（入门必读）</li>
 <li>LZ路由器双线路双拨策略分流脚本小白安装教程（入门必读）</li>
 <li>使用lzispro工具定时更新ISP数据教程</li>
