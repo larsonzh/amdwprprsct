@@ -1,5 +1,5 @@
 #!/bin/sh
-# lzinstall.sh v4.0.5
+# lzinstall.sh v4.0.6
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ script for asuswrt/merlin based router
@@ -9,7 +9,7 @@
 
 #BEIGIN
 
-LZ_VERSION=v4.0.5
+LZ_VERSION=v4.0.6
 TIMEOUT=10
 CURRENT_PATH="${0%/*}"
 [ "${CURRENT_PATH:0:1}" != '/' ] && CURRENT_PATH="$( pwd )${CURRENT_PATH#*.}"
@@ -146,17 +146,21 @@ fi
 PATH_CONFIGS="${PATH_LZ}/configs"
 PATH_FUNC="${PATH_LZ}/func"
 PATH_DATA="${PATH_LZ}/data"
+PATH_WEBS="${PATH_LZ}/webs"
 
 mkdir -p "${PATH_CONFIGS}" > /dev/null 2>&1
 mkdir -p "${PATH_FUNC}" > /dev/null 2>&1
 mkdir -p "${PATH_DATA}" > /dev/null 2>&1
+mkdir -p "${PATH_WEBS}" > /dev/null 2>&1
 
 cp -rpf "${CURRENT_PATH}/lz/lz_rule.sh" "${PATH_LZ}" > /dev/null 2>&1
+cp -rpf "${CURRENT_PATH}/lz/uninstall.sh" "${PATH_LZ}" > /dev/null 2>&1
 cp -rpf "${CURRENT_PATH}/lz/Changelog.txt" "${PATH_LZ}" > /dev/null 2>&1
 cp -rpf "${CURRENT_PATH}/lz/HowtoInstall.txt" "${PATH_LZ}" > /dev/null 2>&1
 cp -rpf "${CURRENT_PATH}/lz/LICENSE" "${PATH_LZ}" > /dev/null 2>&1
 cp -rpf "${CURRENT_PATH}/lz/configs" "${PATH_LZ}" > /dev/null 2>&1
 cp -rpf "${CURRENT_PATH}/lz/func" "${PATH_LZ}" > /dev/null 2>&1
+cp -rpf "${CURRENT_PATH}/lz/webs" "${PATH_LZ}" > /dev/null 2>&1
 
 find "${CURRENT_PATH}/lz/data" -name "*_cidr.txt" -print0 2> /dev/null | xargs -0 -I {} cp -rpf {} "${PATH_DATA}" > /dev/null 2>&1
 [ ! -f "${PATH_DATA}/custom_data_1.txt" ] && cp -rp "${CURRENT_PATH}/lz/data/custom_data_1.txt" "${PATH_DATA}" > /dev/null 2>&1
@@ -180,11 +184,146 @@ find "${CURRENT_PATH}/lz/data" -name "*_cidr.txt" -print0 2> /dev/null | xargs -
 [ ! -f "${PATH_DATA}/wan_2_src_to_dst_addr_port.txt" ] && cp -rp "${CURRENT_PATH}/lz/data/wan_2_src_to_dst_addr_port.txt" "${PATH_DATA}" > /dev/null 2>&1
 
 chmod 775 "${PATH_LZ}/lz_rule.sh" > /dev/null 2>&1
+chmod 775 "${PATH_LZ}/uninstall.sh" > /dev/null 2>&1
 chmod -R 775 "${PATH_LZ}" > /dev/null 2>&1
 
 if [ "${PATH_LZ}" != "/jffs/scripts/lz" ]; then
     sed -i "s:/jffs/scripts/lz/:${PATH_LZ}/:g" "${PATH_LZ}/lz_rule.sh" > /dev/null 2>&1
     sed -i "s:/jffs/scripts/lz/:${PATH_LZ}/:g" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+fi
+
+PATH_WEBPAGE="$( readlink "/www/user" )"
+PATH_WEB_LZR="${PATH_WEBPAGE}/lzr"
+
+lz_create_service_event_interface() {
+    [ ! -d "/jffs/scripts" ] && mkdir -p "/jffs/scripts"
+    if [ ! -f "/jffs/scripts/service-event" ]; then
+        cat > "/jffs/scripts/service-event" 2> /dev/null <<EOF_SERVICE_INTERFACE
+#!/bin/sh
+EOF_SERVICE_INTERFACE
+    fi
+    [ ! -f "/jffs/scripts/service-event" ] && return "1"
+    if ! grep -m 1 '^.*$' "/jffs/scripts/service-event" | grep -q "#!/bin/sh"; then
+        if [ "$( grep -c '^.*$' "/jffs/scripts/service-event" )" = "0" ]; then
+            echo "#!/bin/sh" >> "/jffs/scripts/service-event"
+        elif grep '^.*$' "/jffs/scripts/service-event" | grep -q "#!/bin/sh"; then
+            sed -i -e '/!\/bin\/sh/d' -e '1i #!\/bin\/sh' "/jffs/scripts/service-event"
+        else
+            sed -i '1i #!\/bin\/sh' "/jffs/scripts/service-event"
+        fi
+    else
+        ! grep -m 1 '^.*$' "/jffs/scripts/service-event" | grep -q "^#!/bin/sh" \
+            && sed -i 'l1 s:^.*\(#!/bin/sh.*$\):\1/g' "/jffs/scripts/service-event"
+    fi
+    local cmd_str="if echo \"\${2}\" | /bin/grep -q \"LZRule\"; then if [ \"\${1}\" = \"start\" ] || [ \"\${1}\" = \"restart\" ]; then \"${PATH_LZ}/lz_rule.sh\"; elif [ \"\${1}\" = \"stop\" ]; then \"${PATH_LZ}/lz_rule.sh\" \"STOP\"; fi fi"
+    if ! grep -qE "LZRule.*start.*restart.*${PATH_LZ}/lz_rule[\.]sh.*stop.*${PATH_LZ}/lz_rule[\.]sh.*STOP" "/jffs/scripts/service-event"; then
+        sed -i "/LZRule/d" "/jffs/scripts/service-event"
+        echo "${cmd_str} # Added by LZ" >>  "/jffs/scripts/service-event"
+    fi
+    chmod +x "/jffs/scripts/service-event"
+    ! grep -qE "LZRule.*start.*restart.*lz_rule[\.]sh.*stop.*lz_rule[\.]sh.*STOP" "/jffs/scripts/service-event" && return "1"
+    return "0"
+}
+
+lz_clear_service_event_command() {
+    if [ -f "/jffs/scripts/service-event" ] \
+        && grep -q "lz_rule[\.]sh" "/jffs/scripts/service-event"; then
+        sed -i "/lz_rule[\.]sh/d" "/jffs/scripts/service-event" > /dev/null 2>&1
+        return "0"
+    fi
+    return "1"
+}
+
+lz_get_webui_page() {
+    local page_name="" i="1"
+    until [ "${i}" -gt "20" ]; do
+        if [ -f "${PATH_WEBPAGE}/user${i}.asp" ]; then
+            if grep -q 'match(/QnkgTFog5aaZ5aaZ5ZGc77yI6Juk6J\[\\[\+]\]G5aKp5YS\[\\/\]77yJ/m)' "${PATH_WEBPAGE}/user${i}.asp" 2> /dev/null; then
+                page_name="user${i}.asp"
+                break
+            fi
+        elif [ -z "${page_name}" ] && [ ! -f "${PATH_WEBPAGE}/user${i}.asp" ]; then
+            page_name="user${i}.asp"
+        fi
+        i="$(( i + 1 ))"
+    done
+    echo "${page_name}"
+}
+
+lz_unmount_web_ui() {
+    if [ -d "${PATH_WEBPAGE}" ]; then
+        umount "/www/require/modules/menuTree.js" > /dev/null 2>&1
+        local page_name="$( lz_get_webui_page )"
+        if [ -n "${page_name}" ]; then
+            [ -f "/tmp/menuTree.js" ] && sed -i "/${page_name}/d" "/tmp/menuTree.js" 2> /dev/null
+            rm -f "${PATH_WEBPAGE}/${page_name}" > /dev/null 2>&1
+            rm -f "${PATH_WEBPAGE}/${page_name%.*}.title" > /dev/null 2>&1
+        fi
+        [ -d "${PATH_WEB_LZR}" ] && rm -rf "${PATH_WEB_LZR}" > /dev/null 2>&1
+        lz_clear_service_event_command
+    fi
+}
+
+lz_mount_web_ui() {
+    local retval="1"
+    while true
+    do
+        ! nvram get rc_support | grep -q "am_addons" && break
+        if [ ! -d "/jffs/addons" ]; then
+            mkdir -p "/jffs/addons" > /dev/null 2>&1
+            [ ! -d "/jffs/addons" ] && break
+        fi
+        if [ ! -d "${PATH_WEB_LZR}" ]; then
+            mkdir -p "${PATH_WEB_LZR}" > /dev/null 2>&1
+            [ ! -d "${PATH_WEB_LZR}" ] && break
+        fi
+        rm -f "$PATH_WEB_LZR/"* > /dev/null 2>&1
+        ln -s "/jffs/scripts/firewall-start" "${PATH_WEB_LZR}/LZRState.html" > /dev/null 2>&1
+        ln -s "${PATH_LZ}/lz_rule.sh" "${PATH_WEB_LZR}/LZRVersion.html" > /dev/null 2>&1
+        ln -s "${PATH_CONFIGS}/lz_rule_config.sh" "${PATH_WEB_LZR}/LZRConfig.html" > /dev/null 2>&1
+        ln -s "${PATH_CONFIGS}/lz_rule_config.box" "${PATH_WEB_LZR}/LZRBKData.html" > /dev/null 2>&1
+        ln -s "${PATH_FUNC}/lz_define_global_variables.sh" "${PATH_WEB_LZR}/LZRGlobal.html" > /dev/null 2>&1
+        ! which md5sum > /dev/null 2>&1 && break
+        local page_name="$( lz_get_webui_page )"
+        [ -z "${page_name}" ] && break
+        if [ ! -f "${PATH_WEBPAGE}/${page_name}" ]; then
+            cp -f "${PATH_WEBS}/LZ_Policy_Routing_Content.asp" "${PATH_WEBPAGE}/${page_name}" > /dev/null 2>&1
+        elif [ "$( md5sum < "${PATH_WEBS}/LZ_Policy_Routing_Content.asp" )" != "$( md5sum < "${PATH_WEBPAGE}/${page_name}" )" ]; then
+            cp -f "${PATH_WEBS}/LZ_Policy_Routing_Content.asp" "${PATH_WEBPAGE}/${page_name}" > /dev/null 2>&1
+        fi
+        echo "lz_rule" > "${PATH_WEBPAGE}/${page_name%.*}.title"
+        [ ! -f "${PATH_WEBPAGE}/${page_name}" ] && break
+        [ ! -f "/www/require/modules/menuTree.js" ] && break
+        umount "/www/require/modules/menuTree.js" > /dev/null 2>&1
+        if [ ! -f "/tmp/menuTree.js" ]; then
+            cp -f "/www/require/modules/menuTree.js" "/tmp/" > /dev/null 2>&1
+            [ ! -f "/tmp/menuTree.js" ] && break
+        fi
+        sed -i "/${page_name}/d" "/tmp/menuTree.js" 2> /dev/null
+        sed -i "/{url: \"Advanced_WANPort_Content.asp\", tabName:.*},/a {url: \"${page_name}\", tabName: \"策略路由\"}," "/tmp/menuTree.js" 2> /dev/null
+        mount -o bind "/tmp/menuTree.js" "/www/require/modules/menuTree.js" > /dev/null 2>&1
+        ! grep -q "{url: \"${page_name}\", tabName:.*}," "/www/require/modules/menuTree.js" 2> /dev/null && break
+        retval="0"
+        break
+    done
+    [ "${retval}" != "0" ] && lz_unmount_web_ui
+    return "${retval}"
+}
+
+if lz_mount_web_ui; then
+    echo "  Successfully mounted Policy Routing Web UI." | tee -ai "${SYSLOG}" 2> /dev/null
+    if lz_create_service_event_interface; then
+        echo "  Successfully registered service-event interface." | tee -ai "${SYSLOG}" 2> /dev/null
+    else
+        lz_unmount_web_ui
+        rm -f "${CURRENT_PATH}/webs/LZ_Policy_Routing_Content.asp" > /dev/null 2>&1
+        rmdir "${CURRENT_PATH}/webs" > /dev/null 2>&1
+        echo "  The system doesn‘t support Policy Routing Web UI." | tee -ai "${SYSLOG}" 2> /dev/null
+    fi
+else
+    rm -f "${CURRENT_PATH}/webs/LZ_Policy_Routing_Content.asp" > /dev/null 2>&1
+    rmdir "${CURRENT_PATH}/webs" > /dev/null 2>&1
+    echo "  The system doesn‘t support Policy Routing Web UI." | tee -ai "${SYSLOG}" 2> /dev/null
 fi
 
 {

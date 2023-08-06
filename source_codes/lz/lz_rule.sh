@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule.sh v4.0.5
+# lz_rule.sh v4.0.6
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # 本软件采用CIDR（无类别域间路由，Classless Inter-Domain Routing）技术，是一个在Internet上创建附加地
@@ -80,7 +80,7 @@
 ## -------------全局数据定义及初始化-------------------
 
 ## 版本号
-LZ_VERSION=v4.0.5
+LZ_VERSION=v4.0.6
 
 ## 运行状态查询命令
 SHOW_STATUS="status"
@@ -93,6 +93,9 @@ FORCED_UNLOCKING="unlock"
 
 ## ISP运营商网段数据文件更新状态标识
 ISPIP_DATA_UPDATE="update"
+
+## 卸载WEB界面命令
+UNMOUNT_WEB_UI="unwebui"
 
 ## 系统记录文件名
 SYSLOG="/tmp/syslog.log"
@@ -107,10 +110,35 @@ PATH_LZ="${0%/*}"
 PATH_CONFIGS="${PATH_LZ}/configs"
 PATH_FUNC="${PATH_LZ}/func"
 PATH_DATA="${PATH_LZ}/data"
+PATH_WEBS="${PATH_LZ}/webs"
 PATH_INTERFACE="${PATH_LZ}/interface"
 PATH_TMP="${PATH_LZ}/tmp"
+PATH_ADDONS="/jffs/addons"
+SETTINGSFILE="${PATH_ADDONS}/custom_settings.txt"
+PATH_WEBPAGE="$( readlink "/www/user" )"
+PATH_WEB_LZR="${PATH_WEBPAGE}/lzr"
 
-if [ "${1}" != "${SHOW_STATUS}" ] && [ "${1}" != "${ADDRESS_QUERY}" ] && [ "${1}" != "${FORCED_UNLOCKING}" ]; then
+## 项目标识及项目文件名
+PROJECT_ID="lz_rule"
+PROJECT_FILENAME="${PROJECT_ID}.sh"
+
+## 自启动引导文件部署路径
+PATH_BOOTLOADER="${PATH_BASE}"
+
+## 自启动引导文件名
+BOOTLOADER_NAME="firewall-start"
+
+## 系统中的服务事件触发文件名
+SERVICE_EVENT_NAME="service-event"
+
+## 系统中的Open虚拟专网事件触发文件名
+OPENVPN_EVENT_NAME="openvpn-event"
+
+## Open虚拟专网事件触发接口文件名
+OPENVPN_EVENT_INTERFACE_NAME="lz_openvpn_event.sh"
+
+if [ "${1}" != "${SHOW_STATUS}" ] && [ "${1}" != "${ADDRESS_QUERY}" ] \
+    && [ "${1}" != "${FORCED_UNLOCKING}" ]; then
     {
         echo "$(lzdate)" [$$]:
         echo "$(lzdate)" [$$]: LZ "${LZ_VERSION}" script commands start......
@@ -164,7 +192,7 @@ if [ "${1}" != "${FORCED_UNLOCKING}" ]; then
     ## 运行实例处理
     sed -i -e '/^$/d' -e '/^[ ]*$/d' -e '1d' "${INSTANCE_LIST}" > /dev/null 2>&1
     if grep -q 'lz_' "${INSTANCE_LIST}" 2> /dev/null; then
-        local_instance=$( grep 'lz_' ${INSTANCE_LIST} | sed -n 1p | sed -e 's/^[ ]*//g' -e 's/[ ]*$//g' )
+        local_instance="$( grep 'lz_' ${INSTANCE_LIST} | sed -n 1p | sed -e 's/^[ ]*//g' -e 's/[ ]*$//g' )"
         if [ "${local_instance}" = "lz_${1}" ] && [ "${local_instance}" != "lz_${SHOW_STATUS}" ] \
             && [ "${local_instance}" != "lz_${ADDRESS_QUERY}" ]; then
             unset local_instance
@@ -188,6 +216,7 @@ fi
 ##     0--成功
 ##     1--失败
 lz_project_file_management() {
+    [ "${1}" = "${UNMOUNT_WEB_UI}" ] && return "0"
     ## 使项目文件部署路径、配置脚本、功能脚本和数据文件处于可运行状态
     [ ! -d "${PATH_LZ}" ] && mkdir -p "${PATH_LZ}" > /dev/null 2>&1
     chmod 775 "${PATH_LZ}" > /dev/null 2>&1
@@ -197,6 +226,8 @@ lz_project_file_management() {
     chmod 775 "${PATH_FUNC}" > /dev/null 2>&1
     [ ! -d "${PATH_DATA}" ] && mkdir -p "${PATH_DATA}" > /dev/null 2>&1
     chmod 775 "${PATH_DATA}" > /dev/null 2>&1
+    [ ! -d "${PATH_WEBS}" ] && mkdir -p "${PATH_WEBS}" > /dev/null 2>&1
+    chmod 775 "${PATH_WEBS}" > /dev/null 2>&1
     [ ! -d "${PATH_INTERFACE}" ] && mkdir -p "${PATH_INTERFACE}" > /dev/null 2>&1
     chmod 775 "${PATH_INTERFACE}" > /dev/null 2>&1
     [ ! -d "${PATH_TMP}" ] && mkdir -p "${PATH_TMP}" > /dev/null 2>&1
@@ -204,6 +235,7 @@ lz_project_file_management() {
     cd "${PATH_CONFIGS}/" > /dev/null 2>&1 && chmod -R 775 ./* > /dev/null 2>&1
     cd "${PATH_FUNC}/" > /dev/null 2>&1 && chmod -R 775 ./* > /dev/null 2>&1
     cd "${PATH_DATA}/" > /dev/null 2>&1 && chmod -R 775 ./* > /dev/null 2>&1
+    cd "${PATH_WEBS}/" > /dev/null 2>&1 && chmod -R 775 ./* > /dev/null 2>&1
     cd "${PATH_INTERFACE}/" > /dev/null 2>&1 && chmod -R 775 ./* > /dev/null 2>&1
     cd "${PATH_TMP}/" > /dev/null 2>&1 && chmod -R 775 ./* > /dev/null 2>&1
     cd "${PATH_LZ}/" > /dev/null 2>&1 && chmod -R 775 ./* > /dev/null 2>&1
@@ -238,10 +270,14 @@ lz_project_file_management() {
         echo "$(lzdate)" [$$]: The file "${PATH_FUNC}/lz_vpn_daemon.sh" does not exist. | tee -ai "${SYSLOG}" 2> /dev/null
         local_scripts_file_exist=0
     }
+    [ ! -f "${PATH_WEBS}/LZ_Policy_Routing_Content.asp" ] && {
+        echo "$(lzdate)" [$$]: The file "${PATH_WEBS}/LZ_Policy_Routing_Content.asp" does not exist. | tee -ai "${SYSLOG}" 2> /dev/null
+        local_scripts_file_exist=0
+    }
     if [ "${local_scripts_file_exist}" = "0" ]; then
         echo "$(lzdate)" [$$]: Policy routing service can\'t be started. | tee -ai "${SYSLOG}" 2> /dev/null
         [ "${1}" = "${ADDRESS_QUERY}" ] && echo "$(lzdate)" [$$]: ---------------------------------------------
-        return 1
+        return "1"
     fi
 
     ## 清除已作废的脚本代码及资源文件
@@ -254,16 +290,17 @@ lz_project_file_management() {
         rm -f "${PATH_CONFIGS}/lz_protocols.txt" > /dev/null 2>&1
     fi
 
-    return 0
+    return "0"
 }
 
 ## 更新DDNS服务函数
 ## 输入项：无
-## 返回值：无
+## 返回值：0
 lz_update_ddns() {
     [ "${UPDATE_DDNS_ENABLE}" ] \
         && [ "$( nvram get "ddns_enable_x" )" = "1" ] && [ "$( nvram get "ddns_updated" )" != "1" ] \
         && service restart_ddns_le > /dev/null 2>&1
+    return "0"
 }
 
 ## 运行实例检测函数
@@ -274,15 +311,15 @@ lz_update_ddns() {
 ##     0--有新实例开始运行
 ##     1--无新实例开始运行
 lz_check_instance() {
-    ! grep -q 'lz_' "${INSTANCE_LIST}" 2> /dev/null && return 1
+    ! grep -q 'lz_' "${INSTANCE_LIST}" 2> /dev/null && return "1"
     local local_instance="$( grep 'lz_' "${INSTANCE_LIST}" | sed -n 1p | sed -e 's/^[ ]*//g' -e 's/[ ]*$//g' )"
     if [ "${local_instance}" != "lz_${1}" ] || [ "${local_instance}" = "lz_${SHOW_STATUS}" ] \
         || [ "${local_instance}" = "lz_${ADDRESS_QUERY}" ]; then
-        return 1
+        return "1"
     fi
     drop_sys_caches="5"
     echo "$(lzdate)" [$$]: The policy routing service is being started by another instance. | tee -ai "${SYSLOG}" 2> /dev/null
-    return 0
+    return "0"
 }
 
 ## 实例退出处理函数
@@ -294,50 +331,352 @@ lz_instance_exit() {
     [ -f "${INSTANCE_LIST}" ] && ! grep -q 'lz_' "${INSTANCE_LIST}" && rm -f "${INSTANCE_LIST}" > /dev/null 2>&1
     [ -f "${LOCK_FILE}" ] && flock -u "${LOCK_FILE_ID}" > /dev/null 2>&1
     if [ "${drop_sys_caches}" = "0" ] && [ "${1}" != "${ISPIP_DATA_UPDATE}" ] && [ -f /proc/sys/vm/drop_caches ]; then
-        if [ "${1}" != "${SHOW_STATUS}" ] && [ "${1}" != "${ADDRESS_QUERY}" ] && [ "${1}" != "${FORCED_UNLOCKING}" ]; then
-            { ip route flush cache && sync && echo 3 > /proc/sys/vm/drop_caches && echo -e "$(lzdate) [$$]: LZ ${LZ_VERSION} Free Memory OK\n$(lzdate) [$$]:"; } | tee -ai "${SYSLOG}" 2> /dev/null
+        if [ "${1}" != "${SHOW_STATUS}" ] && [ "${1}" != "${ADDRESS_QUERY}" ] \
+            && [ "${1}" != "${FORCED_UNLOCKING}" ]; then
+            {
+                ip route flush cache \
+                && sync \
+                && echo 3 > /proc/sys/vm/drop_caches \
+                && printf "%s\n%s LZ %s Free Memory OK\n%s\n" "$(lzdate) [$$]:" "$(lzdate) [$$]:" "${LZ_VERSION}" "$(lzdate) [$$]:" | tee -ai "${SYSLOG}"
+            } 2> /dev/null
         else
-            { ip route flush cache && sync && echo 3 > /proc/sys/vm/drop_caches && { echo "$(lzdate) [$$]:" >> "${SYSLOG}"; echo -e "$(lzdate) [$$]: LZ ${LZ_VERSION} Free Memory OK\n$(lzdate) [$$]:" | tee -ai "${SYSLOG}" 2> /dev/null; }; } 2> /dev/null
+            { ip route flush cache && sync && echo 3 > /proc/sys/vm/drop_caches && printf "%s\n%s LZ %s Free Memory OK\n%s\n" "$(lzdate) [$$]:" "$(lzdate) [$$]:" "${LZ_VERSION}" "$(lzdate) [$$]:"; } 2> /dev/null
         fi
     fi
     ## 更新DDNS服务
     ## 输入项：无
-    ## 返回值：无
-    lz_update_ddns
+    ## 返回值：0
+    [ "${1}" != "${UNMOUNT_WEB_UI}" ] && lz_update_ddns
 }
 
-## 读取配置文件数据项函数
+## 创建事件接口函数
 ## 输入项：
-##     $1--数据项名称
-##     $2--数据项缺省值
-##     $3--配置文件全路径文件名
+##     $1--系统事件接口文件名
+##     $2--待接口文件所在路径
+##     $3--待接口文件名称
 ##     全局常量
 ## 返回值：
-##     0--数据项读取成功
-##     1--文件或数据项不存在，或数据项值缺失，均以数据项缺省值输出
-lz_get_config_data_item() {
-    local local_retval="0"
-    local local_data_item="$( grep -m 1 "^[ ]*${1}=" "${3}" 2> /dev/null \
-        | sed -e 's/[#].*$//g' -e 's/^[ \t]*//g' -e 's/[ \t][ \t]*/ /g' -e 's/^\([^=]*[=][^ =]*\).*$/\1/g' \
-        -e 's/^\(.*[=][^\"][^\"]*\).*$/\1/g' -e 's/^\(.*[=][\"][^\"]*[\"]\).*$/\1/g' -e 's/^\(.*[=]\)[\"][^\"]*$/\1/g' \
-        | awk -F "=" '{if ($2 == "" && "'"${2}"'" != "") print "#LOSE#"; else if ($2 == "" && "'"${2}"'" == "") print "#DEFAULT#"; else print $2}' \
-        | sed 's/\"//g' )"
-    if [ -z "${local_data_item}" ]; then
-        local_data_item="${2}"
-        local_retval="1"
-    elif [ "${local_data_item}" = "#LOSE#" ]; then
-        local_data_item="${2}"
-        local_retval="1"
-    elif [ "${local_data_item}" = "#DEFAULT#" ]; then
-        local_data_item="${2}"
+##     0--成功
+##     1--失败
+lz_create_event_interface() {
+    [ ! -d "${PATH_BOOTLOADER}" ] && mkdir -p "${PATH_BOOTLOADER}"
+    if [ ! -f "${PATH_BOOTLOADER}/${1}" ]; then
+        cat > "${PATH_BOOTLOADER}/${1}" 2> /dev/null <<EOF_INTERFACE
+#!/bin/sh
+EOF_INTERFACE
     fi
-    echo "${local_data_item}"
-    return "${local_retval}"
+    [ ! -f "${PATH_BOOTLOADER}/${1}" ] && return "1"
+    if ! grep -m 1 '^.*$' "${PATH_BOOTLOADER}/${1}" | grep -q "#!/bin/sh"; then
+        if [ "$( grep -c '^.*$' "${PATH_BOOTLOADER}/${1}" )" = "0" ]; then
+            echo "#!/bin/sh" >> "${PATH_BOOTLOADER}/${1}"
+        elif grep '^.*$' "${PATH_BOOTLOADER}/${1}" | grep -q "#!/bin/sh"; then
+            sed -i -e '/!\/bin\/sh/d' -e '1i #!\/bin\/sh' "${PATH_BOOTLOADER}/${1}"
+        else
+            sed -i '1i #!\/bin\/sh' "${PATH_BOOTLOADER}/${1}"
+        fi
+    else
+        ! grep -m 1 '^.*$' "${PATH_BOOTLOADER}/${1}" | grep -q "^#!/bin/sh" \
+            && sed -i 'l1 s:^.*\(#!/bin/sh.*$\):\1/g' "${PATH_BOOTLOADER}/${1}"
+    fi
+    if ! grep -q "${2}/${3}" "${PATH_BOOTLOADER}/${1}"; then
+        sed -i "/${3}/d" "${PATH_BOOTLOADER}/${1}"
+        sed -i "\$a ${2}/${3} # Added by LZ" "${PATH_BOOTLOADER}/${1}"
+    fi
+    chmod +x "${PATH_BOOTLOADER}/${1}"
+    ! grep -q "${2}/${3}" "${PATH_BOOTLOADER}/${1}" && return "1"
+    return "0"
 }
+
+## 创建firewall-start启动文件并添加脚本引导项函数
+## 输入项：
+##     全局常量
+## 返回值：无
+lz_create_firewall_start_command() {
+    ## 创建事件接口
+    ## 输入项：
+    ##     $1--系统事件接口文件名
+    ##     $2--待接口文件所在路径
+    ##     $3--待接口文件名称
+    ##     全局常量
+    ## 返回值：
+    ##     0--成功
+    ##     1--失败
+    if lz_create_event_interface "${BOOTLOADER_NAME}" "${PATH_LZ}" "${PROJECT_FILENAME}"; then
+        echo "$(lzdate)" [$$]: "Successfully registered firewall-start interface." | tee -ai "${SYSLOG}" 2> /dev/null
+    else
+        echo "$(lzdate)" [$$]: "firewall-start interface registration failed." | tee -ai "${SYSLOG}" 2> /dev/null
+    fi
+}
+
+## 清除firewall-start中脚本引导项函数
+## 输入项：
+##     全局常量
+## 返回值：
+##     0--清除成功
+##     1--未清除
+lz_clear_firewall_start_command() {
+    if [ -f "${PATH_BOOTLOADER}/${BOOTLOADER_NAME}" ]; then
+        if grep -q "${PROJECT_FILENAME}" "${PATH_BOOTLOADER}/${BOOTLOADER_NAME}"; then
+            sed -i "/${PROJECT_FILENAME}/d" "${PATH_BOOTLOADER}/${BOOTLOADER_NAME}" > /dev/null 2>&1
+            echo "$(lzdate)" [$$]: "Successfully unregistered firewall-start interface." | tee -ai "${SYSLOG}" 2> /dev/null
+            return "0"
+        fi
+    fi
+    return "1"
+}
+
+## 清除openvpn-event中命令行函数
+## 输入项：
+##     $1--主执行脚本运行输入参数
+##     全局常量
+## 返回值：
+##     0--清除成功
+##     1--未清除
+lz_clear_openvpn_event_command() {
+    local retval="1"
+    [ -f "${PATH_BOOTLOADER}/${OPENVPN_EVENT_NAME}" ] && {
+        if grep -q "${OPENVPN_EVENT_INTERFACE_NAME}" "${PATH_BOOTLOADER}/${OPENVPN_EVENT_NAME}"; then
+            sed -i "/${OPENVPN_EVENT_INTERFACE_NAME}/d" "${PATH_BOOTLOADER}/${OPENVPN_EVENT_NAME}" > /dev/null 2>&1
+            echo "$(lzdate)" [$$]: "Successfully unregistered openvpn-event interface." | tee -ai "${SYSLOG}" 2> /dev/null
+            retval="0"
+        fi
+    }
+    [ "${1}" = "STOP" ] && [ -f "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}" ] && {
+        rm -f "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}" > /dev/null 2>&1
+    }
+    return "${retval}"
+}
+
+## 创建服务事件接口函数
+## 输入项：
+##     $1--系统服务事件接口文件名
+##     $2--待执行的命令行
+##     $3--命令行检索字符串
+##     $4--命令行关键字符串
+##     全局常量
+## 返回值：
+##     0--成功
+##     1--失败
+lz_create_service_event_interface() {
+    [ ! -d "${PATH_BOOTLOADER}" ] && mkdir -p "${PATH_BOOTLOADER}"
+    if [ ! -f "${PATH_BOOTLOADER}/${1}" ]; then
+        cat > "${PATH_BOOTLOADER}/${1}" 2> /dev/null <<EOF_SERVICE_INTERFACE
+#!/bin/sh
+EOF_SERVICE_INTERFACE
+    fi
+    [ ! -f "${PATH_BOOTLOADER}/${1}" ] && return "1"
+    if ! grep -m 1 '^.*$' "${PATH_BOOTLOADER}/${1}" | grep -q "#!/bin/sh"; then
+        if [ "$( grep -c '^.*$' "${PATH_BOOTLOADER}/${1}" )" = "0" ]; then
+            echo "#!/bin/sh" >> "${PATH_BOOTLOADER}/${1}"
+        elif grep '^.*$' "${PATH_BOOTLOADER}/${1}" | grep -q "#!/bin/sh"; then
+            sed -i -e '/!\/bin\/sh/d' -e '1i #!\/bin\/sh' "${PATH_BOOTLOADER}/${1}"
+        else
+            sed -i '1i #!\/bin\/sh' "${PATH_BOOTLOADER}/${1}"
+        fi
+    else
+        ! grep -m 1 '^.*$' "${PATH_BOOTLOADER}/${1}" | grep -q "^#!/bin/sh" \
+            && sed -i 'l1 s:^.*\(#!/bin/sh.*$\):\1/g' "${PATH_BOOTLOADER}/${1}"
+    fi
+    if ! grep -qE "${3}" "${PATH_BOOTLOADER}/${1}"; then
+        sed -i "/${4}/d" "${PATH_BOOTLOADER}/${1}"
+        echo "${2} # Added by LZ" >>  "${PATH_BOOTLOADER}/${1}"
+    fi
+    chmod +x "${PATH_BOOTLOADER}/${1}"
+    ! grep -qE "${3}" "${PATH_BOOTLOADER}/${1}" && return "1"
+    return "0"
+}
+
+## 清除service-event中的事件服务命令行函数
+## 输入项：
+##     全局常量
+## 返回值：
+##     0--清除成功
+##     1--未清除
+lz_clear_service_event_command() {
+    if [ -f "${PATH_BOOTLOADER}/${SERVICE_EVENT_NAME}" ] \
+        && grep -q "${PROJECT_FILENAME}" "${PATH_BOOTLOADER}/${SERVICE_EVENT_NAME}"; then
+        sed -i "/${PROJECT_FILENAME}/d" "${PATH_BOOTLOADER}/${SERVICE_EVENT_NAME}" > /dev/null 2>&1
+        return "0"
+    fi
+    return "1"
+}
+
+## 创建service-event服务事件引导文件函数
+## 输入项：
+##     $1--主执行脚本运行输入参数
+##     全局常量
+## 返回值：无
+lz_create_service_event_command() {
+    local cmd_str="if echo \"\${2}\" | /bin/grep -q \"LZRule\"; then if [ \"\${1}\" = \"start\" ] || [ \"\${1}\" = \"restart\" ]; then \"${PATH_LZ}/${PROJECT_FILENAME}\"; elif [ \"\${1}\" = \"stop\" ]; then \"${PATH_LZ}/${PROJECT_FILENAME}\" \"STOP\"; fi fi"
+    local key_str="LZRule.*start.*restart.*${PATH_LZ}/${PROJECT_FILENAME}.*stop.*${PATH_LZ}/${PROJECT_FILENAME}.*STOP"
+    ## 创建服务事件接口
+    ## 输入项：
+    ##     $1--系统服务事件接口文件名
+    ##     $2--待执行的命令行
+    ##     $3--命令行检索字符串
+    ##     $4--命令行关键字符串
+    ##     全局常量
+    ## 返回值：
+    ##     0--成功
+    ##     1--失败
+    if lz_create_service_event_interface "${SERVICE_EVENT_NAME}" "${cmd_str}" "${key_str}" "LZRule"; then
+        if [ "${1}" = "stop" ] || [ "${1}" = "STOP" ]; then
+            echo "$(lzdate)" [$$]: "The service-event interface has continued to register." | tee -ai "${SYSLOG}" 2> /dev/null
+        else
+            echo "$(lzdate)" [$$]: "Successfully registered service-event interface." | tee -ai "${SYSLOG}" 2> /dev/null
+        fi
+    else
+        echo "$(lzdate)" [$$]: "service-event interface registration failed." | tee -ai "${SYSLOG}" 2> /dev/null
+        ## 清除service-event中的事件服务命令行
+        ## 输入项：
+        ##     全局常量
+        ## 返回值：
+        ##     0--清除成功
+        ##     1--未清除
+        lz_clear_service_event_command
+    fi
+}
+
+## 获取WEB可用页面名称函数
+## 输入项：
+##     $1--原始页面全路径文件名
+##     全局常量
+## 返回值：
+##     页面名称
+lz_get_webui_page() {
+    local page_name="" i="1"
+    until [ "${i}" -gt "20" ]; do
+        if [ -f "${PATH_WEBPAGE}/user${i}.asp" ]; then
+            if grep -q 'match(/QnkgTFog5aaZ5aaZ5ZGc77yI6Juk6J\[\\[\+]\]G5aKp5YS\[\\/\]77yJ/m)' "${PATH_WEBPAGE}/user${i}.asp" 2> /dev/null; then
+                page_name="user${i}.asp"
+                break
+            fi
+        elif [ -z "${page_name}" ] && [ ! -f "${PATH_WEBPAGE}/user${i}.asp" ]; then
+            page_name="user${i}.asp"
+        fi
+        i="$(( i + 1 ))"
+    done
+    echo "${page_name}"
+}
+
+## 卸载WEB界面函数
+## 输入项：
+##     全局常量
+## 返回值：无
+lz_unmount_web_ui() {
+    if [ -d "${PATH_WEBPAGE}" ]; then
+        umount "/www/require/modules/menuTree.js" > /dev/null 2>&1
+        local page_name="$( lz_get_webui_page )"
+        if [ -n "${page_name}" ]; then
+            [ -f "/tmp/menuTree.js" ] && sed -i "/${page_name}/d" "/tmp/menuTree.js" 2> /dev/null
+            rm -f "${PATH_WEBPAGE}/${page_name}" > /dev/null 2>&1
+            rm -f "${PATH_WEBPAGE}/${page_name%.*}.title" > /dev/null 2>&1
+        fi
+        [ -d "${PATH_WEB_LZR}" ] && rm -rf "${PATH_WEB_LZR}" > /dev/null 2>&1
+        lz_clear_service_event_command
+    fi
+}
+
+## 挂载WEB界面函数
+## 输入项：
+##     全局常量
+## 返回值：
+##     0--成功
+##     1--失败
+lz_mount_web_ui() {
+    local retval="1"
+    while true
+    do
+        ! nvram get rc_support | grep -q "am_addons" && break
+        if [ ! -d "${PATH_ADDONS}" ]; then
+            mkdir -p "${PATH_ADDONS}" > /dev/null 2>&1
+            [ ! -d "${PATH_ADDONS}" ] && break
+        fi
+        if [ ! -d "${PATH_WEB_LZR}" ]; then
+            mkdir -p "${PATH_WEB_LZR}" > /dev/null 2>&1
+            [ ! -d "${PATH_WEB_LZR}" ] && break
+        fi
+        rm -f "$PATH_WEB_LZR/"* > /dev/null 2>&1
+        ln -s "${PATH_BOOTLOADER}/${BOOTLOADER_NAME}" "${PATH_WEB_LZR}/LZRState.html" > /dev/null 2>&1
+        ln -s "${PATH_LZ}/${PROJECT_FILENAME}" "${PATH_WEB_LZR}/LZRVersion.html" > /dev/null 2>&1
+        ln -s "${PATH_CONFIGS}/lz_rule_config.sh" "${PATH_WEB_LZR}/LZRConfig.html" > /dev/null 2>&1
+        ln -s "${PATH_CONFIGS}/lz_rule_config.box" "${PATH_WEB_LZR}/LZRBKData.html" > /dev/null 2>&1
+        ln -s "${PATH_FUNC}/lz_define_global_variables.sh" "${PATH_WEB_LZR}/LZRGlobal.html" > /dev/null 2>&1
+        ! which md5sum > /dev/null 2>&1 && break
+        local page_name="$( lz_get_webui_page )"
+        [ -z "${page_name}" ] && break
+        if [ ! -f "${PATH_WEBPAGE}/${page_name}" ]; then
+            cp -f "${PATH_WEBS}/LZ_Policy_Routing_Content.asp" "${PATH_WEBPAGE}/${page_name}" > /dev/null 2>&1
+        elif [ "$( md5sum < "${PATH_WEBS}/LZ_Policy_Routing_Content.asp" )" != "$( md5sum < "${PATH_WEBPAGE}/${page_name}" )" ]; then
+            cp -f "${PATH_WEBS}/LZ_Policy_Routing_Content.asp" "${PATH_WEBPAGE}/${page_name}" > /dev/null 2>&1
+        fi
+        echo "${PROJECT_ID}" > "${PATH_WEBPAGE}/${page_name%.*}.title"
+        [ ! -f "${PATH_WEBPAGE}/${page_name}" ] && break
+        [ ! -f "/www/require/modules/menuTree.js" ] && break
+		umount "/www/require/modules/menuTree.js" > /dev/null 2>&1
+		if [ ! -f "/tmp/menuTree.js" ]; then
+			cp -f "/www/require/modules/menuTree.js" "/tmp/" > /dev/null 2>&1
+            [ ! -f "/tmp/menuTree.js" ] && break
+		fi
+		sed -i "/${page_name}/d" "/tmp/menuTree.js" 2> /dev/null
+		sed -i "/{url: \"Advanced_WANPort_Content.asp\", tabName:.*},/a {url: \"${page_name}\", tabName: \"策略路由\"}," "/tmp/menuTree.js" 2> /dev/null
+		mount -o bind "/tmp/menuTree.js" "/www/require/modules/menuTree.js" > /dev/null 2>&1
+        ! grep -q "{url: \"${page_name}\", tabName:.*}," "/www/require/modules/menuTree.js" 2> /dev/null && break
+        retval="0"
+        break
+    done
+    [ "${retval}" != "0" ] && lz_unmount_web_ui
+    return "${retval}"
+}
+
 
 ## ---------------------主执行脚本---------------------
 
 __lz_main() {
+    ## 挂载WEB界面
+    ## 输入项：
+    ##     全局常量
+    ## 返回值：
+    ##     0--成功
+    ##     1--失败
+    if lz_mount_web_ui; then
+        if [ "${1}" = "stop" ] || [ "${1}" = "STOP" ]; then
+            echo "$(lzdate)" [$$]: Policy Routing Web UI has continued to mount. | tee -ai "${SYSLOG}" 2> /dev/null
+        else
+            echo "$(lzdate)" [$$]: Successfully mounted Policy Routing Web UI. | tee -ai "${SYSLOG}" 2> /dev/null
+        fi
+        ## 创建service-event服务事件引导文件
+        ## 输入项：
+        ##     $1--主执行脚本运行输入参数
+        ##     全局常量
+        ## 返回值：无
+        lz_create_service_event_command "${1}"
+    fi
+
+    if [ "${1}" = "stop" ] || [ "${1}" = "STOP" ]; then
+        ## 清除openvpn-event中命令行
+        ## 输入项：
+        ##     $1--主执行脚本运行输入参数
+        ##     全局常量
+        ## 返回值：
+        ##     0--清除成功
+        ##     1--未清除
+        lz_clear_openvpn_event_command "${1}"
+
+        ## 清除firewall-start中脚本引导项
+        ## 输入项：
+        ##     全局常量
+        ## 返回值：
+        ##     0--清除成功
+        ##     1--未清除
+        [ "${1}" = "STOP" ] && lz_clear_firewall_start_command
+    else
+        ## 创建firewall-start启动文件并添加脚本引导项
+        ## 输入项：
+        ##     全局常量
+        ## 返回值：无
+        lz_create_firewall_start_command
+    fi
 
     echo "$(lzdate)" [$$]: Initialization script configuration parameters...... | tee -ai "${SYSLOG}" 2> /dev/null
 
@@ -455,10 +794,8 @@ __lz_main() {
         ## 输入项：
         ##     $1--主执行脚本运行输入参数
         ##     全局常量
-        ##     0--清除事件接口成功
-        ##     1--未清除事件接口
-        lz_clear_interface_scripts "${1}" && \
-            echo "$(lzdate)" [$$]: --------------------------------------------- | tee -ai "${SYSLOG}" 2> /dev/null
+        ## 返回值：无
+        lz_clear_interface_scripts "${1}"
 
         ## 输出IPTV规则条目数至系统记录
         ## 输出当前单项分流规则的条目数至系统记录
@@ -503,12 +840,6 @@ __lz_main() {
 
         return
     fi
-
-    ## 创建firewall-start启动文件并添加脚本引导项
-    ## 输入项：
-    ##     全局常量
-    ## 返回值：无
-    lz_create_firewall_start_command
 
     ## 创建更新ISP网络运营商CIDR网段数据的脚本文件及定时任务
     ## 输入项：
@@ -584,14 +915,22 @@ __lz_main() {
         ## 返回值：无
         lz_start_single_net_iptv_box_services "${1}"
 
+        ## 清除openvpn-event中命令行
+        ## 输入项：
+        ##     $1--主执行脚本运行输入参数
+        ##     全局常量
+        ## 返回值：
+        ##     0--清除成功
+        ##     1--未清除
+        lz_clear_openvpn_event_command "${1}" && \
+            echo "$(lzdate)" [$$]: --------------------------------------------- | tee -ai "${SYSLOG}" 2> /dev/null
+
         ## 清除接口脚本文件
         ## 输入项：
         ##     $1--主执行脚本运行输入参数
         ##     全局常量
-        ##     0--清除事件接口成功
-        ##     1--未清除事件接口
-        lz_clear_interface_scripts "${1}" && \
-            echo "$(lzdate)" [$$]: --------------------------------------------- | tee -ai "${SYSLOG}" 2> /dev/null
+        ## 返回值：无
+        lz_clear_interface_scripts "${1}"
 
         ## 输出IPTV规则条目数至系统记录
         ## 输出当前单项分流规则的条目数至系统记录
@@ -630,14 +969,22 @@ __lz_main() {
             echo "$(lzdate)" [$$]: ---------------------------------------------
         } | tee -ai "${SYSLOG}" 2> /dev/null
 
+        ## 清除openvpn-event中命令行
+        ## 输入项：
+        ##     $1--主执行脚本运行输入参数
+        ##     全局常量
+        ## 返回值：
+        ##     0--清除成功
+        ##     1--未清除
+        lz_clear_openvpn_event_command "${1}" && \
+            echo "$(lzdate)" [$$]: --------------------------------------------- | tee -ai "${SYSLOG}" 2> /dev/null
+
         ## 清除接口脚本文件
         ## 输入项：
         ##     $1--主执行脚本运行输入参数
         ##     全局常量
-        ##     0--清除事件接口成功
-        ##     1--未清除事件接口
-        lz_clear_interface_scripts "${1}" && \
-            echo "$(lzdate)" [$$]: --------------------------------------------- | tee -ai "${SYSLOG}" 2> /dev/null
+        ## 返回值：无
+        lz_clear_interface_scripts "STOP"
         {
             echo "$(lzdate)" [$$]: "   No policy rule in use."
             echo "$(lzdate)" [$$]: ---------------------------------------------
@@ -646,7 +993,18 @@ __lz_main() {
     fi
 }
 
-drop_sys_caches="$( lz_get_config_data_item "lz_config_drop_sys_caches" "0" "${PATH_CONFIGS}/lz_rule_config.box" )"
+drop_sys_caches=0
+if [ -f "${PATH_CONFIGS}/lz_rule_config.box" ]; then
+    eval "$( awk -F "=" '$1 == "lz_config_drop_sys_caches" {
+            key=$1;
+            sub(/^lz_config_/, "", key);
+            value=$2;
+            gsub(/[ \t#].*$/, "", value);
+            if (value !~ /^[0-9]$/)
+                value=0
+            print key"="value;
+        }' "${PATH_CONFIGS}/lz_rule_config.box" )"
+fi
 
 ## 项目文件管理
 ## 输入项：
@@ -693,6 +1051,10 @@ if lz_project_file_management "${1}"; then
         else
             eval "${CALL_FUNC_SUBROUTINE}/lz_rule_address_query.sh" "${2}" "${3}"
         fi
+    elif [ "${1}" = "${UNMOUNT_WEB_UI}" ]; then
+        ## 卸载WEB界面
+        lz_unmount_web_ui
+        echo "$(lzdate)" [$$]: Policy Routing Web UI has been unmounted. | tee -ai "${SYSLOG}" 2> /dev/null
     else
         ## 极限情况下文件锁偶有锁不住的情况发生，与预期不符。利用系统自带的策略路由数据库做进程间异步模式同步，
         ## 虽会降低些效率，代码也不好看，但作为同步过程中的二次防御手段还是很值得。一旦脚本执行过程中意外中断，
@@ -738,17 +1100,16 @@ if lz_project_file_management "${1}"; then
 				ip rule show | awk -F: '/from 168.168.168.168 to 169.169.169.169/ {system("ip rule del prio "$1" > /dev/null 2>&1")}'
                 ip route flush cache > /dev/null 2>&1
             done
-
             ## 刷新系统cache，使上述命令立即生效
             ip route flush cache > /dev/null 2>&1
-
         else
             echo "$(lzdate)" [$$]: The policy routing service is being started by another instance. | tee -ai "${SYSLOG}" 2> /dev/null
         fi
     fi
 fi
 
-if [ "${1}" != "${SHOW_STATUS}" ] && [ "${1}" != "${ADDRESS_QUERY}" ] && [ "${1}" != "${FORCED_UNLOCKING}" ]; then
+if [ "${1}" != "${SHOW_STATUS}" ] && [ "${1}" != "${ADDRESS_QUERY}" ] \
+    && [ "${1}" != "${FORCED_UNLOCKING}" ]; then
     {
         echo "$(lzdate)" [$$]: ---------------------------------------------
         echo "$(lzdate)" [$$]: LZ "${LZ_VERSION}" script commands executed!

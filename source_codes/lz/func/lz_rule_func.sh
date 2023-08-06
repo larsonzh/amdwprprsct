@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v4.0.5
+# lz_rule_func.sh v4.0.6
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 #BEIGIN
@@ -16,13 +16,14 @@
 ##     $1--主执行脚本运行输入参数
 ## 返回值：无
 lz_load_ipset_module() {
-    if [ "${1}" = "stop" ] || [ "${1}" = "STOP" ]; then return 0; fi;
+    if [ "${1}" = "stop" ] || [ "${1}" = "STOP" ]; then return "0"; fi;
     local xt="$( lsmod | grep "xt_set" )" > /dev/null 2>&1
     local OS="$( uname -r )"
     if [ -f "/lib/modules/${OS}/kernel/net/netfilter/xt_set.ko" ] && [ -z "${xt}" ]; then
         echo "$(lzdate)" [$$]: Load xt_set.ko kernel module. | tee -ai "${SYSLOG}" 2> /dev/null
         insmod "/lib/modules/${OS}/kernel/net/netfilter/xt_set.ko" > /dev/null 2>&1
     fi
+    return "0"
 }
 
 ## 加载hashlimit组件函数
@@ -30,13 +31,14 @@ lz_load_ipset_module() {
 ##     $1--主执行脚本运行输入参数
 ## 返回值：无
 lz_load_hashlimit_module() {
-    if [ "${1}" = "stop" ] || [ "${1}" = "STOP" ]; then return 0; fi;
+    if [ "${1}" = "stop" ] || [ "${1}" = "STOP" ]; then return "0"; fi;
     local xt="$( lsmod | grep "xt_hashlimit" )" > /dev/null 2>&1
     local OS="$( uname -r )"
     if [ -f "/lib/modules/${OS}/kernel/net/netfilter/xt_hashlimit.ko" ] && [ -z "${xt}" ]; then
         echo "$(lzdate)" [$$]: Load xt_hashlimit.ko kernel module. | tee -ai "${SYSLOG}" 2> /dev/null
         insmod "/lib/modules/${OS}/kernel/net/netfilter/xt_hashlimit.ko" > /dev/null 2>&1
     fi
+    return "0"
 }
 
 ## 创建项目启动运行标识函数
@@ -257,7 +259,7 @@ lz_get_all_isp_data_item_total() {
     do
         eval "isp_data_${local_index}_item_total=$( lz_get_isp_data_item_total "${local_index}" )"
         isp_data_0_item_total="$(( isp_data_0_item_total + $( lz_get_isp_data_item_total_variable "${local_index}" ) ))"
-        let local_index++
+        local_index="$(( local_index + 1 ))"
     done
 }
 
@@ -271,7 +273,7 @@ lz_adjust_isp_wan_port() {
     until [ "${local_index}" -gt "${ISP_TOTAL}" ]
     do
         eval "isp_wan_port_${local_index}=${1}"
-        let local_index++
+        local_index="$(( local_index + 1 ))"
     done
 }
 
@@ -476,8 +478,8 @@ lz_get_policy_mode() {
     ##     1--失败
     lz_adjust_traffic_policy && adjust_traffic_policy="0"
 
-    ! ip route show | grep -q nexthop && policy_mode="5" && return 1
-    [ "${usage_mode}" = "0" ] && policy_mode="5" && return 1
+    ! ip route show | grep -q nexthop && policy_mode="5" && return "1"
+    [ "${usage_mode}" = "0" ] && policy_mode="5" && return "1"
 
     local_wan1_isp_addr_total="0"
     local_wan2_isp_addr_total="0"
@@ -495,11 +497,11 @@ lz_get_policy_mode() {
     llz_cal_equal_division() {
         local local_equal_division_total="$( lz_get_isp_data_item_total_variable "${1}" )"
         if [ "${2}" != "1" ]; then
-            let local_wan1_isp_addr_total+="$(( local_equal_division_total/2 + local_equal_division_total%2 ))"
-            let local_wan2_isp_addr_total+="$(( local_equal_division_total/2 ))"
+            local_wan1_isp_addr_total="$(( local_wan1_isp_addr_total + local_equal_division_total/2 + local_equal_division_total%2 ))"
+            local_wan2_isp_addr_total="$(( local_wan2_isp_addr_total + local_equal_division_total/2 ))"
         else
-            let local_wan1_isp_addr_total+="$(( local_equal_division_total/2 ))"
-            let local_wan2_isp_addr_total+="$(( local_equal_division_total/2 + local_equal_division_total%2 ))"
+            local_wan1_isp_addr_total="$(( local_wan1_isp_addr_total + local_equal_division_total/2 ))"
+            local_wan2_isp_addr_total="$(( local_wan2_isp_addr_total +local_equal_division_total/2 + local_equal_division_total%2 ))"
         fi
     }
 
@@ -514,8 +516,11 @@ lz_get_policy_mode() {
     ##     local_wan2_isp_addr_total--第二WAN口网段条目累计值
     llz_cal_isp_equal_division() {
         local local_isp_wan_port="$( lz_get_isp_wan_port "${1}" )"
-        [ "${local_isp_wan_port}" = "0" ] && let local_wan1_isp_addr_total+="$( lz_get_isp_data_item_total_variable "${1}" )"
-        [ "${local_isp_wan_port}" = "1" ] && let local_wan2_isp_addr_total+="$( lz_get_isp_data_item_total_variable "${1}" )"
+        local isp_total="0"
+        { [ "${local_isp_wan_port}" = "0" ] || [ "${local_isp_wan_port}" = "1" ]; } \
+            && custou_total="$( lz_get_isp_data_item_total_variable "${1}" )"
+        [ "${local_isp_wan_port}" = "0" ] && local_wan1_isp_addr_total="$(( local_wan1_isp_addr_total + isp_total ))"
+        [ "${local_isp_wan_port}" = "1" ] && local_wan2_isp_addr_total="$(( local_wan2_isp_addr_total + isp_total ))"
         ## 计算均分出口时两WAN口网段条目累计值
         ## 输入项：
         ##     $1--ISP网络运营商索引号（0~10）
@@ -546,14 +551,19 @@ lz_get_policy_mode() {
         ##     local_wan1_isp_addr_total--第一WAN口网段条目累计值
         ##     local_wan2_isp_addr_total--第二WAN口网段条目累计值
         llz_cal_isp_equal_division "${local_index}"
-        let local_index++
+        local_index="$(( local_index + 1 ))"
     done
 
-    [ "${custom_data_wan_port_1}" = "0" ] && let local_wan1_isp_addr_total+="$( lz_get_ipv4_data_file_valid_item_total "${custom_data_file_1}" )"
-    [ "${custom_data_wan_port_1}" = "1" ] && let local_wan2_isp_addr_total+="$( lz_get_ipv4_data_file_valid_item_total "${custom_data_file_1}" )"
+    local custou_total="0"
+    { [ "${custom_data_wan_port_1}" = "0" ] || [ "${custom_data_wan_port_1}" = "1" ]; } \
+        && custou_total="$( lz_get_ipv4_data_file_valid_item_total "${custom_data_file_1}" )"
+    [ "${custom_data_wan_port_1}" = "0" ] && local_wan1_isp_addr_total="$(( local_wan1_isp_addr_total + custou_total ))"
+    [ "${custom_data_wan_port_1}" = "1" ] && local_wan2_isp_addr_total="$(( local_wan2_isp_addr_total + custou_total ))"
 
-    [ "${custom_data_wan_port_2}" = "0" ] && let local_wan1_isp_addr_total+="$( lz_get_ipv4_data_file_valid_item_total "${custom_data_file_2}" )"
-    [ "${custom_data_wan_port_2}" = "1" ] && let local_wan2_isp_addr_total+="$( lz_get_ipv4_data_file_valid_item_total "${custom_data_file_2}" )"
+    { [ "${custom_data_wan_port_2}" = "0" ] || [ "${custom_data_wan_port_2}" = "1" ]; } \
+        && custou_total="$( lz_get_ipv4_data_file_valid_item_total "${custom_data_file_2}" )"
+    [ "${custom_data_wan_port_2}" = "0" ] && local_wan1_isp_addr_total="$(( local_wan1_isp_addr_total + custou_total ))"
+    [ "${custom_data_wan_port_2}" = "1" ] && local_wan2_isp_addr_total="$(( local_wan2_isp_addr_total + custou_total ))"
 
     if [ "${local_wan1_isp_addr_total}" -lt "${local_wan2_isp_addr_total}" ]; then policy_mode="0"; else policy_mode="1"; fi;
     [ "${isp_wan_port_0}" = "0" ] && policy_mode="1"
@@ -562,7 +572,7 @@ lz_get_policy_mode() {
     unset local_wan1_isp_addr_total
     unset local_wan2_isp_addr_total
 
-    return 0
+    return "0"
 }
 
 ## 计算8位掩码数的位数函数
@@ -573,21 +583,21 @@ lz_get_policy_mode() {
 lz_cal_8bit_mask_bit_counter() {
     local local_mask_bit_counter="0"
     if [ "${1}" -ge "255" ]; then
-        let local_mask_bit_counter+="8"
+        local_mask_bit_counter="$(( local_mask_bit_counter + 8 ))"
     elif [ "${1}" -ge "128" ]; then
-        let local_mask_bit_counter++
+        local_mask_bit_counter="$(( local_mask_bit_counter + 1 ))"
         if [ "${1}" -ge "192" ]; then
-            let local_mask_bit_counter++
+            local_mask_bit_counter="$(( local_mask_bit_counter + 1 ))"
             if [ "${1}" -ge "224" ]; then
-                let local_mask_bit_counter++
+                local_mask_bit_counter="$(( local_mask_bit_counter + 1 ))"
                 if [ "${1}" -ge "240" ]; then
-                    let local_mask_bit_counter++
+                    local_mask_bit_counter="$(( local_mask_bit_counter + 1 ))"
                     if [ "${1}" -ge "248" ]; then
-                        let local_mask_bit_counter++
+                        local_mask_bit_counter="$(( local_mask_bit_counter + 1 ))"
                         if [ "${1}" -ge "252" ]; then
-                            let local_mask_bit_counter++
+                            local_mask_bit_counter="$(( local_mask_bit_counter + 1 ))"
                             if [ "${1}" -ge "254" ]; then
-                                let local_mask_bit_counter++
+                                local_mask_bit_counter="$(( local_mask_bit_counter + 1 ))"
                             fi
                         fi
                     fi
@@ -1103,7 +1113,7 @@ lz_delete_ip_rule_output_syslog() {
                 ip_rule_exist="$( ip rule show | grep -c "^${local_ip_rule_prio_no}:" )"
             done
         fi
-        let local_ip_rule_prio_no++
+        local_ip_rule_prio_no="$(( local_ip_rule_prio_no + 1 ))"
     done
     ip route flush cache > /dev/null 2>&1
     [ "${local_statistics_show}" = "0" ] && echo "$(lzdate)" [$$]: "   No policy rule in use." | tee -ai "${SYSLOG}" 2> /dev/null
@@ -1426,13 +1436,14 @@ lz_set_hnd_bcmmcast_if() {
         bcmmcastctl show -i "${1}" 2> /dev/null | grep -q MLD && {
             if [ "${2}" = "0" ] || [ "${2}" = "2" ]; then
                 bcmmcastctl rate -i "${1}" -p 2 -r 0  > /dev/null 2>&1
-                bcmmcastctl mode -i "${1}" -p 2 -m "${3}" > /dev/null 2>&1 && let reval++
+                bcmmcastctl mode -i "${1}" -p 2 -m "${3}" > /dev/null 2>&1 && reval="$(( reval + 1 ))"
             fi
+
         }
         bcmmcastctl show -i "${1}" 2> /dev/null | grep -q IGMP && {
             if [ "${2}" = "0" ] || [ "${2}" = "1" ]; then
                 bcmmcastctl rate -i "${1}" -p 1 -r 0  > /dev/null 2>&1
-                bcmmcastctl mode -i "${1}" -p 1 -m "${3}" > /dev/null 2>&1 && let reval++
+                bcmmcastctl mode -i "${1}" -p 1 -m "${3}" > /dev/null 2>&1 && reval="$(( reval + 1 ))"
             fi
         }
         bcmmcastctl blog -e 1  > /dev/null 2>&1
@@ -1704,34 +1715,12 @@ lz_ip_rule_output_syslog() {
             echo "$(lzdate)" [$$]: "   ip_rule_prio_${local_ip_rule_prio_no} = ${local_ip_rule_exist}" | tee -ai "${SYSLOG}" 2> /dev/null
             local_statistics_show="1"
         }
-        let local_ip_rule_prio_no++
+        local_ip_rule_prio_no="$(( local_ip_rule_prio_no + 1 ))"
     done
     [ "${local_statistics_show}" = "0" ] && [ "${ip_rule_exist}" = "0" ] && {
         echo "$(lzdate)" [$$]: "   No policy rule in use." | tee -ai "${SYSLOG}" 2> /dev/null
     }
     echo "$(lzdate)" [$$]: --------------------------------------------- | tee -ai "${SYSLOG}" 2> /dev/null
-}
-
-## 清除openvpn-event中命令行函数
-## 输入项：
-##     $1--主执行脚本运行输入参数
-##     全局常量
-## 返回值：
-##     0--清除成功
-##     1--未清除
-lz_clear_openvpn_event_command() {
-    local retval="1"
-    [ -f "${PATH_BOOTLOADER}/${OPENVPN_EVENT_NAME}" ] && {
-        if grep -q "${OPENVPN_EVENT_INTERFACE_NAME}" "${PATH_BOOTLOADER}/${OPENVPN_EVENT_NAME}"; then
-            sed -i "/${OPENVPN_EVENT_INTERFACE_NAME}/d" "${PATH_BOOTLOADER}/${OPENVPN_EVENT_NAME}" > /dev/null 2>&1
-            echo "$(lzdate)" [$$]: "Successfully unregistered openvpn-event interface." | tee -ai "${SYSLOG}" 2> /dev/null
-            retval="0"
-        fi
-    }
-    [ "${1}" = "STOP" ] && [ -f "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}" ] && {
-        rm -f "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}" > /dev/null 2>&1
-    }
-    return "${retval}"
 }
 
 ## 清理Open虚拟专网服务子网出口规则函数
@@ -1757,41 +1746,12 @@ lz_clear_update_ispip_data_file() {
     fi
 }
 
-## 清除firewall-start中脚本引导项函数
-## 输入项：
-##     全局常量
-## 返回值：
-##     0--清除成功
-##     1--未清除
-lz_clear_firewall_start_command() {
-    if [ -f "${PATH_BOOTLOADER}/${BOOTLOADER_NAME}" ]; then
-        if grep -q "${PROJECT_FILENAME}" "${PATH_BOOTLOADER}/${BOOTLOADER_NAME}"; then
-            sed -i "/${PROJECT_FILENAME}/d" "${PATH_BOOTLOADER}/${BOOTLOADER_NAME}" > /dev/null 2>&1
-            echo "$(lzdate)" [$$]: "Successfully unregistered firewall-start interface." | tee -ai "${SYSLOG}" 2> /dev/null
-            return 0
-        fi
-    fi
-    return 1
-}
-
 ## 清除接口脚本文件函数
 ## 输入项：
 ##     $1--主执行脚本运行输入参数
 ##     全局常量
-## 返回值：
-##     0--清除事件接口成功
-##     1--未清除事件接口
+## 返回值：无
 lz_clear_interface_scripts() {
-    local retval="1"
-    ## 清除openvpn-event中命令行
-    ## 输入项：
-    ##     $1--主执行脚本运行输入参数
-    ##     全局常量
-    ## 返回值：
-    ##     0--清除成功
-    ##     1--未清除
-    lz_clear_openvpn_event_command "${1}" && retval="0"
-
     ## 清理Open虚拟专网服务子网出口规则
     ## 输入项：
     ##     全局常量
@@ -1804,89 +1764,22 @@ lz_clear_interface_scripts() {
     ## 返回值：无
     lz_clear_vpn_support
 
-    ## 清除脚本生成的IGMP代理配置文件
-    [ -f "${PATH_TMP}/${IGMP_PROXY_CONF_NAME}" ] && \
-        ! ip route show table "${LZ_IPTV}" | grep -qw 'default' && \
-        rm -f "${PATH_TMP}/${IGMP_PROXY_CONF_NAME}" > /dev/null 2>&1
-
     ## 清除更新ISP网络运营商CIDR网段数据的脚本文件
     ## 输入项：
     ##     全局常量
     ## 返回值：无
     [ "${1}" = "STOP" ] && lz_clear_update_ispip_data_file
 
-    ## 清除firewall-start中脚本引导项
-    ## 输入项：
-    ##     全局常量
-    ## 返回值：
-    ##     0--清除成功
-    ##     1--未清除
-    [ "${1}" = "STOP" ] && lz_clear_firewall_start_command && retval="0"
+    ## 清除脚本生成的IGMP代理配置文件
+    [ -f "${PATH_TMP}/${IGMP_PROXY_CONF_NAME}" ] && \
+        ! ip route show table "${LZ_IPTV}" | grep -qw 'default' && \
+        rm -f "${PATH_TMP}/${IGMP_PROXY_CONF_NAME}" > /dev/null 2>&1
 
     ## 清除域名地址配置文件
     [ -f "${PATH_TMP}/${DOMAIN_WAN1_CONF}" ] && rm -f "${PATH_TMP}/${DOMAIN_WAN1_CONF}" > /dev/null 2>&1
     [ -f "${PATH_TMP}/${DOMAIN_WAN2_CONF}" ] && rm -f "${PATH_TMP}/${DOMAIN_WAN2_CONF}" > /dev/null 2>&1
 
-    return "${retval}"
-}
-
-## 创建事件接口函数
-## 输入项：
-##     $1--系统事件接口文件名
-##     $2--待接口文件所在路径
-##     $3--待接口文件名称
-##     全局常量
-## 返回值：
-##     0--成功
-##     1--失败
-lz_create_event_interface() {
-    [ ! -d "${PATH_BOOTLOADER}" ] && mkdir -p "${PATH_BOOTLOADER}"
-    if [ ! -f "${PATH_BOOTLOADER}/${1}" ]; then
-        cat > "${PATH_BOOTLOADER}/${1}" 2> /dev/null <<EOF_INTERFACE
-#!/bin/sh
-EOF_INTERFACE
-    fi
-    [ ! -f "${PATH_BOOTLOADER}/${1}" ] && return 1
-    if ! grep -m 1 '^.*$' "${PATH_BOOTLOADER}/${1}" | grep -q "#!/bin/sh"; then
-        if [ "$( grep -c '^.*$' "${PATH_BOOTLOADER}/${1}" )" = "0" ]; then
-            echo "#!/bin/sh" >> "${PATH_BOOTLOADER}/${1}"
-        elif grep '^.*$' "${PATH_BOOTLOADER}/${1}" | grep -q "#!/bin/sh"; then
-            sed -i -e '/!\/bin\/sh/d' -e '1i #!\/bin\/sh' "${PATH_BOOTLOADER}/${1}"
-        else
-            sed -i '1i #!\/bin\/sh' "${PATH_BOOTLOADER}/${1}"
-        fi
-    else
-        ! grep -m 1 '^.*$' "${PATH_BOOTLOADER}/${1}" | grep -q "^#!/bin/sh" \
-            && sed -i 'l1 s:^.*\(#!/bin/sh.*$\):\1/g' "${PATH_BOOTLOADER}/${1}"
-    fi
-    if ! grep -q "${2}/${3}" "${PATH_BOOTLOADER}/${1}"; then
-        sed -i "/${3}/d" "${PATH_BOOTLOADER}/${1}"
-        sed -i "\$a ${2}/${3} # Added by LZ" "${PATH_BOOTLOADER}/${1}"
-    fi
-    chmod +x "${PATH_BOOTLOADER}/${1}"
-    ! grep -q "${2}/${3}" "${PATH_BOOTLOADER}/${1}" && return 1
-    return 0
-}
-
-## 创建firewall-start启动文件并添加脚本引导项函数
-## 输入项：
-##     全局常量
-## 返回值：无
-lz_create_firewall_start_command() {
-    ## 创建事件接口
-    ## 输入项：
-    ##     $1--系统事件接口文件名
-    ##     $2--待接口文件所在路径
-    ##     $3--待接口文件名称
-    ##     全局常量
-    ## 返回值：
-    ##     0--成功
-    ##     1--失败
-    if lz_create_event_interface "${BOOTLOADER_NAME}" "${PATH_LZ}" "${PROJECT_FILENAME}"; then
-        echo "$(lzdate)" [$$]: "Successfully registered firewall-start interface." | tee -ai "${SYSLOG}" 2> /dev/null
-    else
-        echo "$(lzdate)" [$$]: "firewall-start interface registration failed." | tee -ai "${SYSLOG}" 2> /dev/null
-    fi
+    return
 }
 
 ## 生成更新ISP网络运营商CIDR网段数据的脚本文件
@@ -1951,7 +1844,7 @@ if [ "\${dl_succeed}" = "1" ]; then
             break
         else
             dl_succeed="0"
-            let retry_count++
+            retry_count=\"\$(( retry_count + 1 ))\"
             sleep "5s"
         fi
     done
@@ -2199,7 +2092,7 @@ lz_add_ed_net_address_sets() {
     local NOMATCH=""
     [ "${3}" != "0" ] && NOMATCH=" nomatch"
     ipset -q create "${2}" nethash maxelem 4294967295 #--hashsize 1024 mexleme 65536
-    [ "${5}" != "0" ] && let local_ed_num++
+    [ "${5}" != "0" ] && local_ed_num="$(( local_ed_num + 1 ))"
     sed -e '/^[ \t]*[#]/d' -e 's/[#].*$//g' -e 's/[ \t][ \t]*/ /g' -e 's/^[ ]//' -e 's/[ ]$//' -e '/^[ ]*$/d' "${1}" 2> /dev/null \
         | awk -v count="0" -v criterion="${5}" -v ed_num="${local_ed_num}" '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
         && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
@@ -2282,7 +2175,7 @@ lz_add_ed_ipv4_dst_addr_list_binding_wan() {
     [ "${local_ed_total}" -le "0" ] && return
     local local_ed_num="$(( local_ed_total / 2 + local_ed_total % 2 ))"
     [ "${local_ed_num}" = "${local_ed_total}" ] && [ "${5}" != "0" ] && return
-    [ "${5}" != "0" ] && let local_ed_num++
+    [ "${5}" != "0" ] && local_ed_num="$(( local_ed_num + 1 ))"
     sed -e '/^[ \t]*[#]/d' -e 's/[#].*$//g' -e 's/[ \t][ \t]*/ /g' -e 's/^[ ]//' -e 's/[ ]$//' -e '/^[ ]*$/d' "${1}" 2> /dev/null \
         | awk -v count="0" -v criterion="${5}" -v ed_num="${local_ed_num}" '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
         && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
@@ -3329,7 +3222,7 @@ lz_initialize_ip_data_policy() {
         lz_setup_native_isp_policy "$( lz_get_isp_data_filename "${local_index}" )" \
                                     "$( lz_get_isp_wan_port "${local_index}" )" \
                                     "$( lz_get_isp_data_item_total_variable "${local_index}" )"
-        let local_index++
+        local_index="$(( local_index + 1 ))"
     done
 
     ## 运营商目标网段动态分流模式
@@ -3366,7 +3259,7 @@ lz_initialize_ip_data_policy() {
                     ## 合并全中国地区所有ISP运营商数据集
                 [ "$( lz_get_isp_data_item_total_variable "${local_index}" )" -gt "0" ] \
                     && lz_add_net_address_sets "$( lz_get_isp_data_filename "${local_index}" )" "${ISPIP_ALL_CN_SET}" "0"
-                let local_index++
+                local_index="$(( local_index + 1 ))"
             done
             ## 设置中国之外所有IP地址网段数据集防火墙标记访问报文数据包过滤规则
             ## 第一WAN口，模式1时，将被自动调整为模式2
@@ -3880,7 +3773,7 @@ EOF_OVPN_I
     lz_index="0"
     for lz_vpn_item in \$( echo "\${lz_route_list}" | awk '/tap|tun/ {print \$1":"\$3}' )
     do
-        let lz_index++
+        lz_index=\"\$(( lz_index + 1 ))\"
         lz_vpn_item="\$( echo "\${lz_vpn_item}" | sed 's/:/ /g' )"
         echo "\$(lzdate)" [\$\$]: LZ OpenVPN Subnet "\${lz_index}: \${lz_vpn_item}" >> "${SYSLOG}"
     done
@@ -3891,7 +3784,7 @@ EOF_OVPN_J
     lz_index="0"
     for lz_vpn_item in \$( echo "\${lz_route_list}" | awk '/pptp/ {print \$1":"\$3}' )
     do
-        let lz_index++
+        lz_index=\"\$(( lz_index + 1 ))\"
         lz_vpn_item="\$( echo "\${lz_vpn_item}" | sed 's/:/ /g' )"
         echo "\$(lzdate)" [\$\$]: LZ VPN Client "\${lz_index}: \${lz_vpn_item}" >> "${SYSLOG}"
     done
@@ -3908,7 +3801,7 @@ EOF_OVPN_K
         lz_index="0"
         for lz_vpn_item in \$( echo "\${lz_nvram_ipsec_subnet_list}" | awk '{print \$1":ipsec"}' )
         do
-            let lz_index++
+            lz_index=\"\$(( lz_index + 1 ))\"
             lz_vpn_item="\$( echo "\${lz_vpn_item}" | sed 's/:/ /g' )"
             echo "\$(lzdate)" [\$\$]: LZ IPSec VPN Subnet "\${lz_index}: \${lz_vpn_item}" >> "${SYSLOG}"
         done
@@ -3922,7 +3815,7 @@ EOF_OVPN_L
     lz_index="0"
     for lz_vpn_item in \$( echo "\${lz_route_list}" | awk '/wgs/ {print \$1":"\$3}' )
     do
-        let lz_index++
+        lz_index=\"\$(( lz_index + 1 ))\"
         lz_vpn_item="\$( echo "\${lz_vpn_item}" | sed 's/:/ /g' )"
         echo "\$(lzdate)" [\$\$]: LZ WireGuard Client "\${lz_index}: \${lz_vpn_item}" >> "${SYSLOG}"
     done
@@ -4284,7 +4177,7 @@ lz_vpn_support() {
         ## 输出显示Open虚拟专网服务器及客户端状态信息
         for local_vpn_item in $( echo "${local_route_list}" | awk '/tap|tun/ {print $3":"$1}' )
         do
-            let local_index++
+            local_index="$(( local_index + 1 ))"
             [ "${local_index}" = "1" ] && echo "$(lzdate)" [$$]: --------------------------------------------- | tee -ai "${SYSLOG}" 2> /dev/null
             local_vpn_item="$( echo "${local_vpn_item}" | sed 's/:/ /g' )"
             echo "$(lzdate)" [$$]: "   OpenVPN Server-${local_index}: ${local_vpn_item}" | tee -ai "${SYSLOG}" 2> /dev/null
@@ -4307,7 +4200,7 @@ lz_vpn_support() {
         local_index="0"
         for local_vpn_item in $( echo "${local_route_list}" | awk '/pptp/ {print $1}' )
         do
-            let local_index++
+            local_index="$(( local_index + 1 ))"
             echo "$(lzdate)" [$$]: "   PPTP VPN Client-${local_index}: ${local_vpn_item}" | tee -ai "${SYSLOG}" 2> /dev/null
         done
         echo "$(lzdate)" [$$]: "   PPTP Client Export: ${local_vpn_client_wan_port}" | tee -ai "${SYSLOG}" 2> /dev/null
@@ -4350,7 +4243,7 @@ lz_vpn_support() {
         local_index="0"
         for local_vpn_item in $( echo "${local_route_list}" | awk '/wgs/ {print $1}' )
         do
-            let local_index++
+            local_index="$(( local_index + 1 ))"
             echo "$(lzdate)" [$$]: "   WireGuard Client-${local_index}: ${local_vpn_item}" | tee -ai "${SYSLOG}" 2> /dev/null
         done
         echo "$(lzdate)" [$$]: "   WireGuard Client Export: ${local_vpn_client_wan_port}" | tee -ai "${SYSLOG}" 2> /dev/null
@@ -4396,7 +4289,7 @@ lz_get_wan_isp_info() {
     until [ "${local_no}" = "0" ]
     do
         ipset -q flush "lz_ispip_tmp_${local_no}" && ipset -q destroy "lz_ispip_tmp_${local_no}"
-        let local_no--
+        local_no="$(( local_no - 1 ))"
     done
 
     ## 创建临时的运营商网段数据集
@@ -4414,7 +4307,7 @@ lz_get_wan_isp_info() {
             ##     网址/网段数据集--全局变量
             lz_add_net_address_sets "$( lz_get_isp_data_filename "${local_index}" )" "lz_ispip_tmp_${local_index}" "0"
         }
-        let local_index++
+        local_index="$(( local_index + 1 ))"
     done
 
     local local_wan_ip_type=""
@@ -4551,7 +4444,7 @@ lz_get_wan_isp_info() {
     until [ "${local_no}" = "0" ]
     do
         ipset -q flush "lz_ispip_tmp_${local_no}" && ipset -q destroy "lz_ispip_tmp_${local_no}"
-        let local_no--
+        local_no="$(( local_no - 1 ))"
     done
 }
 
@@ -4698,7 +4591,7 @@ lz_output_ispip_info_to_system_records() {
                 local_exist="1"
             fi
         }
-        let local_index++
+        local_index="$(( local_index + 1 ))"
     done
     [ "${local_exist}" = "1" ] && {
         echo "$(lzdate)" [$$]: --------------------------------------------- | tee -ai "${SYSLOG}" 2> /dev/null
@@ -4936,7 +4829,7 @@ phyint ${3} upstream ratelimit 0 threshold 1 altnet 0.0.0.0/0
 phyint br0 downstream ratelimit 0 threshold 1
 EOF
     [ ! -f "${1}/${2}" ] && return 255
-    return 0
+    return "0"
 }
 
 ## 向系统策略路由库中添加双向访问网络路径规则函数

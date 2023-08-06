@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_status.sh v4.0.5
+# lz_rule_status.sh v4.0.6
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 显示脚本运行状态脚本
@@ -15,8 +15,9 @@
 ## 定义基本运行状态常量函数
 lz_define_status_constant() {
     ## 项目路径，主运行脚本及事件接口文件名
-    STATUS_BOOTLOADER_NAME="firewall-start"
     STATUS_PROJECT_FILENAME="lz_rule.sh"
+    STATUS_BOOTLOADER_NAME="firewall-start"
+    STATUS_SERVICE_EVENT_NAME="service-event"
     STATUS_OPENVPN_EVENT_NAME="openvpn-event"
     STATUS_OPENVPN_EVENT_INTERFACE_NAME="lz_openvpn_event.sh"
 
@@ -98,7 +99,7 @@ lz_uninstall_status_constant() {
     do
         ## ISP网络运营商CIDR网段数据文件名（短文件名）
         eval unset "STATUS_ISP_DATA_${local_index}"
-        let local_index++
+        local_index="$(( local_index + 1 ))"
     done
 
     unset STATUS_ISP_TOTAL
@@ -106,21 +107,11 @@ lz_uninstall_status_constant() {
     unset STATUS_PROJECT_STATUS_SET
     unset STATUS_PROJECT_START_ID
 
-    unset STATUS_BOOTLOADER_NAME
     unset STATUS_PROJECT_FILENAME
+    unset STATUS_BOOTLOADER_NAME
+    unset STATUS_SERVICE_EVENT_NAME
     unset STATUS_OPENVPN_EVENT_NAME
     unset STATUS_OPENVPN_EVENT_INTERFACE_NAME
-}
-
-## 设置ISP网络运营商出口状态参数变量函数
-lz_set_isp_wan_port_status_variable() {
-    local local_index="0"
-    until [ "${local_index}" -gt "${STATUS_ISP_TOTAL}" ]
-    do
-        ## ISP网络运营商出口参数
-        eval "status_isp_wan_port_${local_index}="
-        let local_index++
-    done
 }
 
 ## 卸载ISP网络运营商出口状态参数变量函数
@@ -130,7 +121,7 @@ lz_unset_isp_wan_port_status_variable() {
     do
         ## ISP网络运营商出口参数
         eval unset "status_isp_wan_port_${local_index}"
-        let local_index++
+        local_index="$(( local_index + 1 ))"
     done
 }
 
@@ -319,7 +310,7 @@ lz_set_isp_data_item_total_status_variable() {
         ## ISP网络运营商出口参数
         eval "status_isp_data_${local_index}_item_total=$( lz_get_isp_data_item_total_status "${local_index}" )"
         eval "status_isp_data_0_item_total=\$(( status_isp_data_0_item_total + status_isp_data_${local_index}_item_total ))"
-        let local_index++
+        local_index="$(( local_index + 1 ))"
     done
 }
 
@@ -330,72 +321,12 @@ lz_unset_isp_data_item_total_status_variable() {
     do
         ## ISP网络运营商出口参数
         eval unset "status_isp_data_${local_index}_item_total"
-        let local_index++
+        local_index="$(( local_index + 1 ))"
     done
 }
 
 ## 设置脚本基本运行状态参数变量函数
 lz_set_parameter_status_variable() {
-
-    status_version=
-
-    ## 设置ISP网络运营商出口状态参数变量
-    lz_set_isp_wan_port_status_variable
-
-    status_usage_mode=
-    status_custom_data_wan_port_1=
-    status_custom_data_file_1=
-    status_custom_data_wan_port_2=
-    status_custom_data_file_2=
-    status_wan_1_domain=
-    status_wan_1_domain_client_src_addr_file=
-    status_wan_1_domain_file=
-    status_wan_2_domain=
-    status_wan_2_domain_client_src_addr_file=
-    status_wan_2_domain_file=
-    status_wan_1_client_src_addr=
-    status_wan_1_client_src_addr_file=
-    status_wan_2_client_src_addr=
-    status_wan_2_client_src_addr_file=
-    status_high_wan_1_client_src_addr=
-    status_high_wan_1_client_src_addr_file=
-    status_high_wan_2_client_src_addr=
-    status_high_wan_2_client_src_addr_file=
-    status_wan_1_src_to_dst_addr=
-    status_wan_1_src_to_dst_addr_file=
-    status_wan_2_src_to_dst_addr=
-    status_wan_2_src_to_dst_addr_file=
-    status_high_wan_1_src_to_dst_addr=
-    status_high_wan_1_src_to_dst_addr_file=
-    status_wan_1_src_to_dst_addr_port=
-    status_wan_1_src_to_dst_addr_port_file=
-    status_wan_2_src_to_dst_addr_port=
-    status_wan_2_src_to_dst_addr_port_file=
-    status_high_wan_1_src_to_dst_addr_port=
-    status_high_wan_1_src_to_dst_addr_port_file=
-    status_local_ipsets_file=
-    status_vpn_client_polling_time=
-    status_ovs_client_wan_port=
-    status_wan_access_port=
-    status_fancyss_support=
-    status_route_cache=
-    status_clear_route_cache_time_interval=
-    status_iptv_igmp_switch=
-    status_iptv_access_mode=
-    status_iptv_box_ip_lst_file=
-    status_iptv_isp_ip_lst_file=
-    status_wan1_iptv_mode=
-    status_wan1_udpxy_switch=
-    status_wan1_udpxy_port=
-    status_wan1_udpxy_buffer=
-    status_wan1_udpxy_client_num=
-    status_wan2_iptv_mode=
-    status_wan2_udpxy_switch=
-    status_wan2_udpxy_port=
-    status_wan2_udpxy_buffer=
-    status_wan2_udpxy_client_num=
-    status_udpxy_used=
-
     ## 设置ISP网络运营商CIDR网段数据条目数状态变量
     lz_set_isp_data_item_total_status_variable
 
@@ -415,7 +346,6 @@ lz_unset_parameter_status_variable() {
     ## 卸载ISP网络运营商出口状态参数变量
     lz_unset_isp_wan_port_status_variable
 
-    unset status_usage_mode_mode
     unset status_custom_data_wan_port_1
     unset status_custom_data_file_1
     unset status_custom_data_wan_port_2
@@ -447,27 +377,23 @@ lz_unset_parameter_status_variable() {
     unset status_high_wan_1_src_to_dst_addr_port
     unset status_high_wan_1_src_to_dst_addr_port_file
     unset status_local_ipsets_file
+    unset status_wan_access_port
     unset status_ovs_client_wan_port
     unset status_vpn_client_polling_time
-    unset status_wan_access_port
     unset status_fancyss_support
+    unset status_usage_mode_mode
     unset status_route_cache
     unset status_clear_route_cache_time_interval
+    unset status_wan1_iptv_mode
+    unset status_wan2_iptv_mode
     unset status_iptv_igmp_switch
     unset status_iptv_access_mode
     unset status_iptv_box_ip_lst_file
     unset status_iptv_isp_ip_lst_file
     unset status_wan1_udpxy_switch
-    unset status_wan1_iptv_mode
     unset status_wan1_udpxy_port
-    unset status_wan1_udpxy_buffer
-    unset status_wan1_udpxy_client_num
-    unset status_wan2_iptv_mode
     unset status_wan2_udpxy_switch
     unset status_wan2_udpxy_port
-    unset status_wan2_udpxy_buffer
-    unset status_wan2_udpxy_client_num
-    unset status_udpxy_used
 
     ## 卸载ISP网络运营商CIDR网段数据条目数状态变量
     lz_unset_isp_data_item_total_status_variable
@@ -480,198 +406,318 @@ lz_unset_parameter_status_variable() {
     unset status_adjust_traffic_policy
 }
 
-## 读取文件缓冲区数据项状态函数
-## 输入项：
-##     $1--数据项名称
-##     $2--数据项缺省值
-##     local_file_cache--数据文件全路径文件名
-##     全局常量
-## 返回值：
-##     0--数据项不存在，或数据项值缺失，均以数据项缺省值输出
-##     非0--数据项读取成功
-lz_get_file_cache_data_status() {
-    local local_retval="1"
-    local local_data_item="$( echo "${local_file_cache}" | grep -m 1 "^${1}=" \
-    | awk -F "=" '{if ($2 == "" && "'"${2}"'" != "") print "#LOSE#"; else if ($2 == "" && "'"${2}"'" == "") print "#DEFAULT#"; else print $2}' )"
-    if [ -z "${local_data_item}" ]; then
-        local_data_item="${2}"
-        local_retval="0"
-    elif [ "${local_data_item}" = "#LOSE#" ]; then
-        local_data_item="${2}"
-        local_retval="0"
-    elif [ "${local_data_item}" = "#DEFAULT#" ]; then
-        local_data_item="${2}"
-    fi
-    echo "${local_data_item}"
-    return "${local_retval}"
-}
-
-## 读取lz_rule_config.box中的配置参数状态函数
+## 初始化配置参数状态函数
 ## 输入项：
 ##     全局常量及变量
 ## 返回值：无
-lz_read_box_data_status() {
-    ## 删除lz_rule_config.box中的重复参数项
-    awk -v x="0" '$1 ~ /^[a-zA-Z0-9_-][a-zA-Z0-9_-]*[=]/ && i[substr($1, 1, index($1, "="))]++ \
-        {x++; printf " -e '\''%ss\/\^\.\*\$\/#\&\/g'\''", NR} END{if (x != "0") printf "\n"}' "${PATH_CONFIGS}/lz_rule_config.box" \
-        | awk 'NF != "0" {system("sed -i"$0" -e '\''\/\^#\/d'\'' ""'"${PATH_CONFIGS}/lz_rule_config.box"'")}'
-    ## 加载配置参数文件缓冲区
-    local_file_cache="$( awk '$1 ~ /^[a-zA-Z0-9_-][a-zA-Z0-9_-]*[=]/ {print $1}' "${PATH_CONFIGS}/lz_rule_config.box" \
-            | sed -e 's/[#].*$//g' -e 's/^[ \t]*//g' -e 's/[ \t][ \t]*/ /g' -e 's/^\([^=]*[=][^ =]*\).*$/\1/g' \
-            -e 's/^\(.*[=][^\"][^\"]*\).*$/\1/g' -e 's/^\(.*[=][\"][^\"]*[\"]\).*$/\1/g' \
-            -e 's/^\(.*[=]\)[\"][^\"]*$/\1/g' -e 's/\"//g' )"
-    ## 读取文件缓冲区数据项状态
-    ## 输入项：
-    ##     $1--数据项名称
-    ##     $2--数据项缺省值
-    ##     local_file_cache--数据文件全路径文件名
-    ##     全局常量
-    ## 返回值：
-    ##     0--数据项不存在，或数据项值缺失，均以数据项缺省值输出
-    ##     非0--数据项读取成功
-    status_version="$( lz_get_file_cache_data_status "lz_config_version" "${LZ_VERSION}" )"
-
-    status_isp_wan_port_0="$( lz_get_file_cache_data_status "lz_config_all_foreign_wan_port" "0" )"
-
-    status_isp_wan_port_1="$( lz_get_file_cache_data_status "lz_config_chinatelecom_wan_port" "0" )"
-
-    status_isp_wan_port_2="$( lz_get_file_cache_data_status "lz_config_unicom_cnc_wan_port" "0" )"
-
-    status_isp_wan_port_3="$( lz_get_file_cache_data_status "lz_config_cmcc_wan_port" "1" )"
-
-    status_isp_wan_port_4="$( lz_get_file_cache_data_status "lz_config_crtc_wan_port" "1" )"
-
-    status_isp_wan_port_5="$( lz_get_file_cache_data_status "lz_config_cernet_wan_port" "1" )"
-
-    status_isp_wan_port_6="$( lz_get_file_cache_data_status "lz_config_gwbn_wan_port" "1" )"
-
-    status_isp_wan_port_7="$( lz_get_file_cache_data_status "lz_config_othernet_wan_port" "0" )"
-
-    status_isp_wan_port_8="$( lz_get_file_cache_data_status "lz_config_hk_wan_port" "0" )"
-
-    status_isp_wan_port_9="$( lz_get_file_cache_data_status "lz_config_mo_wan_port" "0" )"
-
-    status_isp_wan_port_10="$( lz_get_file_cache_data_status "lz_config_tw_wan_port" "0" )"
-
-    status_usage_mode="$( lz_get_file_cache_data_status "lz_config_usage_mode" "0" )"
-
-    status_custom_data_wan_port_1="$( lz_get_file_cache_data_status "lz_config_custom_data_wan_port_1" "5" )"
-
-    status_custom_data_file_1="$( lz_get_file_cache_data_status "lz_config_custom_data_file_1" "${PATH_DATA}/custom_data_1.txt" )"
-
-    status_custom_data_wan_port_2="$( lz_get_file_cache_data_status "lz_config_custom_data_wan_port_2" "5" )"
-
-    status_custom_data_file_2="$( lz_get_file_cache_data_status "lz_config_custom_data_file_2" "${PATH_DATA}/custom_data_2.txt" )"
-
-    status_wan_1_domain="$( lz_get_file_cache_data_status "lz_config_wan_1_domain" "5" )"
-
-    status_wan_1_domain_client_src_addr_file="$( lz_get_file_cache_data_status "lz_config_wan_1_domain_client_src_addr_file" "${PATH_DATA}/wan_1_domain_client_src_addr.txt" )"
-
-    status_wan_1_domain_file="$( lz_get_file_cache_data_status "lz_config_wan_1_domain_file" "${PATH_DATA}/wan_1_domain.txt" )"
-
-    status_wan_2_domain="$( lz_get_file_cache_data_status "lz_config_wan_2_domain" "5" )"
-
-    status_wan_2_domain_client_src_addr_file="$( lz_get_file_cache_data_status "lz_config_wan_2_domain_client_src_addr_file" "${PATH_DATA}/wan_2_domain_client_src_addr.txt" )"
-
-    status_wan_2_domain_file="$( lz_get_file_cache_data_status "lz_config_wan_2_domain_file" "${PATH_DATA}/wan_2_domain.txt" )"
-
-    if ! dnsmasq -v 2> /dev/null | grep -w 'ipset' | grep -qvw 'no[\-]ipset'; then
-        [ "${status_wan_1_domain}" = "0" ] && status_wan_1_domain="5"
-        [ "${status_wan_2_domain}" = "0" ] && status_wan_2_domain="5"
-    fi
-
-    status_wan_1_client_src_addr="$( lz_get_file_cache_data_status "lz_config_wan_1_client_src_addr" "5" )"
-
-    status_wan_1_client_src_addr_file="$( lz_get_file_cache_data_status "lz_config_wan_1_client_src_addr_file" "${PATH_DATA}/wan_1_client_src_addr.txt" )"
-
-    status_wan_2_client_src_addr="$( lz_get_file_cache_data_status "lz_config_wan_2_client_src_addr" "5" )"
-
-    status_wan_2_client_src_addr_file="$( lz_get_file_cache_data_status "lz_config_wan_2_client_src_addr_file" "${PATH_DATA}/wan_2_client_src_addr.txt" )"
-
-    status_high_wan_1_client_src_addr="$( lz_get_file_cache_data_status "lz_config_high_wan_1_client_src_addr" "5" )"
-
-    status_high_wan_1_client_src_addr_file="$( lz_get_file_cache_data_status "lz_config_high_wan_1_client_src_addr_file" "${PATH_DATA}/high_wan_1_client_src_addr.txt" )"
-
-    status_high_wan_2_client_src_addr="$( lz_get_file_cache_data_status "lz_config_high_wan_2_client_src_addr" "5" )"
-
-    status_high_wan_2_client_src_addr_file="$( lz_get_file_cache_data_status "lz_config_high_wan_2_client_src_addr_file" "${PATH_DATA}/high_wan_2_client_src_addr.txt" )"
-
-    status_wan_1_src_to_dst_addr="$( lz_get_file_cache_data_status "lz_config_wan_1_src_to_dst_addr" "5" )"
-
-    status_wan_1_src_to_dst_addr_file="$( lz_get_file_cache_data_status "lz_config_wan_1_src_to_dst_addr_file" "${PATH_DATA}/wan_1_src_to_dst_addr.txt" )"
-
-    status_wan_2_src_to_dst_addr="$( lz_get_file_cache_data_status "lz_config_wan_2_src_to_dst_addr" "5" )"
-
-    status_wan_2_src_to_dst_addr_file="$( lz_get_file_cache_data_status "lz_config_wan_2_src_to_dst_addr_file" "${PATH_DATA}/wan_2_src_to_dst_addr.txt" )"
-
-    status_high_wan_1_src_to_dst_addr="$( lz_get_file_cache_data_status "lz_config_high_wan_1_src_to_dst_addr" "5" )"
-
-    status_high_wan_1_src_to_dst_addr_file="$( lz_get_file_cache_data_status "lz_config_high_wan_1_src_to_dst_addr_file" "${PATH_DATA}/high_wan_1_src_to_dst_addr.txt" )"
-
-    status_wan_1_src_to_dst_addr_port="$( lz_get_file_cache_data_status "lz_config_wan_1_src_to_dst_addr_port" "5" )"
-
-    status_wan_1_src_to_dst_addr_port_file="$( lz_get_file_cache_data_status "lz_config_wan_1_src_to_dst_addr_port_file" "${PATH_DATA}/wan_1_src_to_dst_addr_port.txt" )"
-
-    status_wan_2_src_to_dst_addr_port="$( lz_get_file_cache_data_status "lz_config_wan_2_src_to_dst_addr_port" "5" )"
-
-    status_wan_2_src_to_dst_addr_port_file="$( lz_get_file_cache_data_status "lz_config_wan_2_src_to_dst_addr_port_file" "${PATH_DATA}/wan_2_src_to_dst_addr_port.txt" )"
-
-    status_high_wan_1_src_to_dst_addr_port="$( lz_get_file_cache_data_status "lz_config_high_wan_1_src_to_dst_addr_port" "5" )"
-
-    status_high_wan_1_src_to_dst_addr_port_file="$( lz_get_file_cache_data_status "lz_config_high_wan_1_src_to_dst_addr_port_file" "${PATH_DATA}/high_wan_1_src_to_dst_addr_port.txt" )"
-
-    status_local_ipsets_file="$( lz_get_file_cache_data_status "lz_config_local_ipsets_file" "${PATH_DATA}/local_ipsets_data.txt" )"
-
-    status_ovs_client_wan_port="$( lz_get_file_cache_data_status "lz_config_ovs_client_wan_port" "0" )"
-
-    ## 动态分流模式时，Open虚拟专网客户端访问外网路由器出口采用"按网段分流规则匹配出口"与"由系统自动分配出
-    ## 口"等效
-    [ "${status_usage_mode}" = "0" ] && [ "${status_ovs_client_wan_port}" = "2" ] && status_ovs_client_wan_port=5
-
-    status_vpn_client_polling_time="$( lz_get_file_cache_data_status "lz_config_vpn_client_polling_time" "5" )"
-
-    status_wan_access_port="$( lz_get_file_cache_data_status "lz_config_wan_access_port" "0" )"
-
-    ## 动态分流模式时，路由器主机内部应用访问外网WAN口采用"按网段分流规则匹配出口"与"由系统自动分配出口"等效
-    [ "${status_usage_mode}" = "0" ] && [ "${status_wan_access_port}" = "2" ] && status_wan_access_port=5
-
-    status_fancyss_support="$( lz_get_file_cache_data_status "lz_config_fancyss_support" "5" )"
-
-    status_route_cache="$( lz_get_file_cache_data_status "lz_config_route_cache" "0" )"
-
-    status_clear_route_cache_time_interval="$( lz_get_file_cache_data_status "lz_config_clear_route_cache_time_interval" "4" )"
-
-    status_iptv_igmp_switch="$( lz_get_file_cache_data_status "lz_config_iptv_igmp_switch" "5" )"
-
-    status_iptv_access_mode="$( lz_get_file_cache_data_status "lz_config_iptv_access_mode" "1" )"
-
-    status_iptv_box_ip_lst_file="$( lz_get_file_cache_data_status "lz_config_iptv_box_ip_lst_file" "${PATH_DATA}/iptv_box_ip_lst.txt" )"
-
-    status_iptv_isp_ip_lst_file="$( lz_get_file_cache_data_status "lz_config_iptv_isp_ip_lst_file" "${PATH_DATA}/iptv_isp_ip_lst.txt" )"
-
-    status_wan1_iptv_mode="$( lz_get_file_cache_data_status "lz_config_wan1_iptv_mode" "5" )"
-
-    status_wan1_udpxy_switch="$( lz_get_file_cache_data_status "lz_config_wan1_udpxy_switch" "5" )"
-
-    status_wan1_udpxy_port="$( lz_get_file_cache_data_status "lz_config_wan1_udpxy_port" "8686" )"
-
-    status_wan1_udpxy_buffer="$( lz_get_file_cache_data_status "lz_config_wan1_udpxy_buffer" "65536" )"
-
-    status_wan1_udpxy_client_num="$( lz_get_file_cache_data_status "lz_config_wan1_udpxy_client_num" "10" )"
-
-    status_wan2_iptv_mode="$( lz_get_file_cache_data_status "lz_config_wan2_iptv_mode" "5" )"
-
-    status_wan2_udpxy_switch="$( lz_get_file_cache_data_status "lz_config_wan2_udpxy_switch" "5" )"
-
-    status_wan2_udpxy_port="$( lz_get_file_cache_data_status "lz_config_wan2_udpxy_port" "8888" )"
-
-    status_wan2_udpxy_buffer="$( lz_get_file_cache_data_status "lz_config_wan2_udpxy_buffer" "65536" )"
-
-    status_wan2_udpxy_client_num="$( lz_get_file_cache_data_status "lz_config_wan2_udpxy_client_num" "10" )"
-
-    status_udpxy_used="$( lz_get_file_cache_data_status "lz_config_udpxy_used" "5" )"
-
-    unset local_file_cache
+lz_init_cfg_data_status() {
+    [ "${status_version-undefined}" = "undefined" ] && status_version="${LZ_VERSION}"
+    [ "${status_isp_wan_port_0-undefined}" = "undefined" ] && status_isp_wan_port_0=0
+    [ "${status_isp_wan_port_1-undefined}" = "undefined" ] && status_isp_wan_port_1=0
+    [ "${status_isp_wan_port_2-undefined}" = "undefined" ] && status_isp_wan_port_2=0
+    [ "${status_isp_wan_port_3-undefined}" = "undefined" ] && status_isp_wan_port_3=1
+    [ "${status_isp_wan_port_4-undefined}" = "undefined" ] && status_isp_wan_port_4=1
+    [ "${status_isp_wan_port_5-undefined}" = "undefined" ] && status_isp_wan_port_5=1
+    [ "${status_isp_wan_port_6-undefined}" = "undefined" ] && status_isp_wan_port_6=1
+    [ "${status_isp_wan_port_7-undefined}" = "undefined" ] && status_isp_wan_port_7=0
+    [ "${status_isp_wan_port_8-undefined}" = "undefined" ] && status_isp_wan_port_8=0
+    [ "${status_isp_wan_port_9-undefined}" = "undefined" ] && status_isp_wan_port_9=0
+    [ "${status_isp_wan_port_10-undefined}" = "undefined" ] && status_isp_wan_port_10=0
+    [ "${status_custom_data_wan_port_1-undefined}" = "undefined" ] && status_custom_data_wan_port_1=5
+    [ "${status_custom_data_file_1-undefined}" = "undefined" ] && status_custom_data_file_1="\"${PATH_DATA}/custom_data_1.txt\""
+    [ "${status_custom_data_wan_port_2-undefined}" = "undefined" ] && status_custom_data_wan_port_2=5
+    [ "${status_custom_data_file_2-undefined}" = "undefined" ] && status_custom_data_file_2="\"${PATH_DATA}/custom_data_2.txt\""
+    [ "${status_wan_1_domain-undefined}" = "undefined" ] && status_wan_1_domain=5
+    [ "${status_wan_1_domain_client_src_addr_file-undefined}" = "undefined" ] && status_wan_1_domain_client_src_addr_file="\"${PATH_DATA}/wan_1_domain_client_src_addr.txt\""
+    [ "${status_wan_1_domain_file-undefined}" = "undefined" ] && status_wan_1_domain_file="\"${PATH_DATA}/wan_1_domain.txt\""
+    [ "${status_wan_2_domain-undefined}" = "undefined" ] && status_wan_2_domain=5
+    [ "${status_wan_2_domain_client_src_addr_file-undefined}" = "undefined" ] && status_wan_2_domain_client_src_addr_file="\"${PATH_DATA}/wan_2_domain_client_src_addr.txt\""
+    [ "${status_wan_2_domain_file-undefined}" = "undefined" ] && status_wan_2_domain_file="\"${PATH_DATA}/wan_2_domain.txt\""
+    [ "${status_wan_1_client_src_addr-undefined}" = "undefined" ] && status_wan_1_client_src_addr=5
+    [ "${status_wan_1_client_src_addr_file-undefined}" = "undefined" ] && status_wan_1_client_src_addr_file="\"${PATH_DATA}/wan_1_client_src_addr.txt\""
+    [ "${status_wan_2_client_src_addr-undefined}" = "undefined" ] && status_wan_2_client_src_addr=5
+    [ "${status_wan_2_client_src_addr_file-undefined}" = "undefined" ] && status_wan_2_client_src_addr_file="\"${PATH_DATA}/wan_2_client_src_addr.txt\""
+    [ "${status_high_wan_1_client_src_addr-undefined}" = "undefined" ] && status_high_wan_1_client_src_addr=5
+    [ "${status_high_wan_1_client_src_addr_file-undefined}" = "undefined" ] && status_high_wan_1_client_src_addr_file="\"${PATH_DATA}/high_wan_1_client_src_addr.txt\""
+    [ "${status_high_wan_2_client_src_addr-undefined}" = "undefined" ] && status_high_wan_2_client_src_addr=5
+    [ "${status_high_wan_2_client_src_addr_file-undefined}" = "undefined" ] && status_high_wan_2_client_src_addr_file="\"${PATH_DATA}/high_wan_2_client_src_addr.txt\""
+    [ "${status_wan_1_src_to_dst_addr-undefined}" = "undefined" ] && status_wan_1_src_to_dst_addr=5
+    [ "${status_wan_1_src_to_dst_addr_file-undefined}" = "undefined" ] && status_wan_1_src_to_dst_addr_file="\"${PATH_DATA}/wan_1_src_to_dst_addr.txt\""
+    [ "${status_wan_2_src_to_dst_addr-undefined}" = "undefined" ] && status_wan_2_src_to_dst_addr=5
+    [ "${status_wan_2_src_to_dst_addr_file-undefined}" = "undefined" ] && status_wan_2_src_to_dst_addr_file="\"${PATH_DATA}/wan_2_src_to_dst_addr.txt\""
+    [ "${status_high_wan_1_src_to_dst_addr-undefined}" = "undefined" ] && status_high_wan_1_src_to_dst_addr=5
+    [ "${status_high_wan_1_src_to_dst_addr_file-undefined}" = "undefined" ] && status_high_wan_1_src_to_dst_addr_file="\"${PATH_DATA}/high_wan_1_src_to_dst_addr.txt\""
+    [ "${status_wan_1_src_to_dst_addr_port-undefined}" = "undefined" ] && status_wan_1_src_to_dst_addr_port=5
+    [ "${status_wan_1_src_to_dst_addr_port_file-undefined}" = "undefined" ] && status_wan_1_src_to_dst_addr_port_file="\"${PATH_DATA}/wan_1_src_to_dst_addr_port.txt\""
+    [ "${status_wan_2_src_to_dst_addr_port-undefined}" = "undefined" ] && status_wan_2_src_to_dst_addr_port=5
+    [ "${status_wan_2_src_to_dst_addr_port_file-undefined}" = "undefined" ] && status_wan_2_src_to_dst_addr_port_file="\"${PATH_DATA}/wan_2_src_to_dst_addr_port.txt\""
+    [ "${status_high_wan_1_src_to_dst_addr_port-undefined}" = "undefined" ] && status_high_wan_1_src_to_dst_addr_port=5
+    [ "${status_high_wan_1_src_to_dst_addr_port_file-undefined}" = "undefined" ] && status_high_wan_1_src_to_dst_addr_port_file="\"${PATH_DATA}/high_wan_1_src_to_dst_addr_port.txt\""
+    [ "${status_local_ipsets_file-undefined}" = "undefined" ] && status_local_ipsets_file="\"${PATH_DATA}/local_ipsets_data.txt\""
+    [ "${status_wan_access_port-undefined}" = "undefined" ] && status_wan_access_port=0
+    [ "${status_ovs_client_wan_port-undefined}" = "undefined" ] && status_ovs_client_wan_port=0
+    [ "${status_vpn_client_polling_time-undefined}" = "undefined" ] && status_vpn_client_polling_time=5
+    [ "${status_fancyss_support-undefined}" = "undefined" ] && status_fancyss_support=5
+    [ "${status_usage_mode-undefined}" = "undefined" ] && status_usage_mode=0
+    [ "${status_route_cache-undefined}" = "undefined" ] && status_route_cache=0
+    [ "${status_clear_route_cache_time_interval-undefined}" = "undefined" ] && status_clear_route_cache_time_interval=4
+    [ "${status_wan1_iptv_mode-undefined}" = "undefined" ] && status_wan1_iptv_mode=5
+    [ "${status_wan2_iptv_mode-undefined}" = "undefined" ] && status_wan2_iptv_mode=5
+    [ "${status_iptv_igmp_switch-undefined}" = "undefined" ] && status_iptv_igmp_switch=5
+    [ "${status_iptv_access_mode-undefined}" = "undefined" ] && status_iptv_access_mode=1
+    [ "${status_iptv_box_ip_lst_file-undefined}" = "undefined" ] && status_iptv_box_ip_lst_file="\"${PATH_DATA}/iptv_box_ip_lst.txt\""
+    [ "${status_iptv_isp_ip_lst_file-undefined}" = "undefined" ] && status_iptv_isp_ip_lst_file="\"${PATH_DATA}/iptv_isp_ip_lst.txt\""
+    [ "${status_wan1_udpxy_switch-undefined}" = "undefined" ] && status_wan1_udpxy_switch=5
+    [ "${status_wan1_udpxy_port-undefined}" = "undefined" ] && status_wan1_udpxy_port=8686
+    [ "${status_wan2_udpxy_switch-undefined}" = "undefined" ] && status_wan2_udpxy_switch=5
+    [ "${status_wan2_udpxy_port-undefined}" = "undefined" ] && status_wan2_udpxy_port=8888
+}
+
+## 获取备份参数状态函数
+## 输入项：
+##     全局常量及变量
+## 返回值：无
+lz_get_box_data_status() {
+    local dnsmasq_enable="0"
+    ! dnsmasq -v 2> /dev/null | grep -w 'ipset' | grep -qvw 'no[\-]ipset' && dnsmasq_enable="1"
+    eval "$( awk -F "=" -v path="${PATH_LZ}" -v pathd="${PATH_DATA}" -v fname="${PATH_CONFIGS}/lz_rule_config.box" \
+        'BEGIN{
+            count=0;
+            mark=0;
+            policymode=0;
+            i["status_version"]="'"${LZ_VERSION}"'";
+            i["status_isp_wan_port_0"]=0;
+            i["status_isp_wan_port_1"]=0;
+            i["status_isp_wan_port_2"]=0;
+            i["status_isp_wan_port_3"]=1;
+            i["status_isp_wan_port_4"]=1;
+            i["status_isp_wan_port_5"]=1;
+            i["status_isp_wan_port_6"]=1;
+            i["status_isp_wan_port_7"]=0;
+            i["status_isp_wan_port_8"]=0;
+            i["status_isp_wan_port_9"]=0;
+            i["status_isp_wan_port_10"]=0;
+            i["status_custom_data_wan_port_1"]=5;
+            i["status_custom_data_file_1"]=pathd"/custom_data_1.txt";
+            i["status_custom_data_wan_port_2"]=5;
+            i["status_custom_data_file_2"]=pathd"/custom_data_2.txt";
+            i["status_wan_1_domain"]=5;
+            i["status_wan_1_domain_client_src_addr_file"]=pathd"/wan_1_domain_client_src_addr.txt";
+            i["status_wan_1_domain_file"]=pathd"/wan_1_domain.txt";
+            i["status_wan_2_domain"]=5;
+            i["status_wan_2_domain_client_src_addr_file"]=pathd"/wan_2_domain_client_src_addr.txt";
+            i["status_wan_2_domain_file"]=pathd"/wan_2_domain.txt";
+            i["status_wan_1_client_src_addr"]=5;
+            i["status_wan_1_client_src_addr_file"]=pathd"/wan_1_client_src_addr.txt";
+            i["status_wan_2_client_src_addr"]=5;
+            i["status_wan_2_client_src_addr_file"]=pathd"/wan_2_client_src_addr.txt";
+            i["status_high_wan_1_client_src_addr"]=5;
+            i["status_high_wan_1_client_src_addr_file"]=pathd"/high_wan_1_client_src_addr.txt";
+            i["status_high_wan_2_client_src_addr"]=5;
+            i["status_high_wan_2_client_src_addr_file"]=pathd"/high_wan_2_client_src_addr.txt";
+            i["status_wan_1_src_to_dst_addr"]=5;
+            i["status_wan_1_src_to_dst_addr_file"]=pathd"/wan_1_src_to_dst_addr.txt";
+            i["status_wan_2_src_to_dst_addr"]=5;
+            i["status_wan_2_src_to_dst_addr_file"]=pathd"/wan_2_src_to_dst_addr.txt";
+            i["status_high_wan_1_src_to_dst_addr"]=5;
+            i["status_high_wan_1_src_to_dst_addr_file"]=pathd"/high_wan_1_src_to_dst_addr.txt";
+            i["status_wan_1_src_to_dst_addr_port"]=5;
+            i["status_wan_1_src_to_dst_addr_port_file"]=pathd"/wan_1_src_to_dst_addr_port.txt";
+            i["status_wan_2_src_to_dst_addr_port"]=5;
+            i["status_wan_2_src_to_dst_addr_port_file"]=pathd"/wan_2_src_to_dst_addr_port.txt";
+            i["status_high_wan_1_src_to_dst_addr_port"]=5;
+            i["status_high_wan_1_src_to_dst_addr_port_file"]=pathd"/high_wan_1_src_to_dst_addr_port.txt";
+            i["status_local_ipsets_file"]=pathd"/local_ipsets_data.txt";
+            i["status_wan_access_port"]=0;
+            i["status_ovs_client_wan_port"]=0;
+            i["status_vpn_client_polling_time"]=5;
+            i["status_fancyss_support"]=5;
+            i["status_usage_mode"]=0;
+            i["status_route_cache"]=0;
+            i["status_clear_route_cache_time_interval"]=4;
+            i["status_wan1_iptv_mode"]=5;
+            i["status_wan2_iptv_mode"]=5;
+            i["status_iptv_igmp_switch"]=5;
+            i["status_iptv_access_mode"]=1;
+            i["status_iptv_box_ip_lst_file"]=pathd"/iptv_box_ip_lst.txt";
+            i["status_iptv_isp_ip_lst_file"]=pathd"/iptv_isp_ip_lst.txt";
+            i["status_hnd_br0_bcmmcast_mode"]=2;
+            i["status_wan1_udpxy_switch"]=5;
+            i["status_wan1_udpxy_port"]=8686;
+            i["status_wan1_udpxy_buffer"]=65536;
+            i["status_wan1_udpxy_client_num"]=10;
+            i["status_wan2_udpxy_switch"]=5;
+            i["status_wan2_udpxy_port"]=8888;
+            i["status_wan2_udpxy_buffer"]=65536;
+            i["status_wan2_udpxy_client_num"]=10;
+            total=length(i);
+        } $1 ~ /^lz_config_[a-zA-Z0-9]+/ {
+            flag=0;
+            if ($1 == "lz_config_all_foreign_wan_port")
+                key="status_isp_wan_port_0";
+            else if ($1 == "lz_config_chinatelecom_wan_port")
+                key="status_isp_wan_port_1";
+            else if ($1 == "lz_config_unicom_cnc_wan_port")
+                key="status_isp_wan_port_2";
+            else if ($1 == "lz_config_cmcc_wan_port")
+                key="status_isp_wan_port_3";
+            else if ($1 == "lz_config_crtc_wan_port")
+                key="status_isp_wan_port_4";
+            else if ($1 == "lz_config_cernet_wan_port")
+                key="status_isp_wan_port_5";
+            else if ($1 == "lz_config_gwbn_wan_port")
+                key="status_isp_wan_port_6";
+            else if ($1 == "lz_config_othernet_wan_port")
+                key="status_isp_wan_port_7";
+            else if ($1 == "lz_config_hk_wan_port")
+                key="status_isp_wan_port_8";
+            else if ($1 == "lz_config_mo_wan_port")
+                key="status_isp_wan_port_9";
+            else if ($1 == "lz_config_tw_wan_port")
+                key="status_isp_wan_port_10";
+            else {
+                key=$1;
+                sub(/^lz_config_/, "status_", key);
+            }
+            value=$2;
+            gsub(/[ \t#].*$/, "", value);
+            invalid=0;
+            if (key == "status_version") {
+                flag=1;
+                ver=value;
+                if (match(ver, /^v([0-9][\.]){2}[0-9]$/) > 0) {
+                    gsub(/^[v]|[\.]/, "", ver);
+                    ver=ver+0;
+                    if (ver >= 295 && ver <= 346)
+                        mark=1;
+                } else
+                    invalid=1;
+            } else if (key == "status_isp_wan_port_0" \
+                || key == "status_ovs_client_wan_port" \
+                || key == "status_route_cache" \
+                || key == "status_custom_data_wan_port_1" \
+                || key == "status_custom_data_wan_port_2" \
+                || key == "status_wan_1_client_src_addr" \
+                || key == "status_wan_2_client_src_addr" \
+                || key == "status_high_wan_1_client_src_addr" \
+                || key == "status_high_wan_2_client_src_addr" \
+                || key == "status_wan_1_src_to_dst_addr" \
+                || key == "status_wan_2_src_to_dst_addr" \
+                || key == "status_high_wan_1_src_to_dst_addr" \
+                || key == "status_wan_1_src_to_dst_addr_port" \
+                || key == "status_wan_2_src_to_dst_addr_port" \
+                || key == "status_high_wan_1_src_to_dst_addr_port" \
+                || key == "status_fancyss_support" \
+                || key == "status_wan1_iptv_mode" \
+                || key == "status_wan2_iptv_mode" \
+                || key == "status_iptv_igmp_switch" \
+                || key == "status_wan1_udpxy_switch" \
+                || key == "status_wan2_udpxy_switch") {
+                flag=1;
+                if (value !~ /^[0-9]$/)
+                    invalid=1;
+            } else if (key == "status_isp_wan_port_1" \
+                || key == "status_isp_wan_port_2" \
+                || key == "status_isp_wan_port_3" \
+                || key == "status_isp_wan_port_4" \
+                || key == "status_isp_wan_port_5" \
+                || key == "status_isp_wan_port_6" \
+                || key == "status_isp_wan_port_7" \
+                || key == "status_isp_wan_port_8" \
+                || key == "status_isp_wan_port_9" \
+                || key == "status_isp_wan_port_10") {
+                flag=1;
+                if (value !~ /^[0-9]$/)
+                    invalid=1;
+                else if (mark == 1) {
+                    if (value == 2) {
+                        value=0;
+                        invalid=1;
+                    } else if (value == 3) {
+                        value=1;
+                        invalid=1;
+                    }
+                }
+            } else if (key == "status_policy_mode" && mark == 1) {
+                flag=1;
+                policymode=1;
+                if (value != 0 && value != 1)
+                    value=0;
+                else
+                    value=1;
+                key="status_usage_mode";
+                value=6;
+            } else if (key == "status_wan_1_domain" || key == "status_wan_2_domain") {
+                flag=1;
+                if (value !~ /^[0-9]$/ || (value == "0" && "'"${dnsmasq_enable}"'" != "0"))
+                    invalid=1;
+            } else if (key == "status_wan_access_port") {
+                flag=1;
+                if (value !~ /^[01]$/)
+                    invalid=1;
+            } else if (key == "status_vpn_client_polling_time") {
+                flag=1;
+                if (value !~ /^[0-9]$|^[1][0-9]$|^[2][0]$/)
+                    invalid=1;
+            } else if (key == "status_usage_mode") {
+                flag=1;
+                if (policymode == 0 && value !~ /^[01]$/)
+                    invalid=1;
+            } else if (key == "status_clear_route_cache_time_interval") {
+                flag=1;
+                if (value !~ /^[0-9]$|^[1][0-9]$|^[2][0-4]$/)
+                    invalid=1;
+            } else if (key == "status_iptv_access_mode") {
+                flag=1;
+                if (value !~ /^[12]$/)
+                    invalid=1;
+            } else if (key == "status_wan1_udpxy_port") {
+                flag=1;
+                if (value !~ /^[1-9]$|^[1-9][0-9]+$/ || value < 1 || value > 65535)
+                    invalid=1;
+            } else if (key == "status_wan2_udpxy_port") {
+                flag=1;
+                if (value !~ /^[1-9]$|^[1-9][0-9]+$/ || value < 1 || value > 65535)
+                    invalid=1;
+            } else if (key == "status_custom_data_file_1" \
+                || key == "status_custom_data_file_2" \
+                || key == "status_wan_1_domain_client_src_addr_file" \
+                || key == "status_wan_1_domain_file" \
+                || key == "status_wan_2_domain_client_src_addr_file"\
+                || key == "status_wan_2_domain_file" \
+                || key == "status_wan_1_client_src_addr_file" \
+                || key == "status_wan_2_client_src_addr_file" \
+                || key == "status_high_wan_1_client_src_addr_file" \
+                || key == "status_high_wan_2_client_src_addr_file" \
+                || key == "status_wan_1_src_to_dst_addr_file" \
+                || key == "status_wan_2_src_to_dst_addr_file" \
+                || key == "status_high_wan_1_src_to_dst_addr_file" \
+                || key == "status_wan_1_src_to_dst_addr_port_file" \
+                || key == "status_wan_2_src_to_dst_addr_port_file" \
+                || key == "status_high_wan_1_src_to_dst_addr_port_file" \
+                || key == "status_local_ipsets_file" \
+                || key == "status_iptv_box_ip_lst_file" \
+                || key == "status_iptv_isp_ip_lst_file") {
+                flag=2;
+                if (value !~ /^[\"]([\/][a-zA-Z0-9_\-][a-zA-Z0-9_\-\.]*)+[\"]$|^([\/][a-zA-Z0-9_\-][a-zA-Z0-9_\-\.]*)+$/ \
+                    || value ~ /[\.][\.]/)
+                    invalid=2;
+            }
+            if (flag == 0) next;
+            if (invalid == 2)
+                value="\\\""i[key]"\\\"";
+            else if (invalid != 0 && invalid != 6)
+                value=i[key];
+            if (flag == 2 && invalid != 2 \
+                && match(value, /^[\"][^\"]*[\"]$/) > 0)
+                value="\\\""value"\\\"";
+            print key"="value;
+            if (invalid != 6) count++;
+            if (count == total) exit;
+        } END{
+            if (count != total)
+                print "lz_init_cfg_data_status";
+        }' "${PATH_CONFIGS}/lz_rule_config.box" )"
 }
 
 ## 获取ISP网络运营商目标网段流量出口状态参数函数
@@ -703,7 +749,7 @@ lz_adjust_isp_wan_port_status() {
     do
         ## ISP网络运营商出口参数
         eval "status_isp_wan_port_${local_index}=${1}"
-        let local_index++
+        local_index="$(( local_index + 1 ))"
     done
 }
 
@@ -902,8 +948,8 @@ lz_get_policy_mode_status() {
     ##     1--失败
     lz_adjust_traffic_policy_status && status_adjust_traffic_policy="0"
 
-    ! ip route show | grep -q nexthop && status_policy_mode="5" && return 1
-    [ "${status_usage_mode}" = "0" ] && status_policy_mode="5" && return 1
+    ! ip route show | grep -q nexthop && status_policy_mode="5" && return "1"
+    [ "${status_usage_mode}" = "0" ] && status_policy_mode="5" && return "1"
 
     local_wan1_isp_addr_total="0"
     local_wan2_isp_addr_total="0"
@@ -921,11 +967,11 @@ lz_get_policy_mode_status() {
     llz_cal_equal_division_status() {
         local local_equal_division_total="$( lz_get_isp_data_item_total_status_variable "${1}" )"
         if [ "${2}" != "1" ]; then
-            let local_wan1_isp_addr_total+="$(( local_equal_division_total/2 + local_equal_division_total%2 ))"
-            let local_wan2_isp_addr_total+="$(( local_equal_division_total/2 ))"
+            local_wan1_isp_addr_total="$(( local_wan1_isp_addr_total + local_equal_division_total/2 + local_equal_division_total%2 ))"
+            local_wan2_isp_addr_total="$(( local_wan2_isp_addr_total + local_equal_division_total/2 ))"
         else
-            let local_wan1_isp_addr_total+="$(( local_equal_division_total/2 ))"
-            let local_wan2_isp_addr_total+="$(( local_equal_division_total/2 + local_equal_division_total%2 ))"
+            local_wan1_isp_addr_total="$(( local_wan1_isp_addr_total + local_equal_division_total/2 ))"
+            local_wan2_isp_addr_total="$(( local_wan2_isp_addr_total + local_equal_division_total/2 + local_equal_division_total%2 ))"
         fi
     }
 
@@ -940,8 +986,11 @@ lz_get_policy_mode_status() {
     ##     local_wan2_isp_addr_total--第二WAN口网段条目累计值
     llz_cal_isp_equal_division_status() {
         local local_isp_wan_port="$( lz_get_isp_wan_port_status "${1}" )"
-        [ "${local_isp_wan_port}" = "0" ] && let local_wan1_isp_addr_total+="$( lz_get_isp_data_item_total_status_variable "${1}" )"
-        [ "${local_isp_wan_port}" = "1" ] && let local_wan2_isp_addr_total+="$( lz_get_isp_data_item_total_status_variable "${1}" )"
+        local isp_total="0"
+        { [ "${local_isp_wan_port}" = "0" ] || [ "${local_isp_wan_port}" = "1" ]; } \
+            && custou_total="$( lz_get_isp_data_item_total_status_variable "${1}" )"
+        [ "${local_isp_wan_port}" = "0" ] && local_wan1_isp_addr_total="$(( local_wan1_isp_addr_total + isp_total ))"
+        [ "${local_isp_wan_port}" = "1" ] && local_wan2_isp_addr_total="$(( local_wan2_isp_addr_total + isp_total ))"
         ## 计算均分出口时两WAN口网段条目累计值状态
         ## 输入项：
         ##     $1--ISP网络运营商索引号（0~10）
@@ -972,14 +1021,19 @@ lz_get_policy_mode_status() {
         ##     local_wan1_isp_addr_total--第一WAN口网段条目累计值
         ##     local_wan2_isp_addr_total--第二WAN口网段条目累计值
         llz_cal_isp_equal_division_status "${local_index}"
-        let local_index++
+        local_index="$(( local_index + 1 ))"
     done
 
-    [ "${status_custom_data_wan_port_1}" = "0" ] && let local_wan1_isp_addr_total+="$( lz_get_ipv4_data_file_item_total_status "${status_custom_data_file_1}" )"
-    [ "${status_custom_data_wan_port_1}" = "1" ] && let local_wan2_isp_addr_total+="$( lz_get_ipv4_data_file_item_total_status "${status_custom_data_file_1}" )"
+    local custou_total="0"
+    { [ "${status_custom_data_wan_port_1}" = "0" ] || [ "${status_custom_data_wan_port_1}" = "1" ]; } \
+        && custou_total="$( lz_get_ipv4_data_file_valid_item_total_status "${status_custom_data_file_1}" )"
+    [ "${status_custom_data_wan_port_1}" = "0" ] && local_wan1_isp_addr_total="$(( local_wan1_isp_addr_total + custou_total ))"
+    [ "${status_custom_data_wan_port_1}" = "1" ] && local_wan2_isp_addr_total="$(( local_wan2_isp_addr_total + custou_total ))"
 
-    [ "${status_custom_data_wan_port_2}" = "0" ] && let local_wan1_isp_addr_total+="$( lz_get_ipv4_data_file_item_total_status "${status_custom_data_file_2}" )"
-    [ "${status_custom_data_wan_port_2}" = "1" ] && let local_wan2_isp_addr_total+="$( lz_get_ipv4_data_file_item_total_status "${status_custom_data_file_2}" )"
+    { [ "${status_custom_data_wan_port_2}" = "0" ] || [ "${status_custom_data_wan_port_2}" = "1" ]; } \
+        && custou_total="$( lz_get_ipv4_data_file_valid_item_total_status "${status_custom_data_file_2}" )"
+    [ "${status_custom_data_wan_port_2}" = "0" ] && local_wan1_isp_addr_total="$(( local_wan1_isp_addr_total + custou_total ))"
+    [ "${status_custom_data_wan_port_2}" = "1" ] && local_wan2_isp_addr_total="$(( local_wan2_isp_addr_total + custou_total ))"
 
     if [ "${local_wan1_isp_addr_total}" -lt "${local_wan2_isp_addr_total}" ]; then status_policy_mode="0"; else status_policy_mode="1"; fi;
     [ "${status_isp_wan_port_0}" = "0" ] && status_policy_mode="1"
@@ -988,7 +1042,7 @@ lz_get_policy_mode_status() {
     unset local_wan1_isp_addr_total
     unset local_wan2_isp_addr_total
 
-    return 0
+    return "0"
 }
 
 ## 获取并输出路由器基本状态信息函数
@@ -1314,6 +1368,19 @@ lz_ss_support_status() {
     echo "$(lzdate)" [$$]: Fancyss is running.
 }
 
+## 获取服务事件接口注册状态函数
+## 输入项：
+##     $1--系统事件接口全路径文件名
+##     $2--命令行检索字符串
+## 返回值：
+##     0--已注册
+##     1--未注册
+lz_get_service_event_interface_status() {
+    if [ ! -f "${1}" ] || [ -z "${2}" ]; then return "1"; fi;
+    ! grep -qE "${2}" "${1}" && return "1"
+    return "0"
+}
+
 ## 获取事件接口注册状态函数
 ## 输入项：
 ##     $1--系统事件接口全路径文件名
@@ -1322,9 +1389,9 @@ lz_ss_support_status() {
 ##     0--已注册
 ##     1--未注册
 lz_get_event_interface_status() {
-    if [ ! -f "${1}" ] || [ ! -f "${2}" ]; then return 1; fi;
-    ! grep -q "^[ ]*${2}" "${1}" && return 1
-    return 0
+    if [ ! -f "${1}" ] || [ ! -f "${2}" ]; then return "1"; fi;
+    ! grep -q "^[ \t]*${2}" "${1}" && return "1"
+    return "0"
 }
 
 ## 显示虚拟专网服务支持状态信息函数
@@ -1340,7 +1407,7 @@ lz_show_vpn_support_status() {
     local local_index="0"
     for local_vpn_item in $( echo "${local_route_list}" | awk '/tap|tun/ {print $3":"$1}' )
     do
-        let local_index++
+        local_index="$(( local_index + 1 ))"
         [ "${local_index}" = "1" ] && echo "$(lzdate)" [$$]: ---------------------------------------------
         local_vpn_item="$( echo "${local_vpn_item}" | sed 's/:/ /g' )"
         echo "$(lzdate)" [$$]: "   OpenVPN Server-${local_index}: ${local_vpn_item}"
@@ -1354,7 +1421,7 @@ lz_show_vpn_support_status() {
         local_index="0"
         for local_vpn_item in $( echo "${local_route_list}" | awk '/pptp/ {print $1}' )
         do
-            let local_index++
+            local_index="$(( local_index + 1 ))"
             echo "$(lzdate)" [$$]: "   PPTP VPN Client-${local_index}: ${local_vpn_item}"
         done
         echo "$(lzdate)" [$$]: "   PPTP Client Export: ${local_vpn_client_wan_port}"
@@ -1376,7 +1443,7 @@ lz_show_vpn_support_status() {
         local_index="0"
         for local_vpn_item in $( echo "${local_route_list}" | awk '/wgs/ {print $1}' )
         do
-            let local_index++
+            local_index="$(( local_index + 1 ))"
             echo "$(lzdate)" [$$]: "   WireGuard Client-${local_index}: ${local_vpn_item}"
         done
         echo "$(lzdate)" [$$]: "   WireGuard Client Export: ${local_vpn_client_wan_port}"
@@ -1456,7 +1523,7 @@ lz_get_wan_isp_info_staus() {
     until [ "${local_no}" = "0" ]
     do
         ipset -q flush "lz_ispip_tmp_${local_no}" && ipset -q destroy "lz_ispip_tmp_${local_no}"
-        let local_no--
+        local_no="$(( local_no - 1 ))"
     done
 
     ## 创建临时的运营商网段数据集
@@ -1474,7 +1541,7 @@ lz_get_wan_isp_info_staus() {
             ##     网址/网段数据集--全局变量
             lz_add_net_address_status_sets "$( lz_get_isp_data_filename_status "${local_index}" )" "lz_ispip_tmp_${local_index}" "0"
         }
-        let local_index++
+        local_index="$(( local_index + 1 ))"
     done
 
     local local_wan_ip_type=""
@@ -1611,7 +1678,7 @@ lz_get_wan_isp_info_staus() {
     until [ "${local_no}" = "0" ]
     do
         ipset -q flush "lz_ispip_tmp_${local_no}" && ipset -q destroy "lz_ispip_tmp_${local_no}"
-        let local_no--
+        local_no="$(( local_no - 1 ))"
     done
 }
 
@@ -1749,7 +1816,7 @@ lz_output_ispip_status_info() {
                 local_exist="1"
             fi
         }
-        let local_index++
+        local_index="$(( local_index + 1 ))"
     done
     [ "${local_exist}" = "1" ] && {
         echo "$(lzdate)" [$$]: ---------------------------------------------
@@ -2886,7 +2953,7 @@ lz_ip_rule_output_syslog_status() {
             echo "$(lzdate)" [$$]: "   ip_rule_prio_${local_ip_rule_prio_no} = ${local_ip_rule_exist}"
             local_statistics_show="1"
         }
-        let local_ip_rule_prio_no++
+        local_ip_rule_prio_no="$(( local_ip_rule_prio_no + 1 ))"
     done
     [ "${local_statistics_show}" = "0" ] && [ "${status_ip_rule_exist}" = "0" ] && {
         echo "$(lzdate)" [$$]: "   No policy rule in use."
@@ -2894,16 +2961,43 @@ lz_ip_rule_output_syslog_status() {
     echo "$(lzdate)" [$$]: ---------------------------------------------
 }
 
+## 获取挂载WEB界面状态函数
+## 输入项：
+##     全局常量
+## 返回值：
+##     0--成功
+##     1--失败
+lz_get_mount_web_ui_status() {
+    local retval="1"
+    while true
+    do
+        [ ! -d "${PATH_WEB_LZR}" ] && break
+        [ ! -f "${PATH_WEB_LZR}/LZRState.html" ] && break
+        [ ! -f "${PATH_WEB_LZR}/LZRVersion.html" ] && break
+        [ ! -f "${PATH_WEB_LZR}/LZRConfig.html" ] && break
+        [ ! -f "${PATH_WEB_LZR}/LZRGlobal.html" ] && break
+        ! which md5sum > /dev/null 2>&1 && break
+        local page_name="$( lz_get_webui_page )"
+        [ -z "${page_name}" ] && break
+        [ ! -f "${PATH_WEBPAGE}/${page_name}" ] && break
+        [ ! -f "/www/require/modules/menuTree.js" ] && break
+        ! grep -q "{url: \"${page_name}\", tabName:.*}," "/www/require/modules/menuTree.js" 2> /dev/null && break
+        retval="0"
+        break
+    done
+    return "${retval}"
+}
+
 ## 运行状态查询主函数
 ## 输入项：
 ##     全局常量及变量
 ## 返回值：无
 __status_main() {
-    ## 读取lz_rule_config.box中的配置参数状态
+    ## 获取备份参数状态函数
     ## 输入项：
     ##     全局常量及变量
     ## 返回值：无
-    lz_read_box_data_status
+    lz_get_box_data_status
 
     if [ "${status_version}" != "${LZ_VERSION}" ]; then
         echo "$(lzdate)" [$$]: LZ "${LZ_VERSION}" script hasn\'t been started and initialized, please restart.
@@ -2963,21 +3057,6 @@ __status_main() {
 
         return
     fi
-
-    ## 获取firewall-start事件接口状态
-    ## 获取事件接口注册状态
-    ## 输入项：
-    ##     $1--系统事件接口全路径文件名
-    ##     $2--事件触发接口全路径文件名
-    ## 返回值：
-    ##     0--已注册
-    ##     1--未注册
-    if lz_get_event_interface_status "${PATH_BASE}/${STATUS_BOOTLOADER_NAME}" "${PATH_LZ}/${STATUS_PROJECT_FILENAME}"; then
-        echo "$(lzdate)" [$$]: "firewall-start interface has been registered."
-    else
-        echo "$(lzdate)" [$$]: "firewall-start interface is not registered."
-    fi
-    echo "$(lzdate)" [$$]: ---------------------------------------------
 
     ## 显示更新ISP网络运营商CIDR网段数据定时任务
     ## 输入项：
@@ -3083,10 +3162,50 @@ if [ ! -f "${PATH_CONFIGS}/lz_rule_config.box" ]; then
     return
 fi
 
-echo "$(lzdate)" [$$]: Getting the router device status information......
-
 ## 定义基本运行状态常量
 lz_define_status_constant
+
+## 获取挂载WEB界面状态
+## 输入项：
+##     全局常量
+## 返回值：
+##     0--成功
+##     1--失败
+if lz_get_mount_web_ui_status; then
+    echo "$(lzdate)" [$$]: "Policy Routing Web UI has been mounted."
+else
+    echo "$(lzdate)" [$$]: "Policy Routing Web UI is not mounted."
+fi
+
+## service-event事件接口状态
+## 获取服务事件接口注册状态
+## 输入项：
+##     $1--系统事件接口全路径文件名
+##     $2--命令行检索字符串
+## 返回值：
+##     0--已注册
+##     1--未注册
+if lz_get_service_event_interface_status "${PATH_BASE}/${STATUS_SERVICE_EVENT_NAME}" "LZRule.*start.*restart.*${STATUS_PROJECT_FILENAME}.*stop.*${STATUS_PROJECT_FILENAME}.*STOP"; then
+    echo "$(lzdate)" [$$]: "service-event interface has been registered."
+else
+    echo "$(lzdate)" [$$]: "service-event interface is not registered."
+fi
+
+## 获取firewall-start事件接口状态
+## 获取事件接口注册状态
+## 输入项：
+##     $1--系统事件接口全路径文件名
+##     $2--事件触发接口全路径文件名
+## 返回值：
+##     0--已注册
+##     1--未注册
+if lz_get_event_interface_status "${PATH_BASE}/${STATUS_BOOTLOADER_NAME}" "${PATH_LZ}/${STATUS_PROJECT_FILENAME}"; then
+    echo "$(lzdate)" [$$]: "firewall-start interface has been registered."
+else
+    echo "$(lzdate)" [$$]: "firewall-start interface is not registered."
+fi
+
+echo "$(lzdate)" [$$]: Getting the router device status information......
 
 ## 设置脚本基本运行状态参数变量
 lz_set_parameter_status_variable

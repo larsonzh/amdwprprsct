@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_define_global_variables.sh v4.0.5
+# lz_define_global_variables.sh v4.0.6
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 # QnkgTFog5aaZ5aaZ5ZGc77yI6Juk6J+G5aKp5YS/77yJ（首次运行标识，切勿修改）
 
@@ -12,16 +12,6 @@
 
 # shellcheck disable=SC2034  # Unused variables left for readability
 # shellcheck disable=SC2154
-
-## 自启动引导文件部署路径
-PATH_BOOTLOADER="${PATH_BASE}"
-
-## 自启动引导文件名
-BOOTLOADER_NAME="firewall-start"
-
-## 项目标识及项目文件名：取自本主执行脚本文件名称且保持一致
-PROJECT_ID="lz_rule"
-PROJECT_FILENAME="${PROJECT_ID}.sh"
 
 ## DNSMasq配置扩展全路径文件名
 DNSMASQ_CONF_ADD="/jffs/configs/dnsmasq.conf.add"
@@ -80,7 +70,7 @@ until [ "${local_index}" -gt "${ISP_TOTAL}" ]
 do
     ## ISP网络运营商CIDR网段数据条目数
     eval "isp_data_${local_index}_item_total=0"
-    let local_index++
+    local_index="$(( local_index + 1 ))"
 done
 unset local_index
 
@@ -153,12 +143,6 @@ IPTV_BOX_IP_SET="lz_iptv_box_ipsets"
 
 ## IPTV网络服务IP网址/网段数据集名称
 IPTV_ISP_IP_SET="lz_iptv_isp_ipsets"
-
-## 系统中的Open虚拟专网事件触发文件名
-OPENVPN_EVENT_NAME="openvpn-event"
-
-## Open虚拟专网事件触发接口文件名
-OPENVPN_EVENT_INTERFACE_NAME="lz_openvpn_event.sh"
 
 ## 虚拟专网客户端路由刷新处理后台守护进程脚本文件名
 VPN_CLIENT_DAEMON="lz_vpn_daemon.sh"

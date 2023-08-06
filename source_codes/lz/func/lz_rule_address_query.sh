@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_address_query.sh v4.0.5
+# lz_rule_address_query.sh v4.0.6
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 网址信息查询脚本
@@ -36,7 +36,7 @@ lz_define_aq_constant() {
     do
         ## 用户自定义出口IPv4网址/网段数据集
         eval "AQ_CUSTOM_SET_${local_index}=lz_aq_custom_set_${local_index}"
-        let local_index++
+        local_index="$(( local_index + 1 ))"
     done
     ## 第一WAN口域名地址数据集名称
     AQ_DOMAIN_SET_0="lz_domain_0"
@@ -52,7 +52,7 @@ lz_uninstall_aq_constant() {
         ## 用户自定义出口IPv4网址/网段数据集
         eval ipset -q destroy "\${AQ_CUSTOM_SET_${local_index}}"
         eval unset "AQ_CUSTOM_SET_${local_index}"
-        let local_index++
+        local_index="$(( local_index + 1 ))"
     done
     ## 第一WAN口域名地址数据集名称
     unset AQ_DOMAIN_SET_0
@@ -64,21 +64,10 @@ lz_uninstall_aq_constant() {
     do
         ## ISP网络运营商CIDR网段数据文件名（短文件名）
         eval unset "AQ_ISP_DATA_${local_index}"
-        let local_index++
+        local_index="$(( local_index + 1 ))"
     done
 
     unset AQ_ISP_TOTAL
-}
-
-## 设置ISP网络运营商出口参数变量函数
-lz_aq_set_isp_wan_port_variable() {
-    local local_index="0"
-    until [ "${local_index}" -gt "${AQ_ISP_TOTAL}" ]
-    do
-        ## ISP网络运营商出口参数
-        eval "aq_isp_wan_port_${local_index}="
-        let local_index++
-    done
 }
 
 ## 卸载ISP网络运营商出口参数变量函数
@@ -88,7 +77,7 @@ lz_aq_unset_isp_wan_port_variable() {
     do
         ## ISP网络运营商出口参数
         eval unset "aq_isp_wan_port_${local_index}"
-        let local_index++
+        local_index="$(( local_index + 1 ))"
     done
 }
 
@@ -194,7 +183,7 @@ lz_aq_add_ed_net_address_sets() {
     local NOMATCH=""
     [ "${3}" != "0" ] && NOMATCH=" nomatch"
     ipset -q create "${2}" nethash maxelem 4294967295 #--hashsize 1024 mexleme 65536
-    [ "${5}" != "0" ] && let local_ed_num++
+    [ "${5}" != "0" ] && local_ed_num="$(( local_ed_num + 1 ))"
     sed -e '/^[ \t]*[#]/d' -e 's/[#].*$//g' -e 's/[ \t][ \t]*/ /g' -e 's/^[ ]//' -e 's/[ ]$//' -e '/^[ ]*$/d' "${1}" 2> /dev/null \
         | awk -v count="0" -v criterion="${5}" -v ed_num="${local_ed_num}" '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
         && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
@@ -270,7 +259,7 @@ lz_aq_adjust_isp_wan_port() {
     do
         ## ISP网络运营商出口参数
         eval "aq_isp_wan_port_${local_index}=${1}"
-        let local_index++
+        local_index="$(( local_index + 1 ))"
     done
 }
 
@@ -550,7 +539,7 @@ lz_aq_set_isp_data_item_total_variable() {
     do
         ## ISP网络运营商出口参数
         eval "aq_isp_data_${local_index}_item_total=$( lz_aq_get_isp_data_item_total "${local_index}" )"
-        let local_index++
+        local_index="$(( local_index + 1 ))"
     done
 }
 
@@ -561,7 +550,7 @@ lz_aq_unset_isp_data_item_total_variable() {
     do
         ## ISP网络运营商出口参数
         eval unset "aq_isp_data_${local_index}_item_total"
-        let local_index++
+        local_index="$(( local_index + 1 ))"
     done
 }
 
@@ -600,42 +589,8 @@ lz_aq_get_route_local_address_info() {
 
 ## 设置网址信息查询用变量函数
 lz_set_aq_parameter_variable() {
-
-    aq_version=
-
-    ## 设置ISP网络运营商出口参数变量
-    lz_aq_set_isp_wan_port_variable
-
     ## 设置ISP网络运营商CIDR网段数据条目数变量
     lz_aq_set_isp_data_item_total_variable
-
-    aq_usage_mode=
-    aq_custom_data_wan_port_1=
-    aq_custom_data_file_1=
-    aq_custom_data_wan_port_2=
-    aq_custom_data_file_2=
-    aq_wan_1_domain=
-    aq_wan_2_domain=
-    aq_wan_1_client_src_addr=
-    aq_wan_1_client_src_addr_file=
-    aq_wan_2_client_src_addr=
-    aq_wan_2_client_src_addr_file=
-    aq_high_wan_1_client_src_addr=
-    aq_high_wan_1_client_src_addr_file=
-    aq_high_wan_2_client_src_addr=
-    aq_high_wan_2_client_src_addr_file=
-    aq_wan_1_src_to_dst_addr=
-    aq_wan_1_src_to_dst_addr_file=
-    aq_wan_2_src_to_dst_addr=
-    aq_wan_2_src_to_dst_addr_file=
-    aq_high_wan_1_src_to_dst_addr=
-    aq_high_wan_1_src_to_dst_addr_file=
-    aq_wan_1_src_to_dst_addr_port=
-    aq_wan_1_src_to_dst_addr_port_file=
-    aq_wan_2_src_to_dst_addr_port=
-    aq_wan_2_src_to_dst_addr_port_file=
-    aq_high_wan_1_src_to_dst_addr_port=
-    aq_high_wan_1_src_to_dst_addr_port_file=
 
     aq_route_local_ip=
     aq_route_local_ip_cidr_mask=
@@ -694,101 +649,232 @@ lz_unset_aq_parameter_variable() {
     unset aq_client_full_traffic_wan
 }
 
-## 读取文件缓冲区数据项函数
-## 输入项：
-##     $1--数据项名称
-##     $2--数据项缺省值
-##     local_file_cache--数据文件全路径文件名
-##     全局常量
-## 返回值：
-##     0--数据项不存在，或数据项值缺失，均以数据项缺省值输出
-##     非0--数据项读取成功
-lz_aq_get_file_cache_data() {
-    local local_retval="1"
-    local local_data_item="$( echo "${local_file_cache}" | grep -m 1 "^${1}=" \
-    | awk -F "=" '{if ($2 == "" && "'"${2}"'" != "") print "#LOSE#"; else if ($2 == "" && "'"${2}"'" == "") print "#DEFAULT#"; else print $2}' )"
-    if [ -z "${local_data_item}" ]; then
-        local_data_item="${2}"
-        local_retval="0"
-    elif [ "${local_data_item}" = "#LOSE#" ]; then
-        local_data_item="${2}"
-        local_retval="0"
-    elif [ "${local_data_item}" = "#DEFAULT#" ]; then
-        local_data_item="${2}"
-    fi
-    echo "${local_data_item}"
-    return "${local_retval}"
-}
-
-## 读取lz_rule_config.box中的配置参数函数
+## 初始化配置参数函数
 ## 输入项：
 ##     全局常量及变量
 ## 返回值：无
-lz_aq_read_box_data() {
-    ## 删除lz_rule_config.box中的重复参数项
-    awk -v x="0" '$1 ~ /^[a-zA-Z0-9_-][a-zA-Z0-9_-]*[=]/ && i[substr($1, 1, index($1, "="))]++ \
-        {x++; printf " -e '\''%ss\/\^\.\*\$\/#\&\/g'\''", NR} END{if (x != "0") printf "\n"}' "${PATH_CONFIGS}/lz_rule_config.box" \
-        | awk 'NF != "0" {system("sed -i"$0" -e '\''\/\^#\/d'\'' ""'"${PATH_CONFIGS}/lz_rule_config.box"'")}'
-    ## 加载配置参数文件缓冲区
-    local_file_cache="$( awk '$1 ~ /^[a-zA-Z0-9_-][a-zA-Z0-9_-]*[=]/ {print $1}' "${PATH_CONFIGS}/lz_rule_config.box" \
-            | sed -e 's/[#].*$//g' -e 's/^[ \t]*//g' -e 's/[ \t][ \t]*/ /g' -e 's/^\([^=]*[=][^ =]*\).*$/\1/g' \
-            -e 's/^\(.*[=][^\"][^\"]*\).*$/\1/g' -e 's/^\(.*[=][\"][^\"]*[\"]\).*$/\1/g' \
-            -e 's/^\(.*[=]\)[\"][^\"]*$/\1/g' -e 's/\"//g' )"
-    ## 读取文件缓冲区数据项状态
-    ## 输入项：
-    ##     $1--数据项名称
-    ##     $2--数据项缺省值
-    ##     local_file_cache--数据文件全路径文件名
-    ##     全局常量
-    ## 返回值：
-    ##     0--数据项不存在，或数据项值缺失，均以数据项缺省值输出
-    ##     非0--数据项读取成功
-    aq_version="$( lz_aq_get_file_cache_data "lz_config_version" "${LZ_VERSION}" )"
-    aq_isp_wan_port_0="$( lz_aq_get_file_cache_data "lz_config_all_foreign_wan_port" "0" )"
-    aq_isp_wan_port_1="$( lz_aq_get_file_cache_data "lz_config_chinatelecom_wan_port" "0" )"
-    aq_isp_wan_port_2="$( lz_aq_get_file_cache_data "lz_config_unicom_cnc_wan_port" "0" )"
-    aq_isp_wan_port_3="$( lz_aq_get_file_cache_data "lz_config_cmcc_wan_port" "1" )"
-    aq_isp_wan_port_4="$( lz_aq_get_file_cache_data "lz_config_crtc_wan_port" "1" )"
-    aq_isp_wan_port_5="$( lz_aq_get_file_cache_data "lz_config_cernet_wan_port" "1" )"
-    aq_isp_wan_port_6="$( lz_aq_get_file_cache_data "lz_config_gwbn_wan_port" "1" )"
-    aq_isp_wan_port_7="$( lz_aq_get_file_cache_data "lz_config_othernet_wan_port" "0" )"
-    aq_isp_wan_port_8="$( lz_aq_get_file_cache_data "lz_config_hk_wan_port" "0" )"
-    aq_isp_wan_port_9="$( lz_aq_get_file_cache_data "lz_config_mo_wan_port" "0" )"
-    aq_isp_wan_port_10="$( lz_aq_get_file_cache_data "lz_config_tw_wan_port" "0" )"
+lz_aq_init_cfg_data() {
+    [ "${aq_version-undefined}" = "undefined" ] && aq_version="${LZ_VERSION}"
+    [ "${aq_isp_wan_port_0-undefined}" = "undefined" ] && aq_isp_wan_port_0=0
+    [ "${aq_isp_wan_port_1-undefined}" = "undefined" ] && aq_isp_wan_port_1=0
+    [ "${aq_isp_wan_port_2-undefined}" = "undefined" ] && aq_isp_wan_port_2=0
+    [ "${aq_isp_wan_port_3-undefined}" = "undefined" ] && aq_isp_wan_port_3=1
+    [ "${aq_isp_wan_port_4-undefined}" = "undefined" ] && aq_isp_wan_port_4=1
+    [ "${aq_isp_wan_port_5-undefined}" = "undefined" ] && aq_isp_wan_port_5=1
+    [ "${aq_isp_wan_port_6-undefined}" = "undefined" ] && aq_isp_wan_port_6=1
+    [ "${aq_isp_wan_port_7-undefined}" = "undefined" ] && aq_isp_wan_port_7=0
+    [ "${aq_isp_wan_port_8-undefined}" = "undefined" ] && aq_isp_wan_port_8=0
+    [ "${aq_isp_wan_port_9-undefined}" = "undefined" ] && aq_isp_wan_port_9=0
+    [ "${aq_isp_wan_port_10-undefined}" = "undefined" ] && aq_isp_wan_port_10=0
+    [ "${aq_custom_data_wan_port_1-undefined}" = "undefined" ] && aq_custom_data_wan_port_1=5
+    [ "${aq_custom_data_file_1-undefined}" = "undefined" ] && aq_custom_data_file_1="\"${PATH_DATA}/custom_data_1.txt\""
+    [ "${aq_custom_data_wan_port_2-undefined}" = "undefined" ] && aq_custom_data_wan_port_2=5
+    [ "${aq_custom_data_file_2-undefined}" = "undefined" ] && aq_custom_data_file_2="\"${PATH_DATA}/custom_data_2.txt\""
+    [ "${aq_wan_1_domain-undefined}" = "undefined" ] && aq_wan_1_domain=5
+    [ "${aq_wan_2_domain-undefined}" = "undefined" ] && aq_wan_2_domain=5
+    [ "${aq_wan_1_client_src_addr-undefined}" = "undefined" ] && aq_wan_1_client_src_addr=5
+    [ "${aq_wan_1_client_src_addr_file-undefined}" = "undefined" ] && aq_wan_1_client_src_addr_file="\"${PATH_DATA}/wan_1_client_src_addr.txt\""
+    [ "${aq_wan_2_client_src_addr-undefined}" = "undefined" ] && aq_wan_2_client_src_addr=5
+    [ "${aq_wan_2_client_src_addr_file-undefined}" = "undefined" ] && aq_wan_2_client_src_addr_file="\"${PATH_DATA}/wan_2_client_src_addr.txt\""
+    [ "${aq_high_wan_1_client_src_addr-undefined}" = "undefined" ] && aq_high_wan_1_client_src_addr=5
+    [ "${aq_high_wan_1_client_src_addr_file-undefined}" = "undefined" ] && aq_high_wan_1_client_src_addr_file="\"${PATH_DATA}/high_wan_1_client_src_addr.txt\""
+    [ "${aq_high_wan_2_client_src_addr-undefined}" = "undefined" ] && aq_high_wan_2_client_src_addr=5
+    [ "${aq_high_wan_2_client_src_addr_file-undefined}" = "undefined" ] && aq_high_wan_2_client_src_addr_file="\"${PATH_DATA}/high_wan_2_client_src_addr.txt\""
+    [ "${aq_wan_1_src_to_dst_addr-undefined}" = "undefined" ] && aq_wan_1_src_to_dst_addr=5
+    [ "${aq_wan_1_src_to_dst_addr_file-undefined}" = "undefined" ] && aq_wan_1_src_to_dst_addr_file="\"${PATH_DATA}/wan_1_src_to_dst_addr.txt\""
+    [ "${aq_wan_2_src_to_dst_addr-undefined}" = "undefined" ] && aq_wan_2_src_to_dst_addr=5
+    [ "${aq_wan_2_src_to_dst_addr_file-undefined}" = "undefined" ] && aq_wan_2_src_to_dst_addr_file="\"${PATH_DATA}/wan_2_src_to_dst_addr.txt\""
+    [ "${aq_high_wan_1_src_to_dst_addr-undefined}" = "undefined" ] && aq_high_wan_1_src_to_dst_addr=5
+    [ "${aq_high_wan_1_src_to_dst_addr_file-undefined}" = "undefined" ] && aq_high_wan_1_src_to_dst_addr_file="\"${PATH_DATA}/high_wan_1_src_to_dst_addr.txt\""
+    [ "${aq_wan_1_src_to_dst_addr_port-undefined}" = "undefined" ] && aq_wan_1_src_to_dst_addr_port=5
+    [ "${aq_wan_1_src_to_dst_addr_port_file-undefined}" = "undefined" ] && aq_wan_1_src_to_dst_addr_port_file="\"${PATH_DATA}/wan_1_src_to_dst_addr_port.txt\""
+    [ "${aq_wan_2_src_to_dst_addr_port-undefined}" = "undefined" ] && aq_wan_2_src_to_dst_addr_port=5
+    [ "${aq_wan_2_src_to_dst_addr_port_file-undefined}" = "undefined" ] && aq_wan_2_src_to_dst_addr_port_file="\"${PATH_DATA}/wan_2_src_to_dst_addr_port.txt\""
+    [ "${aq_high_wan_1_src_to_dst_addr_port-undefined}" = "undefined" ] && aq_high_wan_1_src_to_dst_addr_port=5
+    [ "${aq_high_wan_1_src_to_dst_addr_port_file-undefined}" = "undefined" ] && aq_high_wan_1_src_to_dst_addr_port_file="\"${PATH_DATA}/high_wan_1_src_to_dst_addr_port.txt\""
+    [ "${aq_usage_mode-undefined}" = "undefined" ] && aq_usage_mode=0
+}
 
-    aq_usage_mode="$( lz_aq_get_file_cache_data "lz_config_usage_mode" "0" )"
-    aq_custom_data_wan_port_1="$( lz_aq_get_file_cache_data "lz_config_custom_data_wan_port_1" "5" )"
-    aq_custom_data_file_1="$( lz_aq_get_file_cache_data "lz_config_custom_data_file_1" "${PATH_DATA}/custom_data_1.txt" )"
-    aq_custom_data_wan_port_2="$( lz_aq_get_file_cache_data "lz_config_custom_data_wan_port_2" "5" )"
-    aq_custom_data_file_2="$( lz_aq_get_file_cache_data "lz_config_custom_data_file_2" "${PATH_DATA}/custom_data_2.txt" )"
-    aq_wan_1_domain="$( lz_aq_get_file_cache_data "lz_config_wan_1_domain" "5" )"
-    aq_wan_2_domain="$( lz_aq_get_file_cache_data "lz_config_wan_2_domain" "5" )"
-    if ! dnsmasq -v 2> /dev/null | grep -w 'ipset' | grep -qvw 'no[\-]ipset'; then
-        [ "${aq_wan_1_domain}" = "0" ] && aq_wan_1_domain="5"
-        [ "${aq_wan_2_domain}" = "0" ] && aq_wan_2_domain="5"
-    fi
-    aq_wan_1_client_src_addr="$( lz_aq_get_file_cache_data "lz_config_wan_1_client_src_addr" "5" )"
-    aq_wan_1_client_src_addr_file="$( lz_aq_get_file_cache_data "lz_config_wan_1_client_src_addr_file" "${PATH_DATA}/wan_1_client_src_addr.txt" )"
-    aq_wan_2_client_src_addr="$( lz_aq_get_file_cache_data "lz_config_wan_2_client_src_addr" "5" )"
-    aq_wan_2_client_src_addr_file="$( lz_aq_get_file_cache_data "lz_config_wan_2_client_src_addr_file" "${PATH_DATA}/wan_2_client_src_addr.txt" )"
-    aq_high_wan_1_client_src_addr="$( lz_aq_get_file_cache_data "lz_config_high_wan_1_client_src_addr" "5" )"
-    aq_high_wan_1_client_src_addr_file="$( lz_aq_get_file_cache_data "lz_config_high_wan_1_client_src_addr_file" "${PATH_DATA}/high_wan_1_client_src_addr.txt" )"
-    aq_high_wan_2_client_src_addr="$( lz_aq_get_file_cache_data "lz_config_high_wan_2_client_src_addr" "5" )"
-    aq_high_wan_2_client_src_addr_file="$( lz_aq_get_file_cache_data "lz_config_high_wan_2_client_src_addr_file" "${PATH_DATA}/high_wan_2_client_src_addr.txt" )"
-    aq_wan_1_src_to_dst_addr="$( lz_aq_get_file_cache_data "lz_config_wan_1_src_to_dst_addr" "5" )"
-    aq_wan_1_src_to_dst_addr_file="$( lz_aq_get_file_cache_data "lz_config_wan_1_src_to_dst_addr_file" "${PATH_DATA}/wan_1_src_to_dst_addr.txt" )"
-    aq_wan_2_src_to_dst_addr="$( lz_aq_get_file_cache_data "lz_config_wan_2_src_to_dst_addr" "5" )"
-    aq_wan_2_src_to_dst_addr_file="$( lz_aq_get_file_cache_data "lz_config_wan_2_src_to_dst_addr_file" "${PATH_DATA}/wan_2_src_to_dst_addr.txt" )"
-    aq_high_wan_1_src_to_dst_addr="$( lz_aq_get_file_cache_data "lz_config_high_wan_1_src_to_dst_addr" "5" )"
-    aq_high_wan_1_src_to_dst_addr_file="$( lz_aq_get_file_cache_data "lz_config_high_wan_1_src_to_dst_addr_file" "${PATH_DATA}/high_wan_1_src_to_dst_addr.txt" )"
-    aq_wan_1_src_to_dst_addr_port="$( lz_aq_get_file_cache_data "lz_config_wan_1_src_to_dst_addr_port" "5" )"
-    aq_wan_1_src_to_dst_addr_port_file="$( lz_aq_get_file_cache_data "lz_config_wan_1_src_to_dst_addr_port_file" "${PATH_DATA}/wan_1_src_to_dst_addr_port.txt" )"
-    aq_wan_2_src_to_dst_addr_port="$( lz_aq_get_file_cache_data "lz_config_wan_2_src_to_dst_addr_port" "5" )"
-    aq_wan_2_src_to_dst_addr_port_file="$( lz_aq_get_file_cache_data "lz_config_wan_2_src_to_dst_addr_port_file" "${PATH_DATA}/wan_2_src_to_dst_addr_port.txt" )"
-    aq_high_wan_1_src_to_dst_addr_port="$( lz_aq_get_file_cache_data "lz_config_high_wan_1_src_to_dst_addr_port" "5" )"
-    aq_high_wan_1_src_to_dst_addr_port_file="$( lz_aq_get_file_cache_data "lz_config_high_wan_1_src_to_dst_addr_port_file" "${PATH_DATA}/high_wan_1_src_to_dst_addr_port.txt" )"
-
-    unset local_file_cache
+## 获取备份参数函数
+## 输入项：
+##     全局常量及变量
+## 返回值：无
+lz_aq_get_box_data() {
+    local dnsmasq_enable="0"
+    ! dnsmasq -v 2> /dev/null | grep -w 'ipset' | grep -qvw 'no[\-]ipset' && dnsmasq_enable="1"
+    eval "$( awk -F "=" -v path="${PATH_LZ}" -v pathd="${PATH_DATA}" -v fname="${PATH_CONFIGS}/lz_rule_config.box" \
+        'BEGIN{
+            count=0;
+            mark=0;
+            policymode=0;
+            i["aq_version"]="'"${LZ_VERSION}"'";
+            i["aq_isp_wan_port_0"]=0;
+            i["aq_isp_wan_port_1"]=0;
+            i["aq_isp_wan_port_2"]=0;
+            i["aq_isp_wan_port_3"]=1;
+            i["aq_isp_wan_port_4"]=1;
+            i["aq_isp_wan_port_5"]=1;
+            i["aq_isp_wan_port_6"]=1;
+            i["aq_isp_wan_port_7"]=0;
+            i["aq_isp_wan_port_8"]=0;
+            i["aq_isp_wan_port_9"]=0;
+            i["aq_isp_wan_port_10"]=0;
+            i["aq_custom_data_wan_port_1"]=5;
+            i["aq_custom_data_file_1"]=pathd"/custom_data_1.txt";
+            i["aq_custom_data_wan_port_2"]=5;
+            i["aq_custom_data_file_2"]=pathd"/custom_data_2.txt";
+            i["aq_wan_1_domain"]=5;
+            i["aq_wan_2_domain"]=5;
+            i["aq_wan_1_client_src_addr"]=5;
+            i["aq_wan_1_client_src_addr_file"]=pathd"/wan_1_client_src_addr.txt";
+            i["aq_wan_2_client_src_addr"]=5;
+            i["aq_wan_2_client_src_addr_file"]=pathd"/wan_2_client_src_addr.txt";
+            i["aq_high_wan_1_client_src_addr"]=5;
+            i["aq_high_wan_1_client_src_addr_file"]=pathd"/high_wan_1_client_src_addr.txt";
+            i["aq_high_wan_2_client_src_addr"]=5;
+            i["aq_high_wan_2_client_src_addr_file"]=pathd"/high_wan_2_client_src_addr.txt";
+            i["aq_wan_1_src_to_dst_addr"]=5;
+            i["aq_wan_1_src_to_dst_addr_file"]=pathd"/wan_1_src_to_dst_addr.txt";
+            i["aq_wan_2_src_to_dst_addr"]=5;
+            i["aq_wan_2_src_to_dst_addr_file"]=pathd"/wan_2_src_to_dst_addr.txt";
+            i["aq_high_wan_1_src_to_dst_addr"]=5;
+            i["aq_high_wan_1_src_to_dst_addr_file"]=pathd"/high_wan_1_src_to_dst_addr.txt";
+            i["aq_wan_1_src_to_dst_addr_port"]=5;
+            i["aq_wan_1_src_to_dst_addr_port_file"]=pathd"/wan_1_src_to_dst_addr_port.txt";
+            i["aq_wan_2_src_to_dst_addr_port"]=5;
+            i["aq_wan_2_src_to_dst_addr_port_file"]=pathd"/wan_2_src_to_dst_addr_port.txt";
+            i["aq_high_wan_1_src_to_dst_addr_port"]=5;
+            i["aq_high_wan_1_src_to_dst_addr_port_file"]=pathd"/high_wan_1_src_to_dst_addr_port.txt";
+            i["aq_usage_mode"]=0;
+            total=length(i);
+        } $1 ~ /^lz_config_[a-zA-Z0-9]+/ {
+            flag=0;
+            if ($1 == "lz_config_all_foreign_wan_port")
+                key="aq_isp_wan_port_0";
+            else if ($1 == "lz_config_chinatelecom_wan_port")
+                key="aq_isp_wan_port_1";
+            else if ($1 == "lz_config_unicom_cnc_wan_port")
+                key="aq_isp_wan_port_2";
+            else if ($1 == "lz_config_cmcc_wan_port")
+                key="aq_isp_wan_port_3";
+            else if ($1 == "lz_config_crtc_wan_port")
+                key="aq_isp_wan_port_4";
+            else if ($1 == "lz_config_cernet_wan_port")
+                key="aq_isp_wan_port_5";
+            else if ($1 == "lz_config_gwbn_wan_port")
+                key="aq_isp_wan_port_6";
+            else if ($1 == "lz_config_othernet_wan_port")
+                key="aq_isp_wan_port_7";
+            else if ($1 == "lz_config_hk_wan_port")
+                key="aq_isp_wan_port_8";
+            else if ($1 == "lz_config_mo_wan_port")
+                key="aq_isp_wan_port_9";
+            else if ($1 == "lz_config_tw_wan_port")
+                key="aq_isp_wan_port_10";
+            else {
+                key=$1;
+                sub(/^lz_config_/, "aq_", key);
+            }
+            value=$2;
+            gsub(/[ \t#].*$/, "", value);
+            invalid=0;
+            if (key == "aq_version") {
+                flag=1;
+                ver=value;
+                if (match(ver, /^v([0-9][\.]){2}[0-9]$/) > 0) {
+                    gsub(/^[v]|[\.]/, "", ver);
+                    ver=ver+0;
+                    if (ver >= 295 && ver <= 346)
+                        mark=1;
+                } else
+                    invalid=1;
+            } else if (key == "aq_isp_wan_port_0" \
+                || key == "aq_custom_data_wan_port_1" \
+                || key == "aq_custom_data_wan_port_2" \
+                || key == "aq_wan_1_client_src_addr" \
+                || key == "aq_wan_2_client_src_addr" \
+                || key == "aq_high_wan_1_client_src_addr" \
+                || key == "aq_high_wan_2_client_src_addr" \
+                || key == "aq_wan_1_src_to_dst_addr" \
+                || key == "aq_wan_2_src_to_dst_addr" \
+                || key == "aq_high_wan_1_src_to_dst_addr" \
+                || key == "aq_wan_1_src_to_dst_addr_port" \
+                || key == "aq_wan_2_src_to_dst_addr_port" \
+                || key == "aq_high_wan_1_src_to_dst_addr_port") {
+                flag=1;
+                if (value !~ /^[0-9]$/)
+                    invalid=1;
+            } else if (key == "aq_isp_wan_port_1" \
+                || key == "aq_isp_wan_port_2" \
+                || key == "aq_isp_wan_port_3" \
+                || key == "aq_isp_wan_port_4" \
+                || key == "aq_isp_wan_port_5" \
+                || key == "aq_isp_wan_port_6" \
+                || key == "aq_isp_wan_port_7" \
+                || key == "aq_isp_wan_port_8" \
+                || key == "aq_isp_wan_port_9" \
+                || key == "aq_isp_wan_port_10") {
+                flag=1;
+                if (value !~ /^[0-9]$/)
+                    invalid=1;
+                else if (mark == 1) {
+                    if (value == 2) {
+                        value=0;
+                        invalid=1;
+                    } else if (value == 3) {
+                        value=1;
+                        invalid=1;
+                    }
+                }
+            } else if (key == "aq_policy_mode" && mark == 1) {
+                flag=1;
+                policymode=1;
+                if (value != 0 && value != 1)
+                    value=0;
+                else
+                    value=1;
+                key="aq_usage_mode";
+                value=6;
+            } else if (key == "aq_wan_1_domain" || key == "aq_wan_2_domain") {
+                flag=1;
+                if (value !~ /^[0-9]$/ || (value == "0" && "'"${dnsmasq_enable}"'" != "0"))
+                    invalid=1;
+            } else if (key == "aq_usage_mode") {
+                flag=1;
+                if (policymode == 0 && value !~ /^[01]$/)
+                    invalid=1;
+            } else if (key == "aq_custom_data_file_1" \
+                || key == "aq_custom_data_file_2" \
+                || key == "aq_wan_1_client_src_addr_file" \
+                || key == "aq_wan_2_client_src_addr_file" \
+                || key == "aq_high_wan_1_client_src_addr_file" \
+                || key == "aq_high_wan_2_client_src_addr_file" \
+                || key == "aq_wan_1_src_to_dst_addr_file" \
+                || key == "aq_wan_2_src_to_dst_addr_file" \
+                || key == "aq_high_wan_1_src_to_dst_addr_file" \
+                || key == "aq_wan_1_src_to_dst_addr_port_file" \
+                || key == "aq_wan_2_src_to_dst_addr_port_file" \
+                || key == "aq_high_wan_1_src_to_dst_addr_port_file") {
+                flag=2;
+                if (value !~ /^[\"]([\/][a-zA-Z0-9_\-][a-zA-Z0-9_\-\.]*)+[\"]$|^([\/][a-zA-Z0-9_\-][a-zA-Z0-9_\-\.]*)+$/ \
+                    || value ~ /[\.][\.]/)
+                    invalid=2;
+            }
+            if (flag == 0) next;
+            if (invalid == 2)
+                value="\\\""i[key]"\\\"";
+            else if (invalid != 0 && invalid != 6)
+                value=i[key];
+            if (flag == 2 && invalid != 2 \
+                && match(value, /^[\"][^\"]*[\"]$/) > 0)
+                value="\\\""value"\\\"";
+            print key"="value;
+            if (invalid != 6) count++;
+            if (count == total) exit;
+        } END{
+            if (count != total)
+                print "lz_aq_init_cfg_data";
+        }' "${PATH_CONFIGS}/lz_rule_config.box" )"
 }
 
 ## 获取ISP网络运营商目标网段流量出口参数值函数
@@ -896,7 +982,7 @@ lz_show_address_info() {
         until [ "${x}" -gt "14" ]
         do
             local_space="${local_space} "
-            let x++
+            x="$(( x + 1 ))"
         done
         echo "$(lzdate)" [$$]: "  ${1}      ${local_space}${6}"
     fi
@@ -950,7 +1036,7 @@ lz_show_address_info() {
             until [ "${x}" -gt "14" ]
             do
                 local_space="${local_space} "
-                let x++
+                x="$(( x + 1 ))"
             done
             echo "$(lzdate)" [$$]: "  Number of entries    ${9}"
             echo "$(lzdate)" [$$]: "  ${7}      ${local_space}${local_dns_server_name}"
@@ -1040,7 +1126,7 @@ lz_query_address() {
                     fi
                     ipset -q flush lz_aq_ispip_tmp_sets
                 }
-                let local_index++
+                local_index="$(( local_index + 1 ))"
             done
 
             if [ "${local_isp_no}" = "0" ] && [ -n "${aq_route_local_ip}" ] && [ -n "${aq_route_local_ip_cidr_mask}" ]; then
@@ -1106,14 +1192,14 @@ lz_query_address() {
                         local_isp_wan_no="0"
                         break
                     fi
-                    if [ "${local_index}" = "16" ] && eval [ "$( lz_aq_get_ipset_total_number "\${AQ_CUSTOM_SET_${local_index}}" )" != "0" ] \
+                    if [ "${local_index}" = "16" ] && eval "[ \"\$( lz_aq_get_ipset_total_number \"\${AQ_CUSTOM_SET_${local_index}}\" )\" != \"0\" ]" \
                         && eval ipset -q test "\${AQ_CUSTOM_SET_${local_index}}" "${local_net_ip}"; then
                         eval local_isp_wan_pram="\${aq_isp_wan_port_${local_isp_no}}"
                         eval "aq_isp_wan_port_${local_isp_no}=5"
                         local_isp_wan_no="0"
                         break
                     fi
-                    if eval [ "$( lz_aq_get_ipset_total_number "\${AQ_CUSTOM_SET_${local_index}}" )" != "0" ] \
+                    if eval "[ \"\$( lz_aq_get_ipset_total_number \"\${AQ_CUSTOM_SET_${local_index}}\" )\" \!= \"0\" ]" \
                         && eval ipset -q test "\${AQ_CUSTOM_SET_${local_index}}" "${local_net_ip}"; then
                         eval local_isp_wan_pram="\${aq_isp_wan_port_${local_isp_no}}"
                         if [ "$(( local_index % 2 ))" = "0" ]; then
@@ -1124,7 +1210,7 @@ lz_query_address() {
                         local_isp_wan_no="0"
                         break
                     fi
-                    let local_index++
+                    local_index="$(( local_index + 1 ))"
                 done
             fi
             ipset -q destroy lz_aq_ispip_tmp_sets
@@ -1154,7 +1240,7 @@ lz_query_address() {
             eval "local lz_aq_ispip_tmp_${local_index}_sets_loaded=0"
             eval "local lz_aq_ispip_tmp_${local_index}_1_sets_loaded=0"
             eval "local lz_aq_ispip_tmp_${local_index}_2_sets_loaded=0"
-            let local_index++
+            local_index="$(( local_index + 1 ))"
         done
 
         local local_ip_counter="${local_ip_item_total}"
@@ -1172,7 +1258,7 @@ lz_query_address() {
                 loacal_isp_data_item_total="$( lz_aq_get_isp_data_item_total_variable "${local_index}" )"
                 [ "${loacal_isp_data_item_total}" -gt "0" ] && {
                     if [ "${2}" != "0" ]; then
-                        eval [ "\${lz_aq_ispip_tmp_${local_index}_sets_loaded}" = "0" ] && {
+                        eval "[ \"\${lz_aq_ispip_tmp_${local_index}_sets_loaded}\" = \"0\" ]" && {
                             lz_aq_add_net_address_sets "$( lz_aq_get_isp_data_filename "${local_index}" )" "lz_aq_ispip_tmp_${local_index}_sets" "0"
                             eval "lz_aq_ispip_tmp_${local_index}_sets_loaded=1"
                         }
@@ -1183,7 +1269,7 @@ lz_query_address() {
                     else
                         local_isp_wan_port="$( lz_aq_get_isp_wan_port "${local_index}" )"
                         if [ "${local_isp_wan_port}" = "2" ] || [ "${local_isp_wan_port}" = "3" ]; then
-                            eval [ "\${lz_aq_ispip_tmp_${local_index}_1_sets_loaded}" = "0" ] && {
+                            eval "[ \"\${lz_aq_ispip_tmp_${local_index}_1_sets_loaded}\" = \"0\" ]" && {
                                 lz_aq_add_ed_net_address_sets "$( lz_aq_get_isp_data_filename "${local_index}" )" "lz_aq_ispip_tmp_${local_index}_1_sets" "0" "${loacal_isp_data_item_total}" "0"
                                 eval "lz_aq_ispip_tmp_${local_index}_1_sets_loaded=1"
                             }
@@ -1193,7 +1279,7 @@ lz_query_address() {
                                 break
                             }
                             if [ "${loacal_isp_data_item_total}" -gt "1" ]; then
-                                eval [ "\${lz_aq_ispip_tmp_${local_index}_2_sets_loaded}" = "0" ] && {
+                                eval "[ \"\${lz_aq_ispip_tmp_${local_index}_2_sets_loaded}\" = \"0\" ]" && {
                                     lz_aq_add_ed_net_address_sets "$( lz_aq_get_isp_data_filename "${local_index}" )" "lz_aq_ispip_tmp_${local_index}_2_sets" "0" "${loacal_isp_data_item_total}" "1"
                                     eval "lz_aq_ispip_tmp_${local_index}_2_sets_loaded=1"
                                 }
@@ -1204,7 +1290,7 @@ lz_query_address() {
                                 }
                             fi
                         else
-                            eval [ "\${lz_aq_ispip_tmp_${local_index}_sets_loaded}" = "0" ] && {
+                            eval "[ \"\${lz_aq_ispip_tmp_${local_index}_sets_loaded}\" = \"0\" ]" && {
                                 lz_aq_add_net_address_sets "$( lz_aq_get_isp_data_filename "${local_index}" )" "lz_aq_ispip_tmp_${local_index}_sets" "0"
                                 eval "lz_aq_ispip_tmp_${local_index}_sets_loaded=1"
                             }
@@ -1215,10 +1301,10 @@ lz_query_address() {
                         fi
                     fi
                 }
-                let local_index++
+                local_index="$(( local_index + 1 ))"
             done
 
-            if [ "${local_isp_no}" -le "${AQ_ISP_TOTAL}" ]; then
+           if [ "${local_isp_no}" -le "${AQ_ISP_TOTAL}" ]; then
                 local_index="1"
                 until [ "${local_index}" -gt "$(( AQ_ISP_TOTAL + 6 ))" ]
                 do
@@ -1237,14 +1323,14 @@ lz_query_address() {
                         local_isp_wan_no="0"
                         break
                     fi
-                    if [ "${local_index}" = "16" ] && eval [ "$( lz_aq_get_ipset_total_number "\${AQ_CUSTOM_SET_${local_index}}" )" != "0" ] \
+                    if [ "${local_index}" = "16" ] && eval "[ \"\$( lz_aq_get_ipset_total_number \"\${AQ_CUSTOM_SET_${local_index}}\" )\" \!= \"0\" ]" \
                         && eval ipset -q test "\${AQ_CUSTOM_SET_${local_index}}" "${local_net_ip}"; then
                         eval local_isp_wan_pram="\${aq_isp_wan_port_${local_isp_no}}"
                         eval "aq_isp_wan_port_${local_isp_no}=5"
                         local_isp_wan_no="0"
                         break
                     fi
-                    if eval [ "$( lz_aq_get_ipset_total_number "\${AQ_CUSTOM_SET_${local_index}}" )" != "0" ] \
+                    if eval "[ \"\$( lz_aq_get_ipset_total_number \"\${AQ_CUSTOM_SET_${local_index}}\" )\" \!= \"0\" ]" \
                         && eval ipset -q test "\${AQ_CUSTOM_SET_${local_index}}" "${local_net_ip}"; then
                         eval local_isp_wan_pram="\${aq_isp_wan_port_${local_isp_no}}"
                         if [ "$(( local_index % 2 ))" = "0" ]; then
@@ -1255,11 +1341,11 @@ lz_query_address() {
                         local_isp_wan_no="0"
                         break
                     fi
-                    let local_index++
+                    local_index="$(( local_index + 1 ))"
                 done
             fi
 
-            let local_ip_counter--
+            local_ip_counter="$(( local_ip_counter - 1 ))"
 
             ## 显示网址信息
             ## 输入项：
@@ -1286,7 +1372,7 @@ lz_query_address() {
             ipset -q flush "lz_aq_ispip_tmp_${local_index}_sets" && ipset -q destroy "lz_aq_ispip_tmp_${local_index}_sets"
             ipset -q flush "lz_aq_ispip_tmp_${local_index}_1_sets" && ipset -q destroy "lz_aq_ispip_tmp_${local_index}_1_sets"
             ipset -q flush "lz_aq_ispip_tmp_${local_index}_2_sets" && ipset -q destroy "lz_aq_ispip_tmp_${local_index}_2_sets"
-            let local_index++
+            local_index="$(( local_index + 1 ))"
         done
     fi
 }
@@ -1298,11 +1384,11 @@ lz_query_address() {
 ##     全局常量及变量
 ## 返回值：无
 __aq_main() {
-    ## 读取lz_rule_config.box中的配置参数
+    ## 获取备份参数
     ## 输入项：
     ##     全局常量及变量
     ## 返回值：无
-    lz_aq_read_box_data
+    lz_aq_get_box_data
 
     if [ "${aq_version}" != "${LZ_VERSION}" ]; then
         echo "$(lzdate)" [$$]: LZ "${LZ_VERSION}" script hasn\'t been started and initialized, please restart.
