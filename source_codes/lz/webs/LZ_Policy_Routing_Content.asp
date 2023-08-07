@@ -414,171 +414,171 @@ function openOverHint(itemNum) {
     if (itemNum == 1) {
         content = "<div>互联网所有 IP 地址分属不同机构和运营商管理，本策略以中国区用户使用为基础，将 IP 地址划分为 11 个运营区段，按管理范围分配全球互联网流量出口，选项包括："
         content += "<ul>";
-        content += "<li><#1862#></li>";
-        content += "<li><#1869#></li>";
+        content += "<li>首选 WAN</li>";
+        content += "<li>第二 WAN</li>";
         content += "<li>出口均分</li>";
         content += "<li>反向均分</li>";
-        content += "<li><#1846#></li>";
+        content += "<li>负载均衡</li>";
         content += "</ul>";
-        content += "<b>出口均分</b>：将所选<b>运营商 IP 地址</b>条目数据平均划分为两部分，前一部分匹配<b><#1862#></b>，后一部分匹配<b><#1869#></b>。<br />";
+        content += "<b>出口均分</b>：将所选<b>运营商 IP 地址</b>条目数据平均划分为两部分，前一部分匹配<b>首选 WAN</b>，后一部分匹配<b>第二 WAN</b>。<br />";
         content += "<br /><b>反向均分</b>：将<b>出口均分</b>的流量出口匹配方式倒置。<br />";
-        content += "<br /><b><#1846#></b>：由系统采用链路<#1846#>技术自动分配流量出口，但容易导致网络访问不正常。<br />";
-        content += "<br /><b>策略执行优先级</b>：详见<b><#3287#>&nbsp;-&nbsp;策略路由优先级</b></div>";
+        content += "<br /><b>负载均衡</b>：由系统采用链路负载均衡技术自动分配流量出口，但容易导致网络访问不正常。<br />";
+        content += "<br /><b>策略执行优先级</b>：详见<b>基本设置&nbsp;-&nbsp;策略路由优先级</b></div>";
     } else if (itemNum == 2) {
         content = "<div><b>中国电信</b>流量出口选项："
         content += "<ul>";
-        content += "<li><#1862#> (缺省)</li>";
-        content += "<li><#1869#></li>";
+        content += "<li>首选 WAN (缺省)</li>";
+        content += "<li>第二 WAN</li>";
         content += "<li>出口均分</li>";
         content += "<li>反向均分</li>";
-        content += "<li><#1846#></li>";
+        content += "<li>负载均衡</li>";
         content += "</ul>";
-        content += "<b>出口均分</b>：将<b>中国电信 IP 地址</b>条目数据平均划分为两部分，前一部分匹配<b><#1862#></b>，后一部分匹配<b><#1869#></b>。<br />";
+        content += "<b>出口均分</b>：将<b>中国电信 IP 地址</b>条目数据平均划分为两部分，前一部分匹配<b>首选 WAN</b>，后一部分匹配<b>第二 WAN</b>。<br />";
         content += "<br /><b>反向均分</b>：将<b>出口均分</b>的流量出口匹配方式倒置。<br />";
-        content += "<br /><b><#1846#></b>：由系统采用链路<#1846#>技术自动分配流量出口，但容易导致网络访问不正常。<br />";
-        content += "<br /><b>策略执行优先级</b>：详见<b><#3287#>&nbsp;-&nbsp;策略路由优先级</b></div>";
+        content += "<br /><b>负载均衡</b>：由系统采用链路负载均衡技术自动分配流量出口，但容易导致网络访问不正常。<br />";
+        content += "<br /><b>策略执行优先级</b>：详见<b>基本设置&nbsp;-&nbsp;策略路由优先级</b></div>";
     } else if (itemNum == 3) {
         content = "<div><b>中国联通/网通</b>流量出口选项："
         content += "<ul>";
-        content += "<li><#1862#> (缺省)</li>";
-        content += "<li><#1869#></li>";
+        content += "<li>首选 WAN (缺省)</li>";
+        content += "<li>第二 WAN</li>";
         content += "<li>出口均分</li>";
         content += "<li>反向均分</li>";
-        content += "<li><#1846#></li>";
+        content += "<li>负载均衡</li>";
         content += "</ul>";
-        content += "<b>出口均分</b>：将<b>中国联通/网通 IP 地址</b>条目数据平均划分为两部分，前一部分匹配<b><#1862#></b>，后一部分匹配<b><#1869#></b>。<br />";
+        content += "<b>出口均分</b>：将<b>中国联通/网通 IP 地址</b>条目数据平均划分为两部分，前一部分匹配<b>首选 WAN</b>，后一部分匹配<b>第二 WAN</b>。<br />";
         content += "<br /><b>反向均分</b>：将<b>出口均分</b>的流量出口匹配方式倒置。<br />";
-        content += "<br /><b><#1846#></b>：由系统采用链路<#1846#>技术自动分配流量出口，但容易导致网络访问不正常。<br />";
-        content += "<br /><b>策略执行优先级</b>：详见<b><#3287#>&nbsp;-&nbsp;策略路由优先级</b></div>";
+        content += "<br /><b>负载均衡</b>：由系统采用链路负载均衡技术自动分配流量出口，但容易导致网络访问不正常。<br />";
+        content += "<br /><b>策略执行优先级</b>：详见<b>基本设置&nbsp;-&nbsp;策略路由优先级</b></div>";
     } else if (itemNum == 4) {
         content = "<div><b>中国移动</b>流量出口选项："
         content += "<ul>";
-        content += "<li><#1862#></li>";
-        content += "<li><#1869#> (缺省)</li>";
+        content += "<li>首选 WAN</li>";
+        content += "<li>第二 WAN (缺省)</li>";
         content += "<li>出口均分</li>";
         content += "<li>反向均分</li>";
-        content += "<li><#1846#></li>";
+        content += "<li>负载均衡</li>";
         content += "</ul>";
-        content += "<b>出口均分</b>：将<b>中国移动 IP 地址</b>条目数据平均划分为两部分，前一部分匹配<b><#1862#></b>，后一部分匹配<b><#1869#></b>。<br />";
+        content += "<b>出口均分</b>：将<b>中国移动 IP 地址</b>条目数据平均划分为两部分，前一部分匹配<b>首选 WAN</b>，后一部分匹配<b>第二 WAN</b>。<br />";
         content += "<br /><b>反向均分</b>：将<b>出口均分</b>的流量出口匹配方式倒置。<br />";
-        content += "<br /><b><#1846#></b>：由系统采用链路<#1846#>技术自动分配流量出口，但容易导致网络访问不正常。<br />";
-        content += "<br /><b>策略执行优先级</b>：详见<b><#3287#>&nbsp;-&nbsp;策略路由优先级</b></div>";
+        content += "<br /><b>负载均衡</b>：由系统采用链路负载均衡技术自动分配流量出口，但容易导致网络访问不正常。<br />";
+        content += "<br /><b>策略执行优先级</b>：详见<b>基本设置&nbsp;-&nbsp;策略路由优先级</b></div>";
     } else if (itemNum == 5) {
         content = "<div><b>中国铁通</b>流量出口选项："
         content += "<ul>";
-        content += "<li><#1862#></li>";
-        content += "<li><#1869#> (缺省)</li>";
+        content += "<li>首选 WAN</li>";
+        content += "<li>第二 WAN (缺省)</li>";
         content += "<li>出口均分</li>";
         content += "<li>反向均分</li>";
-        content += "<li><#1846#></li>";
+        content += "<li>负载均衡</li>";
         content += "</ul>";
-        content += "<b>出口均分</b>：将<b>中国铁通 IP 地址</b>条目数据平均划分为两部分，前一部分匹配<b><#1862#></b>，后一部分匹配<b><#1869#></b>。<br />";
+        content += "<b>出口均分</b>：将<b>中国铁通 IP 地址</b>条目数据平均划分为两部分，前一部分匹配<b>首选 WAN</b>，后一部分匹配<b>第二 WAN</b>。<br />";
         content += "<br /><b>反向均分</b>：将<b>出口均分</b>的流量出口匹配方式倒置。<br />";
-        content += "<br /><b><#1846#></b>：由系统采用链路<#1846#>技术自动分配流量出口，但容易导致网络访问不正常。<br />";
-        content += "<br /><b>策略执行优先级</b>：详见<b><#3287#>&nbsp;-&nbsp;策略路由优先级</b></div>";
+        content += "<br /><b>负载均衡</b>：由系统采用链路负载均衡技术自动分配流量出口，但容易导致网络访问不正常。<br />";
+        content += "<br /><b>策略执行优先级</b>：详见<b>基本设置&nbsp;-&nbsp;策略路由优先级</b></div>";
     } else if (itemNum == 6) {
         content = "<div><b>中国教育网</b>流量出口选项："
         content += "<ul>";
-        content += "<li><#1862#></li>";
-        content += "<li><#1869#> (缺省)</li>";
+        content += "<li>首选 WAN</li>";
+        content += "<li>第二 WAN (缺省)</li>";
         content += "<li>出口均分</li>";
         content += "<li>反向均分</li>";
-        content += "<li><#1846#></li>";
+        content += "<li>负载均衡</li>";
         content += "</ul>";
-        content += "<b>出口均分</b>：将<b>中国教育网 IP 地址</b>条目数据平均划分为两部分，前一部分匹配<b><#1862#></b>，后一部分匹配<b><#1869#></b>。<br />";
+        content += "<b>出口均分</b>：将<b>中国教育网 IP 地址</b>条目数据平均划分为两部分，前一部分匹配<b>首选 WAN</b>，后一部分匹配<b>第二 WAN</b>。<br />";
         content += "<br /><b>反向均分</b>：将<b>出口均分</b>的流量出口匹配方式倒置。<br />";
-        content += "<br /><b><#1846#></b>：由系统采用链路<#1846#>技术自动分配流量出口，但容易导致网络访问不正常。<br />";
-        content += "<br /><b>策略执行优先级</b>：详见<b><#3287#>&nbsp;-&nbsp;策略路由优先级</b></div>";
+        content += "<br /><b>负载均衡</b>：由系统采用链路负载均衡技术自动分配流量出口，但容易导致网络访问不正常。<br />";
+        content += "<br /><b>策略执行优先级</b>：详见<b>基本设置&nbsp;-&nbsp;策略路由优先级</b></div>";
     } else if (itemNum == 7) {
         content = "<div><b>长城宽带/鹏博士</b>流量出口选项："
         content += "<ul>";
-        content += "<li><#1862#></li>";
-        content += "<li><#1869#> (缺省)</li>";
+        content += "<li>首选 WAN</li>";
+        content += "<li>第二 WAN (缺省)</li>";
         content += "<li>出口均分</li>";
         content += "<li>反向均分</li>";
-        content += "<li><#1846#></li>";
+        content += "<li>负载均衡</li>";
         content += "</ul>";
-        content += "<b>出口均分</b>：将<b>长城宽带/鹏博士 IP 地址</b>条目数据平均划分为两部分，前一部分匹配<b><#1862#></b>，后一部分匹配<b><#1869#></b>。<br />";
+        content += "<b>出口均分</b>：将<b>长城宽带/鹏博士 IP 地址</b>条目数据平均划分为两部分，前一部分匹配<b>首选 WAN</b>，后一部分匹配<b>第二 WAN</b>。<br />";
         content += "<br /><b>反向均分</b>：将<b>出口均分</b>的流量出口匹配方式倒置。<br />";
-        content += "<br /><b><#1846#></b>：由系统采用链路<#1846#>技术自动分配流量出口，但容易导致网络访问不正常。<br />";
-        content += "<br /><b>策略执行优先级</b>：详见<b><#3287#>&nbsp;-&nbsp;策略路由优先级</b></div>";
+        content += "<br /><b>负载均衡</b>：由系统采用链路负载均衡技术自动分配流量出口，但容易导致网络访问不正常。<br />";
+        content += "<br /><b>策略执行优先级</b>：详见<b>基本设置&nbsp;-&nbsp;策略路由优先级</b></div>";
     } else if (itemNum == 8) {
         content = "<div><b>中国大陆其他</b>运营商流量出口选项："
         content += "<ul>";
-        content += "<li><#1862#> (缺省)</li>";
-        content += "<li><#1869#></li>";
+        content += "<li>首选 WAN (缺省)</li>";
+        content += "<li>第二 WAN</li>";
         content += "<li>出口均分</li>";
         content += "<li>反向均分</li>";
-        content += "<li><#1846#></li>";
+        content += "<li>负载均衡</li>";
         content += "</ul>";
-        content += "<b>出口均分</b>：将<b>中国大陆其他运营商 IP 地址</b>条目数据平均划分为两部分，前一部分匹配<b><#1862#></b>，后一部分匹配<b><#1869#></b>。<br />";
+        content += "<b>出口均分</b>：将<b>中国大陆其他运营商 IP 地址</b>条目数据平均划分为两部分，前一部分匹配<b>首选 WAN</b>，后一部分匹配<b>第二 WAN</b>。<br />";
         content += "<br /><b>反向均分</b>：将<b>出口均分</b>的流量出口匹配方式倒置。<br />";
-        content += "<br /><b><#1846#></b>：由系统采用链路<#1846#>技术自动分配流量出口，但容易导致网络访问不正常。<br />";
-        content += "<br /><b>策略执行优先级</b>：详见<b><#3287#>&nbsp;-&nbsp;策略路由优先级</b></div>";
+        content += "<br /><b>负载均衡</b>：由系统采用链路负载均衡技术自动分配流量出口，但容易导致网络访问不正常。<br />";
+        content += "<br /><b>策略执行优先级</b>：详见<b>基本设置&nbsp;-&nbsp;策略路由优先级</b></div>";
     } else if (itemNum == 9) {
         content = "<div><b>香港特区</b>运营商流量出口选项："
         content += "<ul>";
-        content += "<li><#1862#> (缺省)</li>";
-        content += "<li><#1869#></li>";
+        content += "<li>首选 WAN (缺省)</li>";
+        content += "<li>第二 WAN</li>";
         content += "<li>出口均分</li>";
         content += "<li>反向均分</li>";
-        content += "<li><#1846#></li>";
+        content += "<li>负载均衡</li>";
         content += "</ul>";
-        content += "<b>出口均分</b>：将<b>香港特区运营商 IP 地址</b>条目数据平均划分为两部分，前一部分匹配<b><#1862#></b>，后一部分匹配<b><#1869#></b>。<br />";
+        content += "<b>出口均分</b>：将<b>香港特区运营商 IP 地址</b>条目数据平均划分为两部分，前一部分匹配<b>首选 WAN</b>，后一部分匹配<b>第二 WAN</b>。<br />";
         content += "<br /><b>反向均分</b>：将<b>出口均分</b>的流量出口匹配方式倒置。<br />";
-        content += "<br /><b><#1846#></b>：由系统采用链路<#1846#>技术自动分配流量出口，但容易导致网络访问不正常。<br />";
-        content += "<br /><b>策略执行优先级</b>：详见<b><#3287#>&nbsp;-&nbsp;策略路由优先级</b></div>";
+        content += "<br /><b>负载均衡</b>：由系统采用链路负载均衡技术自动分配流量出口，但容易导致网络访问不正常。<br />";
+        content += "<br /><b>策略执行优先级</b>：详见<b>基本设置&nbsp;-&nbsp;策略路由优先级</b></div>";
     } else if (itemNum == 10) {
         content = "<div><b>澳门特区</b>运营商流量出口选项："
         content += "<ul>";
-        content += "<li><#1862#> (缺省)</li>";
-        content += "<li><#1869#></li>";
+        content += "<li>首选 WAN (缺省)</li>";
+        content += "<li>第二 WAN</li>";
         content += "<li>出口均分</li>";
         content += "<li>反向均分</li>";
-        content += "<li><#1846#></li>";
+        content += "<li>负载均衡</li>";
         content += "</ul>";
-        content += "<b>出口均分</b>：将<b>澳门特区运营商 IP 地址</b>条目数据平均划分为两部分，前一部分匹配<b><#1862#></b>，后一部分匹配<b><#1869#></b>。<br />";
+        content += "<b>出口均分</b>：将<b>澳门特区运营商 IP 地址</b>条目数据平均划分为两部分，前一部分匹配<b>首选 WAN</b>，后一部分匹配<b>第二 WAN</b>。<br />";
         content += "<br /><b>反向均分</b>：将<b>出口均分</b>的流量出口匹配方式倒置。<br />";
-        content += "<br /><b><#1846#></b>：由系统采用链路<#1846#>技术自动分配流量出口，但容易导致网络访问不正常。<br />";
-        content += "<br /><b>策略执行优先级</b>：详见<b><#3287#>&nbsp;-&nbsp;策略路由优先级</b></div>";
+        content += "<br /><b>负载均衡</b>：由系统采用链路负载均衡技术自动分配流量出口，但容易导致网络访问不正常。<br />";
+        content += "<br /><b>策略执行优先级</b>：详见<b>基本设置&nbsp;-&nbsp;策略路由优先级</b></div>";
     } else if (itemNum == 11) {
         content = "<div><b>台湾省</b>运营商流量出口选项："
         content += "<ul>";
-        content += "<li><#1862#> (缺省)</li>";
-        content += "<li><#1869#></li>";
+        content += "<li>首选 WAN (缺省)</li>";
+        content += "<li>第二 WAN</li>";
         content += "<li>出口均分</li>";
         content += "<li>反向均分</li>";
-        content += "<li><#1846#></li>";
+        content += "<li>负载均衡</li>";
         content += "</ul>";
-        content += "<b>出口均分</b>：将<b>台湾省运营商 IP 地址</b>条目数据平均划分为两部分，前一部分匹配<b><#1862#></b>，后一部分匹配<b><#1869#></b>。<br />";
+        content += "<b>出口均分</b>：将<b>台湾省运营商 IP 地址</b>条目数据平均划分为两部分，前一部分匹配<b>首选 WAN</b>，后一部分匹配<b>第二 WAN</b>。<br />";
         content += "<br /><b>反向均分</b>：将<b>出口均分</b>的流量出口匹配方式倒置。<br />";
-        content += "<br /><b><#1846#></b>：由系统采用链路<#1846#>技术自动分配流量出口，但容易导致网络访问不正常。<br />";
-        content += "<br /><b>策略执行优先级</b>：详见<b><#3287#>&nbsp;-&nbsp;策略路由优先级</b></div>";
+        content += "<br /><b>负载均衡</b>：由系统采用链路负载均衡技术自动分配流量出口，但容易导致网络访问不正常。<br />";
+        content += "<br /><b>策略执行优先级</b>：详见<b>基本设置&nbsp;-&nbsp;策略路由优先级</b></div>";
     } else if (itemNum == 12) {
         content = "<div><b>国外运营商</b>流量出口选项："
         content += "<ul>";
-        content += "<li><#1862#> (缺省)</li>";
-        content += "<li><#1869#></li>";
-        content += "<li><#1846#></li>";
+        content += "<li>首选 WAN (缺省)</li>";
+        content += "<li>第二 WAN</li>";
+        content += "<li>负载均衡</li>";
         content += "</ul>";
-        content += "<b><#1846#></b>：由系统采用链路<#1846#>技术自动分配流量出口，但容易导致网络访问不正常。<br />";
-        content += "<br /><b>策略执行优先级</b>：详见<b><#3287#>&nbsp;-&nbsp;策略路由优先级</b></div>";
+        content += "<b>负载均衡</b>：由系统采用链路负载均衡技术自动分配流量出口，但容易导致网络访问不正常。<br />";
+        content += "<br /><b>策略执行优先级</b>：详见<b>基本设置&nbsp;-&nbsp;策略路由优先级</b></div>";
     } else if (itemNum == 13) {
         content = "<div><b>运营商 IP 地址数据</b>经常发生变化，建议<b>启用定时更新</b>。</div>";
     } else if (itemNum == 14) {
         content = "<div><b>动态分流模式</b>时自动与同一出口的运营商 IP 地址数据合集，采用同一条限定优先级的动态路由策略。<br />";
         content += "<br /><b>静态分流模式</b>时采用专属的自定义目标 IP 地址静态路由策略。<br />";
-        content += "<br /><b>策略执行优先级</b>：详见<b><#3287#>&nbsp;-&nbsp;策略路由优先级</b></div>";
+        content += "<br /><b>策略执行优先级</b>：详见<b>基本设置&nbsp;-&nbsp;策略路由优先级</b></div>";
     } else if (itemNum == 15) {
         content = "<div><b>自定义策略 - 1</b> 流量出口选项："
         content += "<ul>";
-        content += "<li><#1862#></li>";
-        content += "<li><#1869#></li>";
-        content += "<li><#1846#></li>";
-        content += "<li><#3859#> (缺省)</li>";
+        content += "<li>首选 WAN</li>";
+        content += "<li>第二 WAN</li>";
+        content += "<li>负载均衡</li>";
+        content += "<li>停用 (缺省)</li>";
         content += "</ul>";
-        content += "<b><#1846#></b>：由系统采用链路<#1846#>技术自动分配流量出口，但容易导致网络访问不正常。<br />";
-        content += "<br /><b>策略执行优先级</b>：详见<b><#3287#>&nbsp;-&nbsp;策略路由优先级</b></div>";
+        content += "<b>负载均衡</b>：由系统采用链路负载均衡技术自动分配流量出口，但容易导致网络访问不正常。<br />";
+        content += "<br /><b>策略执行优先级</b>：详见<b>基本设置&nbsp;-&nbsp;策略路由优先级</b></div>";
     } else if (itemNum == 16) {
         content = "<div>缺省文件名为 <b>/jffs/scripts/lz/data/custom_data_1.txt</b>，无有效数据条目。<br />";
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
@@ -588,55 +588,55 @@ function openOverHint(itemNum) {
     } else if (itemNum == 17) {
         content = "<div><b>自定义策略 - 2</b> 流量出口选项："
         content += "<ul>";
-        content += "<li><#1862#></li>";
-        content += "<li><#1869#></li>";
-        content += "<li><#1846#></li>";
-        content += "<li><#3859#> (缺省)</li>";
+        content += "<li>首选 WAN</li>";
+        content += "<li>第二 WAN</li>";
+        content += "<li>负载均衡</li>";
+        content += "<li>停用 (缺省)</li>";
         content += "</ul>";
-        content += "<b><#1846#></b>：由系统采用链路<#1846#>技术自动分配流量出口，但容易导致网络访问不正常。<br />";
-        content += "<br /><b>策略执行优先级</b>：详见<b><#3287#>&nbsp;-&nbsp;策略路由优先级</b></div>";
+        content += "<b>负载均衡</b>：由系统采用链路负载均衡技术自动分配流量出口，但容易导致网络访问不正常。<br />";
+        content += "<br /><b>策略执行优先级</b>：详见<b>基本设置&nbsp;-&nbsp;策略路由优先级</b></div>";
     } else if (itemNum == 18) {
         content = "<div>为<b>客户端 IP 地址列表</b>中所有访问预设域名地址的设备设定流量出口。<br />";
         content += "<br />功能优先级高于<b>客户端静态直通策略</b>，低于<b>客户端至预设目标 IP 地址静态直通策略</b>、<b>高优先级客户端静态直通策略</b>和<b>客户端至预设目标 IP 地址静态直通策略</b>。<br />";
-        content += "<br /><b>策略执行优先级</b>：详见<b><#3287#>&nbsp;-&nbsp;策略路由优先级</b></div>";
+        content += "<br /><b>策略执行优先级</b>：详见<b>基本设置&nbsp;-&nbsp;策略路由优先级</b></div>";
     } else if (itemNum == 19) {
-        content = "<div>文件中具体定义所有使用<b><#1862#> 口域名地址动态访问策略</b>的客户端在本地网络中的 IP 地址。<br />";
+        content = "<div>文件中具体定义所有使用<b>首选 WAN 口域名地址动态访问策略</b>的客户端在本地网络中的 IP 地址。<br />";
         content += "<br />缺省文件名为 <b>/jffs/scripts/lz/data/wan_1_domain_client_src_addr.txt</b>，无有效数据条目。<br />";
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
         content += "<br />文本格式：一个网址/网段一行，为一个条目，可多行多个条目。<br />";
         content += "<br />可以用 <b>0.0.0.0/0</b> 表示所有客户端。<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 20) {
-        content = "<div>文件中具体定义所有使用<b><#1862#></b> 口作为流量出口的预设域名地址。<br />";
+        content = "<div>文件中具体定义所有使用<b>首选 WAN</b> 口作为流量出口的预设域名地址。<br />";
         content += "<br />缺省文件名为 <b>/jffs/scripts/lz/data/wan_1_domain.txt</b>，无有效数据条目。<br />";
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
         content += "<br />文本格式：一个域名地址一行，为一个条目，可多行多个条目。<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 21) {
-        content = "<div>文件中具体定义所有使用<b><#1869#> 口域名地址动态访问策略</b>的客户端在本地网络中的 IP 地址。<br />";
+        content = "<div>文件中具体定义所有使用<b>第二 WAN 口域名地址动态访问策略</b>的客户端在本地网络中的 IP 地址。<br />";
         content += "<br />缺省文件名为 <b>/jffs/scripts/lz/data/wan_2_domain_client_src_addr.txt</b>，无有效数据条目。<br />";
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
         content += "<br />文本格式：一个网址/网段一行，为一个条目，可多行多个条目。<br />";
         content += "<br />可以用 <b>0.0.0.0/0</b> 表示所有客户端。<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 22) {
-        content = "<div>文件中具体定义所有使用<b><#1869#></b> 口作为流量出口的预设域名地址。<br />";
+        content = "<div>文件中具体定义所有使用<b>第二 WAN</b> 口作为流量出口的预设域名地址。<br />";
         content += "<br />缺省文件名为 <b>/jffs/scripts/lz/data/wan_2_domain.txt</b>，无有效数据条目。<br />";
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
         content += "<br />文本格式：一个域名地址一行，为一个条目，可多行多个条目。<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 23) {
         content = "<div>为<b>客户端 IP 地址列表</b>中所有使用固定出口的设备绑定流量出口。<br />";
-        content += "<br /><b>策略执行优先级</b>：详见<b><#3287#>&nbsp;-&nbsp;策略路由优先级</b></div>";
+        content += "<br /><b>策略执行优先级</b>：详见<b>基本设置&nbsp;-&nbsp;策略路由优先级</b></div>";
     } else if (itemNum == 24) {
-        content = "<div>文件中具体定义所有使用<b><#1862#> 口客户端静态直通策略</b>的客户端在本地网络中的 IP 地址。<br />";
+        content = "<div>文件中具体定义所有使用<b>首选 WAN 口客户端静态直通策略</b>的客户端在本地网络中的 IP 地址。<br />";
         content += "<br />缺省文件名为 <b>/jffs/scripts/lz/data/wan_1_client_src_addr.txt</b>，无有效数据条目。<br />";
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
         content += "<br />文本格式：一个网址/网段一行，为一个条目，可多行多个条目。<br />";
         content += "<br />可以用 <b>0.0.0.0/0</b> 表示所有客户端。<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 25) {
-        content = "<div>文件中具体定义所有使用<b><#1869#> 口客户端静态直通策略</b>的客户端在本地网络中的 IP 地址。<br />";
+        content = "<div>文件中具体定义所有使用<b>第二 WAN 口客户端静态直通策略</b>的客户端在本地网络中的 IP 地址。<br />";
         content += "<br />缺省文件名为 <b>/jffs/scripts/lz/data/wan_2_client_src_addr.txt</b>，无有效数据条目。<br />";
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
         content += "<br />文本格式：一个网址/网段一行，为一个条目，可多行多个条目。<br />";
@@ -644,16 +644,16 @@ function openOverHint(itemNum) {
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 26) {
         content = "<div>为<b>客户端 IP 地址列表</b>中所有使用固定出口的设备以高优先级方式绑定流量出口。<br />";
-        content += "<br /><b>策略执行优先级</b>：详见<b><#3287#>&nbsp;-&nbsp;策略路由优先级</b></div>";
+        content += "<br /><b>策略执行优先级</b>：详见<b>基本设置&nbsp;-&nbsp;策略路由优先级</b></div>";
     } else if (itemNum == 27) {
-        content = "<div>文件中具体定义所有使用<b><#1862#> 口高优先级客户端静态直通策略</b>的客户端在本地网络中的 IP 地址。<br />";
+        content = "<div>文件中具体定义所有使用<b>首选 WAN 口高优先级客户端静态直通策略</b>的客户端在本地网络中的 IP 地址。<br />";
         content += "<br />缺省文件名为 <b>/jffs/scripts/lz/data/high_wan_1_client_src_addr.txt</b>，无有效数据条目。<br />";
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
         content += "<br />文本格式：一个网址/网段一行，为一个条目，可多行多个条目。<br />";
         content += "<br />可以用 <b>0.0.0.0/0</b> 表示所有客户端。<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 28) {
-        content = "<div>文件中具体定义所有使用<b><#1869#> 口高优先级客户端静态直通策略</b>的客户端在本地网络中的 IP 地址。<br />";
+        content = "<div>文件中具体定义所有使用<b>第二 WAN 口高优先级客户端静态直通策略</b>的客户端在本地网络中的 IP 地址。<br />";
         content += "<br />缺省文件名为 <b>/jffs/scripts/lz/data/high_wan_2_client_src_addr.txt</b>，无有效数据条目。<br />";
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
         content += "<br />文本格式：一个网址/网段一行，为一个条目，可多行多个条目。<br />";
@@ -661,9 +661,9 @@ function openOverHint(itemNum) {
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 29) {
         content = "<div>指定客户端以静态路由方式访问预设目标 IP 地址时使用的流量出口。<br />";
-        content += "<br /><b>策略执行优先级</b>：详见<b><#3287#>&nbsp;-&nbsp;策略路由优先级</b></div>";
+        content += "<br /><b>策略执行优先级</b>：详见<b>基本设置&nbsp;-&nbsp;策略路由优先级</b></div>";
     } else if (itemNum == 30) {
-        content = "<div>文件中具体定义使用<b><#1862#> 口客户端至预设目标 IP 地址静态直通策略</b>的客户端 IP 地址和目标 IP 地址。<br />";
+        content = "<div>文件中具体定义使用<b>首选 WAN 口客户端至预设目标 IP 地址静态直通策略</b>的客户端 IP 地址和目标 IP 地址。<br />";
         content += "<br />缺省文件名为 <b>/jffs/scripts/lz/data/wan_1_src_to_dst_addr.txt</b>，无有效数据条目。<br />";
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
         content += "<br />文本格式：每行的源地址和目标地址之间按顺序用空格隔开，一个条目一行，可多行多个条目。<br />";
@@ -674,7 +674,7 @@ function openOverHint(itemNum) {
         content += "<br />建议列表条目数量不要多于512条，否则易导致软件启动时系统策略路由库加载数据时间过长。<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 31) {
-        content = "<div>文件中具体定义使用<b><#1869#> 口客户端至预设目标 IP 地址静态直通策略</b>的客户端 IP 地址和目标 IP 地址。<br />";
+        content = "<div>文件中具体定义使用<b>第二 WAN 口客户端至预设目标 IP 地址静态直通策略</b>的客户端 IP 地址和目标 IP 地址。<br />";
         content += "<br />缺省文件名为 <b>/jffs/scripts/lz/data/wan_2_src_to_dst_addr.txt</b>，无有效数据条目。<br />";
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
         content += "<br />文本格式：每行的源地址和目标地址之间按顺序用空格隔开，一个条目一行，可多行多个条目。<br />";
@@ -685,9 +685,9 @@ function openOverHint(itemNum) {
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 32) {
         content = "<div>指定客户端以高优先级的静态路由方式访问预设目标 IP 地址时使用的流量出口。<br />";
-        content += "<br /><b>策略执行优先级</b>：详见<b><#3287#>&nbsp;-&nbsp;策略路由优先级</b></div>";
+        content += "<br /><b>策略执行优先级</b>：详见<b>基本设置&nbsp;-&nbsp;策略路由优先级</b></div>";
     } else if (itemNum == 33) {
-        content = "<div>文件中具体定义使用<b><#1862#> 口高优先级客户端至预设目标 IP 地址静态直通策略</b>的客户端 IP 地址和目标 IP 地址。<br />";
+        content = "<div>文件中具体定义使用<b>首选 WAN 口高优先级客户端至预设目标 IP 地址静态直通策略</b>的客户端 IP 地址和目标 IP 地址。<br />";
         content += "<br />缺省文件名为 <b>/jffs/scripts/lz/data/high_wan_1_src_to_dst_addr.txt</b>，无有效数据条目。<br />";
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
         content += "<br />文本格式：每行的源地址和目标地址之间按顺序用空格隔开，一个条目一行，可多行多个条目。<br />";
@@ -699,21 +699,21 @@ function openOverHint(itemNum) {
     } else if (itemNum == 34) {
         content = "<div>按照目标地址的协议端口设定流量出口。<br />";
         content += "<br />每个协议端口最多可设置 15 个不连续的目标访问端口号埠，仅针对 TCP、UDP、UDPLITE、SCTP 四类协议端口。<br />";
-        content += "<br />输入框内容为空时表示对应的协议端口<b><#3859#></b>。<br />";
+        content += "<br />输入框内容为空时表示对应的协议端口<b>停用</b>。<br />";
         content += "<br />例如：<br />";
         content += "TCP协议端口：80,443,6881:6889,25671<br />";
         content += "<br />其中：6881:6889 表示 6881~6889 的连续端口号，不连续的端口号埠之间用英文半角 <b>,</b> 逗号相隔，不要有多余空格。<br />";
         content += "<br />功能优先级低于<b>客户端静态直通策略</b>，高于<b>运营商 IP 地址访问策略</b>和<b>自定义目标 IP 地址访问策略</b><br />";
-        content += "<br /><b>策略执行优先级</b>：详见<b><#3287#>&nbsp;-&nbsp;策略路由优先级</b></div>";
+        content += "<br /><b>策略执行优先级</b>：详见<b>基本设置&nbsp;-&nbsp;策略路由优先级</b></div>";
     } else if (itemNum == 35) {
         content = "<div>定义客户端使用指定流量出口访问预设地址的协议端口，可一次性的同时实现多种灵活、精准的流量策略。<br />";
         content += "<br />仅用于 TCP、UDP、UDPLITE、SCTP 四类协议端口。<br />";
         content += "<br />功能优先级高于<b>域名地址动态访问策略</b>和<b>客户端静态直通策略</b>，低于<b>高优先级客户端静态直通策略</b>和<b>客户端至预设目标 IP 地址静态直通策略</b>。<br />";
-        content += "<br /><b>策略执行优先级</b>：详见<b><#3287#>&nbsp;-&nbsp;策略路由优先级</b></div>";
+        content += "<br /><b>策略执行优先级</b>：详见<b>基本设置&nbsp;-&nbsp;策略路由优先级</b></div>";
     } else if (itemNum == 36) {
         mode = 1;
         caption = " 客户端地址至目标地址协议端口列表";
-        content = "<div>文件中具体定义客户端使用<b><#1862#></b> 口作为流量出口访问预设地址协议端口的客户端 IP 地址和目标 IP 地址的协议端口。<br />";
+        content = "<div>文件中具体定义客户端使用<b>首选 WAN</b> 口作为流量出口访问预设地址协议端口的客户端 IP 地址和目标 IP 地址的协议端口。<br />";
         content += "<br />缺省文件名为 <b>/jffs/scripts/lz/data/wan_1_src_to_dst_addr_port.txt</b>，无有效数据条目。<br />";
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
         content += "<br />文本格式：每行各字段之间用空格隔开，一个条目一行，可多行多个条目。<br />";
@@ -734,7 +734,7 @@ function openOverHint(itemNum) {
     } else if (itemNum == 37) {
         mode = 1;
         caption = " 客户端地址至目标地址协议端口列表";
-        content = "<div>文件中具体定义客户端使用<b><#1869#></b> 口作为流量出口访问预设地址协议端口的客户端 IP 地址和目标 IP 地址的协议端口。<br />";
+        content = "<div>文件中具体定义客户端使用<b>第二 WAN</b> 口作为流量出口访问预设地址协议端口的客户端 IP 地址和目标 IP 地址的协议端口。<br />";
         content += "<br />缺省文件名为 <b>/jffs/scripts/lz/data/wan_2_src_to_dst_addr_port.txt</b>，无有效数据条目。<br />";
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
         content += "<br />文本格式：每行各字段之间用空格隔开，一个条目一行，可多行多个条目。<br />";
@@ -756,11 +756,11 @@ function openOverHint(itemNum) {
         content = "<div>定义客户端高优先级方式使用指定流量出口访问预设地址的协议端口，可一次性的同时实现多种灵活、精准的流量策略。<br />";
         content += "<br />仅用于 TCP、UDP、UDPLITE、SCTP 四类协议端口。<br />";
         content += "<br />功能优先级高于<b>域名地址动态访问策略</b>和<b>客户端静态直通策略</b>，低于<b>高优先级客户端静态直通策略</b>和<b>客户端至预设目标 IP 地址静态直通策略</b>。<br />";
-        content += "<br /><b>策略执行优先级</b>：详见<b><#3287#>&nbsp;-&nbsp;策略路由优先级</b></div>";
+        content += "<br /><b>策略执行优先级</b>：详见<b>基本设置&nbsp;-&nbsp;策略路由优先级</b></div>";
 } else if (itemNum == 39) {
         mode = 1;
         caption = " 客户端地址至目标地址协议端口列表";
-        content = "<div>文件中具体定义客户端使用<b><#1862#></b> 口作为流量出口高优先级访问预设地址协议端口的客户端 IP 地址和目标 IP 地址的协议端口。<br />";
+        content = "<div>文件中具体定义客户端使用<b>首选 WAN</b> 口作为流量出口高优先级访问预设地址协议端口的客户端 IP 地址和目标 IP 地址的协议端口。<br />";
         content += "<br />缺省文件名为 <b>/jffs/scripts/lz/data/high_wan_1_src_to_dst_addr_port.txt</b>，无有效数据条目。<br />";
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
         content += "<br />文本格式：每行各字段之间用空格隔开，一个条目一行，可多行多个条目。<br />";
@@ -780,7 +780,7 @@ function openOverHint(itemNum) {
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 40) {
         content = "<div>列入本策略<b>客户端 IP 地址列表</b>中的设备访问外网时不受其他路由策略影响，仅由路由器系统本身的链路负载均衡功能自动分配流量出口，可实现一些特殊用途的应用 (如带速叠加下载，但外部影响因素较多，不保证能实现)。<br />";
-        content += "<br /><b>策略执行优先级</b>：详见<b><#3287#>&nbsp;-&nbsp;策略路由优先级</b></div>";
+        content += "<br /><b>策略执行优先级</b>：详见<b>基本设置&nbsp;-&nbsp;策略路由优先级</b></div>";
     } else if (itemNum == 41) {
         content = "<div>缺省文件名为 <b>/jffs/scripts/lz/data/local_ipsets_data.txt</b>，无有效数据条目。<br />";
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
@@ -789,23 +789,23 @@ function openOverHint(itemNum) {
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 42) {
         content = "<div>本策略用于从外部网络远程连接访问路由器及其内部的网络设备。<br />";
-        content += "<br /><b>策略执行优先级</b>：详见<b><#3287#>&nbsp;-&nbsp;策略路由优先级</b></div>";
+        content += "<br /><b>策略执行优先级</b>：详见<b>基本设置&nbsp;-&nbsp;策略路由优先级</b></div>";
     } else if (itemNum == 43) {
-        content = "<div>该端口用于外网访问路由器 Asuswrt 管理界面及内网设备，正常应与 DDNS 出口保持一致，一般为<b><#1862#></b>。<br />";
-        content += "<br />部分版本的固件系统，已内部将 DDNS 绑定至<b><#1862#></b>，更改或可导致访问失败。<br />";
-        content += "<br /><b>策略执行优先级</b>：详见<b><#3287#>&nbsp;-&nbsp;策略路由优先级</b></div>";
+        content = "<div>该端口用于外网访问路由器 Asuswrt 管理界面及内网设备，正常应与 DDNS 出口保持一致，一般为<b>首选 WAN</b>。<br />";
+        content += "<br />部分版本的固件系统，已内部将 DDNS 绑定至<b>首选 WAN</b>，更改或可导致访问失败。<br />";
+        content += "<br /><b>策略执行优先级</b>：详见<b>基本设置&nbsp;-&nbsp;策略路由优先级</b></div>";
     } else if (itemNum == 44) {
         content = "<div>用于双线路负载均衡模式下使用路由器主机内置的 OpenVPN、PPTP、IPSec 和 WireGuard 虚拟专用网络服务器。<br />"
         content += "<br />当双线路负载均衡模式下远程接入成功后，远程客户端可通过本策略经由路由器其他流量出口访问外部网络。<br />";
         content += "<br />流量出口选项：<br />";
         content += "<ul>";
-        content += "<li><#1862#> (缺省)</li>";
-        content += "<li><#1869#></li>";
+        content += "<li>首选 WAN (缺省)</li>";
+        content += "<li>第二 WAN</li>";
         content += "<li>现有策略</li>";
         content += "</ul>";
         content += "<b>现有策略</b>：已在路由器上运行的其他策略。<br />";
         content += "<br />对于 OpenVPN Server，仅支持网络层的 TUN 虚拟设备接口类型，可收发第三层数据报文包，无法对采用链路层 TAP 接口类型的第二层数据报文包进行路由控制。<br />";
-        content += "<br /><b>策略执行优先级</b>：详见<b><#3287#>&nbsp;-&nbsp;策略路由优先级</b></div>";
+        content += "<br /><b>策略执行优先级</b>：详见<b>基本设置&nbsp;-&nbsp;策略路由优先级</b></div>";
     } else if (itemNum == 45) {
         content = "<div>缺省为 <b>5</b> 秒。<br />";
         content += "<br />用于双线路负载均衡模式下路由器内置的 PPTP、IPSec  和WireGuard 虚拟专用网络服务器，对 OpenVPN 虚拟专用网络服务器无效。<br />";
@@ -843,9 +843,9 @@ function openOverHint(itemNum) {
     } else if (itemNum == 51) {
         content = "<div>缺省为 <b>864000</b> 秒 (<b>10</b> 天)。</div>";
     } else if (itemNum == 52) {
-        content = "<div>缺省为<b><#3858#></b>。</div>";
+        content = "<div>缺省为<b>启用</b>。</div>";
     } else if (itemNum == 53) {
-        content = "<div>缺省为<b><#3858#></b>。<br />";
+        content = "<div>缺省为<b>启用</b>。<br />";
         content += "<br />在软件执行结束时执行一次，同时会在<b>自动清理路由表及系统缓存时间间隔 (小时)</b> 的定时任务中进行。</div>";
     } else if (itemNum == 54) {
         content = "<div>缺省为每 <b>4</b> 小时清理一次。</div>";
@@ -854,7 +854,7 @@ function openOverHint(itemNum) {
         content += "<br />若不接入网络直播源，保持缺省即可。</div>";
     } else if (itemNum == 56) {
         content = "<div>缺省为 <b>DHCP 或 IPoE</b> 方式获取网络播放源地址，此连接方式也是地址获取方式/寻址方式。<br />";
-        content += "<br /><b><#1862#></b> 选项：<br />";
+        content += "<br /><b>首选 WAN</b> 选项：<br />";
         content += "<ul>";
         content += "<li>PPPoE&nbsp;(虚拟拨号端口&nbsp;ppp0)</li>";
         content += "<li>静态&nbsp;IP&nbsp;(以太网口)</li>";
@@ -863,7 +863,7 @@ function openOverHint(itemNum) {
         content += "若不接入网络直播源，保持缺省即可。</div>";
     } else if (itemNum == 57) {
         content = "<div>缺省为 <b>DHCP 或 IPoE</b> 方式获取网络播放源地址，此连接方式也是地址获取方式/寻址方式。<br />";
-        content += "<br /><b><#1869#></b> 选项：<br />";
+        content += "<br /><b>第二 WAN</b> 选项：<br />";
         content += "<ul>";
         content += "<li>PPPoE&nbsp;(虚拟拨号端口&nbsp;ppp1)</li>";
         content += "<li>静态&nbsp;IP&nbsp;(以太网口)</li>";
@@ -876,17 +876,17 @@ function openOverHint(itemNum) {
         content = "<div>用于指定 IPTV 机顶盒播放源接入口或网络 IGMP 组播数据转内网传输代理接入口，可将网络组播数据从路由器 WAN 出口外的组播源地址/接口转入本地内网供播放设备使用，并确保IPTV 机顶盒可全功能完整使用。<br />";
         content += "<br /><b>播放源接入口</b>选项：<br />";
         content += "<ul>";
-        content += "<li><#1862#></li>";
-        content += "<li><#1869#></li>";
-        content += "<li><#3859#> (缺省)</li>";
+        content += "<li>首选 WAN</li>";
+        content += "<li>第二 WAN</li>";
+        content += "<li>停用 (缺省)</li>";
         content += "</ul>";
         content += "当接入的两条线路都有播放源时，连接到路由器上的所有 IPTV 机顶盒和网络组播 (多播) 播放终端只能同时使用选定的一路接入，使用 UDPXY 的 HTTP 网络串流 (单播) 播放终端除外。<br />";
-        content += "<br /><b>注意</b>：在路由器后台的IPTV设置界面内将<b>启动组播路由</b>项设置为<b><#3858#></b>状态后，本功能项才可正常使用。</div>";
+        content += "<br /><b>注意</b>：在路由器后台的IPTV设置界面内将<b>启动组播路由</b>项设置为<b>启用</b>状态后，本功能项才可正常使用。</div>";
     } else if (itemNum == 60) {
         content = "<div>缺省为<b>直连 IPTV 线路</b>。<br />";
         content += "<br /><b>直连 IPTV 线路</b>是在路由器内部通过网络映射关系，将机顶盒直接绑定到 IPTV 线路接口，与路由器上的其它网络隔离，使机顶盒无法通过宽带访问互联网。优点是传输效率高，机顶盒功能完整，不会被运营商 IPTV 网络服务地址调整影响使用。<br />";
         content += "<br /><b>按服务地址访问</b>则是让机顶盒根据<b>IPTV 网络服务 IP 地址列表</b>中的 IP 地址直接访问运营商的 IPTV 服务系统，实现完整的 IPTV 功能，同时还可通过路由器上的运营商宽带网络访问互联网，适用于既能使用运营商 IPTV 功能，又有互联网应用的多功能网络盒子类终端设备。该功能使用的前提是需要用户自己提前获取到运营商的<b>IPTV 网络服务 IP 地址</b></div>";
-        content += "<br /><b>策略执行优先级</b>：详见<b><#3287#>&nbsp;-&nbsp;策略路由优先级</b></div>";
+        content += "<br /><b>策略执行优先级</b>：详见<b>基本设置&nbsp;-&nbsp;策略路由优先级</b></div>";
     } else if (itemNum == 61) {
         content = "<div>IPTV 机顶盒使用的<b>必选项</b>。<br />";
         content += "<br />缺省文件名为 <b>/jffs/scripts/lz/data/iptv_box_ip_lst.txt</b>，无有效数据条目。<br />";
@@ -905,16 +905,16 @@ function openOverHint(itemNum) {
     } else if (itemNum == 63) {
         content = "<div><b>核心网桥组播数据侦测方式</b>选项：<br />";
         content += "<ul>";
-        content += "<li><#3859#></li>";
+        content += "<li>停用</li>";
         content += "<li>标准方式</li>";
         content += "<li>阻塞方式 (缺省)</li>";
         content += "</ul>";
         content += "此参数仅对 hnd/axhnd/axhnd.675x 等后续平台机型路由器有效，IPTV 机顶盒或组播不能正常播放节目时可尝试调整此参数。</div>";
     } else if (itemNum == 64) {
-        content = "<div>可将来自<b><#1862#></b> 的网络组播数据转为 HTTP 数据流供内网客户端进行流式播放，能同时支持多个播放器，避免内网广播风暴。<br />";
-        content += "<br /><b>注意</b>：若网络串流播放终端无法播放某些播放源的媒体数据，在设备没有故障的情况下，可能是系统内未启用相关的 <b>RTP/RTSP</b> 实时传输协议等原因所致，在路由器后台的 IPTV 设置界面内将<b><#3059#></b>项设置为<b><#3858#></b>状态，相关功能或可正常。</div>";
+        content = "<div>可将来自<b>首选 WAN</b> 的网络组播数据转为 HTTP 数据流供内网客户端进行流式播放，能同时支持多个播放器，避免内网广播风暴。<br />";
+        content += "<br /><b>注意</b>：若网络串流播放终端无法播放某些播放源的媒体数据，在设备没有故障的情况下，可能是系统内未启用相关的 <b>RTP/RTSP</b> 实时传输协议等原因所致，在路由器后台的 IPTV 设置界面内将<b>启动组播路由</b>项设置为<b>启用</b>状态，相关功能或可正常。</div>";
     } else if (itemNum == 65) {
-        content = "<div>缺省为<b><#3859#></b>。</div>";
+        content = "<div>缺省为<b>停用</b>。</div>";
     } else if (itemNum == 66) {
         content = "<div>缺省为 <b>8686</b>。</div>";
     } else if (itemNum == 67) {
@@ -922,10 +922,10 @@ function openOverHint(itemNum) {
     } else if (itemNum == 68) {
         content = "<div>缺省为 <b>10</b>。</div>";
     } else if (itemNum == 69) {
-        content = "<div>可将来自<b><#1869#></b> 的网络组播数据转为 HTTP 数据流供内网客户端进行流式播放，能同时支持多个播放器，避免内网广播风暴。<br />";
-        content += "<br /><b>注意</b>：若网络串流播放终端无法播放某些播放源的媒体数据，在设备没有故障的情况下，可能是系统内未启用相关的 <b>RTP/RTSP</b> 实时传输协议等原因所致，在路由器后台的 IPTV 设置界面内将<b><#3059#></b>项设置为<b><#3858#></b>状态，相关功能或可正常。</div>";
+        content = "<div>可将来自<b>第二 WAN</b> 的网络组播数据转为 HTTP 数据流供内网客户端进行流式播放，能同时支持多个播放器，避免内网广播风暴。<br />";
+        content += "<br /><b>注意</b>：若网络串流播放终端无法播放某些播放源的媒体数据，在设备没有故障的情况下，可能是系统内未启用相关的 <b>RTP/RTSP</b> 实时传输协议等原因所致，在路由器后台的 IPTV 设置界面内将<b>启动组播路由</b>项设置为<b>启用</b>状态，相关功能或可正常。</div>";
     } else if (itemNum == 70) {
-        content = "<div>缺省为<b><#3859#></b>。</div>";
+        content = "<div>缺省为<b>停用</b>。</div>";
     } else if (itemNum == 71) {
         content = "<div>缺省为 <b>8888</b>。</div>";
     } else if (itemNum == 72) {
@@ -937,14 +937,14 @@ function openOverHint(itemNum) {
         content += "<br />使用中注意不要过多占用本软件的运行时间，避免产生功能冲突。</div>";
     } else if (itemNum == 75) {
         content = "<div><b>Linux Shell 脚本</b>。<br />";
-        content += "<br /><b><#3858#></b>后随软件最开始时执行，用于清理用户之前创建或调用的各种系统资源。<br />";
+        content += "<br /><b>启用</b>后随软件最开始时执行，用于清理用户之前创建或调用的各种系统资源。<br />";
         content += "<br />缺省文件名为 <b>/jffs/scripts/lz/custom_dualwan_scripts.sh</b>，实体文件不存在，使用时由用户创建。<br />";
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
         content += "<br />该文件由用户创建，文件编码格式为 UTF-8 (LF)，首行代码顶齐第一个字符开始必须为：<b>#!bin/sh</b><br />";
         content += "<br />该脚本先于<b>外置用户自定义配置脚本</b>执行。</div>";
     } else if (itemNum == 76) {
         content = "<div><b>Linux Shell 脚本</b>。<br />";
-        content += "<br /><b><#3858#></b>后随软件初始化时启动执行。<br />";
+        content += "<br /><b>启用</b>后随软件初始化时启动执行。<br />";
         content += "<br />缺省文件名为 <b>/jffs/scripts/lz/custom_config.sh</b>，实体文件不存在，使用时由用户创建。<br />";
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
         content += "<br />该文件由用户创建，文件编码格式为 UTF-8 (LF)，首行代码顶齐第一个字符开始必须为：<b>#!bin/sh</b><br />";
@@ -952,7 +952,7 @@ function openOverHint(itemNum) {
         content += "<br />该脚本晚于<b>外置用户自定义清理资源脚本</b>，早于<b>外置用户自定义双线路脚本</b>执行。</div>";
     } else if (itemNum == 77) {
         content = "<div><b>Linux Shell 脚本</b>。<br />";
-        content += "<br /><b><#3858#></b>后仅在双线路同时接通 WAN 口网络条件下执行。<br />";
+        content += "<br /><b>启用</b>后仅在双线路同时接通 WAN 口网络条件下执行。<br />";
         content += "<br />缺省文件名为 <b>/jffs/scripts/lz/custom_dualwan_scripts.sh</b>，实体文件不存在，使用时由用户创建。<br />";
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
         content += "<br />该文件由用户创建，文件编码格式为 UTF-8 (LF)，首行代码顶齐第一个字符开始必须为：<b>#!bin/sh</b><br />";
@@ -960,7 +960,7 @@ function openOverHint(itemNum) {
     } else if (itemNum == 78) {
         content = "<div>缺省为 <b>5</b> 天。</div>";
     } else if (itemNum == 79) {
-        content = "<div>缺省为<b><#153#></b>安排启动时间。</div>";
+        content = "<div>缺省为<b>自动</b>安排启动时间。</div>";
     } else if (itemNum == 80) {
         content = "<div>缺省为 <b>5</b> 次。</div>";
     } else if (itemNum == 81) {
@@ -970,52 +970,52 @@ function openOverHint(itemNum) {
         content += "<br />此文件中 <b>0.0.0.0/0</b> 为无效地址。<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 82) {
-        content = "<div>缺省为<b><#3859#></b>。<br />";
-        content += "<br /><b>策略执行优先级</b>：详见<b><#3287#>&nbsp;-&nbsp;策略路由优先级</b></div>";
+        content = "<div>缺省为<b>停用</b>。<br />";
+        content += "<br /><b>策略执行优先级</b>：详见<b>基本设置&nbsp;-&nbsp;策略路由优先级</b></div>";
     } else if (itemNum == 83) {
         content = "<div>最多可设置 15 个不连续的目标访问端口号埠。<br />";
-        content += "<br />输入框内容为空时表示该协议端口<b><#3859#></b>。<br />";
+        content += "<br />输入框内容为空时表示该协议端口<b>停用</b>。<br />";
         content += "<br />例如：<br />";
         content += "80,443,6881:6889,25671<br />";
         content += "<br />其中：6881:6889 表示 6881~6889 的连续端口号，不连续的端口号埠之间用英文半角 <b>,</b> 逗号相隔，不要有多余空格。<br />";
-        content += "<br /><b>策略执行优先级</b>：详见<b><#3287#>&nbsp;-&nbsp;策略路由优先级</b></div>";
+        content += "<br /><b>策略执行优先级</b>：详见<b>基本设置&nbsp;-&nbsp;策略路由优先级</b></div>";
     } else if (itemNum == 84) {
-        content = "<div>缺省为<b><#186#></b>。</div>";
+        content = "<div>缺省为<b>否</b>。</div>";
     } else if (itemNum == 100) {
         mode = 1;
-        caption = "<#3287#> - 策略路由优先级";
+        caption = "基本设置 - 策略路由优先级";
         content = "<div>策略路由优先级顺序：由高到低排列，系统抢先执行高优先级策略。<br />";
         content += "<ol>";
         content += "<li>负载均衡</li>";
         content += "<li>IPTV 机顶盒</li>";
         content += "<li>远程连接策略</li>";
         content += "<li>VPN 客户端通过路由器访问外网策略</li>";
-        content += "<li><#1862#> 高优先级客户端至预设目标 IP 地址静态直通策略</li>";
-        content += "<li><#1869#> 客户端至预设目标 IP 地址静态直通策略</li>";
-        content += "<li><#1862#> 客户端至预设目标 IP 地址静态直通策略</li>";
-        content += "<li><#1869#> 高优先级客户端静态直通策略</li>";
-        content += "<li><#1862#> 高优先级客户端静态直通策略</li>";
-        content += "<li><#1862#> 高优先级客户端至预设目标 IP 地址协议端口动态访问策略</li>";
-        content += "<li><#1869#> 客户端至预设目标 IP 地址协议端口动态访问策略</li>";
-        content += "<li><#1862#> 客户端至预设目标 IP 地址协议端口动态访问策略</li>";
-        content += "<li><#1869#> 域名地址动态访问策略</li>";
-        content += "<li><#1862#> 域名地址动态访问策略</li>";
-        content += "<li><#1869#> 客户端静态直通策略</li>";
-        content += "<li><#1862#> 客户端静态直通策略</li>";
-        content += "<li><#1869#> 协议端口动态访问策略</li>";
-        content += "<li><#1862#> 协议端口动态访问策略</li>";
+        content += "<li>首选 WAN 高优先级客户端至预设目标 IP 地址静态直通策略</li>";
+        content += "<li>第二 WAN 客户端至预设目标 IP 地址静态直通策略</li>";
+        content += "<li>首选 WAN 客户端至预设目标 IP 地址静态直通策略</li>";
+        content += "<li>第二 WAN 高优先级客户端静态直通策略</li>";
+        content += "<li>首选 WAN 高优先级客户端静态直通策略</li>";
+        content += "<li>首选 WAN 高优先级客户端至预设目标 IP 地址协议端口动态访问策略</li>";
+        content += "<li>第二 WAN 客户端至预设目标 IP 地址协议端口动态访问策略</li>";
+        content += "<li>首选 WAN 客户端至预设目标 IP 地址协议端口动态访问策略</li>";
+        content += "<li>第二 WAN 域名地址动态访问策略</li>";
+        content += "<li>首选 WAN 域名地址动态访问策略</li>";
+        content += "<li>第二 WAN 客户端静态直通策略</li>";
+        content += "<li>首选 WAN 客户端静态直通策略</li>";
+        content += "<li>第二 WAN 协议端口动态访问策略</li>";
+        content += "<li>首选 WAN 协议端口动态访问策略</li>";
         content += "<li>自定义目标 IP 地址访问策略 - 2 (静态分流模式时)</li>";
         content += "<li>自定义目标 IP 地址访问策略 - 1 (静态分流模式时)</li>";
-        content += "<li><#1869#> 运营商 IP 地址访问策略 (静态分流模式时)</li>";
-        content += "<li><#1862#> 运营商 IP 地址访问策略 (静态分流模式时)</li>";
-        content += "<li><#1869#> 国内运营商 IP 地址访问策略和自定义目标 IP 地址访问策略 (动态分流模式时)</li>";
-        content += "<li><#1862#> 国内运营商 IP 地址访问策略和自定义目标 IP 地址访问策略 (动态分流模式时)</li>";
+        content += "<li>第二 WAN 运营商 IP 地址访问策略 (静态分流模式时)</li>";
+        content += "<li>首选 WAN 运营商 IP 地址访问策略 (静态分流模式时)</li>";
+        content += "<li>第二 WAN 国内运营商 IP 地址访问策略和自定义目标 IP 地址访问策略 (动态分流模式时)</li>";
+        content += "<li>首选 WAN 国内运营商 IP 地址访问策略和自定义目标 IP 地址访问策略 (动态分流模式时)</li>";
         content += "<li>国外运营商 IP 地址访问策略 (动态分流模式时)</li>";
         content += "</ol>";
-        content += "前往<b><#747#> - <#416#></b>查询<b>策略路由</b><#4251#>/<#1518#>过程中的工作状态信息。<br />";
+        content += "前往<b>系统记录 - 一般记录文件</b>查询<b>策略路由</b>打开/关闭过程中的工作状态信息。<br />";
         content += "<br /></div>";
     } else if (itemNum == 101) {
-        content = "<div>前往<b><#747#> - <#416#></b>查询<b>策略路由</b><#4251#>/<#1518#>过程中的工作状态信息。</div>";
+        content = "<div>前往<b>系统记录 - 一般记录文件</b>查询<b>策略路由</b>打开/关闭过程中的工作状态信息。</div>";
     }
     if (content != "") {
         if (mode != 0) {
@@ -1132,7 +1132,7 @@ $(document).ready(function() {
 <div>&nbsp;</div>
 
 <div class="formfonttitle">
-<#393#> - 策略路由(IPv4)
+外部网络(WAN) - 策略路由(IPv4)
 </div>
 
 <div style="margin:10px 0 10px 5px;" class="splitLine"></div>
@@ -1145,7 +1145,7 @@ $(document).ready(function() {
 <table width="100%" border="1" align="center" cellpadding="4" cellspacing="0" bordercolor="#6b8fa3" class="FormTable">
 <thead>
 <tr>
-<td colspan="2"><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(100);"><#3287#></a></td>
+<td colspan="2"><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(100);">基本设置</a></td>
 </tr>
 </thead>
 <tr>
@@ -1169,11 +1169,11 @@ $(document).ready(function() {
 <th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(2);">中国电信</a></th>
 <td>
 <select id="lzr_chinatelecom_wan_port" name="lzr_chinatelecom_wan_port" class="input_option" style="margin-left:2px;">
-<option value="0" selected><#1862#></option>
-<option value="1"><#1869#></option>
+<option value="0" selected>首选 WAN</option>
+<option value="1">第二 WAN</option>
 <option value="2">均分出口</option>
 <option value="3">反向均分</option>
-<option value="5"><#1846#></option>
+<option value="5">负载均衡</option>
 </select>
 </td>
 </tr>
@@ -1181,11 +1181,11 @@ $(document).ready(function() {
 <th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(3);">中国联通/网通</a></th>
 <td>
 <select id="lzr_unicom_cnc_wan_port" name="lzr_unicom_cnc_wan_port" class="input_option" style="margin-left:2px;">
-<option value="0" selected><#1862#></option>
-<option value="1"><#1869#></option>
+<option value="0" selected>首选 WAN</option>
+<option value="1">第二 WAN</option>
 <option value="2">均分出口</option>
 <option value="3">反向均分</option>
-<option value="5"><#1846#></option>
+<option value="5">负载均衡</option>
 </select>
 </td>
 </tr>
@@ -1193,11 +1193,11 @@ $(document).ready(function() {
 <th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(4);">中国移动</a></th>
 <td>
 <select id="lzr_cmcc_wan_port" name="lzr_cmcc_wan_port" class="input_option" style="margin-left:2px;">
-<option value="0"><#1862#></option>
-<option value="1" selected><#1869#></option>
+<option value="0">首选 WAN</option>
+<option value="1" selected>第二 WAN</option>
 <option value="2">均分出口</option>
 <option value="3">反向均分</option>
-<option value="5"><#1846#></option>
+<option value="5">负载均衡</option>
 </select>
 </td>
 </tr>
@@ -1205,11 +1205,11 @@ $(document).ready(function() {
 <th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(5);">中国铁通</a></th>
 <td>
 <select id="lzr_crtc_wan_port" name="lzr_crtc_wan_port" class="input_option" style="margin-left:2px;">
-<option value="0"><#1862#></option>
-<option value="1" selected><#1869#></option>
+<option value="0">首选 WAN</option>
+<option value="1" selected>第二 WAN</option>
 <option value="2">均分出口</option>
 <option value="3">反向均分</option>
-<option value="5"><#1846#></option>
+<option value="5">负载均衡</option>
 </select>
 </td>
 </tr>
@@ -1217,11 +1217,11 @@ $(document).ready(function() {
 <th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(6);">中国教育网</a></th>
 <td>
 <select id="lzr_cernet_wan_port" name="lzr_cernet_wan_port" class="input_option" style="margin-left:2px;">
-<option value="0"><#1862#></option>
-<option value="1" selected><#1869#></option>
+<option value="0">首选 WAN</option>
+<option value="1" selected>第二 WAN</option>
 <option value="2">均分出口</option>
 <option value="3">反向均分</option>
-<option value="5"><#1846#></option>
+<option value="5">负载均衡</option>
 </select>
 </td>
 </tr>
@@ -1229,11 +1229,11 @@ $(document).ready(function() {
 <th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(7);">长城宽带/鹏博士</a></th>
 <td>
 <select id="lzr_gwbn_wan_port" name="lzr_gwbn_wan_port" class="input_option" style="margin-left:2px;">
-<option value="0"><#1862#></option>
-<option value="1" selected><#1869#></option>
+<option value="0">首选 WAN</option>
+<option value="1" selected>第二 WAN</option>
 <option value="2">均分出口</option>
 <option value="3">反向均分</option>
-<option value="5"><#1846#></option>
+<option value="5">负载均衡</option>
 </select>
 </td>
 </tr>
@@ -1241,11 +1241,11 @@ $(document).ready(function() {
 <th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(8);">中国大陆其他</a></th>
 <td>
 <select id="lzr_othernet_wan_port" name="lzr_othernet_wan_port" class="input_option" style="margin-left:2px;">
-<option value="0" selected><#1862#></option>
-<option value="1"><#1869#></option>
+<option value="0" selected>首选 WAN</option>
+<option value="1">第二 WAN</option>
 <option value="2">均分出口</option>
 <option value="3">反向均分</option>
-<option value="5"><#1846#></option>
+<option value="5">负载均衡</option>
 </select>
 </td>
 </tr>
@@ -1253,11 +1253,11 @@ $(document).ready(function() {
 <th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(9);">香港特区</a></th>
 <td>
 <select id="lzr_hk_wan_port" name="lzr_hk_wan_port" class="input_option" style="margin-left:2px;">
-<option value="0" selected><#1862#></option>
-<option value="1"><#1869#></option>
+<option value="0" selected>首选 WAN</option>
+<option value="1">第二 WAN</option>
 <option value="2">均分出口</option>
 <option value="3">反向均分</option>
-<option value="5"><#1846#></option>
+<option value="5">负载均衡</option>
 </select>
 </td>
 </tr>
@@ -1265,11 +1265,11 @@ $(document).ready(function() {
 <th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(10);">澳门特区</a></th>
 <td>
 <select id="lzr_mo_wan_port" name="lzr_mo_wan_port" class="input_option" style="margin-left:2px;">
-<option value="0" selected><#1862#></option>
-<option value="1"><#1869#></option>
+<option value="0" selected>首选 WAN</option>
+<option value="1">第二 WAN</option>
 <option value="2">均分出口</option>
 <option value="3">反向均分</option>
-<option value="5"><#1846#></option>
+<option value="5">负载均衡</option>
 </select>
 </td>
 </tr>
@@ -1277,11 +1277,11 @@ $(document).ready(function() {
 <th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(11);">台湾省</a></th>
 <td>
 <select id="lzr_tw_wan_port" name="lzr_tw_wan_port" class="input_option" style="margin-left:2px;">
-<option value="0" selected><#1862#></option>
-<option value="1"><#1869#></option>
+<option value="0" selected>首选 WAN</option>
+<option value="1">第二 WAN</option>
 <option value="2">均分出口</option>
 <option value="3">反向均分</option>
-<option value="5"><#1846#></option>
+<option value="5">负载均衡</option>
 </select>
 </td>
 </tr>
@@ -1289,9 +1289,9 @@ $(document).ready(function() {
 <th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(12);">国外运营商</a></th>
 <td>
 <select id="lzr_all_foreign_wan_port" name="lzr_all_foreign_wan_port" class="input_option" style="margin-left:2px;">
-<option value="0" selected><#1862#></option>
-<option value="1"><#1869#></option>
-<option value="5"><#1846#></option>
+<option value="0" selected>首选 WAN</option>
+<option value="1">第二 WAN</option>
+<option value="5">负载均衡</option>
 </select>
 </td>
 </tr>
@@ -1306,8 +1306,8 @@ $(document).ready(function() {
 <tr>
 <th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(13);">启用定时更新</a></th>
 <td colspan="4">
-<input type="radio" value="0" name="lzr_regularly_update_ispip_data_enable" class="content_input_fd"><#187#>
-<input type="radio" value="5" name="lzr_regularly_update_ispip_data_enable" class="content_input_fd"><#186#>
+<input type="radio" value="0" name="lzr_regularly_update_ispip_data_enable" class="content_input_fd">是
+<input type="radio" value="5" name="lzr_regularly_update_ispip_data_enable" class="content_input_fd">否
 </td>
 </tr>
 <tr>
@@ -1352,7 +1352,7 @@ $(document).ready(function() {
 <th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(79);">启动时间 (HH:MM)</a></th>
 <td>
 <select id="lzr_ruid_timer_hour" name="lzr_ruid_timer_hour" class="input_option" style="margin-left:2px;">
-<option value="404" selected><#153#></option>
+<option value="404" selected>自动</option>
 <option value="0">00</option>
 <option value="1">01</option>
 <option value="2">02</option>
@@ -1386,7 +1386,7 @@ $(document).ready(function() {
 <option value="30">30</option>
 <option value="31">31</option>
 </select> &nbsp;&nbsp;:&nbsp; <select id="lzr_ruid_timer_min" name="lzr_ruid_timer_min" class="input_option" style="margin-left:2px;">
-<option value="404" selected><#153#></option>
+<option value="404" selected>自动</option>
 <option value="0">00</option>
 <option value="1">01</option>
 <option value="2">02</option>
@@ -1451,7 +1451,7 @@ $(document).ready(function() {
 </td>
 </tr>
 <tr>
-<th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(80);"><#3229#> (0~99)</a></th>
+<th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(80);">重试次数 (0~99)</a></th>
 <td>
 <input id="lzr_ruid_retry_num" type="text" maxlength="2" class="input_6_table" name="lzr_ruid_retry_num" value="5" onkeypress="return validator.isNumber(this,event);" onchange="checkNumberField(this)" autocorrect="off" autocapitalize="off">
 </td>
@@ -1471,10 +1471,10 @@ $(document).ready(function() {
 <th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(15);">自定义策略 - 1</a></th>
 <td>
 <select id="lzr_custom_data_wan_port_1" name="lzr_custom_data_wan_port_1" class="input_option" style="margin-left:2px;">
-<option value="0"><#1862#></option>
-<option value="1"><#1869#></option>
-<option value="2"><#1846#></option>
-<option value="5" selected><#3859#></option>
+<option value="0">首选 WAN</option>
+<option value="1">第二 WAN</option>
+<option value="2">负载均衡</option>
+<option value="5" selected>停用</option>
 </select>
 </td>
 </tr>
@@ -1488,10 +1488,10 @@ $(document).ready(function() {
 <th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(17);">自定义策略 - 2</a></th>
 <td>
 <select id="lzr_custom_data_wan_port_2" name="lzr_custom_data_wan_port_2" class="input_option" style="margin-left:2px;">
-<option value="0"><#1862#></option>
-<option value="1"><#1869#></option>
-<option value="2"><#1846#></option>
-<option value="5" selected><#3859#></option>
+<option value="0">首选 WAN</option>
+<option value="1">第二 WAN</option>
+<option value="2">负载均衡</option>
+<option value="5" selected>停用</option>
 </select>
 </td>
 </tr>
@@ -1510,10 +1510,10 @@ $(document).ready(function() {
 </tr>
 </thead>
 <tr>
-<th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(82);"><#1862#></a></th>
+<th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(82);">首选 WAN</a></th>
 <td colspan="4">
-<input type="radio" value="0" name="lzr_wan_1_domain" class="content_input_fd"><#3858#>
-<input type="radio" value="5" name="lzr_wan_1_domain" class="content_input_fd"><#3859#>
+<input type="radio" value="0" name="lzr_wan_1_domain" class="content_input_fd">启用
+<input type="radio" value="5" name="lzr_wan_1_domain" class="content_input_fd">停用
 </td>
 </tr>
 <tr>
@@ -1529,10 +1529,10 @@ $(document).ready(function() {
 </td>
 </tr>
 <tr>
-<th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(82);"><#1869#></a></th>
+<th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(82);">第二 WAN</a></th>
 <td colspan="4">
-<input type="radio" value="0" name="lzr_wan_2_domain" class="content_input_fd"><#3858#>
-<input type="radio" value="5" name="lzr_wan_2_domain" class="content_input_fd"><#3859#>
+<input type="radio" value="0" name="lzr_wan_2_domain" class="content_input_fd">启用
+<input type="radio" value="5" name="lzr_wan_2_domain" class="content_input_fd">停用
 </td>
 </tr>
 <tr>
@@ -1556,10 +1556,10 @@ $(document).ready(function() {
 </tr>
 </thead>
 <tr>
-<th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(82);"><#1862#></a></th>
+<th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(82);">首选 WAN</a></th>
 <td colspan="4">
-<input type="radio" value="0" name="lzr_wan_1_client_src_addr" class="content_input_fd"><#3858#>
-<input type="radio" value="5" name="lzr_wan_1_client_src_addr" class="content_input_fd"><#3859#>
+<input type="radio" value="0" name="lzr_wan_1_client_src_addr" class="content_input_fd">启用
+<input type="radio" value="5" name="lzr_wan_1_client_src_addr" class="content_input_fd">停用
 </td>
 </tr>
 <tr>
@@ -1569,10 +1569,10 @@ $(document).ready(function() {
 </td>
 </tr>
 <tr>
-<th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(82);"><#1869#></a></th>
+<th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(82);">第二 WAN</a></th>
 <td colspan="4">
-<input type="radio" value="0" name="lzr_wan_2_client_src_addr" class="content_input_fd"><#3858#>
-<input type="radio" value="5" name="lzr_wan_2_client_src_addr" class="content_input_fd"><#3859#>
+<input type="radio" value="0" name="lzr_wan_2_client_src_addr" class="content_input_fd">启用
+<input type="radio" value="5" name="lzr_wan_2_client_src_addr" class="content_input_fd">停用
 </td>
 </tr>
 <tr>
@@ -1590,10 +1590,10 @@ $(document).ready(function() {
 </tr>
 </thead>
 <tr>
-<th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(82);"><#1862#></a></th>
+<th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(82);">首选 WAN</a></th>
 <td colspan="4">
-<input type="radio" value="0" name="lzr_high_wan_1_client_src_addr" class="content_input_fd"><#3858#>
-<input type="radio" value="5" name="lzr_high_wan_1_client_src_addr" class="content_input_fd"><#3859#>
+<input type="radio" value="0" name="lzr_high_wan_1_client_src_addr" class="content_input_fd">启用
+<input type="radio" value="5" name="lzr_high_wan_1_client_src_addr" class="content_input_fd">停用
 </td>
 </tr>
 <tr>
@@ -1603,10 +1603,10 @@ $(document).ready(function() {
 </td>
 </tr>
 <tr>
-<th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(82);"><#1869#></a></th>
+<th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(82);">第二 WAN</a></th>
 <td colspan="4">
-<input type="radio" value="0" name="lzr_high_wan_2_client_src_addr" class="content_input_fd"><#3858#>
-<input type="radio" value="5" name="lzr_high_wan_2_client_src_addr" class="content_input_fd"><#3859#>
+<input type="radio" value="0" name="lzr_high_wan_2_client_src_addr" class="content_input_fd">启用
+<input type="radio" value="5" name="lzr_high_wan_2_client_src_addr" class="content_input_fd">停用
 </td>
 </tr>
 <tr>
@@ -1624,10 +1624,10 @@ $(document).ready(function() {
 </tr>
 </thead>
 <tr>
-<th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(82);"><#1862#></a></th>
+<th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(82);">首选 WAN</a></th>
 <td colspan="4">
-<input type="radio" value="0" name="lzr_wan_1_src_to_dst_addr" class="content_input_fd"><#3858#>
-<input type="radio" value="5" name="lzr_wan_1_src_to_dst_addr" class="content_input_fd"><#3859#>
+<input type="radio" value="0" name="lzr_wan_1_src_to_dst_addr" class="content_input_fd">启用
+<input type="radio" value="5" name="lzr_wan_1_src_to_dst_addr" class="content_input_fd">停用
 </td>
 </tr>
 <tr>
@@ -1637,10 +1637,10 @@ $(document).ready(function() {
 </td>
 </tr>
 <tr>
-<th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(82);"><#1869#></a></th>
+<th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(82);">第二 WAN</a></th>
 <td colspan="4">
-<input type="radio" value="0" name="lzr_wan_2_src_to_dst_addr" class="content_input_fd"><#3858#>
-<input type="radio" value="5" name="lzr_wan_2_src_to_dst_addr" class="content_input_fd"><#3859#>
+<input type="radio" value="0" name="lzr_wan_2_src_to_dst_addr" class="content_input_fd">启用
+<input type="radio" value="5" name="lzr_wan_2_src_to_dst_addr" class="content_input_fd">停用
 </td>
 </tr>
 <tr>
@@ -1658,10 +1658,10 @@ $(document).ready(function() {
 </tr>
 </thead>
 <tr>
-<th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(82);"><#1862#></a></th>
+<th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(82);">首选 WAN</a></th>
 <td colspan="4">
-<input type="radio" value="0" name="lzr_high_wan_1_src_to_dst_addr" class="content_input_fd"><#3858#>
-<input type="radio" value="5" name="lzr_high_wan_1_src_to_dst_addr" class="content_input_fd"><#3859#>
+<input type="radio" value="0" name="lzr_high_wan_1_src_to_dst_addr" class="content_input_fd">启用
+<input type="radio" value="5" name="lzr_high_wan_1_src_to_dst_addr" class="content_input_fd">停用
 </td>
 </tr>
 <tr>
@@ -1679,7 +1679,7 @@ $(document).ready(function() {
 </tr>
 </thead>
 <tr>
-<th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(82);"><#1862#></a></th>
+<th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(82);">首选 WAN</a></th>
 <td colspan="4">
 </td>
 </tr>
@@ -1708,7 +1708,7 @@ $(document).ready(function() {
 </td>
 </tr>
 <tr>
-<th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(82);"><#1869#></a></th>
+<th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(82);">第二 WAN</a></th>
 <td colspan="4">
 </td>
 </tr>
@@ -1745,10 +1745,10 @@ $(document).ready(function() {
 </tr>
 </thead>
 <tr>
-<th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(82);"><#1862#></a></th>
+<th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(82);">首选 WAN</a></th>
 <td colspan="4">
-<input type="radio" value="0" name="lzr_wan_1_src_to_dst_addr_port" class="content_input_fd"><#3858#>
-<input type="radio" value="5" name="lzr_wan_1_src_to_dst_addr_port" class="content_input_fd"><#3859#>
+<input type="radio" value="0" name="lzr_wan_1_src_to_dst_addr_port" class="content_input_fd">启用
+<input type="radio" value="5" name="lzr_wan_1_src_to_dst_addr_port" class="content_input_fd">停用
 </td>
 </tr>
 <tr>
@@ -1758,10 +1758,10 @@ $(document).ready(function() {
 </td>
 </tr>
 <tr>
-<th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(82);"><#1869#></a></th>
+<th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(82);">第二 WAN</a></th>
 <td colspan="4">
-<input type="radio" value="0" name="lzr_wan_2_src_to_dst_addr_port" class="content_input_fd"><#3858#>
-<input type="radio" value="5" name="lzr_wan_2_src_to_dst_addr_port" class="content_input_fd"><#3859#>
+<input type="radio" value="0" name="lzr_wan_2_src_to_dst_addr_port" class="content_input_fd">启用
+<input type="radio" value="5" name="lzr_wan_2_src_to_dst_addr_port" class="content_input_fd">停用
 </td>
 </tr>
 <tr>
@@ -1779,10 +1779,10 @@ $(document).ready(function() {
 </tr>
 </thead>
 <tr>
-<th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(82);"><#1862#></a></th>
+<th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(82);">首选 WAN</a></th>
 <td colspan="4">
-<input type="radio" value="0" name="lzr_high_wan_1_src_to_dst_addr_port" class="content_input_fd"><#3858#>
-<input type="radio" value="5" name="lzr_high_wan_1_src_to_dst_addr_port" class="content_input_fd"><#3859#>
+<input type="radio" value="0" name="lzr_high_wan_1_src_to_dst_addr_port" class="content_input_fd">启用
+<input type="radio" value="5" name="lzr_high_wan_1_src_to_dst_addr_port" class="content_input_fd">停用
 </td>
 </tr>
 <tr>
@@ -1816,16 +1816,16 @@ $(document).ready(function() {
 <tr>
 <th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(43);">远程接入口</a></th>
 <td colspan="4">
-<input type="radio" value="0" name="lzr_wan_access_port" class="content_input_fd"><#1862#>
-<input type="radio" value="1" name="lzr_wan_access_port" class="content_input_fd"><#1869#>
+<input type="radio" value="0" name="lzr_wan_access_port" class="content_input_fd">首选 WAN
+<input type="radio" value="1" name="lzr_wan_access_port" class="content_input_fd">第二 WAN
 </td>
 </tr>
 <tr>
 <th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(44);">VPN 客户端通过路由器访问外网策略</a></th>
 <td>
 <select id="lzr_ovs_client_wan_port" name="lzr_ovs_client_wan_port" class="input_option" style="margin-left:2px;">
-<option value="0" selected><#1862#></option>
-<option value="1"><#1869#></option>
+<option value="0" selected>首选 WAN</option>
+<option value="1">第二 WAN</option>
 <option value="5">现有策略</option>
 </select>
 </td>
@@ -1868,8 +1868,8 @@ $(document).ready(function() {
 <tr>
 <th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(84);">启用服务支持</a></th>
 <td colspan="4">
-<input type="radio" value="0" name="lzr_fancyss_support" class="content_input_fd"><#187#>
-<input type="radio" value="5" name="lzr_fancyss_support" class="content_input_fd"><#186#>
+<input type="radio" value="0" name="lzr_fancyss_support" class="content_input_fd">是
+<input type="radio" value="5" name="lzr_fancyss_support" class="content_input_fd">否
 </td>
 </tr>
 </table>
@@ -1897,7 +1897,7 @@ $(document).ready(function() {
 <option value="0" selected>系统 DNS</option>
 <option value="1">自定义 DNS</option>
 <option value="2">系统 DNS + 自定义 DNS</option>
-<option value="5"><#3859#></option>
+<option value="5">停用</option>
 </select>
 </td>
 </tr>
@@ -1916,22 +1916,22 @@ $(document).ready(function() {
 <tr>
 <th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(52);">路由表缓存</a></th>
 <td colspan="4">
-<input type="radio" value="0" name="lzr_route_cache" class="content_input_fd"><#3858#>
-<input type="radio" value="5" name="lzr_route_cache" class="content_input_fd"><#3859#>
+<input type="radio" value="0" name="lzr_route_cache" class="content_input_fd">启用
+<input type="radio" value="5" name="lzr_route_cache" class="content_input_fd">停用
 </td>
 </tr>
 <tr>
 <th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(53);">系统缓存清理</a></th>
 <td colspan="4">
-<input type="radio" value="0" name="lzr_drop_sys_caches" class="content_input_fd"><#3858#>
-<input type="radio" value="5" name="lzr_drop_sys_caches" class="content_input_fd"><#3859#>
+<input type="radio" value="0" name="lzr_drop_sys_caches" class="content_input_fd">启用
+<input type="radio" value="5" name="lzr_drop_sys_caches" class="content_input_fd">停用
 </td>
 </tr>
 <tr>
 <th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(54);">自动清理路由表及系统缓存时间间隔 (小时)</a></th>
 <td>
 <select id="lzr_clear_route_cache_time_interval" name="lzr_clear_route_cache_time_interval" class="input_option" style="margin-left:2px;">
-<option value="0"><#3859#></option>
+<option value="0">停用</option>
 <option value="1">1</option>
 <option value="2">2</option>
 <option value="3">3</option>
@@ -1971,7 +1971,7 @@ $(document).ready(function() {
 </tr>
 </thead>
 <tr>
-<th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(56);"><#1862#></a></th>
+<th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(56);">首选 WAN</a></th>
 <td>
 <select id="lzr_wan1_iptv_mode" name="lzr_wan1_iptv_mode" class="input_option" style="margin-left:2px;">
 <option value="0">PPPoE</option>
@@ -1981,7 +1981,7 @@ $(document).ready(function() {
 </td>
 </tr>
 <tr>
-<th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(57);"><#1869#></a></th>
+<th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(57);">第二 WAN</a></th>
 <td>
 <select id="lzr_wan2_iptv_mode" name="lzr_wan2_iptv_mode" class="input_option" style="margin-left:2px;">
 <option value="0">PPPoE</option>
@@ -2002,9 +2002,9 @@ $(document).ready(function() {
 <th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(59);">播放源接入口</a></th>
 <td>
 <select id="lzr_iptv_igmp_switch" name="lzr_iptv_igmp_switch" class="input_option" style="margin-left:2px;">
-<option value="0"><#1862#></option>
-<option value="1"><#1869#></option>
-<option value="5" selected><#3859#></option>
+<option value="0">首选 WAN</option>
+<option value="1">第二 WAN</option>
+<option value="5" selected>停用</option>
 </select>
 </td>
 </tr>
@@ -2031,7 +2031,7 @@ $(document).ready(function() {
 <th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(63);">核心网桥组播数据侦测方式</a></th>
 <td>
 <select id="lzr_hnd_br0_bcmmcast_mode" name="lzr_hnd_br0_bcmmcast_mode" class="input_option" style="margin-left:2px;">
-<option value="0"><#3859#></option>
+<option value="0">停用</option>
 <option value="1">标准方式</option>
 <option value="2" selected>阻塞方式</option>
 </select>
@@ -2042,14 +2042,14 @@ $(document).ready(function() {
 <table width="100%" border="1" align="center" cellpadding="4" cellspacing="0" bordercolor="#6b8fa3" class="FormTable">
 <thead>
 <tr>
-<td colspan="2"><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(64);"><#1862#> UDPXY 组播转 HTTP 流传输代理</a></td>
+<td colspan="2"><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(64);">首选 WAN UDPXY 组播转 HTTP 流传输代理</a></td>
 </tr>
 </thead>
 <tr>
-<th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(65);"><#3858#>代理</a></th>
+<th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(65);">启用代理</a></th>
 <td colspan="4">
-<input type="radio" value="0" name="lzr_wan1_udpxy_switch" class="content_input_fd"><#3858#>
-<input type="radio" value="5" name="lzr_wan1_udpxy_switch" class="content_input_fd"><#3859#>
+<input type="radio" value="0" name="lzr_wan1_udpxy_switch" class="content_input_fd">启用
+<input type="radio" value="5" name="lzr_wan1_udpxy_switch" class="content_input_fd">停用
 </td>
 </tr>
 <tr>
@@ -2075,14 +2075,14 @@ $(document).ready(function() {
 <table width="100%" border="1" align="center" cellpadding="4" cellspacing="0" bordercolor="#6b8fa3" class="FormTable">
 <thead>
 <tr>
-<td colspan="2"><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(69);"><#1869#> UDPXY 组播转 HTTP 流传输代理</a></td>
+<td colspan="2"><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(69);">第二 WAN UDPXY 组播转 HTTP 流传输代理</a></td>
 </tr>
 </thead>
 <tr>
-<th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(70);"><#3858#>代理</a></th>
+<th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(70);">启用代理</a></th>
 <td colspan="4">
-<input type="radio" value="0" name="lzr_wan2_udpxy_switch" class="content_input_fd"><#3858#>
-<input type="radio" value="5" name="lzr_wan2_udpxy_switch" class="content_input_fd"><#3859#>
+<input type="radio" value="0" name="lzr_wan2_udpxy_switch" class="content_input_fd">启用
+<input type="radio" value="5" name="lzr_wan2_udpxy_switch" class="content_input_fd">停用
 </td>
 </tr>
 <tr>
@@ -2117,8 +2117,8 @@ $(document).ready(function() {
 </tr>
 <th rowspan="2"><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(75);">外置用户自定义清理资源脚本</a></th>
 <td colspan="4">
-<input type="radio" value="0" name="lzr_custom_clear_scripts" class="content_input_fd"><#3858#>
-<input type="radio" value="5" name="lzr_custom_clear_scripts" class="content_input_fd"><#3859#>
+<input type="radio" value="0" name="lzr_custom_clear_scripts" class="content_input_fd">启用
+<input type="radio" value="5" name="lzr_custom_clear_scripts" class="content_input_fd">停用
 </td>
 </tr>
 <tr>
@@ -2129,8 +2129,8 @@ $(document).ready(function() {
 <tr>
 <th rowspan="2"><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(76);">外置用户自定义配置脚本</a></th>
 <td colspan="4">
-<input type="radio" value="0" name="lzr_custom_config_scripts" class="content_input_fd"><#3858#>
-<input type="radio" value="5" name="lzr_custom_config_scripts" class="content_input_fd"><#3859#>
+<input type="radio" value="0" name="lzr_custom_config_scripts" class="content_input_fd">启用
+<input type="radio" value="5" name="lzr_custom_config_scripts" class="content_input_fd">停用
 </td>
 </tr>
 <tr>
@@ -2141,8 +2141,8 @@ $(document).ready(function() {
 <tr>
 <th rowspan="2"><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(77);">外置用户自定义双线路脚本</a></th>
 <td colspan="4">
-<input type="radio" value="0" name="lzr_custom_dualwan_scripts" class="content_input_fd"><#3858#>
-<input type="radio" value="5" name="lzr_custom_dualwan_scripts" class="content_input_fd"><#3859#>
+<input type="radio" value="0" name="lzr_custom_dualwan_scripts" class="content_input_fd">启用
+<input type="radio" value="5" name="lzr_custom_dualwan_scripts" class="content_input_fd">停用
 </td>
 </tr>
 <tr>
@@ -2154,7 +2154,7 @@ $(document).ready(function() {
 </div>
 
 <div class="apply_gen">
-<input name="button" type="button" class="button_gen" onclick="applyRule()" value="<#196#>"/>
+<input name="button" type="button" class="button_gen" onclick="applyRule()" value="应用本页面设置"/>
 </div>
 
 </td>
