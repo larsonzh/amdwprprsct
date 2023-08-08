@@ -61,11 +61,13 @@ Asuswrt-Merlin dual WAN port router policy routing service configuration tool
 <li>外置用户自定义双线路脚本设置功能。</li>
 <li>外置用户自定义清理资源脚本设置功能。</li></ul>
 
-![LZ脚本流程图](https://user-images.githubusercontent.com/73221087/222945301-ab12ff64-9fd6-4398-9b3f-6cebb7cdea21.jpg)
+![LZ脚本流程图](https://github.com/larsonzh/amdwprprsct/assets/73221087/5f8e64aa-91cc-4196-92bd-e6b789609bbf)
 
 <strong>六、应用界面</strong>
 
-![lz_rule](https://github.com/larsonzh/amdwprprsct/assets/73221087/2d3fbb5e-1b1c-470f-9394-bda8cc0735e7)
+![lz_rule](https://github.com/larsonzh/amdwprprsct/assets/73221087/f5aabd7b-5ef7-4b95-b504-906073b08d33)
+
+![lz_rule_rog](https://github.com/larsonzh/amdwprprsct/assets/73221087/97241eae-830e-443f-90a5-2ee319b7341f)
 
 <strong>七、相关资料</strong>
 <ul><li>华硕改版固件路由器双线路双拨策略分流方案教程（入门必读）</li>
