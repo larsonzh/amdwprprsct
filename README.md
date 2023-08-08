@@ -67,7 +67,7 @@ Asuswrt-Merlin dual WAN port router policy routing service configuration tool
 
 ![lz_rule](https://github.com/larsonzh/amdwprprsct/assets/73221087/f5aabd7b-5ef7-4b95-b504-906073b08d33)
 
-![lz_rule_rog](https://github.com/larsonzh/amdwprprsct/assets/73221087/889e37cb-61c5-4ca8-b389-56520b607e7d)
+![lz_rule_rog](https://github.com/larsonzh/amdwprprsct/assets/73221087/a15e36a7-da30-4ea2-b129-7388153c2b38)
 
 <strong>七、相关资料</strong>
 <ul><li>华硕改版固件路由器双线路双拨策略分流方案教程（入门必读）</li>
