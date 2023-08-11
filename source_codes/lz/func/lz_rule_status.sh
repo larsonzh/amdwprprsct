@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_status.sh v4.0.6
+# lz_rule_status.sh v4.0.7
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 显示脚本运行状态脚本
@@ -1053,7 +1053,7 @@ lz_get_policy_mode_status() {
 ##     status_route_os_name--路由器操作系统名称，全局常量
 ##     status_route_local_ip--路由器本地IP地址，全局变量
 lz_get_route_status_info() {
-    echo "$(lzdate)" [$$]: ---------------------------------------------
+    echo "$(lzdate)" [$$]: --------------------------------------------- | tee -ai "${STATUS_LOG}" 2> /dev/null
     ## 路由器硬件类型
     status_route_hardware_type="$( uname -m )"
 
@@ -1064,42 +1064,42 @@ lz_get_route_status_info() {
     local local_route_product_model="$( nvram get "productid" | sed -n 1p )"
     [ -z "${local_route_product_model}" ] && local_route_product_model="$( nvram get "model" | sed -n 1p )"
     if [ -n "${local_route_product_model}" ]; then
-        echo "$(lzdate)" [$$]: "   Route Model: ${local_route_product_model}"
+        echo "$(lzdate)" [$$]: "   Route Model: ${local_route_product_model}" | tee -ai "${STATUS_LOG}" 2> /dev/null
     fi
 
     ## 输出显示路由器硬件类型
     [ -z "${status_route_hardware_type}" ] && status_route_hardware_type="Unknown"
-    echo "$(lzdate)" [$$]: "   Hardware Type: ${status_route_hardware_type}"
+    echo "$(lzdate)" [$$]: "   Hardware Type: ${status_route_hardware_type}" | tee -ai "${STATUS_LOG}" 2> /dev/null
 
     ## 输出显示路由器主机名
     local local_route_hostname="$( uname -n )"
     [ -z "${local_route_hostname}" ] && local_route_hostname="Unknown"
-    echo "$(lzdate)" [$$]: "   Host Name: ${local_route_hostname}"
+    echo "$(lzdate)" [$$]: "   Host Name: ${local_route_hostname}" | tee -ai "${STATUS_LOG}" 2> /dev/null
 
     ## 输出显示路由器操作系统内核名称
     local local_route_Kernel_name="$( uname )"
     [ -z "${local_route_Kernel_name}" ] && local_route_Kernel_name="Unknown"
-    echo "$(lzdate)" [$$]: "   Kernel Name: ${local_route_Kernel_name}"
+    echo "$(lzdate)" [$$]: "   Kernel Name: ${local_route_Kernel_name}" | tee -ai "${STATUS_LOG}" 2> /dev/null
 
     ## 输出显示路由器操作系统内核发行编号
     local local_route_kernel_release="$( uname -r )"
     [ -z "${local_route_kernel_release}" ] && local_route_kernel_release="Unknown"
-    echo "$(lzdate)" [$$]: "   Kernel Release: ${local_route_kernel_release}"
+    echo "$(lzdate)" [$$]: "   Kernel Release: ${local_route_kernel_release}" | tee -ai "${STATUS_LOG}" 2> /dev/null
 
     ## 输出显示路由器操作系统内核版本号
     local local_route_kernel_version="$( uname -v )"
     [ -z "${local_route_kernel_version}" ] && local_route_kernel_version="Unknown"
-    echo "$(lzdate)" [$$]: "   Kernel Version: ${local_route_kernel_version}"
+    echo "$(lzdate)" [$$]: "   Kernel Version: ${local_route_kernel_version}" | tee -ai "${STATUS_LOG}" 2> /dev/null
 
     ## 输出显示路由器操作系统名称
     [ -z "${status_route_os_name}" ] && status_route_os_name="Unknown"
-    echo "$(lzdate)" [$$]: "   OS Name: ${status_route_os_name}"
+    echo "$(lzdate)" [$$]: "   OS Name: ${status_route_os_name}" | tee -ai "${STATUS_LOG}" 2> /dev/null
 
     if [ "${status_route_os_name}" = "Merlin-Koolshare" ]; then
         ## 输出显示路由器固件版本号
         local local_firmware_version="$( nvram get "extendno" | cut -d "X" -f2 | cut -d "-" -f1 | cut -d "_" -f1 )"
         [ -z "${local_firmware_version}" ] && local_firmware_version="Unknown"
-        echo "$(lzdate)" [$$]: "   Firmware Version: ${local_firmware_version}"
+        echo "$(lzdate)" [$$]: "   Firmware Version: ${local_firmware_version}" | tee -ai "${STATUS_LOG}" 2> /dev/null
     else
         local local_firmware_version="$( nvram get "firmver" )"
         [ -n "${local_firmware_version}" ] && {
@@ -1122,7 +1122,7 @@ lz_get_route_status_info() {
                     fi
                     local_firmware_version="${local_firmware_version}.${local_firmware_webs_state_info}"
                 fi
-                echo "$(lzdate)" [$$]: "   Firmware Version: ${local_firmware_version}"
+                echo "$(lzdate)" [$$]: "   Firmware Version: ${local_firmware_version}" | tee -ai "${STATUS_LOG}" 2> /dev/null
             }
         }
     fi
@@ -1130,32 +1130,32 @@ lz_get_route_status_info() {
     ## 输出显示路由器固件编译生成日期及作者信息
     local local_firmware_build="$( nvram get "buildinfo" 2> /dev/null | sed -n 1p )"
     [ -n "${local_firmware_build}" ] && {
-        echo "$(lzdate)" [$$]: "   Firmware Build: ${local_firmware_build}"
+        echo "$(lzdate)" [$$]: "   Firmware Build: ${local_firmware_build}" | tee -ai "${STATUS_LOG}" 2> /dev/null
     }
 
     ## 输出显示路由器CFE固件版本信息
     local local_bootloader_cfe="$( nvram get "bl_version" 2> /dev/null | sed -n 1p )"
     [ -n "${local_bootloader_cfe}" ] && {
-        echo "$(lzdate)" [$$]: "   Bootloader (CFE): ${local_bootloader_cfe}"
+        echo "$(lzdate)" [$$]: "   Bootloader (CFE): ${local_bootloader_cfe}" | tee -ai "${STATUS_LOG}" 2> /dev/null
     }
 
     ## 输出显示路由器CPU和内存主频
     local local_cpu_frequency="$( nvram get "clkfreq" 2> /dev/null | sed -n 1p | awk -F ',' '{print $1}' )"
     local local_memory_frequency="$( nvram get "clkfreq" 2> /dev/null | sed -n 1p | awk -F ',' '{print $2}' )"
-    if [ -n "${local_cpu_frequency}" ] && [ -n "${local_memory_frequency}" ]; then
+    [ -n "${local_cpu_frequency}" ] && [ -n "${local_memory_frequency}" ] && {
         echo "$(lzdate)" [$$]: "   CPU clkfreq: ${local_cpu_frequency} MHz"
         echo "$(lzdate)" [$$]: "   Mem clkfreq: ${local_memory_frequency} MHz"
-    fi
+    } | tee -ai "${STATUS_LOG}" 2> /dev/null
 
     ## 输出显示路由器CPU温度
     local local_cpu_temperature="$( sed -e 's/.C$/ degrees C/g' -e '/^$/d' "/proc/dmu/temperature" 2> /dev/null | awk -F ': ' '{print $2}' | sed -n 1p )"
     if [ -z "${local_cpu_temperature}" ]; then
         local_cpu_temperature="$( awk '{print $1/1000}' "/sys/class/thermal/thermal_zone0/temp" 2> /dev/null | sed -n 1p )"
         [ -n "${local_cpu_temperature}" ] && {
-            echo "$(lzdate)" [$$]: "   CPU temperature: ${local_cpu_temperature} degrees C"
+            echo "$(lzdate)" [$$]: "   CPU temperature: ${local_cpu_temperature} degrees C" | tee -ai "${STATUS_LOG}" 2> /dev/null
         }
     else
-        echo "$(lzdate)" [$$]: "   CPU temperature: ${local_cpu_temperature}"
+        echo "$(lzdate)" [$$]: "   CPU temperature: ${local_cpu_temperature}" | tee -ai "${STATUS_LOG}" 2> /dev/null
     fi
 
     ## 输出显示路由器无线网卡温度及无线信号强度
@@ -1185,42 +1185,42 @@ lz_get_route_status_info() {
     }
     if [ -z "${local_interface_5g2}" ]; then
         [ -n "${local_interface_2g_temperature}" ] && {
-            echo "$(lzdate)" [$$]: "   2.4 GHz temperature: ${local_interface_2g_temperature}"
+            echo "$(lzdate)" [$$]: "   2.4 GHz temperature: ${local_interface_2g_temperature}" | tee -ai "${STATUS_LOG}" 2> /dev/null
         }
         [ -n "${local_wl_txpwr_2g}" ] && {
-            echo "$(lzdate)" [$$]: "   2.4 GHz Tx Power: ${local_wl_txpwr_2g}"
+            echo "$(lzdate)" [$$]: "   2.4 GHz Tx Power: ${local_wl_txpwr_2g}" | tee -ai "${STATUS_LOG}" 2> /dev/null
         }
         [ -n "${local_interface_5g1_temperature}" ] && {
-            echo "$(lzdate)" [$$]: "   5 GHz temperature: ${local_interface_5g1_temperature}"
+            echo "$(lzdate)" [$$]: "   5 GHz temperature: ${local_interface_5g1_temperature}" | tee -ai "${STATUS_LOG}" 2> /dev/null
         }
         [ -n "${local_wl_txpwr_5g1}" ] && {
-            echo "$(lzdate)" [$$]: "   5 GHz Tx Power: ${local_wl_txpwr_5g1}"
+            echo "$(lzdate)" [$$]: "   5 GHz Tx Power: ${local_wl_txpwr_5g1}" | tee -ai "${STATUS_LOG}" 2> /dev/null
         }
     else
         [ -n "${local_interface_2g_temperature}" ] && {
-            echo "$(lzdate)" [$$]: "   2.4 GHz temperature: ${local_interface_2g_temperature}"
+            echo "$(lzdate)" [$$]: "   2.4 GHz temperature: ${local_interface_2g_temperature}" | tee -ai "${STATUS_LOG}" 2> /dev/null
         }
         [ -n "${local_wl_txpwr_2g}" ] && {
-            echo "$(lzdate)" [$$]: "   2.4 GHz Tx Power: ${local_wl_txpwr_2g}"
+            echo "$(lzdate)" [$$]: "   2.4 GHz Tx Power: ${local_wl_txpwr_2g}" | tee -ai "${STATUS_LOG}" 2> /dev/null
         }
         [ -n "${local_interface_5g1_temperature}" ] && {
-            echo "$(lzdate)" [$$]: "   5 GHz-1 temperature: ${local_interface_5g1_temperature}"
+            echo "$(lzdate)" [$$]: "   5 GHz-1 temperature: ${local_interface_5g1_temperature}" | tee -ai "${STATUS_LOG}" 2> /dev/null
         }
         [ -n "${local_wl_txpwr_5g1}" ] && {
-            echo "$(lzdate)" [$$]: "   5 GHz-1 Tx Power: ${local_wl_txpwr_5g1}"
+            echo "$(lzdate)" [$$]: "   5 GHz-1 Tx Power: ${local_wl_txpwr_5g1}" | tee -ai "${STATUS_LOG}" 2> /dev/null
         }
         [ -n "${local_interface_5g2_temperature}" ] && {
-            echo "$(lzdate)" [$$]: "   5 GHz-2 temperature: ${local_interface_5g2_temperature}"
+            echo "$(lzdate)" [$$]: "   5 GHz-2 temperature: ${local_interface_5g2_temperature}" | tee -ai "${STATUS_LOG}" 2> /dev/null
         }
         [ -n "${local_wl_txpwr_5g2}" ] && {
-            echo "$(lzdate)" [$$]: "   5 GHz-2 Tx Power: ${local_wl_txpwr_5g2}"
+            echo "$(lzdate)" [$$]: "   5 GHz-2 Tx Power: ${local_wl_txpwr_5g2}" | tee -ai "${STATUS_LOG}" 2> /dev/null
         }
     fi
 
     ## 输出显示路由器NVRAM使用情况
     local local_nvram_usage="$( nvram show 2>&1 | grep -Eio "size: [0-9]+ bytes [\(][0-9]+ left[\)]" | awk '{print $2" \/ "substr($4,2)+$2,$3}' | sed -n 1p )"
     if [ -n "${local_nvram_usage}" ]; then
-        echo "$(lzdate)" [$$]: "   NVRAM usage: ${local_nvram_usage}"
+        echo "$(lzdate)" [$$]: "   NVRAM usage: ${local_nvram_usage}" | tee -ai "${STATUS_LOG}" 2> /dev/null
     fi
 
     ## 获取路由器本地网络信息
@@ -1277,62 +1277,64 @@ lz_get_route_status_info() {
 
     ## 输出路由器网络状态基本信息至Asuswrt系统记录
     [ -z "${local_route_local_info}" ] && {
-        echo "$(lzdate)" [$$]: "   Route Local Info: Unknown"
+        echo "$(lzdate)" [$$]: "   Route Local Info: Unknown" | tee -ai "${STATUS_LOG}" 2> /dev/null
     }
-    echo "$(lzdate)" [$$]: "   Route Status: ${local_route_local_link_status}"
-    echo "$(lzdate)" [$$]: "   Route Encap: ${local_route_local_encap}"
-    echo "$(lzdate)" [$$]: "   Route HWaddr: ${local_route_local_mac}"
-    echo "$(lzdate)" [$$]: "   Route Local IP Addr: ${status_route_local_ip}"
-    echo "$(lzdate)" [$$]: "   Route Local Bcast: ${local_route_local_bcast_ip}"
-    echo "$(lzdate)" [$$]: "   Route Local Mask: ${local_route_local_ip_mask}"
+    {
+        echo "$(lzdate)" [$$]: "   Route Status: ${local_route_local_link_status}"
+        echo "$(lzdate)" [$$]: "   Route Encap: ${local_route_local_encap}"
+        echo "$(lzdate)" [$$]: "   Route HWaddr: ${local_route_local_mac}"
+        echo "$(lzdate)" [$$]: "   Route Local IP Addr: ${status_route_local_ip}"
+        echo "$(lzdate)" [$$]: "   Route Local Bcast: ${local_route_local_bcast_ip}"
+        echo "$(lzdate)" [$$]: "   Route Local Mask: ${local_route_local_ip_mask}"
+    } | tee -ai "${STATUS_LOG}" 2> /dev/null
 
     if ip route show | grep -q nexthop; then
         if [ "${status_usage_mode}" = "0" ]; then
-            echo "$(lzdate)" [$$]: "   Route Usage Mode: Dynamic Policy"
+            echo "$(lzdate)" [$$]: "   Route Usage Mode: Dynamic Policy" | tee -ai "${STATUS_LOG}" 2> /dev/null
         else
-            echo "$(lzdate)" [$$]: "   Route Usage Mode: Static Policy"
+            echo "$(lzdate)" [$$]: "   Route Usage Mode: Static Policy" | tee -ai "${STATUS_LOG}" 2> /dev/null
         fi
         if [ "${status_policy_mode}" = "0" ]; then
-            echo "$(lzdate)" [$$]: "   Route Policy Mode: Mode 1"
+            echo "$(lzdate)" [$$]: "   Route Policy Mode: Mode 1" | tee -ai "${STATUS_LOG}" 2> /dev/null
         elif [ "${status_policy_mode}" = "1" ]; then
-            echo "$(lzdate)" [$$]: "   Route Policy Mode: Mode 2"
+            echo "$(lzdate)" [$$]: "   Route Policy Mode: Mode 2" | tee -ai "${STATUS_LOG}" 2> /dev/null
         else
-            echo "$(lzdate)" [$$]: "   Route Policy Mode: Mode 3"
+            echo "$(lzdate)" [$$]: "   Route Policy Mode: Mode 3" | tee -ai "${STATUS_LOG}" 2> /dev/null
         fi
         if dnsmasq -v 2> /dev/null | grep -w 'ipset' | grep -qvw 'no[\-]ipset'; then
-            echo "$(lzdate)" [$$]: "   Route Domain Policy: Enable"
+            echo "$(lzdate)" [$$]: "   Route Domain Policy: Enable" | tee -ai "${STATUS_LOG}" 2> /dev/null
         else
-            echo "$(lzdate)" [$$]: "   Route Domain Policy: Disable"
+            echo "$(lzdate)" [$$]: "   Route Domain Policy: Disable" | tee -ai "${STATUS_LOG}" 2> /dev/null
         fi
         if [ "${status_wan_access_port}" = "1" ]; then
-            echo "$(lzdate)" [$$]: "   Route Host Access Port: Secondary WAN"
+            echo "$(lzdate)" [$$]: "   Route Host Access Port: Secondary WAN" | tee -ai "${STATUS_LOG}" 2> /dev/null
         else
-            echo "$(lzdate)" [$$]: "   Route Host Access Port: Primary WAN"
+            echo "$(lzdate)" [$$]: "   Route Host Access Port: Primary WAN" | tee -ai "${STATUS_LOG}" 2> /dev/null
         fi
         if [ "${status_fancyss_support}" = "0" ]; then
-            echo "$(lzdate)" [$$]: "   Route Fancyss Support: Enable"
+            echo "$(lzdate)" [$$]: "   Route Fancyss Support: Enable" | tee -ai "${STATUS_LOG}" 2> /dev/null
         else
-            echo "$(lzdate)" [$$]: "   Route Fancyss Support: Disable"
+            echo "$(lzdate)" [$$]: "   Route Fancyss Support: Disable" | tee -ai "${STATUS_LOG}" 2> /dev/null
         fi
         if [ "${status_route_cache}" = "0" ]; then
-            echo "$(lzdate)" [$$]: "   Route Cache: Enable"
+            echo "$(lzdate)" [$$]: "   Route Cache: Enable" | tee -ai "${STATUS_LOG}" 2> /dev/null
         else
-            echo "$(lzdate)" [$$]: "   Route Cache: Disable"
+            echo "$(lzdate)" [$$]: "   Route Cache: Disable" | tee -ai "${STATUS_LOG}" 2> /dev/null
         fi
         if [ "${status_clear_route_cache_time_interval}" -gt "0" ] && [ "${status_clear_route_cache_time_interval}" -le "24" ]; then
             local local_interval_suffix_str="s"
             [ "${status_clear_route_cache_time_interval}" = "1" ] && local_interval_suffix_str=""
-            echo "$(lzdate)" [$$]: "   Route Flush Cache: Every ${status_clear_route_cache_time_interval} hour${local_interval_suffix_str}"
+            echo "$(lzdate)" [$$]: "   Route Flush Cache: Every ${status_clear_route_cache_time_interval} hour${local_interval_suffix_str}" | tee -ai "${STATUS_LOG}" 2> /dev/null
         else
-            echo "$(lzdate)" [$$]: "   Route Flush Cache: System"
+            echo "$(lzdate)" [$$]: "   Route Flush Cache: System" | tee -ai "${STATUS_LOG}" 2> /dev/null
         fi
         if [ "${drop_sys_caches}" = "0" ]; then
-            echo "$(lzdate)" [$$]: "   Drop System Caches: Enable"
+            echo "$(lzdate)" [$$]: "   Drop System Caches: Enable" | tee -ai "${STATUS_LOG}" 2> /dev/null
         else
-            echo "$(lzdate)" [$$]: "   Drop System Caches: Disable"
+            echo "$(lzdate)" [$$]: "   Drop System Caches: Disable" | tee -ai "${STATUS_LOG}" 2> /dev/null
         fi
     fi
-    echo "$(lzdate)" [$$]: ---------------------------------------------
+    echo "$(lzdate)" [$$]: --------------------------------------------- | tee -ai "${STATUS_LOG}" 2> /dev/null
 
     status_route_local_ip="$( echo "${status_route_local_ip}" | grep -Eo "([0-9]{1,3}[\.]){3}[0-9]{1,3}" )"
 }
@@ -1350,8 +1352,10 @@ lz_show_regularly_update_ispip_data_task() {
     [ -n "${local_ruid_day}" ] && {
         local local_day_suffix_str="s"
         [ "${local_ruid_day}" = "1" ] && local_day_suffix_str=""
-        echo "$(lzdate)" [$$]: "   Update ISP Data: ${local_ruid_hour}:${local_ruid_min} Every ${local_ruid_day} day${local_day_suffix_str}"
-        echo "$(lzdate)" [$$]: ---------------------------------------------
+        {
+            echo "$(lzdate)" [$$]: "   Update ISP Data: ${local_ruid_hour}:${local_ruid_min} Every ${local_ruid_day} day${local_day_suffix_str}"
+            echo "$(lzdate)" [$$]: ---------------------------------------------
+        } | tee -ai "${STATUS_LOG}" 2> /dev/null
     }
 }
 
@@ -1364,20 +1368,23 @@ lz_ss_support_status() {
     ## 获取SS服务运行参数
     local local_ss_enable="$( dbus get "ss_basic_enable" 2> /dev/null )"
     if [ -z "${local_ss_enable}" ] || [ "${local_ss_enable}" != "1" ]; then return; fi;
-    echo "$(lzdate)" [$$]: ---------------------------------------------
-    echo "$(lzdate)" [$$]: Fancyss is running.
+    {
+        echo "$(lzdate)" [$$]: ---------------------------------------------
+        echo "$(lzdate)" [$$]: Fancyss is running.
+    } | tee -ai "${STATUS_LOG}" 2> /dev/null
 }
 
 ## 获取服务事件接口注册状态函数
 ## 输入项：
 ##     $1--系统事件接口全路径文件名
-##     $2--命令行检索字符串
+##     $2--命令行1检索字符串
+##     $3--命令行2检索字符串
 ## 返回值：
 ##     0--已注册
 ##     1--未注册
 lz_get_service_event_interface_status() {
-    if [ ! -f "${1}" ] || [ -z "${2}" ]; then return "1"; fi;
-    ! grep -qE "${2}" "${1}" && return "1"
+    if [ ! -f "${1}" ] || [ -z "${2}" ] || [ -z "${3}" ]; then return "1"; fi;
+    { ! grep -qE "${2}" "${1}" || ! grep -qE "${3}" "${1}"; } && return "1"
     return "0"
 }
 
@@ -1408,48 +1415,54 @@ lz_show_vpn_support_status() {
     for local_vpn_item in $( echo "${local_route_list}" | awk '/tap|tun/ {print $3":"$1}' )
     do
         local_index="$(( local_index + 1 ))"
-        [ "${local_index}" = "1" ] && echo "$(lzdate)" [$$]: ---------------------------------------------
+        [ "${local_index}" = "1" ] && echo "$(lzdate)" [$$]: --------------------------------------------- | tee -ai "${STATUS_LOG}" 2> /dev/null
         local_vpn_item="$( echo "${local_vpn_item}" | sed 's/:/ /g' )"
-        echo "$(lzdate)" [$$]: "   OpenVPN Server-${local_index}: ${local_vpn_item}"
+        echo "$(lzdate)" [$$]: "   OpenVPN Server-${local_index}: ${local_vpn_item}" | tee -ai "${STATUS_LOG}" 2> /dev/null
     done
-    [ "${local_index}" -gt "0" ] && echo "$(lzdate)" [$$]: "   OpenVPN Client Export: ${local_vpn_client_wan_port}"
+    [ "${local_index}" -gt "0" ] && echo "$(lzdate)" [$$]: "   OpenVPN Client Export: ${local_vpn_client_wan_port}" | tee -ai "${STATUS_LOG}" 2> /dev/null
     if [ "$( nvram get "pptpd_enable" )" = "1" ]; then
-        echo "$(lzdate)" [$$]: ---------------------------------------------
-        echo "$(lzdate)" [$$]: "   PPTP Client IP Detect Time: ${status_vpn_client_polling_time}"s
+        {
+            echo "$(lzdate)" [$$]: ---------------------------------------------
+            echo "$(lzdate)" [$$]: "   PPTP Client IP Detect Time: ${status_vpn_client_polling_time}"s
+        } | tee -ai "${STATUS_LOG}" 2> /dev/null
         local_vpn_item=$( nvram get "pptpd_clients" | sed 's/-/~/g' | sed -n 1p )
-        [ -n "${local_vpn_item}" ] && echo "$(lzdate)" [$$]: "   PPTP Client IP Pool: ${local_vpn_item}"
+        [ -n "${local_vpn_item}" ] && echo "$(lzdate)" [$$]: "   PPTP Client IP Pool: ${local_vpn_item}" | tee -ai "${STATUS_LOG}" 2> /dev/null
         local_index="0"
         for local_vpn_item in $( echo "${local_route_list}" | awk '/pptp/ {print $1}' )
         do
             local_index="$(( local_index + 1 ))"
-            echo "$(lzdate)" [$$]: "   PPTP VPN Client-${local_index}: ${local_vpn_item}"
+            echo "$(lzdate)" [$$]: "   PPTP VPN Client-${local_index}: ${local_vpn_item}" | tee -ai "${STATUS_LOG}" 2> /dev/null
         done
-        echo "$(lzdate)" [$$]: "   PPTP Client Export: ${local_vpn_client_wan_port}"
+        echo "$(lzdate)" [$$]: "   PPTP Client Export: ${local_vpn_client_wan_port}" | tee -ai "${STATUS_LOG}" 2> /dev/null
     fi
     if [ "$( nvram get "ipsec_server_enable" )" = "1" ]; then
         local_vpn_item="$( nvram get "ipsec_profile_1" | sed 's/>/\n/g' | sed -n 15p | grep -Eo '([0-9]{1,3}[\.]){2}[0-9]{1,3}' | sed 's/^.*$/&\.0\/24/' )"
         [ -z "${local_vpn_item}" ] && local_vpn_item="$( nvram get "ipsec_profile_2" | sed 's/>/\n/g' | sed -n 15p | grep -Eo '([0-9]{1,3}[\.]){2}[0-9]{1,3}' | sed 's/^.*$/&\.0\/24/' )"
         if [ -n "${local_vpn_item}" ]; then
-            echo "$(lzdate)" [$$]: ---------------------------------------------
-            echo "$(lzdate)" [$$]: "   IPSec Server Subnet: ${local_vpn_item}"
-            echo "$(lzdate)" [$$]: "   IPSec Client Export: ${local_vpn_client_wan_port}"
+            {
+                echo "$(lzdate)" [$$]: ---------------------------------------------
+                echo "$(lzdate)" [$$]: "   IPSec Server Subnet: ${local_vpn_item}"
+                echo "$(lzdate)" [$$]: "   IPSec Client Export: ${local_vpn_client_wan_port}"
+            } | tee -ai "${STATUS_LOG}" 2> /dev/null
         fi
     fi
     if [ "$( nvram get "wgs_enable" )" = "1" ]; then
-        echo "$(lzdate)" [$$]: ---------------------------------------------
-        echo "$(lzdate)" [$$]: "   WireGuard Client Detect Time: ${status_vpn_client_polling_time}s"
-        echo "$(lzdate)" [$$]: "   Tunnel Address: $( nvram get wgs_addr | sed 's/[\/].*$//g' )"
-        echo "$(lzdate)" [$$]: "   Listen Port: $( nvram get wgs_port )"
+        {
+            echo "$(lzdate)" [$$]: ---------------------------------------------
+            echo "$(lzdate)" [$$]: "   WireGuard Client Detect Time: ${status_vpn_client_polling_time}s"
+            echo "$(lzdate)" [$$]: "   Tunnel Address: $( nvram get wgs_addr | sed 's/[\/].*$//g' )"
+            echo "$(lzdate)" [$$]: "   Listen Port: $( nvram get wgs_port )"
+        } | tee -ai "${STATUS_LOG}" 2> /dev/null
         local_index="0"
         for local_vpn_item in $( echo "${local_route_list}" | awk '/wgs/ {print $1}' )
         do
             local_index="$(( local_index + 1 ))"
-            echo "$(lzdate)" [$$]: "   WireGuard Client-${local_index}: ${local_vpn_item}"
+            echo "$(lzdate)" [$$]: "   WireGuard Client-${local_index}: ${local_vpn_item}" | tee -ai "${STATUS_LOG}" 2> /dev/null
         done
-        echo "$(lzdate)" [$$]: "   WireGuard Client Export: ${local_vpn_client_wan_port}"
+        echo "$(lzdate)" [$$]: "   WireGuard Client Export: ${local_vpn_client_wan_port}" | tee -ai "${STATUS_LOG}" 2> /dev/null
     fi
 
-    echo "$(lzdate)" [$$]: ---------------------------------------------
+    echo "$(lzdate)" [$$]: --------------------------------------------- | tee -ai "${STATUS_LOG}" 2> /dev/null
     ## 获取openvpn-event事件接口状态
     ## 获取事件接口注册状态
     ## 输入项：
@@ -1458,10 +1471,10 @@ lz_show_vpn_support_status() {
     ## 返回值：
     ##     0--已注册
     ##     1--未注册
-    if lz_get_event_interface_status "${PATH_BASE}/${STATUS_OPENVPN_EVENT_NAME}" "${PATH_INTERFACE}/${STATUS_OPENVPN_EVENT_INTERFACE_NAME}"; then
-        echo "$(lzdate)" [$$]: "openvpn-event interface has been registered."
+    if lz_get_event_interface_status "${PATH_BOOTLOADER}/${STATUS_OPENVPN_EVENT_NAME}" "${PATH_INTERFACE}/${STATUS_OPENVPN_EVENT_INTERFACE_NAME}"; then
+        echo "$(lzdate)" [$$]: "openvpn-event interface has been registered." | tee -ai "${STATUS_LOG}" 2> /dev/null
     else
-        echo "$(lzdate)" [$$]: "openvpn-event interface is not registered."
+        echo "$(lzdate)" [$$]: "openvpn-event interface is not registered." | tee -ai "${STATUS_LOG}" 2> /dev/null
     fi
 }
 
@@ -1712,31 +1725,39 @@ lz_get_ispip_status_info() {
 ## 返回值：无
 lz_output_ispip_status_info() {
     ## 输出WAN出口接入的ISP运营商信息
-    echo "$(lzdate)" [$$]: ---------------------------------------------
-    echo "$(lzdate)" [$$]: "   Primary WAN     ${1}"
+    {
+        echo "$(lzdate)" [$$]: ---------------------------------------------
+        echo "$(lzdate)" [$$]: "   Primary WAN     ${1}"
+    } | tee -ai "${STATUS_LOG}" 2> /dev/null
     if [ "${1}" != "Local Area Network" ]; then
         if [ "${local_wan0_pub_ip}" = "${local_wan0_local_ip}" ]; then
-            echo "$(lzdate)" [$$]: "                         ${local_wan0_pub_ip}"
+            echo "$(lzdate)" [$$]: "                         ${local_wan0_pub_ip}" | tee -ai "${STATUS_LOG}" 2> /dev/null
         else
-            echo "$(lzdate)" [$$]: "                         ${local_wan0_local_ip}"
-            echo "$(lzdate)" [$$]: "                   Pub   ${local_wan0_pub_ip}"
+            {
+                echo "$(lzdate)" [$$]: "                         ${local_wan0_local_ip}"
+                echo "$(lzdate)" [$$]: "                   Pub   ${local_wan0_pub_ip}"
+            } | tee -ai "${STATUS_LOG}" 2> /dev/null
         fi
     elif [ -n "${local_wan0_local_ip}" ]; then
-        echo "$(lzdate)" [$$]: "                         ${local_wan0_local_ip}"
+        echo "$(lzdate)" [$$]: "                         ${local_wan0_local_ip}" | tee -ai "${STATUS_LOG}" 2> /dev/null
     fi
-    echo "$(lzdate)" [$$]: ---------------------------------------------
-    echo "$(lzdate)" [$$]: "   Secondary WAN   ${2}"
+    {
+        echo "$(lzdate)" [$$]: ---------------------------------------------
+        echo "$(lzdate)" [$$]: "   Secondary WAN   ${2}"
+    } | tee -ai "${STATUS_LOG}" 2> /dev/null
     if [ "${2}" != "Local Area Network" ]; then
         if [ "${local_wan1_pub_ip}" = "${local_wan1_local_ip}" ]; then
-            echo "$(lzdate)" [$$]: "                         ${local_wan1_pub_ip}"
+            echo "$(lzdate)" [$$]: "                         ${local_wan1_pub_ip}" | tee -ai "${STATUS_LOG}" 2> /dev/null
         else
-            echo "$(lzdate)" [$$]: "                         ${local_wan1_local_ip}"
-            echo "$(lzdate)" [$$]: "                   Pub   ${local_wan1_pub_ip}"
+            {
+                echo "$(lzdate)" [$$]: "                         ${local_wan1_local_ip}"
+                echo "$(lzdate)" [$$]: "                   Pub   ${local_wan1_pub_ip}"
+            } | tee -ai "${STATUS_LOG}" 2> /dev/null
         fi
     elif [ -n "${local_wan1_local_ip}" ]; then
-        echo "$(lzdate)" [$$]: "                         ${local_wan1_local_ip}"
+        echo "$(lzdate)" [$$]: "                         ${local_wan1_local_ip}" | tee -ai "${STATUS_LOG}" 2> /dev/null
     fi
-    echo "$(lzdate)" [$$]: ---------------------------------------------
+    echo "$(lzdate)" [$$]: --------------------------------------------- | tee -ai "${STATUS_LOG}" 2> /dev/null
 
     local local_hd=""
     local local_primary_wan_hd="     HD"
@@ -1756,22 +1777,22 @@ lz_output_ispip_status_info() {
                 ##     Secondary WAN--第二WAN口
                 ##     Equal Division--均分出口
                 ##     Load Balancing--系统负载均衡分配出口
-                echo "$(lzdate)" [$$]: "   FOREIGN       * $( lz_get_ispip_status_info "1" )${local_secondary_wan_hd}  -${status_isp_data_0_item_total}"
+                echo "$(lzdate)" [$$]: "   FOREIGN       * $( lz_get_ispip_status_info "1" )${local_secondary_wan_hd}  -${status_isp_data_0_item_total}" | tee -ai "${STATUS_LOG}" 2> /dev/null
                 local_exist="1"
             elif [ "${status_isp_wan_port_0}" != "0" ] && [ "${status_isp_wan_port_0}" != "1" ] && [ "${status_policy_mode}" = "1" ]; then
-                echo "$(lzdate)" [$$]: "   FOREIGN       * $( lz_get_ispip_status_info "0" )${local_primary_wan_hd}  -${status_isp_data_0_item_total}"
+                echo "$(lzdate)" [$$]: "   FOREIGN       * $( lz_get_ispip_status_info "0" )${local_primary_wan_hd}  -${status_isp_data_0_item_total}" | tee -ai "${STATUS_LOG}" 2> /dev/null
                 local_exist="1"
             else
                 local_hd="${local_primary_wan_hd}  -${status_isp_data_0_item_total}"
                 [ "${status_isp_wan_port_0}" = "1" ] && local_hd="${local_secondary_wan_hd}  -${status_isp_data_0_item_total}"
-                echo "$(lzdate)" [$$]: "   FOREIGN         $( lz_get_ispip_status_info "${status_isp_wan_port_0}" )${local_hd}"
+                echo "$(lzdate)" [$$]: "   FOREIGN         $( lz_get_ispip_status_info "${status_isp_wan_port_0}" )${local_hd}" | tee -ai "${STATUS_LOG}" 2> /dev/null
                 local_exist="1"
             fi
         else
             local_hd="  -${status_isp_data_0_item_total}"
             [ "${status_isp_wan_port_0}" = "0" ] && local_hd="     -${status_isp_data_0_item_total}"
             [ "${status_isp_wan_port_0}" = "1" ] && local_hd="   -${status_isp_data_0_item_total}"
-            echo "$(lzdate)" [$$]: "   FOREIGN         $( lz_get_ispip_status_info "${status_isp_wan_port_0}" )    ${local_hd}"
+            echo "$(lzdate)" [$$]: "   FOREIGN         $( lz_get_ispip_status_info "${status_isp_wan_port_0}" )    ${local_hd}" | tee -ai "${STATUS_LOG}" 2> /dev/null
             local_exist="1"
         fi
     }
@@ -1793,10 +1814,10 @@ lz_output_ispip_status_info() {
             if [ "${status_usage_mode}" != "0" ]; then
                 if [ "$( lz_get_isp_wan_port_status "${local_index}" )" -lt "0" ] || [ "$( lz_get_isp_wan_port_status "${local_index}" )" -gt "3" ]; then
                     if [ "${status_policy_mode}" = "0" ]; then
-                        echo "$(lzdate)" [$$]: "   ${local_isp_name}* $( lz_get_ispip_status_info "1" )${local_secondary_wan_hd}  $( lz_get_isp_data_item_total_status_variable "${local_index}" )"
+                        echo "$(lzdate)" [$$]: "   ${local_isp_name}* $( lz_get_ispip_status_info "1" )${local_secondary_wan_hd}  $( lz_get_isp_data_item_total_status_variable "${local_index}" )" | tee -ai "${STATUS_LOG}" 2> /dev/null
                         local_exist="1"
                     elif [ "${status_policy_mode}" = "1" ]; then
-                        echo "$(lzdate)" [$$]: "   ${local_isp_name}* $( lz_get_ispip_status_info "0" )${local_primary_wan_hd}  $( lz_get_isp_data_item_total_status_variable "${local_index}" )"
+                        echo "$(lzdate)" [$$]: "   ${local_isp_name}* $( lz_get_ispip_status_info "0" )${local_primary_wan_hd}  $( lz_get_isp_data_item_total_status_variable "${local_index}" )" | tee -ai "${STATUS_LOG}" 2> /dev/null
                         local_exist="1"
                     fi
                 else
@@ -1804,7 +1825,7 @@ lz_output_ispip_status_info() {
                     [ "$( lz_get_isp_wan_port_status "${local_index}" )" = "1" ] && local_hd="${local_secondary_wan_hd}"
                     [ "$( lz_get_isp_wan_port_status "${local_index}" )" = "2" ] && local_hd="${local_equal_division_hd}"
                     [ "$( lz_get_isp_wan_port_status "${local_index}" )" = "3" ] && local_hd="${local_redivision_hd}"
-                    echo "$(lzdate)" [$$]: "   ${local_isp_name}  $( lz_get_ispip_status_info "$( lz_get_isp_wan_port_status "${local_index}" )" )${local_hd}  $( lz_get_isp_data_item_total_status_variable "${local_index}" )"
+                    echo "$(lzdate)" [$$]: "   ${local_isp_name}  $( lz_get_ispip_status_info "$( lz_get_isp_wan_port_status "${local_index}" )" )${local_hd}  $( lz_get_isp_data_item_total_status_variable "${local_index}" )" | tee -ai "${STATUS_LOG}" 2> /dev/null
                     local_exist="1"
                 fi
             else
@@ -1812,93 +1833,93 @@ lz_output_ispip_status_info() {
                 [ "$( lz_get_isp_wan_port_status "${local_index}" )" = "0" ] && local_hd="     "
                 [ "$( lz_get_isp_wan_port_status "${local_index}" )" = "1" ] && local_hd="   "
                 [ "$( lz_get_isp_wan_port_status "${local_index}" )" = "3" ] && local_hd="      "
-                echo "$(lzdate)" [$$]: "   ${local_isp_name}  $( lz_get_ispip_status_info "$( lz_get_isp_wan_port_status "${local_index}" )" )${local_hd}    $( lz_get_isp_data_item_total_status_variable "${local_index}" )"
+                echo "$(lzdate)" [$$]: "   ${local_isp_name}  $( lz_get_ispip_status_info "$( lz_get_isp_wan_port_status "${local_index}" )" )${local_hd}    $( lz_get_isp_data_item_total_status_variable "${local_index}" )" | tee -ai "${STATUS_LOG}" 2> /dev/null
                 local_exist="1"
             fi
         }
         local_index="$(( local_index + 1 ))"
     done
     [ "${local_exist}" = "1" ] && {
-        echo "$(lzdate)" [$$]: ---------------------------------------------
+        echo "$(lzdate)" [$$]: --------------------------------------------- | tee -ai "${STATUS_LOG}" 2> /dev/null
     }
     local_exist="0"
     local local_item_count="$( lz_get_ipv4_data_file_valid_item_total_status "${status_local_ipsets_file}" )"
     [ "${local_item_count}" -gt "0" ] && {
-        echo "$(lzdate)" [$$]: "   LocalIPBlcLst   Load Balancing      ${local_item_count}"
+        echo "$(lzdate)" [$$]: "   LocalIPBlcLst   Load Balancing      ${local_item_count}" | tee -ai "${STATUS_LOG}" 2> /dev/null
         local_exist="1"
     }
     ip route show table "${STATUS_LZ_IPTV}" | grep -qw "default" && {
         local_item_count="$( lz_get_ipv4_data_file_valid_item_total_status "${status_iptv_box_ip_lst_file}" )"
         [ "${local_item_count}" -gt "0" ] && {
             if [ "${status_iptv_igmp_switch}" = "0" ]; then
-                echo "$(lzdate)" [$$]: "   IPTVSTBIPLst    Primary WAN${local_primary_wan_hd}  ${local_item_count}"
+                echo "$(lzdate)" [$$]: "   IPTVSTBIPLst    Primary WAN${local_primary_wan_hd}  ${local_item_count}" | tee -ai "${STATUS_LOG}" 2> /dev/null
                 local_exist="1"
             elif [ "${status_iptv_igmp_switch}" = "1" ]; then
-                echo "$(lzdate)" [$$]: "   IPTVSTBIPLst    Secondary WAN${local_secondary_wan_hd}  ${local_item_count}"
+                echo "$(lzdate)" [$$]: "   IPTVSTBIPLst    Secondary WAN${local_secondary_wan_hd}  ${local_item_count}" | tee -ai "${STATUS_LOG}" 2> /dev/null
                 local_exist="1"
             fi
         }
         if [ "${status_iptv_igmp_switch}" = "0" ] || [ "${status_iptv_igmp_switch}" = "1" ]; then
             [ "${status_iptv_access_mode}" = "2" ] && local_item_count="$( lz_get_ipv4_data_file_valid_item_total_status "${status_iptv_isp_ip_lst_file}" )" \
                 && [ "${local_item_count}" -gt "0" ] && {
-                echo "$(lzdate)" [$$]: "   IPTVSrvIPLst    Available       HD  ${local_item_count}"
+                echo "$(lzdate)" [$$]: "   IPTVSrvIPLst    Available       HD  ${local_item_count}" | tee -ai "${STATUS_LOG}" 2> /dev/null
                 local_exist="1"
             }
         fi
     }
     [ "${status_high_wan_1_src_to_dst_addr}" = "0" ] && local_item_count="$( lz_get_ipv4_src_to_dst_data_file_item_total_status "${status_high_wan_1_src_to_dst_addr_file}" )" \
         && [ "${local_item_count}" -gt "0" ] && {
-        echo "$(lzdate)" [$$]: "   HiSrcToDstLst   Primary WAN${local_primary_wan_hd}  ${local_item_count}"
+        echo "$(lzdate)" [$$]: "   HiSrcToDstLst   Primary WAN${local_primary_wan_hd}  ${local_item_count}" | tee -ai "${STATUS_LOG}" 2> /dev/null
         local_exist="1"
     }
     [ "${status_wan_2_src_to_dst_addr}" = "0" ] && local_item_count="$( lz_get_ipv4_src_to_dst_data_file_item_total_status "${status_wan_2_src_to_dst_addr_file}" )" \
         && [ "${local_item_count}" -gt "0" ] && {
-        echo "$(lzdate)" [$$]: "   SrcToDstLst-2   Secondary WAN${local_secondary_wan_hd}  ${local_item_count}"
+        echo "$(lzdate)" [$$]: "   SrcToDstLst-2   Secondary WAN${local_secondary_wan_hd}  ${local_item_count}" | tee -ai "${STATUS_LOG}" 2> /dev/null
         local_exist="1"
     }
     [ "${status_wan_1_src_to_dst_addr}" = "0" ] && local_item_count="$( lz_get_ipv4_src_to_dst_data_file_item_total_status "${status_wan_1_src_to_dst_addr_file}" )" \
         && [ "${local_item_count}" -gt "0" ] && {
-        echo "$(lzdate)" [$$]: "   SrcToDstLst-1   Primary WAN${local_primary_wan_hd}  ${local_item_count}"
+        echo "$(lzdate)" [$$]: "   SrcToDstLst-1   Primary WAN${local_primary_wan_hd}  ${local_item_count}" | tee -ai "${STATUS_LOG}" 2> /dev/null
         local_exist="1"
     }
     [ "${status_high_wan_2_client_src_addr}" = "0" ] && local_item_count="$( lz_get_ipv4_data_file_item_total_status "${status_high_wan_2_client_src_addr_file}" )" \
         && [ "${local_item_count}" -gt "0" ] && {
-        echo "$(lzdate)" [$$]: "   HighSrcLst-2    Secondary WAN${local_secondary_wan_hd}  ${local_item_count}"
+        echo "$(lzdate)" [$$]: "   HighSrcLst-2    Secondary WAN${local_secondary_wan_hd}  ${local_item_count}" | tee -ai "${STATUS_LOG}" 2> /dev/null
         local_exist="1"
     }
     [ "${status_high_wan_1_client_src_addr}" = "0" ] && local_item_count="$( lz_get_ipv4_data_file_item_total_status "${status_high_wan_1_client_src_addr_file}" )" \
         && [ "${local_item_count}" -gt "0" ] && {
-        echo "$(lzdate)" [$$]: "   HighSrcLst-1    Primary WAN${local_primary_wan_hd}  ${local_item_count}"
+        echo "$(lzdate)" [$$]: "   HighSrcLst-1    Primary WAN${local_primary_wan_hd}  ${local_item_count}" | tee -ai "${STATUS_LOG}" 2> /dev/null
         local_exist="1"
     }
     [ "$( lz_get_iptables_fwmark_item_total_number_status "${STATUS_HIGH_CLIENT_DEST_PORT_FWMARK_0}" "${STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN}" )" -gt "0" ] && {
-        echo "$(lzdate)" [$$]: "   HSrcToDstPrt-1  Primary WAN         $( lz_get_ipv4_src_dst_addr_port_data_file_item_total_status "${status_high_wan_1_src_to_dst_addr_port_file}" )"
+        echo "$(lzdate)" [$$]: "   HSrcToDstPrt-1  Primary WAN         $( lz_get_ipv4_src_dst_addr_port_data_file_item_total_status "${status_high_wan_1_src_to_dst_addr_port_file}" )" | tee -ai "${STATUS_LOG}" 2> /dev/null
         local_exist="1"
     }
     [ "$( lz_get_iptables_fwmark_item_total_number_status "${STATUS_CLIENT_DEST_PORT_FWMARK_1}" "${STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN}" )" -gt "0" ] && {
-        echo "$(lzdate)" [$$]: "   SrcToDstPrt-2   Secondary WAN       $( lz_get_ipv4_src_dst_addr_port_data_file_item_total_status "${status_wan_2_src_to_dst_addr_port_file}" )"
+        echo "$(lzdate)" [$$]: "   SrcToDstPrt-2   Secondary WAN       $( lz_get_ipv4_src_dst_addr_port_data_file_item_total_status "${status_wan_2_src_to_dst_addr_port_file}" )" | tee -ai "${STATUS_LOG}" 2> /dev/null
         local_exist="1"
     }
     [ "$( lz_get_iptables_fwmark_item_total_number_status "${STATUS_CLIENT_DEST_PORT_FWMARK_0}" "${STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN}" )" -gt "0" ] && {
-        echo "$(lzdate)" [$$]: "   SrcToDstPrt-1   Primary WAN         $( lz_get_ipv4_src_dst_addr_port_data_file_item_total_status "${status_wan_1_src_to_dst_addr_port_file}" )"
+        echo "$(lzdate)" [$$]: "   SrcToDstPrt-1   Primary WAN         $( lz_get_ipv4_src_dst_addr_port_data_file_item_total_status "${status_wan_1_src_to_dst_addr_port_file}" )" | tee -ai "${STATUS_LOG}" 2> /dev/null
         local_exist="1"
     }
     [ -n "$( ipset -q -n list "${STATUS_DOMAIN_SET_1}" )" ] && {
-        echo -e "$(lzdate)" [$$]: "   DomainNmLst-2   Secondary WAN       $( lz_get_ipv4_data_file_item_total_status "${status_wan_2_domain_client_src_addr_file}" )\t$( lz_get_domain_data_file_item_total_status "${status_wan_2_domain_file}" )"
+        echo -e "$(lzdate)" [$$]: "   DomainNmLst-2   Secondary WAN       $( lz_get_ipv4_data_file_item_total_status "${status_wan_2_domain_client_src_addr_file}" )\t$( lz_get_domain_data_file_item_total_status "${status_wan_2_domain_file}" )" | tee -ai "${STATUS_LOG}" 2> /dev/null
         local_exist="1"
     }
     [ -n "$( ipset -q -n list "${STATUS_DOMAIN_SET_0}" )" ] && {
-        echo -e "$(lzdate)" [$$]: "   DomainNmLst-1   Primary WAN         $( lz_get_ipv4_data_file_item_total_status "${status_wan_1_domain_client_src_addr_file}" )\t$( lz_get_domain_data_file_item_total_status "${status_wan_1_domain_file}" )"
+        echo -e "$(lzdate)" [$$]: "   DomainNmLst-1   Primary WAN         $( lz_get_ipv4_data_file_item_total_status "${status_wan_1_domain_client_src_addr_file}" )\t$( lz_get_domain_data_file_item_total_status "${status_wan_1_domain_file}" )" | tee -ai "${STATUS_LOG}" 2> /dev/null
         local_exist="1"
     }
     [ "${status_wan_2_client_src_addr}" = "0" ] && local_item_count="$( lz_get_ipv4_data_file_item_total_status "${status_wan_2_client_src_addr_file}" )" \
         && [ "${local_item_count}" -gt "0" ] && {
-        echo "$(lzdate)" [$$]: "   SrcLst-2        Secondary WAN${local_secondary_wan_hd}  ${local_item_count}"
+        echo "$(lzdate)" [$$]: "   SrcLst-2        Secondary WAN${local_secondary_wan_hd}  ${local_item_count}" | tee -ai "${STATUS_LOG}" 2> /dev/null
         local_exist="1"
     }
     [ "${status_wan_1_client_src_addr}" = "0" ] && local_item_count="$( lz_get_ipv4_data_file_item_total_status "${status_wan_1_client_src_addr_file}" )" \
         && [ "${local_item_count}" -gt "0" ] && {
-        echo "$(lzdate)" [$$]: "   SrcLst-1        Primary WAN${local_primary_wan_hd}  ${local_item_count}"
+        echo "$(lzdate)" [$$]: "   SrcLst-1        Primary WAN${local_primary_wan_hd}  ${local_item_count}" | tee -ai "${STATUS_LOG}" 2> /dev/null
         local_exist="1"
     }
     [ "${status_custom_data_wan_port_2}" -ge "0" ] && [ "${status_custom_data_wan_port_2}" -le "2" ] \
@@ -1908,23 +1929,23 @@ lz_output_ispip_status_info() {
             if [ "${status_custom_data_wan_port_2}" = "0" ] || [ "${status_custom_data_wan_port_2}" = "1" ]; then
                 local_hd="${local_primary_wan_hd}"
                 [ "${status_custom_data_wan_port_2}" = "1" ] && local_hd="${local_secondary_wan_hd}"
-                echo "$(lzdate)" [$$]: "   Custom-2        $( lz_get_ispip_status_info "${status_custom_data_wan_port_2}" )${local_hd}  ${local_item_count}"
+                echo "$(lzdate)" [$$]: "   Custom-2        $( lz_get_ispip_status_info "${status_custom_data_wan_port_2}" )${local_hd}  ${local_item_count}" | tee -ai "${STATUS_LOG}" 2> /dev/null
                 local_exist="1"
             elif [ "${status_custom_data_wan_port_2}" = "2" ] && [ "${status_policy_mode}" = "0" ]; then
-                echo "$(lzdate)" [$$]: "   Custom-2      * $( lz_get_ispip_status_info "1" )${local_secondary_wan_hd}  ${local_item_count}"
+                echo "$(lzdate)" [$$]: "   Custom-2      * $( lz_get_ispip_status_info "1" )${local_secondary_wan_hd}  ${local_item_count}" | tee -ai "${STATUS_LOG}" 2> /dev/null
                 local_exist="1"
             elif [ "${status_custom_data_wan_port_2}" = "2" ] && [ "${status_policy_mode}" = "1" ]; then
-                echo "$(lzdate)" [$$]: "   Custom-2      * $( lz_get_ispip_status_info "0" )${local_primary_wan_hd}  ${local_item_count}"
+                echo "$(lzdate)" [$$]: "   Custom-2      * $( lz_get_ispip_status_info "0" )${local_primary_wan_hd}  ${local_item_count}" | tee -ai "${STATUS_LOG}" 2> /dev/null
                 local_exist="1"
             fi
         else
             if [ "${status_custom_data_wan_port_2}" = "0" ] || [ "${status_custom_data_wan_port_2}" = "1" ]; then
                 local_hd="     "
                 [ "${status_custom_data_wan_port_2}" = "1" ] && local_hd="   "
-                echo "$(lzdate)" [$$]: "   Custom-2        $( lz_get_ispip_status_info "${status_custom_data_wan_port_2}" )${local_hd}    ${local_item_count}"
+                echo "$(lzdate)" [$$]: "   Custom-2        $( lz_get_ispip_status_info "${status_custom_data_wan_port_2}" )${local_hd}    ${local_item_count}" | tee -ai "${STATUS_LOG}" 2> /dev/null
                 local_exist="1"
             elif [ "${status_custom_data_wan_port_2}" = "2" ]; then
-                echo "$(lzdate)" [$$]: "   Custom-2        $( lz_get_ispip_status_info "5" )      ${local_item_count}"
+                echo "$(lzdate)" [$$]: "   Custom-2        $( lz_get_ispip_status_info "5" )      ${local_item_count}" | tee -ai "${STATUS_LOG}" 2> /dev/null
                 local_exist="1"
             fi
         fi
@@ -1936,28 +1957,28 @@ lz_output_ispip_status_info() {
             if [ "${status_custom_data_wan_port_1}" = "0" ] || [ "${status_custom_data_wan_port_1}" = "1" ]; then
                 local_hd="${local_primary_wan_hd}"
                 [ "${status_custom_data_wan_port_1}" = "1" ] && local_hd="${local_secondary_wan_hd}"
-                echo "$(lzdate)" [$$]: "   Custom-1        $( lz_get_ispip_status_info "${status_custom_data_wan_port_1}" )${local_hd}  ${local_item_count}"
+                echo "$(lzdate)" [$$]: "   Custom-1        $( lz_get_ispip_status_info "${status_custom_data_wan_port_1}" )${local_hd}  ${local_item_count}" | tee -ai "${STATUS_LOG}" 2> /dev/null
                 local_exist="1"
             elif [ "${status_custom_data_wan_port_1}" = "2" ] && [ "${status_policy_mode}" = "0" ]; then
-                echo "$(lzdate)" [$$]: "   Custom-1      * $( lz_get_ispip_status_info "1" )${local_secondary_wan_hd}  ${local_item_count}"
+                echo "$(lzdate)" [$$]: "   Custom-1      * $( lz_get_ispip_status_info "1" )${local_secondary_wan_hd}  ${local_item_count}" | tee -ai "${STATUS_LOG}" 2> /dev/null
                 local_exist="1"
             elif [ "${status_custom_data_wan_port_1}" = "2" ] && [ "${status_policy_mode}" = "1" ]; then
-                echo "$(lzdate)" [$$]: "   Custom-1      * $( lz_get_ispip_status_info "0" )${local_primary_wan_hd}  ${local_item_count}"
+                echo "$(lzdate)" [$$]: "   Custom-1      * $( lz_get_ispip_status_info "0" )${local_primary_wan_hd}  ${local_item_count}" | tee -ai "${STATUS_LOG}" 2> /dev/null
                 local_exist="1"
             fi
         else
             if [ "${status_custom_data_wan_port_1}" = "0" ] || [ "${status_custom_data_wan_port_1}" = "1" ]; then
                 local_hd="     "
                 [ "${status_custom_data_wan_port_1}" = "1" ] && local_hd="   "
-                echo "$(lzdate)" [$$]: "   Custom-1        $( lz_get_ispip_status_info "${status_custom_data_wan_port_1}" )${local_hd}    ${local_item_count}"
+                echo "$(lzdate)" [$$]: "   Custom-1        $( lz_get_ispip_status_info "${status_custom_data_wan_port_1}" )${local_hd}    ${local_item_count}" | tee -ai "${STATUS_LOG}" 2> /dev/null
                 local_exist="1"
             elif [ "${status_custom_data_wan_port_1}" = "2" ]; then
-                echo "$(lzdate)" [$$]: "   Custom-1        $( lz_get_ispip_status_info "5" )      ${local_item_count}"
+                echo "$(lzdate)" [$$]: "   Custom-1        $( lz_get_ispip_status_info "5" )      ${local_item_count}" | tee -ai "${STATUS_LOG}" 2> /dev/null
                 local_exist="1"
             fi
         fi
     }
-    [ "${local_exist}" = "1" ] && echo "$(lzdate)" [$$]: ---------------------------------------------
+    [ "${local_exist}" = "1" ] && echo "$(lzdate)" [$$]: --------------------------------------------- | tee -ai "${STATUS_LOG}" 2> /dev/null
 }
 
 ## 输出端口分流出口信息状态函数
@@ -1970,37 +1991,37 @@ lz_output_dport_policy_info_status() {
     local local_item_exist="0"
     local local_dports="$( iptables -t mangle -L "${STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN}" -v -n --line-numbers | grep "MARK set ${STATUS_DEST_PORT_FWMARK_0}" | grep "tcp" | awk -F "dports " '{print $2}' | awk '{print $1}' )"
     [ -n "${local_dports}" ] && local_item_exist="1" && {
-        echo "$(lzdate)" [$$]: "   Primary WAN     TCP:${local_dports}"
+        echo "$(lzdate)" [$$]: "   Primary WAN     TCP:${local_dports}" | tee -ai "${STATUS_LOG}" 2> /dev/null
     }
     local_dports="$( iptables -t mangle -L "${STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN}" -v -n --line-numbers | grep "MARK set ${STATUS_DEST_PORT_FWMARK_0}" | grep "udp " | awk -F "dports " '{print $2}' | awk '{print $1}' )"
     [ -n "${local_dports}" ] && local_item_exist="1" && {
-        echo "$(lzdate)" [$$]: "   Primary WAN     UDP:${local_dports}"
+        echo "$(lzdate)" [$$]: "   Primary WAN     UDP:${local_dports}" | tee -ai "${STATUS_LOG}" 2> /dev/null
     }
     local_dports="$( iptables -t mangle -L "${STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN}" -v -n --line-numbers | grep "MARK set ${STATUS_DEST_PORT_FWMARK_0}" | grep "udplite" | awk -F "dports " '{print $2}' | awk '{print $1}' )"
     [ -n "${local_dports}" ] && local_item_exist="1" && {
-        echo "$(lzdate)" [$$]: "   Primary WAN     UDPLITE:${local_dports}"
+        echo "$(lzdate)" [$$]: "   Primary WAN     UDPLITE:${local_dports}" | tee -ai "${STATUS_LOG}" 2> /dev/null
     }
     local_dports="$( iptables -t mangle -L "${STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN}" -v -n --line-numbers | grep "MARK set ${STATUS_DEST_PORT_FWMARK_0}" | grep "sctp" | awk -F "dports " '{print $2}' | awk '{print $1}' )"
     [ -n "${local_dports}" ] && local_item_exist="1" && {
-        echo "$(lzdate)" [$$]: "   Primary WAN     SCTP:${local_dports}"
+        echo "$(lzdate)" [$$]: "   Primary WAN     SCTP:${local_dports}" | tee -ai "${STATUS_LOG}" 2> /dev/null
     }
     local_dports="$( iptables -t mangle -L "${STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN}" -v -n --line-numbers | grep "MARK set ${STATUS_DEST_PORT_FWMARK_1}" | grep "tcp" | awk -F "dports " '{print $2}' | awk '{print $1}' )"
     [ -n "${local_dports}" ] && local_item_exist="1" && {
-        echo "$(lzdate)" [$$]: "   Secondary WAN   TCP:${local_dports}"
+        echo "$(lzdate)" [$$]: "   Secondary WAN   TCP:${local_dports}" | tee -ai "${STATUS_LOG}" 2> /dev/null
     }
     local_dports="$( iptables -t mangle -L "${STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN}" -v -n --line-numbers | grep "MARK set ${STATUS_DEST_PORT_FWMARK_1}" | grep "udp " | awk -F "dports " '{print $2}' | awk '{print $1}' )"
     [ -n "${local_dports}" ] && local_item_exist="1" && {
-        echo "$(lzdate)" [$$]: "   Secondary WAN   UDP:${local_dports}"
+        echo "$(lzdate)" [$$]: "   Secondary WAN   UDP:${local_dports}" | tee -ai "${STATUS_LOG}" 2> /dev/null
     }
     local_dports="$( iptables -t mangle -L "${STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN}" -v -n --line-numbers | grep "MARK set ${STATUS_DEST_PORT_FWMARK_1}" | grep "udplite" | awk -F "dports " '{print $2}' | awk '{print $1}' )"
     [ -n "${local_dports}" ] && local_item_exist="1" && {
-        echo "$(lzdate)" [$$]: "   Secondary WAN   UDPLITE:${local_dports}"
+        echo "$(lzdate)" [$$]: "   Secondary WAN   UDPLITE:${local_dports}" | tee -ai "${STATUS_LOG}" 2> /dev/null
     }
     local_dports="$( iptables -t mangle -L "${STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN}" -v -n --line-numbers | grep "MARK set ${STATUS_DEST_PORT_FWMARK_1}" | grep "sctp" | awk -F "dports " '{print $2}' | awk '{print $1}' )"
     [ -n "${local_dports}" ] && local_item_exist="1" && {
-        echo "$(lzdate)" [$$]: "   Secondary WAN   SCTP:${local_dports}"
+        echo "$(lzdate)" [$$]: "   Secondary WAN   SCTP:${local_dports}" | tee -ai "${STATUS_LOG}" 2> /dev/null
     }
-    [ "${local_item_exist}" = "1" ] && echo "$(lzdate)" [$$]: ---------------------------------------------
+    [ "${local_item_exist}" = "1" ] && echo "$(lzdate)" [$$]: --------------------------------------------- | tee -ai "${STATUS_LOG}" 2> /dev/null
 }
 
 ## 显示路由表变量状态函数
@@ -2031,7 +2052,7 @@ lz_show_iptv_function_status() {
     local local_info=
     if [ -z "${iptv_wan0_ifname}" ]; then
         local_info="1"
-        echo "$(lzdate)" [$$]: Primary WAN fault.
+        echo "$(lzdate)" [$$]: Primary WAN fault. | tee -ai "${STATUS_LOG}" 2> /dev/null
         ## 显示路由表变量状态
         ## 输入项：
         ##     $1--路由表变量
@@ -2040,37 +2061,37 @@ lz_show_iptv_function_status() {
     elif { ! lz_show_routing_table_status "${rt_wan0}" | grep -qw "${iptv_wan0_ifname}" \
         || ! lz_show_routing_table_status "${rt_wan1}" | awk '$1 == "default" && $5 == "'"${iptv_wan0_ifname}"'" {exit(1)}'; }; then
         local_info="1"
-        echo "$(lzdate)" [$$]: Primary WAN \( "${iptv_wan0_ifname}" \) fault.
+        echo "$(lzdate)" [$$]: Primary WAN \( "${iptv_wan0_ifname}" \) fault. | tee -ai "${STATUS_LOG}" 2> /dev/null
     fi
     [ -n "${iptv_wan0_ifname}" ] && [ -n "${iptv_wan0_pppoe_ifname}" ] \
         && ! lz_show_routing_table_status "${rt_wan0}" | awk '$1 == "default" && $5 == "'"${iptv_wan0_ifname}"'" {exit(1)}' \
         && lz_show_routing_table_status "${rt_wan0}" | awk '$1 == "default" && $5 == "'"${iptv_wan0_pppoe_ifname}"'" {exit(1)}' && {
         local_info="1"
-        echo "$(lzdate)" [$$]: Primary WAN \( "${iptv_wan0_ifname}" "${iptv_wan0_pppoe_ifname}" \) fault.
+        echo "$(lzdate)" [$$]: Primary WAN \( "${iptv_wan0_ifname}" "${iptv_wan0_pppoe_ifname}" \) fault. | tee -ai "${STATUS_LOG}" 2> /dev/null
     }
     [ -n "${iptv_wan0_pppoe_ifname}" ] \
         && ! lz_show_routing_table_status "${rt_wan1}" | awk '$1 == "default" && $5 == "'"${iptv_wan0_pppoe_ifname}"'" {exit(1)}' && {
         local_info="1"
-        echo "$(lzdate)" [$$]: Primary WAN \( "${iptv_wan0_pppoe_ifname}" \) fault.
+        echo "$(lzdate)" [$$]: Primary WAN \( "${iptv_wan0_pppoe_ifname}" \) fault. | tee -ai "${STATUS_LOG}" 2> /dev/null
     }
     if [ -z "${iptv_wan1_ifname}" ]; then
         local_info="1"
-        echo "$(lzdate)" [$$]: Secondary WAN fault.
+        echo "$(lzdate)" [$$]: Secondary WAN fault. | tee -ai "${STATUS_LOG}" 2> /dev/null
     elif { ! lz_show_routing_table_status "${rt_wan1}" | grep -qw "${iptv_wan1_ifname}" \
         || ! lz_show_routing_table_status "${rt_wan0}" | awk '$1 == "default" && $5 == "'"${iptv_wan1_ifname}"'" {exit(1)}'; }; then
         local_info="1"
-        echo "$(lzdate)" [$$]: Secondary WAN \( "${iptv_wan1_ifname}" \) fault.
+        echo "$(lzdate)" [$$]: Secondary WAN \( "${iptv_wan1_ifname}" \) fault. | tee -ai "${STATUS_LOG}" 2> /dev/null
     fi
     [ -n "${iptv_wan1_ifname}" ] && [ -n "${iptv_wan1_pppoe_ifname}" ] \
         && ! lz_show_routing_table_status "${rt_wan1}" | awk '$1 == "default" && $5 == "'"${iptv_wan1_ifname}"'" {exit(1)}' \
         && lz_show_routing_table_status "${rt_wan1}" | awk '$1 == "default" && $5 == "'"${iptv_wan1_pppoe_ifname}"'" {exit(1)}' && {
         local_info="1"
-        echo "$(lzdate)" [$$]: Secondary WAN \( "${iptv_wan1_ifname}" "${iptv_wan1_pppoe_ifname}" \) fault.
+        echo "$(lzdate)" [$$]: Secondary WAN \( "${iptv_wan1_ifname}" "${iptv_wan1_pppoe_ifname}" \) fault. | tee -ai "${STATUS_LOG}" 2> /dev/null
     }
     [ -n "${iptv_wan1_pppoe_ifname}" ] \
         && ! lz_show_routing_table_status "${rt_wan0}" | awk '$1 == "default" && $5 == "'"${iptv_wan1_pppoe_ifname}"'" {exit(1)}' && {
         local_info="1"
-        echo "$(lzdate)" [$$]: Secondary WAN \( "${iptv_wan1_pppoe_ifname}" \) fault.
+        echo "$(lzdate)" [$$]: Secondary WAN \( "${iptv_wan1_pppoe_ifname}" \) fault. | tee -ai "${STATUS_LOG}" 2> /dev/null
     }
 
     ## 获取IPTV接口ID标识和网关地址
@@ -2084,66 +2105,66 @@ lz_show_iptv_function_status() {
             {printf "iptv_interface_id_0=%s\niptv_getway_ip_0=%s\n", $5,$3; exit}' )"
         [ -z "${iptv_interface_id_0}" ] && { [ "${status_iptv_igmp_switch}" = "0" ] || [ "${status_wan1_udpxy_switch}" = "0" ]; } && {
             local_info="1"
-            echo "$(lzdate)" [$$]: The "${iptv_wan0_ifname}" interface of Primary WAN: Not Available
+            echo "$(lzdate)" [$$]: The "${iptv_wan0_ifname}" interface of Primary WAN: Not Available | tee -ai "${STATUS_LOG}" 2> /dev/null
             [ -n "${iptv_wan0_pppoe_ifname}" ] \
                 && ! lz_show_routing_table_status "${rt_wan0}" | awk '$1 == "default" && $5 == "'"${iptv_wan0_pppoe_ifname}"'" {exit(1)}' \
                 && [ "$( nvram get "wan0_vpndhcp" )" != "1" ] \
-                && echo "$(lzdate)" [$$]: Primary WAN -- Enable VPN + DHCP Connection: No -\> Yes
+                && echo "$(lzdate)" [$$]: Primary WAN -- Enable VPN + DHCP Connection: No -\> Yes | tee -ai "${STATUS_LOG}" 2> /dev/null
         }
     elif [ "${status_wan1_iptv_mode}" != "0" ] && [ -z "${iptv_wan0_ifname}" ] \
         && { [ "${status_iptv_igmp_switch}" = "0" ] || [ "${status_wan1_udpxy_switch}" = "0" ]; }; then
         local_info="1"
         if [ "${status_wan1_iptv_mode}" = "1" ]; then
-            echo "$(lzdate)" [$$]: The interface \( wan0 Static \) of Primary WAN: Not Available
+            echo "$(lzdate)" [$$]: The interface \( wan0 Static \) of Primary WAN: Not Available | tee -ai "${STATUS_LOG}" 2> /dev/null
         else
-            echo "$(lzdate)" [$$]: The interface \( wan0 DHCP or IPoE \) of Primary WAN: Not Available
+            echo "$(lzdate)" [$$]: The interface \( wan0 DHCP or IPoE \) of Primary WAN: Not Available | tee -ai "${STATUS_LOG}" 2> /dev/null
         fi
     elif [ "${status_wan1_iptv_mode}" = "0" ] && [ -n "${iptv_wan0_pppoe_ifname}" ]; then
         eval "$( lz_show_routing_table_status "${rt_wan0}" | awk '$1 == "default" && $3 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ && $5 == "'"${iptv_wan0_pppoe_ifname}"'" \
             {printf "iptv_interface_id_0=%s\niptv_getway_ip_0=%s\n", $5,$3; exit}' )"
         [ -z "${iptv_interface_id_0}" ] && { [ "${status_iptv_igmp_switch}" = "0" ] || [ "${status_wan1_udpxy_switch}" = "0" ]; } \
             && local_info="1" \
-            && echo "$(lzdate)" [$$]: The "${iptv_wan0_pppoe_ifname}" interface of Primary WAN: Not Available
+            && echo "$(lzdate)" [$$]: The "${iptv_wan0_pppoe_ifname}" interface of Primary WAN: Not Available | tee -ai "${STATUS_LOG}" 2> /dev/null
     elif [ "${status_wan1_iptv_mode}" = "0" ] && [ -z "${iptv_wan0_pppoe_ifname}" ] \
         && { [ "${status_iptv_igmp_switch}" = "0" ] || [ "${status_wan1_udpxy_switch}" = "0" ]; }; then
         local_info="1"
-        echo "$(lzdate)" [$$]: The interface \( wan0 PPPoE \) of Primary WAN: Not Available
+        echo "$(lzdate)" [$$]: The interface \( wan0 PPPoE \) of Primary WAN: Not Available | tee -ai "${STATUS_LOG}" 2> /dev/null
     fi
     if [ "${status_wan2_iptv_mode}" != "0" ] && [ -n "${iptv_wan1_ifname}" ]; then
         eval "$( lz_show_routing_table_status "${rt_wan1}" | awk '$1 == "default" && $3 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ && $5 == "'"${iptv_wan1_ifname}"'" \
             {printf "iptv_interface_id_1=%s\niptv_getway_ip_1=%s\n", $5,$3; exit}' )"
         [ -z "${iptv_interface_id_1}" ] && { [ "${status_iptv_igmp_switch}" = "1" ] || [ "${status_wan2_udpxy_switch}" = "0" ]; } && {
             local_info="1"
-            echo "$(lzdate)" [$$]: The "${iptv_wan1_ifname}" interface of Secondary WAN: Not Available
+            echo "$(lzdate)" [$$]: The "${iptv_wan1_ifname}" interface of Secondary WAN: Not Available | tee -ai "${STATUS_LOG}" 2> /dev/null
             [ -n "${iptv_wan1_pppoe_ifname}" ] \
                 && ! lz_show_routing_table_status "${rt_wan1}" | awk '$1 == "default" && $5 == "'"${iptv_wan1_pppoe_ifname}"'" {exit(1)}' \
                 && [ "$( nvram get "wan1_vpndhcp" )" != "1" ] \
-                && echo "$(lzdate)" [$$]: Secondary WAN -- Enable VPN + DHCP Connection: No -\> Yes
+                && echo "$(lzdate)" [$$]: Secondary WAN -- Enable VPN + DHCP Connection: No -\> Yes | tee -ai "${STATUS_LOG}" 2> /dev/null
         }
     elif [ "${status_wan2_iptv_mode}" != "0" ] && [ -z "${iptv_wan1_ifname}" ] \
         && { [ "${status_iptv_igmp_switch}" = "1" ] || [ "${status_wan2_udpxy_switch}" = "0" ]; }; then
         local_info="1"
         if [ "${status_wan2_iptv_mode}" = "1" ]; then
-            echo "$(lzdate)" [$$]: The interface \( wan1 Static \) of Secondary WAN: Not Available
+            echo "$(lzdate)" [$$]: The interface \( wan1 Static \) of Secondary WAN: Not Available | tee -ai "${STATUS_LOG}" 2> /dev/null
         else
-            echo "$(lzdate)" [$$]: The interface \( wan1 DHCP or IPoE \) of Secondary WAN: Not Available
+            echo "$(lzdate)" [$$]: The interface \( wan1 DHCP or IPoE \) of Secondary WAN: Not Available | tee -ai "${STATUS_LOG}" 2> /dev/null
         fi
     elif [ "${status_wan2_iptv_mode}" = "0" ] && [ -n "${iptv_wan1_pppoe_ifname}" ]; then
         eval "$( lz_show_routing_table_status "${rt_wan1}" | awk '$1 == "default" && $3 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ && $5 == "'"${iptv_wan1_pppoe_ifname}"'" \
             {printf "iptv_interface_id_1=%s\niptv_getway_ip_1=%s\n", $5,$3; exit}' )"
         [ -z "${iptv_interface_id_1}" ] && { [ "${status_iptv_igmp_switch}" = "1" ] || [ "${status_wan2_udpxy_switch}" = "0" ]; } \
             && local_info="1" \
-            && echo "$(lzdate)" [$$]: The "${iptv_wan1_pppoe_ifname}" interface of Secondary WAN: Not Available
+            && echo "$(lzdate)" [$$]: The "${iptv_wan1_pppoe_ifname}" interface of Secondary WAN: Not Available | tee -ai "${STATUS_LOG}" 2> /dev/null
     elif [ "${status_wan2_iptv_mode}" = "0" ] && [ -z "${iptv_wan1_pppoe_ifname}" ] \
         && { [ "${status_iptv_igmp_switch}" = "1" ] || [ "${status_wan2_udpxy_switch}" = "0" ]; }; then
         local_info="1"
-        echo "$(lzdate)" [$$]: The interface \( wan1 PPPoE \) of Secondary WAN: Not Available
+        echo "$(lzdate)" [$$]: The interface \( wan1 PPPoE \) of Secondary WAN: Not Available | tee -ai "${STATUS_LOG}" 2> /dev/null
     fi
 
     [ "${local_info}" = "1" ] && {
         echo "$(lzdate)" [$$]: Warning: Check and repair immediately.
         echo "$(lzdate)" [$$]: ---------------------------------------------
-    }
+    } | tee -ai "${STATUS_LOG}" 2> /dev/null
 
     ## 获取IGMP接口ID标识和网关地址
     local iptv_interface_id=
@@ -2211,9 +2232,11 @@ lz_show_iptv_function_status() {
     fi
 
     if [ "${local_wan_igmp_start}" = "2" ] || [ "${local_wan_mcpd_start}" = "2" ]; then
-        echo "$(lzdate)" [$$]: IPTV STB \& Multicast service can\'t be used.
-        echo "$(lzdate)" [$$]: Enable multicast routing: Disable -\> Enable
-        echo "$(lzdate)" [$$]: ---------------------------------------------
+        {
+            echo "$(lzdate)" [$$]: IPTV STB \& Multicast service can\'t be used.
+            echo "$(lzdate)" [$$]: Enable multicast routing: Disable -\> Enable
+            echo "$(lzdate)" [$$]: ---------------------------------------------
+        } | tee -ai "${STATUS_LOG}" 2> /dev/null
     fi
 
     ## 获取原始配置的多播接口
@@ -2253,68 +2276,68 @@ lz_show_iptv_function_status() {
     [ -n "${iptv_interface_id_1}" ] && local_udpxy_wan2_started="$( ps | awk '$5 ~ /\/udpxy$/ && $7 == "'"${iptv_interface_id_1}"'" && $9 == "'"${status_wan2_udpxy_port}"'" && !/awk/' )"
     if [ "${local_wan_igmp_start}" = "1" ]; then
         if [ -n "${local_igmp_proxy_started}" ]; then
-            echo "$(lzdate)" [$$]: IGMP service \( "${iptv_interface_id}" \) has been started.
+            echo "$(lzdate)" [$$]: IGMP service \( "${iptv_interface_id}" \) has been started. | tee -ai "${STATUS_LOG}" 2> /dev/null
         else
-            echo "$(lzdate)" [$$]: IGMP service \( "${iptv_interface_id}" \) failure.
+            echo "$(lzdate)" [$$]: IGMP service \( "${iptv_interface_id}" \) failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
         fi
         line_enable="1"
     elif ! which bcmmcastctl > /dev/null 2>&1; then
         if [ -n "${iptv_interface_id}" ]; then
-            echo "$(lzdate)" [$$]: IGMP service \( "${iptv_interface_id}" \) failure.
+            echo "$(lzdate)" [$$]: IGMP service \( "${iptv_interface_id}" \) failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
             line_enable="1"
         elif [ -n "${multicast_interface}" ]; then
-            echo "$(lzdate)" [$$]: IGMP service \( "${multicast_interface}" \) failure.
+            echo "$(lzdate)" [$$]: IGMP service \( "${multicast_interface}" \) failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
             line_enable="1"
         elif [ "${status_iptv_igmp_switch}" = "0" ]; then
             if [ "${status_wan1_iptv_mode}" = "0" ]; then
-                echo "$(lzdate)" [$$]: IGMP service \( wan0 PPPoE \) failure.
+                echo "$(lzdate)" [$$]: IGMP service \( wan0 PPPoE \) failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
             elif [ "${status_wan1_iptv_mode}" = "1" ]; then
-                echo "$(lzdate)" [$$]: IGMP service \( wan0 Static \) failure.
+                echo "$(lzdate)" [$$]: IGMP service \( wan0 Static \) failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
             else
-                echo "$(lzdate)" [$$]: IGMP service \( wan0 DHCP or IPoE \) failure.
+                echo "$(lzdate)" [$$]: IGMP service \( wan0 DHCP or IPoE \) failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
             fi
             line_enable="1"
         elif [ "${status_iptv_igmp_switch}" = "1" ]; then
             if [ "${status_wan2_iptv_mode}" = "0" ]; then
-                echo "$(lzdate)" [$$]: IGMP service \( wan1 PPPoE \) failure.
+                echo "$(lzdate)" [$$]: IGMP service \( wan1 PPPoE \) failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
             elif [ "${status_wan2_iptv_mode}" = "1" ]; then
-                echo "$(lzdate)" [$$]: IGMP service \( wan1 Static \) failure.
+                echo "$(lzdate)" [$$]: IGMP service \( wan1 Static \) failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
             else
-                echo "$(lzdate)" [$$]: IGMP service \( wan1 DHCP or IPoE \) failure.
+                echo "$(lzdate)" [$$]: IGMP service \( wan1 DHCP or IPoE \) failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
             fi
             line_enable="1"
         fi
     fi
     if [ "${local_wan_mcpd_start}" = "1" ]; then
         if [ -n "${local_mcpd_started}" ]; then
-            echo "$(lzdate)" [$$]: Multicast routing service \( "${iptv_interface_id}" \) has been started.
+            echo "$(lzdate)" [$$]: Multicast routing service \( "${iptv_interface_id}" \) has been started. | tee -ai "${STATUS_LOG}" 2> /dev/null
         else
-            echo "$(lzdate)" [$$]: Multicast routing service \( "${iptv_interface_id}" \) failure.
+            echo "$(lzdate)" [$$]: Multicast routing service \( "${iptv_interface_id}" \) failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
         fi
         line_enable="1"
     elif which bcmmcastctl > /dev/null 2>&1; then
         if [ -n "${iptv_interface_id}" ]; then
-            echo "$(lzdate)" [$$]: Multicast routing service \( "${iptv_interface_id}" \) failure.
+            echo "$(lzdate)" [$$]: Multicast routing service \( "${iptv_interface_id}" \) failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
             line_enable="1"
         elif [ -n "${multicast_interface}" ]; then
-            echo "$(lzdate)" [$$]: Multicast routing service \( "${multicast_interface}" \) failure.
+            echo "$(lzdate)" [$$]: Multicast routing service \( "${multicast_interface}" \) failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
             line_enable="1"
         elif [ "${status_iptv_igmp_switch}" = "0" ]; then
             if [ "${status_wan1_iptv_mode}" = "0" ]; then
-                echo "$(lzdate)" [$$]: Multicast routing service \( wan0 PPPoE \) failure.
+                echo "$(lzdate)" [$$]: Multicast routing service \( wan0 PPPoE \) failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
             elif [ "${status_wan1_iptv_mode}" = "1" ]; then
-                echo "$(lzdate)" [$$]: Multicast routing service \( wan0 Static \) failure.
+                echo "$(lzdate)" [$$]: Multicast routing service \( wan0 Static \) failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
             else
-                echo "$(lzdate)" [$$]: Multicast routing service \( wan0 DHCP or IPoE \) failure.
+                echo "$(lzdate)" [$$]: Multicast routing service \( wan0 DHCP or IPoE \) failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
             fi
             line_enable="1"
         elif [ "${status_iptv_igmp_switch}" = "1" ]; then
             if [ "${status_wan2_iptv_mode}" = "0" ]; then
-                echo "$(lzdate)" [$$]: Multicast routing service \( wan1 PPPoE \) failure.
+                echo "$(lzdate)" [$$]: Multicast routing service \( wan1 PPPoE \) failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
             elif [ "${status_wan2_iptv_mode}" = "1" ]; then
-                echo "$(lzdate)" [$$]: Multicast routing service \( wan1 Static \) failure.
+                echo "$(lzdate)" [$$]: Multicast routing service \( wan1 Static \) failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
             else
-                echo "$(lzdate)" [$$]: Multicast routing service \( wan1 DHCP or IPoE \) failure.
+                echo "$(lzdate)" [$$]: Multicast routing service \( wan1 DHCP or IPoE \) failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
             fi
             line_enable="1"
         fi
@@ -2332,49 +2355,49 @@ lz_show_iptv_function_status() {
                 exit
             }' )"
         [ -n "${igmp_snooping_mode}" ] && {
-            echo "$(lzdate)" [$$]: Bridge IGMP Snooping Mode: "${igmp_snooping_mode}"
+            echo "$(lzdate)" [$$]: Bridge IGMP Snooping Mode: "${igmp_snooping_mode}" | tee -ai "${STATUS_LOG}" 2> /dev/null
             line_enable="1"
         }
     }
     if [ "${local_wan1_udpxy_start}" = "1" ]; then
         if [ -n "${local_udpxy_wan1_started}" ]; then
-            echo "$(lzdate)" [$$]: UDPXY service \( "${status_route_local_ip}:${status_wan1_udpxy_port}" "${iptv_interface_id_0}" \) has been started.
+            echo "$(lzdate)" [$$]: UDPXY service \( "${status_route_local_ip}:${status_wan1_udpxy_port}" "${iptv_interface_id_0}" \) has been started. | tee -ai "${STATUS_LOG}" 2> /dev/null
         else
-            echo "$(lzdate)" [$$]: UDPXY service \( "${status_route_local_ip}:${status_wan1_udpxy_port}" "${iptv_interface_id_0}" \) failure.
+            echo "$(lzdate)" [$$]: UDPXY service \( "${status_route_local_ip}:${status_wan1_udpxy_port}" "${iptv_interface_id_0}" \) failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
         fi
         line_enable="1"
     elif [ "${status_wan1_udpxy_switch}" = "0" ]; then
         if [ -n "${iptv_interface_id_0}" ]; then
-            echo "$(lzdate)" [$$]: UDPXY service \( "${status_route_local_ip}:${status_wan1_udpxy_port}" "${iptv_interface_id_0}" \) failure.
+            echo "$(lzdate)" [$$]: UDPXY service \( "${status_route_local_ip}:${status_wan1_udpxy_port}" "${iptv_interface_id_0}" \) failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
         elif [ -n "${udpxy_interface_0}" ]; then
-            echo "$(lzdate)" [$$]: UDPXY service \( "${status_route_local_ip}:${status_wan1_udpxy_port}" "${udpxy_interface_0}" \) failure.
+            echo "$(lzdate)" [$$]: UDPXY service \( "${status_route_local_ip}:${status_wan1_udpxy_port}" "${udpxy_interface_0}" \) failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
         elif [ "${status_wan1_iptv_mode}" = "0" ]; then
-            echo "$(lzdate)" [$$]: UDPXY service \( "${status_route_local_ip}:${status_wan1_udpxy_port}" wan0 PPPoE \) failure.
+            echo "$(lzdate)" [$$]: UDPXY service \( "${status_route_local_ip}:${status_wan1_udpxy_port}" wan0 PPPoE \) failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
         elif [ "${status_wan1_iptv_mode}" = "1" ]; then
-            echo "$(lzdate)" [$$]: UDPXY service \( "${status_route_local_ip}:${status_wan1_udpxy_port}" wan0 Static \) failure.
+            echo "$(lzdate)" [$$]: UDPXY service \( "${status_route_local_ip}:${status_wan1_udpxy_port}" wan0 Static \) failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
         else
-            echo "$(lzdate)" [$$]: UDPXY service \( "${status_route_local_ip}:${status_wan1_udpxy_port}" wan0 DHCP or IPoE \) failure.
+            echo "$(lzdate)" [$$]: UDPXY service \( "${status_route_local_ip}:${status_wan1_udpxy_port}" wan0 DHCP or IPoE \) failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
         fi
         line_enable="1"
     fi
     if [ "${local_wan2_udpxy_start}" = "1" ]; then
         if [ -n "${local_udpxy_wan2_started}" ]; then
-            echo "$(lzdate)" [$$]: UDPXY service \( "${status_route_local_ip}:${status_wan2_udpxy_port}" "${iptv_interface_id_1}" \) has been started.
+            echo "$(lzdate)" [$$]: UDPXY service \( "${status_route_local_ip}:${status_wan2_udpxy_port}" "${iptv_interface_id_1}" \) has been started. | tee -ai "${STATUS_LOG}" 2> /dev/null
         else
-            echo "$(lzdate)" [$$]: UDPXY service \( "${status_route_local_ip}:${status_wan2_udpxy_port}" "${iptv_interface_id_1}" \) failure.
+            echo "$(lzdate)" [$$]: UDPXY service \( "${status_route_local_ip}:${status_wan2_udpxy_port}" "${iptv_interface_id_1}" \) failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
         fi
         line_enable="1"
     elif [ "${status_wan2_udpxy_switch}" = "0" ]; then
         if [ -n "${iptv_interface_id_1}" ]; then
-            echo "$(lzdate)" [$$]: UDPXY service \( "${status_route_local_ip}:${status_wan2_udpxy_port}" "${iptv_interface_id_1}" \) failure.
+            echo "$(lzdate)" [$$]: UDPXY service \( "${status_route_local_ip}:${status_wan2_udpxy_port}" "${iptv_interface_id_1}" \) failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
         elif [ -n "${udpxy_interface_1}" ]; then
-            echo "$(lzdate)" [$$]: UDPXY service \( "${status_route_local_ip}:${status_wan2_udpxy_port}" "${udpxy_interface_1}" \) failure.
+            echo "$(lzdate)" [$$]: UDPXY service \( "${status_route_local_ip}:${status_wan2_udpxy_port}" "${udpxy_interface_1}" \) failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
         elif [ "${status_wan2_iptv_mode}" = "0" ]; then
-            echo "$(lzdate)" [$$]: UDPXY service \( "${status_route_local_ip}:${status_wan2_udpxy_port}" wan1 PPPoE \) failure.
+            echo "$(lzdate)" [$$]: UDPXY service \( "${status_route_local_ip}:${status_wan2_udpxy_port}" wan1 PPPoE \) failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
         elif [ "${status_wan2_iptv_mode}" = "1" ]; then
-            echo "$(lzdate)" [$$]: UDPXY service \( "${status_route_local_ip}:${status_wan2_udpxy_port}" wan1 Static \) failure.
+            echo "$(lzdate)" [$$]: UDPXY service \( "${status_route_local_ip}:${status_wan2_udpxy_port}" wan1 Static \) failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
         else
-            echo "$(lzdate)" [$$]: UDPXY service \( "${status_route_local_ip}:${status_wan2_udpxy_port}" wan1 DHCP or IPoE \) failure.
+            echo "$(lzdate)" [$$]: UDPXY service \( "${status_route_local_ip}:${status_wan2_udpxy_port}" wan1 DHCP or IPoE \) failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
         fi
         line_enable="1"
     fi
@@ -2382,47 +2405,47 @@ lz_show_iptv_function_status() {
     local iptv_isp_item_count="$( lz_get_ipv4_data_file_valid_item_total_status "${status_iptv_isp_ip_lst_file}" )"
     if { [ "${local_wan_igmp_start}" = "1" ] || [ "${local_wan_mcpd_start}" = "1" ]; } && [ -n "${iptv_interface_id}" ]; then
         if ip route show table "${STATUS_LZ_IPTV}" | grep -qw "default"; then
-            echo "$(lzdate)" [$$]: IPTV STB can be connected to "${iptv_interface_id}" interface for use.
+            echo "$(lzdate)" [$$]: IPTV STB can be connected to "${iptv_interface_id}" interface for use. | tee -ai "${STATUS_LOG}" 2> /dev/null
             if [ "${status_iptv_access_mode}" = "1" ]; then
-                echo "$(lzdate)" [$$]: "IPTV Access Mode: Direct Connection"
+                echo "$(lzdate)" [$$]: "IPTV Access Mode: Direct Connection" | tee -ai "${STATUS_LOG}" 2> /dev/null
             else
-                echo "$(lzdate)" [$$]: "IPTV Access Mode: Service Address"
+                echo "$(lzdate)" [$$]: "IPTV Access Mode: Service Address" | tee -ai "${STATUS_LOG}" 2> /dev/null
             fi
         else
             { { [ "${status_iptv_access_mode}" = "1" ] && [ "${iptv_box_item_count}" -gt "0" ]; } \
                 || { [ "${status_iptv_access_mode}" != "1" ] && [ "${iptv_box_item_count}" -gt "0" ] && [ "${iptv_isp_item_count}" -gt "0" ]; }; } \
-                && echo "$(lzdate)" [$$]: Connection "${iptv_interface_id}" IPTV interface failure.
+                && echo "$(lzdate)" [$$]: Connection "${iptv_interface_id}" IPTV interface failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
         fi
         line_enable="1"
     elif { [ "${status_iptv_access_mode}" = "1" ] && [ "${iptv_box_item_count}" -gt "0" ]; } \
         || { [ "${status_iptv_access_mode}" != "1" ] && [ "${iptv_box_item_count}" -gt "0" ] && [ "${iptv_isp_item_count}" -gt "0" ]; }; then
         if [ -n "${iptv_interface_id}" ]; then
-            echo "$(lzdate)" [$$]: Connection "${iptv_interface_id}" IPTV interface failure.
+            echo "$(lzdate)" [$$]: Connection "${iptv_interface_id}" IPTV interface failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
             line_enable="1"
         elif [ -n "${multicast_interface}" ]; then
-            echo "$(lzdate)" [$$]: Connection "${multicast_interface}" IPTV interface failure.
+            echo "$(lzdate)" [$$]: Connection "${multicast_interface}" IPTV interface failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
             line_enable="1"
         elif [ "${status_iptv_igmp_switch}" = "0" ]; then
             if [ "${status_wan1_iptv_mode}" = "0" ]; then
-                echo "$(lzdate)" [$$]: Connection \( wan0 PPPoE \) IPTV interface failure.
+                echo "$(lzdate)" [$$]: Connection \( wan0 PPPoE \) IPTV interface failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
             elif [ "${status_wan1_iptv_mode}" = "1" ]; then
-                echo "$(lzdate)" [$$]: Connection \( wan0 Static \) IPTV interface failure.
+                echo "$(lzdate)" [$$]: Connection \( wan0 Static \) IPTV interface failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
             else
-                echo "$(lzdate)" [$$]: Connection \( wan0 DHCP or IPoE \) IPTV interface failure.
+                echo "$(lzdate)" [$$]: Connection \( wan0 DHCP or IPoE \) IPTV interface failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
             fi
             line_enable="1"
         elif [ "${status_iptv_igmp_switch}" = "1" ]; then
             if [ "${status_wan2_iptv_mode}" = "0" ]; then
-                echo "$(lzdate)" [$$]: Connection \( wan1 PPPoE \) IPTV interface failure.
+                echo "$(lzdate)" [$$]: Connection \( wan1 PPPoE \) IPTV interface failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
             elif [ "${status_wan2_iptv_mode}" = "1" ]; then
-                echo "$(lzdate)" [$$]: Connection \( wan1 Static \) IPTV interface failure.
+                echo "$(lzdate)" [$$]: Connection \( wan1 Static \) IPTV interface failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
             else
-                echo "$(lzdate)" [$$]: Connection \( wan1 DHCP or IPoE \) IPTV interface failure.
+                echo "$(lzdate)" [$$]: Connection \( wan1 DHCP or IPoE \) IPTV interface failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
             fi
             line_enable="1"
         fi
     fi
-    [ -n "${line_enable}" ] && echo "$(lzdate)" [$$]: ---------------------------------------------
+    [ -n "${line_enable}" ] && echo "$(lzdate)" [$$]: --------------------------------------------- | tee -ai "${STATUS_LOG}" 2> /dev/null
 }
 
 ## 部署流量路由策略状态函数
@@ -2469,11 +2492,15 @@ lz_deployment_routing_policy_status() {
     ##     0--已启用
     ##     1--未启用
     if [ "${status_usage_mode}" != "0" ]; then
-        echo "$(lzdate)" [$$]: "   All in High Speed Direct DT Mode."
-        echo "$(lzdate)" [$$]: ---------------------------------------------
+        {
+            echo "$(lzdate)" [$$]: "   All in High Speed Direct DT Mode."
+            echo "$(lzdate)" [$$]: ---------------------------------------------
+        } | tee -ai "${STATUS_LOG}" 2> /dev/null
     else
-        echo "$(lzdate)" [$$]: "   Using Netfilter CT Technology."
-        echo "$(lzdate)" [$$]: ---------------------------------------------
+        {
+            echo "$(lzdate)" [$$]: "   Using Netfilter CT Technology."
+            echo "$(lzdate)" [$$]: ---------------------------------------------
+        } | tee -ai "${STATUS_LOG}" 2> /dev/null
     fi
 
     ## 显示IPTV功能状态
@@ -2484,11 +2511,15 @@ lz_deployment_routing_policy_status() {
 
     ## 显示虚拟专网本地客户端路由刷新处理后台守护进程启动状态
     if ps | grep "${STATUS_VPN_CLIENT_DAEMON}" | grep -qv grep; then
-        echo "$(lzdate)" [$$]: The VPN client route daemon has been started.
-        echo "$(lzdate)" [$$]: ---------------------------------------------
+        {
+            echo "$(lzdate)" [$$]: The VPN client route daemon has been started.
+            echo "$(lzdate)" [$$]: ---------------------------------------------
+        } | tee -ai "${STATUS_LOG}" 2> /dev/null
     elif cru l | grep -q "#${STATUS_START_DAEMON_TIMEER_ID}#"; then
-        echo "$(lzdate)" [$$]: The VPN client route daemon is starting...
-        echo "$(lzdate)" [$$]: ---------------------------------------------
+        {
+            echo "$(lzdate)" [$$]: The VPN client route daemon is starting...
+            echo "$(lzdate)" [$$]: ---------------------------------------------
+        } | tee -ai "${STATUS_LOG}" 2> /dev/null
     fi
 
     unset local_wan0_isp
@@ -2520,16 +2551,16 @@ lz_show_single_net_iptv_status() {
         && ! lz_show_routing_table_status "${rt_main}" | awk '$1 == "default" && $5 == "'"${iptv_wan0_ifname}"'" {exit(1)}' \
         && ! lz_show_routing_table_status "${rt_main}" | awk '$1 == "default" && $5 == "'"${iptv_wan1_ifname}"'" {exit(1)}' && {
         local_info="1"
-        echo "$(lzdate)" [$$]: Bad default interface \( "${iptv_wan0_ifname}" \& "${iptv_wan1_ifname}" \) paths in Routing table.
+        echo "$(lzdate)" [$$]: Bad default interface \( "${iptv_wan0_ifname}" \& "${iptv_wan1_ifname}" \) paths in Routing table. | tee -ai "${STATUS_LOG}" 2> /dev/null
     }
     if [ "$( nvram get "wan0_enable" )" = "1" ]; then
         [ -z "${iptv_wan0_ifname}" ] && {
             local_info="1"
-            echo "$(lzdate)" [$$]: Primary WAN fault.
+            echo "$(lzdate)" [$$]: Primary WAN fault. | tee -ai "${STATUS_LOG}" 2> /dev/null
         }
         [ -n "$( nvram get "wan0_proto" )" ] && [ "$( nvram get "wan0_state_t" )" != "2" ] && {
             local_info="1"
-            echo "$(lzdate)" [$$]: Primary WAN \( "$( nvram get "wan0_proto" )" \) fault.
+            echo "$(lzdate)" [$$]: Primary WAN \( "$( nvram get "wan0_proto" )" \) fault. | tee -ai "${STATUS_LOG}" 2> /dev/null
         }
     fi
     ## 显示路由表变量
@@ -2541,19 +2572,19 @@ lz_show_single_net_iptv_status() {
         && ! lz_show_routing_table_status "${rt_main}" | awk '$1 == "default" && $5 == "'"${iptv_wan0_ifname}"'" {exit(1)}' \
         && lz_show_routing_table_status "${rt_main}" | awk '$1 == "default" && $5 == "'"${iptv_wan0_pppoe_ifname}"'" {exit(1)}' \
         && local_info="1" \
-        && echo "$(lzdate)" [$$]: Primary WAN \( "${iptv_wan0_pppoe_ifname}" \) PPPoE fault.
+        && echo "$(lzdate)" [$$]: Primary WAN \( "${iptv_wan0_pppoe_ifname}" \) PPPoE fault. | tee -ai "${STATUS_LOG}" 2> /dev/null
     if [ "$( nvram get "wan1_enable" )" = "1" ] && ! nvram get "wans_dualwan" | grep -qw "none"; then
         [ -z "${iptv_wan1_ifname}" ] && {
             local_info="1"
-            echo "$(lzdate)" [$$]: Secondary WAN fault.
+            echo "$(lzdate)" [$$]: Secondary WAN fault. | tee -ai "${STATUS_LOG}" 2> /dev/null
         }
         [ -n "$( nvram get "wan1_proto" )" ] && [ "$( nvram get "wan1_state_t" )" != "2" ] && {
             if [ "$( nvram get "wans_mode" )" = "lb" ]; then
                 local_info="1"
-                echo "$(lzdate)" [$$]: Secondary WAN \( "$( nvram get "wan1_proto" )" \) fault.
+                echo "$(lzdate)" [$$]: Secondary WAN \( "$( nvram get "wan1_proto" )" \) fault. | tee -ai "${STATUS_LOG}" 2> /dev/null
             elif [ "$( nvram get "wan0_state_t" )" != "2" ]; then
                 local_info="1"
-                echo "$(lzdate)" [$$]: Secondary WAN \( "$( nvram get "wan1_proto" )" \) fault.
+                echo "$(lzdate)" [$$]: Secondary WAN \( "$( nvram get "wan1_proto" )" \) fault. | tee -ai "${STATUS_LOG}" 2> /dev/null
             fi
         }
     fi
@@ -2561,12 +2592,12 @@ lz_show_single_net_iptv_status() {
         && ! lz_show_routing_table_status "${rt_main}" | awk '$1 == "default" && $5 == "'"${iptv_wan1_ifname}"'" {exit(1)}' \
         && lz_show_routing_table_status "${rt_main}" | awk '$1 == "default" && $5 == "'"${iptv_wan1_pppoe_ifname}"'" {exit(1)}' \
         && local_info="1" \
-        && echo "$(lzdate)" [$$]: Secondary WAN \( "${iptv_wan1_pppoe_ifname}" \) PPPoE fault.
+        && echo "$(lzdate)" [$$]: Secondary WAN \( "${iptv_wan1_pppoe_ifname}" \) PPPoE fault. | tee -ai "${STATUS_LOG}" 2> /dev/null
     [ "$( nvram get "wans_mode" )" = "lb" ] \
         && [ "$( nvram get "wan0_enable" )" = "1" ] && [ "$( nvram get "wan1_enable" )" = "1" ] \
         && [ -n "$( nvram get "wan0_proto_t" )" ] && [ -n "$( nvram get "wan1_proto_t" )" ] \
         && local_info="1" \
-        && echo "$(lzdate)" [$$]: Dual WAN \( "$( nvram get "wan0_proto" )" -- "$( nvram get "wan1_proto" )" \) startup failed.
+        && echo "$(lzdate)" [$$]: Dual WAN \( "$( nvram get "wan0_proto" )" -- "$( nvram get "wan1_proto" )" \) startup failed. | tee -ai "${STATUS_LOG}" 2> /dev/null
 
     ## 获取IPTV接口ID标识和网关地址
     local iptv_interface_id_0=
@@ -2579,66 +2610,66 @@ lz_show_single_net_iptv_status() {
             {printf "iptv_interface_id_0=%s\niptv_getway_ip_0=%s\n", $5,$3; exit}' )"
         [ -z "${iptv_interface_id_0}" ] && { [ "${status_iptv_igmp_switch}" = "0" ] || [ "${status_wan1_udpxy_switch}" = "0" ]; } && {
             local_info="1"
-            echo "$(lzdate)" [$$]: The "${iptv_wan0_ifname}" interface of Primary WAN: Not Available
+            echo "$(lzdate)" [$$]: The "${iptv_wan0_ifname}" interface of Primary WAN: Not Available | tee -ai "${STATUS_LOG}" 2> /dev/null
             [ -n "${iptv_wan0_pppoe_ifname}" ] \
                 && ! lz_show_routing_table_status "${rt_main}" | awk '$1 == "default" && $5 == "'"${iptv_wan0_pppoe_ifname}"'" {exit(1)}' \
                 && [ "$( nvram get "wan0_vpndhcp" )" != "1" ] \
-                && echo "$(lzdate)" [$$]: Primary WAN -- Enable VPN + DHCP Connection: No -\> Yes
+                && echo "$(lzdate)" [$$]: Primary WAN -- Enable VPN + DHCP Connection: No -\> Yes | tee -ai "${STATUS_LOG}" 2> /dev/null
         }
     elif [ "${status_wan1_iptv_mode}" != "0" ] && [ -z "${iptv_wan0_ifname}" ] \
         && { [ "${status_iptv_igmp_switch}" = "0" ] || [ "${status_wan1_udpxy_switch}" = "0" ]; }; then
         local_info="1"
         if [ "${status_wan1_iptv_mode}" = "1" ]; then
-            echo "$(lzdate)" [$$]: The interface \( wan0 Static \) of Primary WAN: Not Available
+            echo "$(lzdate)" [$$]: The interface \( wan0 Static \) of Primary WAN: Not Available | tee -ai "${STATUS_LOG}" 2> /dev/null
         else
-            echo "$(lzdate)" [$$]: The interface \( wan0 DHCP or IPoE \) of Primary WAN: Not Available
+            echo "$(lzdate)" [$$]: The interface \( wan0 DHCP or IPoE \) of Primary WAN: Not Available | tee -ai "${STATUS_LOG}" 2> /dev/null
         fi
     elif [ "${status_wan1_iptv_mode}" = "0" ] && [ -n "${iptv_wan0_pppoe_ifname}" ]; then
         eval "$( lz_show_routing_table_status "${rt_main}" | awk '$1 == "default" && $3 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ && $5 == "'"${iptv_wan0_pppoe_ifname}"'" \
             {printf "iptv_interface_id_0=%s\niptv_getway_ip_0=%s\n", $5,$3; exit}' )"
         [ -z "${iptv_interface_id_0}" ] && { [ "${status_iptv_igmp_switch}" = "0" ] || [ "${status_wan1_udpxy_switch}" = "0" ]; } \
             && local_info="1" \
-            && echo "$(lzdate)" [$$]: The "${iptv_wan0_pppoe_ifname}" interface of Primary WAN: Not Available
+            && echo "$(lzdate)" [$$]: The "${iptv_wan0_pppoe_ifname}" interface of Primary WAN: Not Available | tee -ai "${STATUS_LOG}" 2> /dev/null
     elif [ "${status_wan1_iptv_mode}" = "0" ] && [ -z "${iptv_wan0_pppoe_ifname}" ] \
         && { [ "${status_iptv_igmp_switch}" = "0" ] || [ "${status_wan1_udpxy_switch}" = "0" ]; }; then
         local_info="1"
-        echo "$(lzdate)" [$$]: The interface \( wan0 PPPoE \) of Primary WAN: Not Available
+        echo "$(lzdate)" [$$]: The interface \( wan0 PPPoE \) of Primary WAN: Not Available | tee -ai "${STATUS_LOG}" 2> /dev/null
     fi
     if [ "${status_wan2_iptv_mode}" != "0" ] && [ -n "${iptv_wan1_ifname}" ]; then
         eval "$( lz_show_routing_table_status "${rt_main}" | awk '$1 == "default" && $3 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ && $5 == "'"${iptv_wan1_ifname}"'" \
             {printf "iptv_interface_id_1=%s\niptv_getway_ip_1=%s\n", $5,$3; exit}' )"
         [ -z "${iptv_interface_id_1}" ] && { [ "${status_iptv_igmp_switch}" = "1" ] || [ "${status_wan2_udpxy_switch}" = "0" ]; } && {
             local_info="1"
-            echo "$(lzdate)" [$$]: The "${iptv_wan1_ifname}" interface of Secondary WAN: Not Available
+            echo "$(lzdate)" [$$]: The "${iptv_wan1_ifname}" interface of Secondary WAN: Not Available | tee -ai "${STATUS_LOG}" 2> /dev/null
             [ -n "${iptv_wan1_pppoe_ifname}" ] \
                 && ! lz_show_routing_table_status "${rt_main}" | awk '$1 == "default" && $5 == "'"${iptv_wan1_pppoe_ifname}"'" {exit(1)}' \
                 && [ "$( nvram get "wan1_vpndhcp" )" != "1" ] \
-                && echo "$(lzdate)" [$$]: Secondary WAN -- Enable VPN + DHCP Connection: No -\> Yes
+                && echo "$(lzdate)" [$$]: Secondary WAN -- Enable VPN + DHCP Connection: No -\> Yes | tee -ai "${STATUS_LOG}" 2> /dev/null
         }
     elif [ "${status_wan2_iptv_mode}" != "0" ] && [ -z "${iptv_wan1_ifname}" ] \
         && { [ "${status_iptv_igmp_switch}" = "1" ] || [ "${status_wan2_udpxy_switch}" = "0" ]; }; then
         local_info="1"
         if [ "${status_wan2_iptv_mode}" = "1" ]; then
-            echo "$(lzdate)" [$$]: The interface \( wan1 Static \) of Secondary WAN: Not Available
+            echo "$(lzdate)" [$$]: The interface \( wan1 Static \) of Secondary WAN: Not Available | tee -ai "${STATUS_LOG}" 2> /dev/null
         else
-            echo "$(lzdate)" [$$]: The interface \( wan1 DHCP or IPoE \) of Secondary WAN: Not Available
+            echo "$(lzdate)" [$$]: The interface \( wan1 DHCP or IPoE \) of Secondary WAN: Not Available | tee -ai "${STATUS_LOG}" 2> /dev/null
         fi
     elif [ "${status_wan2_iptv_mode}" = "0" ] && [ -n "${iptv_wan1_pppoe_ifname}" ]; then
         eval "$( lz_show_routing_table_status "${rt_main}" | awk '$1 == "default" && $3 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ && $5 == "'"${iptv_wan1_pppoe_ifname}"'" \
             {printf "iptv_interface_id_1=%s\niptv_getway_ip_1=%s\n", $5,$3; exit}' )"
         [ -z "${iptv_interface_id_1}" ] && { [ "${status_iptv_igmp_switch}" = "1" ] || [ "${status_wan2_udpxy_switch}" = "0" ]; } \
             && local_info="1" \
-            && echo "$(lzdate)" [$$]: The "${iptv_wan1_pppoe_ifname}" interface of Secondary WAN: Not Available
+            && echo "$(lzdate)" [$$]: The "${iptv_wan1_pppoe_ifname}" interface of Secondary WAN: Not Available | tee -ai "${STATUS_LOG}" 2> /dev/null
     elif [ "${status_wan2_iptv_mode}" = "0" ] && [ -z "${iptv_wan1_pppoe_ifname}" ] \
         && { [ "${status_iptv_igmp_switch}" = "1" ] || [ "${status_wan2_udpxy_switch}" = "0" ]; }; then
         local_info="1"
-        echo "$(lzdate)" [$$]: The interface \( wan1 PPPoE \) of Secondary WAN: Not Available
+        echo "$(lzdate)" [$$]: The interface \( wan1 PPPoE \) of Secondary WAN: Not Available | tee -ai "${STATUS_LOG}" 2> /dev/null
     fi
 
     [ "${local_info}" = "1" ] && {
         echo "$(lzdate)" [$$]: Warning: Check and repair immediately.
         echo "$(lzdate)" [$$]: ---------------------------------------------
-    }
+    } | tee -ai "${STATUS_LOG}" 2> /dev/null
 
     ## 获取IGMP接口ID标识和网关地址
     local iptv_interface_id=
@@ -2706,9 +2737,11 @@ lz_show_single_net_iptv_status() {
     fi
 
     if [ "${local_wan_igmp_start}" = "2" ] || [ "${local_wan_mcpd_start}" = "2" ]; then
-        echo "$(lzdate)" [$$]: IPTV STB \& Multicast service can\'t be used.
-        echo "$(lzdate)" [$$]: Enable multicast routing: Disable -\> Enable
-        echo "$(lzdate)" [$$]: ---------------------------------------------
+        {
+            echo "$(lzdate)" [$$]: IPTV STB \& Multicast service can\'t be used.
+            echo "$(lzdate)" [$$]: Enable multicast routing: Disable -\> Enable
+            echo "$(lzdate)" [$$]: ---------------------------------------------
+        } | tee -ai "${STATUS_LOG}" 2> /dev/null
     fi
 
     ## 获取原始配置的多播接口
@@ -2748,68 +2781,68 @@ lz_show_single_net_iptv_status() {
     [ -n "${iptv_interface_id_1}" ] && local_udpxy_wan2_started="$( ps | awk '$5 ~ /\/udpxy$/ && $7 == "'"${iptv_interface_id_1}"'" && $9 == "'"${status_wan2_udpxy_port}"'" && !/awk/' )"
     if [ "${local_wan_igmp_start}" = "1" ]; then
         if [ -n "${local_igmp_proxy_started}" ]; then
-            echo "$(lzdate)" [$$]: IGMP service \( "${iptv_interface_id}" \) has been started.
+            echo "$(lzdate)" [$$]: IGMP service \( "${iptv_interface_id}" \) has been started. | tee -ai "${STATUS_LOG}" 2> /dev/null
         else
-            echo "$(lzdate)" [$$]: IGMP service \( "${iptv_interface_id}" \) failure.
+            echo "$(lzdate)" [$$]: IGMP service \( "${iptv_interface_id}" \) failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
         fi
         line_enable="1"
     elif ! which bcmmcastctl > /dev/null 2>&1; then
         if [ -n "${iptv_interface_id}" ]; then
-            echo "$(lzdate)" [$$]: IGMP service \( "${iptv_interface_id}" \) failure.
+            echo "$(lzdate)" [$$]: IGMP service \( "${iptv_interface_id}" \) failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
             line_enable="1"
         elif [ -n "${multicast_interface}" ]; then
-            echo "$(lzdate)" [$$]: IGMP service \( "${multicast_interface}" \) failure.
+            echo "$(lzdate)" [$$]: IGMP service \( "${multicast_interface}" \) failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
             line_enable="1"
         elif [ "${status_iptv_igmp_switch}" = "0" ]; then
             if [ "${status_wan1_iptv_mode}" = "0" ]; then
-                echo "$(lzdate)" [$$]: IGMP service \( wan0 PPPoE \) failure.
+                echo "$(lzdate)" [$$]: IGMP service \( wan0 PPPoE \) failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
             elif [ "${status_wan1_iptv_mode}" = "1" ]; then
-                echo "$(lzdate)" [$$]: IGMP service \( wan0 Static \) failure.
+                echo "$(lzdate)" [$$]: IGMP service \( wan0 Static \) failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
             else
-                echo "$(lzdate)" [$$]: IGMP service \( wan0 DHCP or IPoE \) failure.
+                echo "$(lzdate)" [$$]: IGMP service \( wan0 DHCP or IPoE \) failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
             fi
             line_enable="1"
         elif [ "${status_iptv_igmp_switch}" = "1" ]; then
             if [ "${status_wan2_iptv_mode}" = "0" ]; then
-                echo "$(lzdate)" [$$]: IGMP service \( wan1 PPPoE \) failure.
+                echo "$(lzdate)" [$$]: IGMP service \( wan1 PPPoE \) failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
             elif [ "${status_wan2_iptv_mode}" = "1" ]; then
-                echo "$(lzdate)" [$$]: IGMP service \( wan1 Static \) failure.
+                echo "$(lzdate)" [$$]: IGMP service \( wan1 Static \) failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
             else
-                echo "$(lzdate)" [$$]: IGMP service \( wan1 DHCP or IPoE \) failure.
+                echo "$(lzdate)" [$$]: IGMP service \( wan1 DHCP or IPoE \) failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
             fi
             line_enable="1"
         fi
     fi
     if [ "${local_wan_mcpd_start}" = "1" ]; then
         if [ -n "${local_mcpd_started}" ]; then
-            echo "$(lzdate)" [$$]: Multicast routing service \( "${iptv_interface_id}" \) has been started.
+            echo "$(lzdate)" [$$]: Multicast routing service \( "${iptv_interface_id}" \) has been started. | tee -ai "${STATUS_LOG}" 2> /dev/null
         else
-            echo "$(lzdate)" [$$]: Multicast routing service \( "${iptv_interface_id}" \) failure.
+            echo "$(lzdate)" [$$]: Multicast routing service \( "${iptv_interface_id}" \) failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
         fi
         line_enable="1"
     elif which bcmmcastctl > /dev/null 2>&1; then
         if [ -n "${iptv_interface_id}" ]; then
-            echo "$(lzdate)" [$$]: Multicast routing service \( "${iptv_interface_id}" \) failure.
+            echo "$(lzdate)" [$$]: Multicast routing service \( "${iptv_interface_id}" \) failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
             line_enable="1"
         elif [ -n "${multicast_interface}" ]; then
-            echo "$(lzdate)" [$$]: Multicast routing service \( "${multicast_interface}" \) failure.
+            echo "$(lzdate)" [$$]: Multicast routing service \( "${multicast_interface}" \) failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
             line_enable="1"
         elif [ "${status_iptv_igmp_switch}" = "0" ]; then
             if [ "${status_wan1_iptv_mode}" = "0" ]; then
-                echo "$(lzdate)" [$$]: Multicast routing service \( wan0 PPPoE \) failure.
+                echo "$(lzdate)" [$$]: Multicast routing service \( wan0 PPPoE \) failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
             elif [ "${status_wan1_iptv_mode}" = "1" ]; then
-                echo "$(lzdate)" [$$]: Multicast routing service \( wan0 Static \) failure.
+                echo "$(lzdate)" [$$]: Multicast routing service \( wan0 Static \) failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
             else
-                echo "$(lzdate)" [$$]: Multicast routing service \( wan0 DHCP or IPoE \) failure.
+                echo "$(lzdate)" [$$]: Multicast routing service \( wan0 DHCP or IPoE \) failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
             fi
             line_enable="1"
         elif [ "${status_iptv_igmp_switch}" = "1" ]; then
             if [ "${status_wan2_iptv_mode}" = "0" ]; then
-                echo "$(lzdate)" [$$]: Multicast routing service \( wan1 PPPoE \) failure.
+                echo "$(lzdate)" [$$]: Multicast routing service \( wan1 PPPoE \) failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
             elif [ "${status_wan2_iptv_mode}" = "1" ]; then
-                echo "$(lzdate)" [$$]: Multicast routing service \( wan1 Static \) failure.
+                echo "$(lzdate)" [$$]: Multicast routing service \( wan1 Static \) failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
             else
-                echo "$(lzdate)" [$$]: Multicast routing service \( wan1 DHCP or IPoE \) failure.
+                echo "$(lzdate)" [$$]: Multicast routing service \( wan1 DHCP or IPoE \) failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
             fi
             line_enable="1"
         fi
@@ -2827,49 +2860,49 @@ lz_show_single_net_iptv_status() {
                 exit
             }' )"
         [ -n "${igmp_snooping_mode}" ] && {
-            echo "$(lzdate)" [$$]: Bridge IGMP Snooping Mode: "${igmp_snooping_mode}"
+            echo "$(lzdate)" [$$]: Bridge IGMP Snooping Mode: "${igmp_snooping_mode}" | tee -ai "${STATUS_LOG}" 2> /dev/null
             line_enable="1"
         }
     }
     if [ "${local_wan1_udpxy_start}" = "1" ]; then
         if [ -n "${local_udpxy_wan1_started}" ]; then
-            echo "$(lzdate)" [$$]: UDPXY service \( "${status_route_local_ip}:${status_wan1_udpxy_port}" "${iptv_interface_id_0}" \) has been started.
+            echo "$(lzdate)" [$$]: UDPXY service \( "${status_route_local_ip}:${status_wan1_udpxy_port}" "${iptv_interface_id_0}" \) has been started. | tee -ai "${STATUS_LOG}" 2> /dev/null
         else
-            echo "$(lzdate)" [$$]: UDPXY service \( "${status_route_local_ip}:${status_wan1_udpxy_port}" "${iptv_interface_id_0}" \) failure.
+            echo "$(lzdate)" [$$]: UDPXY service \( "${status_route_local_ip}:${status_wan1_udpxy_port}" "${iptv_interface_id_0}" \) failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
         fi
         line_enable="1"
     elif [ "${status_wan1_udpxy_switch}" = "0" ]; then
         if [ -n "${iptv_interface_id_0}" ]; then
-            echo "$(lzdate)" [$$]: UDPXY service \( "${status_route_local_ip}:${status_wan1_udpxy_port}" "${iptv_interface_id_0}" \) failure.
+            echo "$(lzdate)" [$$]: UDPXY service \( "${status_route_local_ip}:${status_wan1_udpxy_port}" "${iptv_interface_id_0}" \) failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
         elif [ -n "${udpxy_interface_0}" ]; then
-            echo "$(lzdate)" [$$]: UDPXY service \( "${status_route_local_ip}:${status_wan1_udpxy_port}" "${udpxy_interface_0}" \) failure.
+            echo "$(lzdate)" [$$]: UDPXY service \( "${status_route_local_ip}:${status_wan1_udpxy_port}" "${udpxy_interface_0}" \) failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
         elif [ "${status_wan1_iptv_mode}" = "0" ]; then
-            echo "$(lzdate)" [$$]: UDPXY service \( "${status_route_local_ip}:${status_wan1_udpxy_port}" wan0 PPPoE \) failure.
+            echo "$(lzdate)" [$$]: UDPXY service \( "${status_route_local_ip}:${status_wan1_udpxy_port}" wan0 PPPoE \) failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
         elif [ "${status_wan1_iptv_mode}" = "1" ]; then
-            echo "$(lzdate)" [$$]: UDPXY service \( "${status_route_local_ip}:${status_wan1_udpxy_port}" wan0 Static \) failure.
+            echo "$(lzdate)" [$$]: UDPXY service \( "${status_route_local_ip}:${status_wan1_udpxy_port}" wan0 Static \) failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
         else
-            echo "$(lzdate)" [$$]: UDPXY service \( "${status_route_local_ip}:${status_wan1_udpxy_port}" wan0 DHCP or IPoE \) failure.
+            echo "$(lzdate)" [$$]: UDPXY service \( "${status_route_local_ip}:${status_wan1_udpxy_port}" wan0 DHCP or IPoE \) failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
         fi
         line_enable="1"
     fi
     if [ "${local_wan2_udpxy_start}" = "1" ]; then
         if [ -n "${local_udpxy_wan2_started}" ]; then
-            echo "$(lzdate)" [$$]: UDPXY service \( "${status_route_local_ip}:${status_wan2_udpxy_port}" "${iptv_interface_id_1}" \) has been started.
+            echo "$(lzdate)" [$$]: UDPXY service \( "${status_route_local_ip}:${status_wan2_udpxy_port}" "${iptv_interface_id_1}" \) has been started. | tee -ai "${STATUS_LOG}" 2> /dev/null
         else
-            echo "$(lzdate)" [$$]: UDPXY service \( "${status_route_local_ip}:${status_wan2_udpxy_port}" "${iptv_interface_id_1}" \) failure.
+            echo "$(lzdate)" [$$]: UDPXY service \( "${status_route_local_ip}:${status_wan2_udpxy_port}" "${iptv_interface_id_1}" \) failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
         fi
         line_enable="1"
     elif [ "${status_wan2_udpxy_switch}" = "0" ]; then
         if [ -n "${iptv_interface_id_1}" ]; then
-            echo "$(lzdate)" [$$]: UDPXY service \( "${status_route_local_ip}:${status_wan2_udpxy_port}" "${iptv_interface_id_1}" \) failure.
+            echo "$(lzdate)" [$$]: UDPXY service \( "${status_route_local_ip}:${status_wan2_udpxy_port}" "${iptv_interface_id_1}" \) failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
         elif [ -n "${udpxy_interface_1}" ]; then
-            echo "$(lzdate)" [$$]: UDPXY service \( "${status_route_local_ip}:${status_wan2_udpxy_port}" "${udpxy_interface_1}" \) failure.
+            echo "$(lzdate)" [$$]: UDPXY service \( "${status_route_local_ip}:${status_wan2_udpxy_port}" "${udpxy_interface_1}" \) failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
         elif [ "${status_wan2_iptv_mode}" = "0" ]; then
-            echo "$(lzdate)" [$$]: UDPXY service \( "${status_route_local_ip}:${status_wan2_udpxy_port}" wan1 PPPoE \) failure.
+            echo "$(lzdate)" [$$]: UDPXY service \( "${status_route_local_ip}:${status_wan2_udpxy_port}" wan1 PPPoE \) failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
         elif [ "${status_wan2_iptv_mode}" = "1" ]; then
-            echo "$(lzdate)" [$$]: UDPXY service \( "${status_route_local_ip}:${status_wan2_udpxy_port}" wan1 Static \) failure.
+            echo "$(lzdate)" [$$]: UDPXY service \( "${status_route_local_ip}:${status_wan2_udpxy_port}" wan1 Static \) failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
         else
-            echo "$(lzdate)" [$$]: UDPXY service \( "${status_route_local_ip}:${status_wan2_udpxy_port}" wan1 DHCP or IPoE \) failure.
+            echo "$(lzdate)" [$$]: UDPXY service \( "${status_route_local_ip}:${status_wan2_udpxy_port}" wan1 DHCP or IPoE \) failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
         fi
         line_enable="1"
     fi
@@ -2877,47 +2910,47 @@ lz_show_single_net_iptv_status() {
     local iptv_isp_item_count="$( lz_get_ipv4_data_file_valid_item_total_status "${status_iptv_isp_ip_lst_file}" )"
     if { [ "${local_wan_igmp_start}" = "1" ] || [ "${local_wan_mcpd_start}" = "1" ]; } && [ -n "${iptv_interface_id}" ]; then
         if ip route show table "${STATUS_LZ_IPTV}" | grep -qw "default"; then
-            echo "$(lzdate)" [$$]: IPTV STB can be connected to "${iptv_interface_id}" interface for use.
+            echo "$(lzdate)" [$$]: IPTV STB can be connected to "${iptv_interface_id}" interface for use. | tee -ai "${STATUS_LOG}" 2> /dev/null
             if [ "${status_iptv_access_mode}" = "1" ]; then
-                echo "$(lzdate)" [$$]: "IPTV Access Mode: Direct Connection"
+                echo "$(lzdate)" [$$]: "IPTV Access Mode: Direct Connection" | tee -ai "${STATUS_LOG}" 2> /dev/null
             else
-                echo "$(lzdate)" [$$]: "IPTV Access Mode: Service Address"
+                echo "$(lzdate)" [$$]: "IPTV Access Mode: Service Address" | tee -ai "${STATUS_LOG}" 2> /dev/null
             fi
         else
             { { [ "${status_iptv_access_mode}" = "1" ] && [ "${iptv_box_item_count}" -gt "0" ]; } \
                 || { [ "${status_iptv_access_mode}" != "1" ] && [ "${iptv_box_item_count}" -gt "0" ] && [ "${iptv_isp_item_count}" -gt "0" ]; }; } \
-                && echo "$(lzdate)" [$$]: Connection "${iptv_interface_id}" IPTV interface failure.
+                && echo "$(lzdate)" [$$]: Connection "${iptv_interface_id}" IPTV interface failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
         fi
         line_enable="1"
     elif { [ "${status_iptv_access_mode}" = "1" ] && [ "${iptv_box_item_count}" -gt "0" ]; } \
         || { [ "${status_iptv_access_mode}" != "1" ] && [ "${iptv_box_item_count}" -gt "0" ] && [ "${iptv_isp_item_count}" -gt "0" ]; }; then
         if [ -n "${iptv_interface_id}" ]; then
-            echo "$(lzdate)" [$$]: Connection "${iptv_interface_id}" IPTV interface failure.
+            echo "$(lzdate)" [$$]: Connection "${iptv_interface_id}" IPTV interface failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
             line_enable="1"
         elif [ -n "${multicast_interface}" ]; then
-            echo "$(lzdate)" [$$]: Connection "${multicast_interface}" IPTV interface failure.
+            echo "$(lzdate)" [$$]: Connection "${multicast_interface}" IPTV interface failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
             line_enable="1"
         elif [ "${status_iptv_igmp_switch}" = "0" ]; then
             if [ "${status_wan1_iptv_mode}" = "0" ]; then
-                echo "$(lzdate)" [$$]: Connection \( wan0 PPPoE \) IPTV interface failure.
+                echo "$(lzdate)" [$$]: Connection \( wan0 PPPoE \) IPTV interface failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
             elif [ "${status_wan1_iptv_mode}" = "1" ]; then
-                echo "$(lzdate)" [$$]: Connection \( wan0 Static \) IPTV interface failure.
+                echo "$(lzdate)" [$$]: Connection \( wan0 Static \) IPTV interface failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
             else
-                echo "$(lzdate)" [$$]: Connection \( wan0 DHCP or IPoE \) IPTV interface failure.
+                echo "$(lzdate)" [$$]: Connection \( wan0 DHCP or IPoE \) IPTV interface failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
             fi
             line_enable="1"
         elif [ "${status_iptv_igmp_switch}" = "1" ]; then
             if [ "${status_wan2_iptv_mode}" = "0" ]; then
-                echo "$(lzdate)" [$$]: Connection \( wan1 PPPoE \) IPTV interface failure.
+                echo "$(lzdate)" [$$]: Connection \( wan1 PPPoE \) IPTV interface failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
             elif [ "${status_wan2_iptv_mode}" = "1" ]; then
-                echo "$(lzdate)" [$$]: Connection \( wan1 Static \) IPTV interface failure.
+                echo "$(lzdate)" [$$]: Connection \( wan1 Static \) IPTV interface failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
             else
-                echo "$(lzdate)" [$$]: Connection \( wan1 DHCP or IPoE \) IPTV interface failure.
+                echo "$(lzdate)" [$$]: Connection \( wan1 DHCP or IPoE \) IPTV interface failure. | tee -ai "${STATUS_LOG}" 2> /dev/null
             fi
             line_enable="1"
         fi
     fi
-    [ -n "${line_enable}" ] && echo "$(lzdate)" [$$]: ---------------------------------------------
+    [ -n "${line_enable}" ] && echo "$(lzdate)" [$$]: --------------------------------------------- | tee -ai "${STATUS_LOG}" 2> /dev/null
 }
 
 ## 输出显示当前单项分流规则的条目数函数
@@ -2931,7 +2964,7 @@ lz_single_ip_rule_output_syslog_status() {
     local local_ip_rule_prio_no="${1}"
     status_ip_rule_exist="$( ip rule show | grep -c "^${local_ip_rule_prio_no}:" )"
     [ "${status_ip_rule_exist}" -gt "0" ] && {
-        echo "$(lzdate)" [$$]: "   ip_rule_iptv_${local_ip_rule_prio_no} = ${status_ip_rule_exist}"
+        echo "$(lzdate)" [$$]: "   ip_rule_iptv_${local_ip_rule_prio_no} = ${status_ip_rule_exist}" | tee -ai "${STATUS_LOG}" 2> /dev/null
     }
 }
 
@@ -2950,15 +2983,15 @@ lz_ip_rule_output_syslog_status() {
     do
         local_ip_rule_exist="$( ip rule show | grep -c "^${local_ip_rule_prio_no}:" )"
         [ "${local_ip_rule_exist}" -gt "0" ] && {
-            echo "$(lzdate)" [$$]: "   ip_rule_prio_${local_ip_rule_prio_no} = ${local_ip_rule_exist}"
+            echo "$(lzdate)" [$$]: "   ip_rule_prio_${local_ip_rule_prio_no} = ${local_ip_rule_exist}" | tee -ai "${STATUS_LOG}" 2> /dev/null
             local_statistics_show="1"
         }
         local_ip_rule_prio_no="$(( local_ip_rule_prio_no + 1 ))"
     done
     [ "${local_statistics_show}" = "0" ] && [ "${status_ip_rule_exist}" = "0" ] && {
-        echo "$(lzdate)" [$$]: "   No policy rule in use."
+        echo "$(lzdate)" [$$]: "   No policy rule in use." | tee -ai "${STATUS_LOG}" 2> /dev/null
     }
-    echo "$(lzdate)" [$$]: ---------------------------------------------
+    echo "$(lzdate)" [$$]: --------------------------------------------- | tee -ai "${STATUS_LOG}" 2> /dev/null
 }
 
 ## 获取挂载WEB界面状态函数
@@ -3000,7 +3033,7 @@ __status_main() {
     lz_get_box_data_status
 
     if [ "${status_version}" != "${LZ_VERSION}" ]; then
-        echo "$(lzdate)" [$$]: LZ "${LZ_VERSION}" script hasn\'t been started and initialized, please restart.
+        echo "$(lzdate)" [$$]: LZ "${LZ_VERSION}" script hasn\'t been started and initialized, please restart. | tee -ai "${STATUS_LOG}" 2> /dev/null
         return
     fi
 
@@ -3047,7 +3080,7 @@ __status_main() {
         ## 返回值：无
         lz_ip_rule_output_syslog_status "${STATUS_IP_RULE_PRIO_TOPEST}" "${STATUS_IP_RULE_PRIO}"
 
-        echo "$(lzdate)" [$$]: Policy routing service has "${local_stop_id}"ped.
+        echo "$(lzdate)" [$$]: Policy routing service has "${local_stop_id}"ped. | tee -ai "${STATUS_LOG}" 2> /dev/null
 
         ## 显示SS服务支持状态
         ## 输入项：
@@ -3068,9 +3101,11 @@ __status_main() {
     if ip route show | grep -q nexthop && [ -n "${status_route_local_ip}" ]; then
         [ "$( nvram get "wan0_enable" )" = "1" ] && [ "$( nvram get "wan1_enable" )" = "1" ] \
             && [ -n "$( nvram get "wan0_proto_t" )" ] && [ -n "$( nvram get "wan1_proto_t" )" ] \
-            && echo "$(lzdate)" [$$]: Dual WAN \( "$( nvram get "wan0_proto" )" -- "$( nvram get "wan1_proto" )" \) has been started.
-        echo "$(lzdate)" [$$]: The router has successfully joined into two WANs.
-        echo "$(lzdate)" [$$]: Policy routing service has been started.
+            && echo "$(lzdate)" [$$]: Dual WAN \( "$( nvram get "wan0_proto" )" -- "$( nvram get "wan1_proto" )" \) has been started. | tee -ai "${STATUS_LOG}" 2> /dev/null
+        {
+            echo "$(lzdate)" [$$]: The router has successfully joined into two WANs.
+            echo "$(lzdate)" [$$]: Policy routing service has been started.
+        } | tee -ai "${STATUS_LOG}" 2> /dev/null
 
         ## 显示虚拟专网服务支持状态信息
         ## 输入项：
@@ -3100,7 +3135,7 @@ __status_main() {
         ## 返回值：无
         lz_ip_rule_output_syslog_status "${STATUS_IP_RULE_PRIO_TOPEST}" "${STATUS_IP_RULE_PRIO}"
 
-        echo "$(lzdate)" [$$]: Policy routing service has been started successfully.
+        echo "$(lzdate)" [$$]: Policy routing service has been started successfully. | tee -ai "${STATUS_LOG}" 2> /dev/null
 
         ## 显示SS服务支持状态
         ## 输入项：
@@ -3110,8 +3145,10 @@ __status_main() {
 
     ## 单线路
     elif ip route show | grep -q default; then
-        echo "$(lzdate)" [$$]: The router is connected to only one WAN.
-        echo "$(lzdate)" [$$]: ---------------------------------------------
+        {
+            echo "$(lzdate)" [$$]: The router is connected to only one WAN.
+            echo "$(lzdate)" [$$]: ---------------------------------------------
+        } | tee -ai "${STATUS_LOG}" 2> /dev/null
 
         ## 显示单线路时的IPTV服务信息
         ## 输入项：
@@ -3136,9 +3173,9 @@ __status_main() {
         lz_ip_rule_output_syslog_status "${STATUS_IP_RULE_PRIO_TOPEST}" "${STATUS_IP_RULE_PRIO}"
 
 		if [ "$( ip rule show | grep -c "^${STATUS_IP_RULE_PRIO_IPTV}:" )" -gt "0" ]; then
-            echo "$(lzdate)" [$$]: Only IPTV rules is running.
+            echo "$(lzdate)" [$$]: Only IPTV rules is running. | tee -ai "${STATUS_LOG}" 2> /dev/null
         else
-            echo "$(lzdate)" [$$]: The policy routing service isn\'t running.
+            echo "$(lzdate)" [$$]: The policy routing service isn\'t running. | tee -ai "${STATUS_LOG}" 2> /dev/null
         fi
 
         ## 显示SS服务支持状态
@@ -3149,16 +3186,27 @@ __status_main() {
 
     ## 无外网连接
     else
-        echo "$(lzdate)" [$$]: The router isn\'t connected to any WAN.
-        echo "$(lzdate)" [$$]: ---------------------------------------------
-        echo "$(lzdate)" [$$]: "   No policy rule in use."
-        echo "$(lzdate)" [$$]: ---------------------------------------------
-        echo "$(lzdate)" [$$]: The policy routing service isn\'t running.
+        {
+            echo "$(lzdate)" [$$]: The router isn\'t connected to any WAN.
+            echo "$(lzdate)" [$$]: ---------------------------------------------
+            echo "$(lzdate)" [$$]: "   No policy rule in use."
+            echo "$(lzdate)" [$$]: ---------------------------------------------
+            echo "$(lzdate)" [$$]: The policy routing service isn\'t running.
+        } | tee -ai "${STATUS_LOG}" 2> /dev/null
     fi
 }
 
+{
+    echo "$(lzdate) [$$]: "
+    echo "$(lzdate)" [$$]: LZ "${LZ_VERSION}" script commands start......
+    echo "$(lzdate)" [$$]: By LZ \(larsonzhang@gmail.com\)
+    echo "$(lzdate)" [$$]: ---------------------------------------------
+    echo "$(lzdate)" [$$]: Location: "${PATH_LZ}"
+    echo "$(lzdate)" [$$]: ---------------------------------------------
+} > "${STATUS_LOG}" 2> /dev/null
+
 if [ ! -f "${PATH_CONFIGS}/lz_rule_config.box" ]; then
-    echo "$(lzdate)" [$$]: LZ "${LZ_VERSION}" script hasn\'t been started and initialized, please restart.
+    echo "$(lzdate)" [$$]: LZ "${LZ_VERSION}" script hasn\'t been started and initialized, please restart. | tee -ai "${STATUS_LOG}" 2> /dev/null
     return
 fi
 
@@ -3172,23 +3220,24 @@ lz_define_status_constant
 ##     0--成功
 ##     1--失败
 if lz_get_mount_web_ui_status; then
-    echo "$(lzdate)" [$$]: "Policy Routing Web UI has been mounted."
+    echo "$(lzdate)" [$$]: "Policy Routing Web UI has been mounted." | tee -ai "${STATUS_LOG}" 2> /dev/null
 else
-    echo "$(lzdate)" [$$]: "Policy Routing Web UI is not mounted."
+    echo "$(lzdate)" [$$]: "Policy Routing Web UI is not mounted." | tee -ai "${STATUS_LOG}" 2> /dev/null
 fi
 
 ## service-event事件接口状态
 ## 获取服务事件接口注册状态
 ## 输入项：
 ##     $1--系统事件接口全路径文件名
-##     $2--命令行检索字符串
+##     $2--命令行1检索字符串
+##     $3--命令行2检索字符串
 ## 返回值：
 ##     0--已注册
 ##     1--未注册
-if lz_get_service_event_interface_status "${PATH_BASE}/${STATUS_SERVICE_EVENT_NAME}" "LZRule.*start.*restart.*${STATUS_PROJECT_FILENAME}.*stop.*${STATUS_PROJECT_FILENAME}.*STOP"; then
-    echo "$(lzdate)" [$$]: "service-event interface has been registered."
+if lz_get_service_event_interface_status "${PATH_BOOTLOADER}/${STATUS_SERVICE_EVENT_NAME}" "LZRule.*start.*restart.*${PATH_LZ}/${STATUS_PROJECT_FILENAME}.*stop.*${PATH_LZ}/${STATUS_PROJECT_FILENAME}.*STOP\"; fi fi" "LZStatus.*start.*restart.*${PATH_LZ}/${STATUS_PROJECT_FILENAME}.*status\"; fi fi"; then
+    echo "$(lzdate)" [$$]: "service-event interface has been registered." | tee -ai "${STATUS_LOG}" 2> /dev/null
 else
-    echo "$(lzdate)" [$$]: "service-event interface is not registered."
+    echo "$(lzdate)" [$$]: "service-event interface is not registered." | tee -ai "${STATUS_LOG}" 2> /dev/null
 fi
 
 ## 获取firewall-start事件接口状态
@@ -3199,13 +3248,13 @@ fi
 ## 返回值：
 ##     0--已注册
 ##     1--未注册
-if lz_get_event_interface_status "${PATH_BASE}/${STATUS_BOOTLOADER_NAME}" "${PATH_LZ}/${STATUS_PROJECT_FILENAME}"; then
-    echo "$(lzdate)" [$$]: "firewall-start interface has been registered."
+if lz_get_event_interface_status "${PATH_BOOTLOADER}/${STATUS_BOOTLOADER_NAME}" "${PATH_LZ}/${STATUS_PROJECT_FILENAME}"; then
+    echo "$(lzdate)" [$$]: "firewall-start interface has been registered." | tee -ai "${STATUS_LOG}" 2> /dev/null
 else
-    echo "$(lzdate)" [$$]: "firewall-start interface is not registered."
+    echo "$(lzdate)" [$$]: "firewall-start interface is not registered." | tee -ai "${STATUS_LOG}" 2> /dev/null
 fi
 
-echo "$(lzdate)" [$$]: Getting the router device status information......
+echo "$(lzdate)" [$$]: Getting the router device status information...... | tee -ai "${STATUS_LOG}" 2> /dev/null
 
 ## 设置脚本基本运行状态参数变量
 lz_set_parameter_status_variable
@@ -3221,5 +3270,11 @@ lz_unset_parameter_status_variable
 
 ## 卸载基本运行状态常量
 lz_uninstall_status_constant
+
+{
+    echo "$(lzdate)" [$$]: ---------------------------------------------
+    echo "$(lzdate)" [$$]: LZ "${LZ_VERSION}" script commands executed!
+    echo "$(lzdate)" [$$]:
+} >> "${STATUS_LOG}" 2> /dev/null
 
 #END

@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule.sh v4.0.6
+# lz_rule.sh v4.0.7
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # 本软件采用CIDR（无类别域间路由，Classless Inter-Domain Routing）技术，是一个在Internet上创建附加地
@@ -80,7 +80,7 @@
 ## -------------全局数据定义及初始化-------------------
 
 ## 版本号
-LZ_VERSION=v4.0.6
+LZ_VERSION=v4.0.7
 
 ## 运行状态查询命令
 SHOW_STATUS="status"
@@ -109,8 +109,9 @@ PATH_LZ="${0%/*}"
 [ "${PATH_LZ:0:1}" != '/' ] && PATH_LZ="$( pwd )${PATH_LZ#*.}"
 PATH_CONFIGS="${PATH_LZ}/configs"
 PATH_FUNC="${PATH_LZ}/func"
-PATH_DATA="${PATH_LZ}/data"
+PATH_JS="${PATH_LZ}/js"
 PATH_WEBS="${PATH_LZ}/webs"
+PATH_DATA="${PATH_LZ}/data"
 PATH_INTERFACE="${PATH_LZ}/interface"
 PATH_TMP="${PATH_LZ}/tmp"
 PATH_ADDONS="/jffs/addons"
@@ -136,6 +137,9 @@ OPENVPN_EVENT_NAME="openvpn-event"
 
 ## Open虚拟专网事件触发接口文件名
 OPENVPN_EVENT_INTERFACE_NAME="lz_openvpn_event.sh"
+
+## 运行状态记录文件名
+STATUS_LOG="${PATH_TMP}/status.log"
 
 if [ "${1}" != "${SHOW_STATUS}" ] && [ "${1}" != "${ADDRESS_QUERY}" ] \
     && [ "${1}" != "${FORCED_UNLOCKING}" ]; then
@@ -216,7 +220,6 @@ fi
 ##     0--成功
 ##     1--失败
 lz_project_file_management() {
-    [ "${1}" = "${UNMOUNT_WEB_UI}" ] && return "0"
     ## 使项目文件部署路径、配置脚本、功能脚本和数据文件处于可运行状态
     [ ! -d "${PATH_LZ}" ] && mkdir -p "${PATH_LZ}" > /dev/null 2>&1
     chmod 775 "${PATH_LZ}" > /dev/null 2>&1
@@ -224,21 +227,27 @@ lz_project_file_management() {
     chmod 775 "${PATH_CONFIGS}" > /dev/null 2>&1
     [ ! -d "${PATH_FUNC}" ] && mkdir -p "${PATH_FUNC}" > /dev/null 2>&1
     chmod 775 "${PATH_FUNC}" > /dev/null 2>&1
-    [ ! -d "${PATH_DATA}" ] && mkdir -p "${PATH_DATA}" > /dev/null 2>&1
-    chmod 775 "${PATH_DATA}" > /dev/null 2>&1
+    [ ! -d "${PATH_JS}" ] && mkdir -p "${PATH_JS}" > /dev/null 2>&1
+    chmod 775 "${PATH_JS}" > /dev/null 2>&1
     [ ! -d "${PATH_WEBS}" ] && mkdir -p "${PATH_WEBS}" > /dev/null 2>&1
     chmod 775 "${PATH_WEBS}" > /dev/null 2>&1
+    [ ! -d "${PATH_DATA}" ] && mkdir -p "${PATH_DATA}" > /dev/null 2>&1
+    chmod 775 "${PATH_DATA}" > /dev/null 2>&1
     [ ! -d "${PATH_INTERFACE}" ] && mkdir -p "${PATH_INTERFACE}" > /dev/null 2>&1
     chmod 775 "${PATH_INTERFACE}" > /dev/null 2>&1
     [ ! -d "${PATH_TMP}" ] && mkdir -p "${PATH_TMP}" > /dev/null 2>&1
     chmod 775 "${PATH_TMP}" > /dev/null 2>&1
     cd "${PATH_CONFIGS}/" > /dev/null 2>&1 && chmod -R 775 ./* > /dev/null 2>&1
     cd "${PATH_FUNC}/" > /dev/null 2>&1 && chmod -R 775 ./* > /dev/null 2>&1
-    cd "${PATH_DATA}/" > /dev/null 2>&1 && chmod -R 775 ./* > /dev/null 2>&1
+    cd "${PATH_JS}/" > /dev/null 2>&1 && chmod -R 775 ./* > /dev/null 2>&1
     cd "${PATH_WEBS}/" > /dev/null 2>&1 && chmod -R 775 ./* > /dev/null 2>&1
+    cd "${PATH_DATA}/" > /dev/null 2>&1 && chmod -R 775 ./* > /dev/null 2>&1
     cd "${PATH_INTERFACE}/" > /dev/null 2>&1 && chmod -R 775 ./* > /dev/null 2>&1
     cd "${PATH_TMP}/" > /dev/null 2>&1 && chmod -R 775 ./* > /dev/null 2>&1
     cd "${PATH_LZ}/" > /dev/null 2>&1 && chmod -R 775 ./* > /dev/null 2>&1
+
+    echo > "${STATUS_LOG}" 2> /dev/null
+    [ "${1}" = "${UNMOUNT_WEB_UI}" ] && return "0"
 
     ## 检查脚本关键文件是否存在，若有不存在项则退出运行。
     local local_scripts_file_exist=1
@@ -268,6 +277,10 @@ lz_project_file_management() {
     }
     [ ! -f "${PATH_FUNC}/lz_vpn_daemon.sh" ] && {
         echo "$(lzdate)" [$$]: The file "${PATH_FUNC}/lz_vpn_daemon.sh" does not exist. | tee -ai "${SYSLOG}" 2> /dev/null
+        local_scripts_file_exist=0
+    }
+    [ ! -f "${PATH_JS}/lz_policy_routing.js" ] && {
+        echo "$(lzdate)" [$$]: The file "${PATH_JS}/lz_policy_routing.js" does not exist. | tee -ai "${SYSLOG}" 2> /dev/null
         local_scripts_file_exist=0
     }
     [ ! -f "${PATH_WEBS}/LZ_Policy_Routing_Content.asp" ] && {
@@ -380,7 +393,7 @@ EOF_INTERFACE
     fi
     if ! grep -q "${2}/${3}" "${PATH_BOOTLOADER}/${1}"; then
         sed -i "/${3}/d" "${PATH_BOOTLOADER}/${1}"
-        sed -i "\$a ${2}/${3} # Added by LZ" "${PATH_BOOTLOADER}/${1}"
+        sed -i -e "\$a ${2}/${3} # Added by LZ" -e "/^[ \t]*$/d" "${PATH_BOOTLOADER}/${1}"
     fi
     chmod +x "${PATH_BOOTLOADER}/${1}"
     ! grep -q "${2}/${3}" "${PATH_BOOTLOADER}/${1}" && return "1"
@@ -450,9 +463,12 @@ lz_clear_openvpn_event_command() {
 ## 创建服务事件接口函数
 ## 输入项：
 ##     $1--系统服务事件接口文件名
-##     $2--待执行的命令行
-##     $3--命令行检索字符串
-##     $4--命令行关键字符串
+##     $2--待执行的命令行1
+##     $3--命令行1检索字符串
+##     $4--命令行1关键字符串
+##     $5--待执行的命令行2
+##     $6--命令行2检索字符串
+##     $7--命令行2关键字符串
 ##     全局常量
 ## 返回值：
 ##     0--成功
@@ -477,12 +493,13 @@ EOF_SERVICE_INTERFACE
         ! grep -m 1 '^.*$' "${PATH_BOOTLOADER}/${1}" | grep -q "^#!/bin/sh" \
             && sed -i 'l1 s:^.*\(#!/bin/sh.*$\):\1/g' "${PATH_BOOTLOADER}/${1}"
     fi
-    if ! grep -qE "${3}" "${PATH_BOOTLOADER}/${1}"; then
-        sed -i "/${4}/d" "${PATH_BOOTLOADER}/${1}"
-        echo "${2} # Added by LZ" >>  "${PATH_BOOTLOADER}/${1}"
+    if ! grep -qE "${3}" "${PATH_BOOTLOADER}/${1}" || ! grep -qE "${6}" "${PATH_BOOTLOADER}/${1}"; then
+        sed -i -e "/${4}/d" -e "/${7}/d" "${PATH_BOOTLOADER}/${1}"
+        printf "\n%s # Added by LZ\n%s # Added by LZ\n" "${2}" "${5}" >> "${PATH_BOOTLOADER}/${1}"
+        sed -i "/^[ \t]*$/d" "${PATH_BOOTLOADER}/${1}"
     fi
     chmod +x "${PATH_BOOTLOADER}/${1}"
-    ! grep -qE "${3}" "${PATH_BOOTLOADER}/${1}" && return "1"
+    { ! grep -qE "${3}" "${PATH_BOOTLOADER}/${1}" || ! grep -qE "${6}" "${PATH_BOOTLOADER}/${1}"; } && return "1"
     return "0"
 }
 
@@ -507,19 +524,24 @@ lz_clear_service_event_command() {
 ##     全局常量
 ## 返回值：无
 lz_create_service_event_command() {
-    local cmd_str="if echo \"\${2}\" | /bin/grep -q \"LZRule\"; then if [ \"\${1}\" = \"start\" ] || [ \"\${1}\" = \"restart\" ]; then \"${PATH_LZ}/${PROJECT_FILENAME}\"; elif [ \"\${1}\" = \"stop\" ]; then \"${PATH_LZ}/${PROJECT_FILENAME}\" \"STOP\"; fi fi"
-    local key_str="LZRule.*start.*restart.*${PATH_LZ}/${PROJECT_FILENAME}.*stop.*${PATH_LZ}/${PROJECT_FILENAME}.*STOP"
+    local cmd_str1="if echo \"\${2}\" | /bin/grep -q \"LZRule\"; then if [ \"\${1}\" = \"start\" ] || [ \"\${1}\" = \"restart\" ]; then \"${PATH_LZ}/${PROJECT_FILENAME}\"; elif [ \"\${1}\" = \"stop\" ]; then \"${PATH_LZ}/${PROJECT_FILENAME}\" \"STOP\"; fi fi"
+    local key_str1="LZRule.*start.*restart.*${PATH_LZ}/${PROJECT_FILENAME}.*stop.*${PATH_LZ}/${PROJECT_FILENAME}.*STOP\"; fi fi"
+    local cmd_str2="if echo \"\${2}\" | /bin/grep -q \"LZStatus\"; then if [ \"\${1}\" = \"start\" ] || [ \"\${1}\" = \"restart\" ]; then \"${PATH_LZ}/${PROJECT_FILENAME}\" \"status\"; fi fi"
+    local key_str2="LZStatus.*start.*restart.*${PATH_LZ}/${PROJECT_FILENAME}.*status\"; fi fi"
     ## 创建服务事件接口
     ## 输入项：
     ##     $1--系统服务事件接口文件名
-    ##     $2--待执行的命令行
-    ##     $3--命令行检索字符串
-    ##     $4--命令行关键字符串
+    ##     $2--待执行的命令行1
+    ##     $3--命令行1检索字符串
+    ##     $4--命令行1关键字符串
+    ##     $5--待执行的命令行2
+    ##     $6--命令行2检索字符串
+    ##     $7--命令行2关键字符串
     ##     全局常量
     ## 返回值：
     ##     0--成功
     ##     1--失败
-    if lz_create_service_event_interface "${SERVICE_EVENT_NAME}" "${cmd_str}" "${key_str}" "LZRule"; then
+    if lz_create_service_event_interface "${SERVICE_EVENT_NAME}" "${cmd_str1}" "${key_str1}" "LZRule" "${cmd_str2}" "${key_str2}" "LZStatus"; then
         if [ "${1}" = "stop" ] || [ "${1}" = "STOP" ]; then
             echo "$(lzdate)" [$$]: "The service-event interface has continued to register." | tee -ai "${SYSLOG}" 2> /dev/null
         else
@@ -596,12 +618,16 @@ lz_mount_web_ui() {
             mkdir -p "${PATH_WEB_LZR}" > /dev/null 2>&1
             [ ! -d "${PATH_WEB_LZR}" ] && break
         fi
+        sed -i -e 's/^[ \t]*//g' -e 's/[ \t]*$//g' -e '/^$/d' "${PATH_JS}/lz_policy_routing.js" > /dev/null 2>&1
+        sed -i -e 's/^[ \t]*//g' -e 's/[ \t]*$//g' -e '/^$/d' "${PATH_WEBS}/LZ_Policy_Routing_Content.asp" > /dev/null 2>&1
         rm -f "$PATH_WEB_LZR/"* > /dev/null 2>&1
+        ln -s "${PATH_JS}/lz_policy_routing.js" "${PATH_WEB_LZR}/lz_policy_routing.js" > /dev/null 2>&1
         ln -s "${PATH_BOOTLOADER}/${BOOTLOADER_NAME}" "${PATH_WEB_LZR}/LZRState.html" > /dev/null 2>&1
         ln -s "${PATH_LZ}/${PROJECT_FILENAME}" "${PATH_WEB_LZR}/LZRVersion.html" > /dev/null 2>&1
         ln -s "${PATH_CONFIGS}/lz_rule_config.sh" "${PATH_WEB_LZR}/LZRConfig.html" > /dev/null 2>&1
         ln -s "${PATH_CONFIGS}/lz_rule_config.box" "${PATH_WEB_LZR}/LZRBKData.html" > /dev/null 2>&1
         ln -s "${PATH_FUNC}/lz_define_global_variables.sh" "${PATH_WEB_LZR}/LZRGlobal.html" > /dev/null 2>&1
+        ln -s "${STATUS_LOG}" "${PATH_WEB_LZR}/LZRStatus.html" > /dev/null 2>&1
         ! which md5sum > /dev/null 2>&1 && break
         local page_name="$( lz_get_webui_page )"
         [ -z "${page_name}" ] && break
