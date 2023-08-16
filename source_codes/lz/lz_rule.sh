@@ -130,6 +130,9 @@ PATH_BOOTLOADER="${PATH_BASE}"
 ## 自启动引导文件名
 BOOTLOADER_NAME="firewall-start"
 
+## USB自启动挂载文件名
+BOOT_USB_MOUNT_NAME="post-mount"
+
 ## 系统中的服务事件触发文件名
 SERVICE_EVENT_NAME="service-event"
 
@@ -416,6 +419,21 @@ EOF_INTERFACE
     return "0"
 }
 
+## 清除post-mount中脚本引导项函数
+## 输入项：
+##     全局常量
+## 返回值：
+##     0--清除成功
+##     1--未清除
+lz_clear_post_mount_command() {
+    if [ -f "${PATH_BOOTLOADER}/${BOOT_USB_MOUNT_NAME}" ] \
+        && grep -q "${PROJECT_FILENAME}" "${PATH_BOOTLOADER}/${BOOT_USB_MOUNT_NAME}"; then
+        sed -i "/${PROJECT_FILENAME}/d" "${PATH_BOOTLOADER}/${BOOT_USB_MOUNT_NAME}" > /dev/null 2>&1
+            return "0"
+    fi
+    return "1"
+}
+
 ## 创建firewall-start启动文件并添加脚本引导项函数
 ## 输入项：
 ##     全局常量
@@ -435,6 +453,17 @@ lz_create_firewall_start_command() {
     else
         echo "$(lzdate)" [$$]: "firewall-start interface registration failed." | tee -ai "${SYSLOG}" 2> /dev/null
     fi
+    if which opkg > /dev/null 2>&1 && [ "${PATH_LZ}" = "/opt/home/lz" ]; then
+        lz_create_event_interface "${BOOT_USB_MOUNT_NAME}" "${PATH_LZ}" "${PROJECT_FILENAME}"
+    else
+        ## 清除post-mount中脚本引导项
+        ## 输入项：
+        ##     全局常量
+        ## 返回值：
+        ##     0--清除成功
+        ##     1--未清除
+        lz_clear_post_mount_command
+    fi
 }
 
 ## 清除firewall-start中脚本引导项函数
@@ -444,12 +473,11 @@ lz_create_firewall_start_command() {
 ##     0--清除成功
 ##     1--未清除
 lz_clear_firewall_start_command() {
-    if [ -f "${PATH_BOOTLOADER}/${BOOTLOADER_NAME}" ]; then
-        if grep -q "${PROJECT_FILENAME}" "${PATH_BOOTLOADER}/${BOOTLOADER_NAME}"; then
-            sed -i "/${PROJECT_FILENAME}/d" "${PATH_BOOTLOADER}/${BOOTLOADER_NAME}" > /dev/null 2>&1
-            echo "$(lzdate)" [$$]: "Successfully unregistered firewall-start interface." | tee -ai "${SYSLOG}" 2> /dev/null
-            return "0"
-        fi
+    if [ -f "${PATH_BOOTLOADER}/${BOOTLOADER_NAME}" ] \
+        && grep -q "${PROJECT_FILENAME}" "${PATH_BOOTLOADER}/${BOOTLOADER_NAME}"; then
+        sed -i "/${PROJECT_FILENAME}/d" "${PATH_BOOTLOADER}/${BOOTLOADER_NAME}" > /dev/null 2>&1
+        echo "$(lzdate)" [$$]: "Successfully unregistered firewall-start interface." | tee -ai "${SYSLOG}" 2> /dev/null
+        return "0"
     fi
     return "1"
 }
@@ -735,13 +763,22 @@ __lz_main() {
         ##     1--未清除
         lz_clear_openvpn_event_command "${1}"
 
-        ## 清除firewall-start中脚本引导项
-        ## 输入项：
-        ##     全局常量
-        ## 返回值：
-        ##     0--清除成功
-        ##     1--未清除
-        [ "${1}" = "STOP" ] && lz_clear_firewall_start_command
+        if [ "${1}" = "STOP" ]; then
+            ## 清除firewall-start中脚本引导项
+            ## 输入项：
+            ##     全局常量
+            ## 返回值：
+            ##     0--清除成功
+            ##     1--未清除
+            lz_clear_firewall_start_command
+            ## 清除post-mount中脚本引导项
+            ## 输入项：
+            ##     全局常量
+            ## 返回值：
+            ##     0--清除成功
+            ##     1--未清除
+            lz_clear_post_mount_command
+        fi
     else
         ## 创建firewall-start启动文件并添加脚本引导项
         ## 输入项：
