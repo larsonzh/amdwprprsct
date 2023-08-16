@@ -1,13 +1,16 @@
 /*
-# lz_policy_routing.js v4.0.7
+# lz_policy_routing.js v4.0.8
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ JavaScript for Asuswrt-Merlin Router
 */
 
 let policySettingsArray = {};
-let divLabelArray = { "Basic" : [ "基础", "0", "0", "basicConfig" ], "Advanced" : [ "高级", "1", "0", "advancedConfig" ], "Runtime" : [ "运行", "2", "0", "runtimeConfig" ], "IPTV" : [ "IPTV", "3", "0", "iPTVConfig" ], "InsertScript" : [ "外置脚本", "4", "0", "insertScriptConfig" ] };
+let divLabelArray = { "Basic" : [ "基础", "0", "0", "basicConfig" ], "Advanced" : [ "高级", "1", "0", "advancedConfig" ], "Runtime" : [ "运行", "2", "0", "runtimeConfig" ], "IPTV" : [ "IPTV", "3", "0", "iPTVConfig" ], "InsertScript" : [ "外置脚本", "4", "0", "insertScriptConfig" ], "Tools" : [ "工具", "5", "0", "scriptTools" ] };
 let customSettings;
+let height = 0;
+let unlockHeight = 0;
+let addressHeight = 0;
 
 function setPolicyRoutingPage() {
     document.form.current_page.value = window.location.pathname.substring(1);
@@ -20,10 +23,6 @@ function getVersion() {
         async: false,
         url: '/ext/lzr/LZRVersion.html',
         dataType: 'text',
-        error: function(xhr) {
-            if (xhr.status != 404)
-                setTimeout(getVersion, 1000);
-        },
         success: function(result) {
             let buf = result.match(/^[ \t]*LZ_VERSION[=][\w\.]*/m);
             if (buf != null) policySettingsArray.version = (buf.length > 0) ? buf[0].replace(/^.*[=]/, "") : "";
@@ -48,10 +47,6 @@ function getPolicyState() {
         async: false,
         url: '/ext/lzr/LZRState.html',
         dataType: 'text',
-        error: function(xhr) {
-            if (xhr.status != 404)
-                setTimeout(getPolicyState, 1000);
-        },
         success: function(result) {
             policySettingsArray.policyEnable = result.match(/^[ \t]*[\w\/]+lz_rule[\.]sh[ \t]*([#].*){0,1}$/m) != null;
         }
@@ -84,10 +79,6 @@ function isNewVersion() {
         async: false,
         url: '/ext/lzr/LZRGlobal.html',
         dataType: 'text',
-        error: function(xhr) {
-            if (xhr.status != 404)
-                setTimeout(isNewVersion, 1000);
-        },
         success: function(result) {
             retVal = (result.match(/QnkgTFog5aaZ5aaZ5ZGc77yI6Juk6J[\+]G5aKp5YS[\/]77yJ/m) != null) ? true : false;
         }
@@ -95,19 +86,16 @@ function isNewVersion() {
     return retVal;
 }*/
 
-function loadPolicySettings(flag) {
+let loadPolicyFlag = 0;
+function loadPolicySettings() {
     let retVal = false;
     let fileUrl = '/ext/lzr/LZRConfig.html';
-    if (flag != undefined)
+    if (loadPolicyFlag != 0)
         fileUrl = '/ext/lzr/LZRBKData.html';
     $.ajax({
         async: false,
         url: fileUrl,
         dataType: 'text',
-        error: function(xhr) {
-            if (xhr.status != 404)
-                setTimeout(loadPolicySettings, 1000);
-        },
         success: function(result) {
             let buf = result.match(/^[ \t]*[\w]+[=].*$/gm);
             if (buf == null) return;
@@ -284,20 +272,64 @@ function checkPortTextField(ptr) {
     if (str != ptr.value) ptr.value = str;
 }
 
-function checkIPaddrField(ptr) {
-    let patt = /^[0]*([\d]+[\.])[0]*([\d]+[\.])[0]*([\d]+[\.])[0]*([\d]+$)/;
-    let val = ptr.value.replace(patt,"$1$2$3$4");
+validator.targetDomainName = function($o) {
+    let str = $o.val();
+    if (str == "") {
+        $("#alert_block").hide();
+        return false;
+    }
+    /*if (!validator.string($o[0])) {
+        $("#alert_block").hide();
+        return false;
+    }*/
+    for (i = 0; i < str.length; i++) {
+        let c = str.charCodeAt(i);
+        if (!validator.hostNameChar(c)) {
+            $("#alert_block").html("网域名称包含无效字符 「" + str.charAt(i) + "」 !").show();
+            return false;
+        }
+    }
+    $("#alert_block").hide();
+    return true;
+}
+
+function checkdestIPTextField(ptr) {
+    validator.targetDomainName($("#" + ptr.id));
+}
+
+function checkIPaddress(ptr, defaultVal) {
+    if (defaultVal == undefined) defaultVal = "";
+    let patt = /^[0]*([\d]+)[\.][0]*([\d]+)[\.][0]*([\d]+)[\.][0]*([\d]+)$/;
+    if (ptr.value.match(patt) == null) {
+        ptr.value = defaultVal;
+        return;
+    }
+    let val1 = ptr.value.replace(patt,"$1");
+    let val2 = ptr.value.replace(patt,"$2");
+    let val3 = ptr.value.replace(patt,"$3");
+    let val4 = ptr.value.replace(patt,"$4");
+    if (val1 > 255) val1 = "255";
+    if (val2 > 255) val2 = "255";
+    if (val3 > 255) val3 = "255";
+    if (val4 > 255) val4 = "255";
+    let val = val1 + "." + val2 + "." + val3 + "." + val4;
     if (val != ptr.value) ptr.value = val;
     patt = /^((?:(?:[2][5][0-5]|[2][0-4][\d]|[01]?[\d]?[\d])[\.]){3}(?:[2][5][0-5]|[2][0-4][\d]|[01]?[\d]?[\d]))$/;
-    if (!patt.test(val)) ptr.value = "8.8.8.8";
+    if (!patt.test(val)) ptr.value = defaultVal;
+}
+
+function checkIPaddrField(ptr) {
+    checkIPaddress(ptr, "8.8.8.8");
+}
+
+function checkDNSIPaddrField(ptr) {
+    checkIPaddress(ptr);
 }
 
 function inithideDivPage() {
     for (let key in divLabelArray) {
         if (divLabelArray.hasOwnProperty(key)) {
             $("#" + divLabelArray[key][3]).hide();
-            if (key == "Runtime")
-                $("#queryStatus").hide();
             divLabelArray[key][2] = "0";
         }
     }
@@ -308,8 +340,6 @@ function hideDivPage() {
         if (divLabelArray.hasOwnProperty(key)) {
             if (divLabelArray[key][2] != "0") {
                 $("#" + divLabelArray[key][3]).hide();
-                if (key == "Runtime")
-                    $("#queryStatus").hide();
                 divLabelArray[key][2] = "0";
             }
         }
@@ -378,7 +408,9 @@ function switchDivPage(index) {
     hideDivPage();
     $("#" + divLabelArray[key][3]).show();
     if (key == "Runtime")
-        $("#queryStatus").show();
+        height = 0;
+    else if (key == "Tools")
+        hideCNT("0");
     divLabelArray[key][2] = "1";
 }
 
@@ -967,6 +999,24 @@ function openOverHint(itemNum) {
         content += "<br /><b>策略执行优先级</b>：详见<b>基本设置&nbsp;-&nbsp;策略路由优先级</b></div>";
     } else if (itemNum == 84) {
         content = "<div>缺省为<b>否</b>。</div>";
+    } else if (itemNum == 85) {
+        content = "<div>实用命令工具集。</div>";
+    } else if (itemNum == 86) {
+        mode = 1;
+        caption = "快捷命令";
+        content = "<div><b>命令</b>选项：<br />";
+        content += "<ul>";
+        content += "<li>查询路由器出口 (缺省)</li>";
+        content += "<li>解除程序运行锁</li>";
+        content += "<li>恢复缺省配置参数</li>";
+        content += "</ul>";
+        content += "<b>查询路由器出口</b>：<br />根据目标主机域名或 IP 地址，查询访问该地址流量使用的路由器出口，以及该主机地址的运营商归属。域名解析后可能会得到多个 IP 地址，由此会出现多条信息。<br />";
+        content += "<br /><b>解除程序运行锁</b>：<br />软件启动或操作过程中，若操作 ctrl+c 组合键，或其他意外原因造成运行中断，导致程序被内部的同步运行安全机制锁住，在不重启路由器的情况下，无法再次启动或有关命令无法继续执行，可通过此命令强制解锁，然后请再次重新启动策略路由，即可恢复正常。<b>注意</b>，正常运行过程中不要随意执行此命令，以免造成安全机制失效。<br />";
+        content += "<br /><b>恢复缺省配置参数</b>：<br />将策略路由工作参数恢复至初始<b>缺省</b>状态。此操作将<b>不可恢复</b>的清除用户所有已配置数据，执行此命令请务必<b>慎重</b>。</div>";
+    } else if (itemNum == 87) {
+        content = "<div>目标主机的<b>域名地址</b>或 <b>IP 地址</b>，内容不可为空。</div>";
+    } else if (itemNum == 88) {
+        content = "<div>目标主机地址为域名地址时，可指定域名解析的 <b>DNS 服务器</b>地址。内容为空时，表示使用路由器内置的 DNS 服务。</div>";
     } else if (itemNum == 100) {
         mode = 1;
         caption = "基本设置 - 策略路由优先级";
@@ -1047,7 +1097,6 @@ function applyRule() {
     document.form.submit();
 }
 
-let height = 0;
 function getStatus() {
     let h = 0;
     $.ajax({
@@ -1058,6 +1107,8 @@ function getStatus() {
             if (xhr.status == 404) {
                 document.getElementById("statusArea").innerHTML = "";
                 height = 0;
+                $("#loadingStatusIcon").hide();
+                $("#statusButton").fadeIn(500);
                 document.getElementById("statusButton").disabled = false;
             } else
                 setTimeout(getStatus, 1000);
@@ -1070,10 +1121,15 @@ function getStatus() {
                 let _string = infoString.split('\n');
                 for (let i = 0; i < _string.length; i++) {
                     _log += _string[i] + '\n';
-                    if (_string[i].search(/[\]][\:]$/) > 20)
+                    if (_string[i].search(/[\]][\:]$/) > 20) {
+                        $("#loadingStatusIcon").hide();
+                        $("#statusButton").show();
                         document.getElementById("statusButton").disabled = false;
-                    else if (_string[i].indexOf("\]\:") > 20 && !document.getElementById("statusButton").disabled)
+                    } else if (_string[i].indexOf("\]\:") > 20 && !document.getElementById("statusButton").disabled) {
                         document.getElementById("statusButton").disabled = true;
+                        $("#statusButton").hide();
+                        $("#loadingStatusIcon").show();
+                    }
                 }
                 document.getElementById("statusArea").innerHTML = _log;
                 $("#statusArea").animate({ scrollTop: 9999999 }, "slow");
@@ -1086,10 +1142,214 @@ function getStatus() {
 
 function queryStatus() {
     document.getElementById("statusButton").disabled = true;
+    $("#statusButton").hide();
+    $("#loadingStatusIcon").fadeIn(500);
     document.getElementById("statusArea").innerHTML = "";
     height = 0;
-    document.statusForm.action_script.value='start_LZStatus';
-    document.statusForm.submit();
+    document.scriptActionsForm.action_script.value = 'start_LZStatus';
+    document.scriptActionsForm.submit();
+}
+
+let over_var = 0;
+function hideClients_Block() {
+    document.getElementById("pull_arrow").src = "/ext/lzr/arrow-down.gif";
+    document.getElementById('ClientList_Block_PC').style.display='none';
+}
+
+function setClientIP(ipaddr) {
+    document.form.destIP.value = ipaddr;
+    hideClients_Block();
+    $("#alert_block").hide();
+    over_var = 0;
+}
+
+function showLANIPList() {
+    let AppListArray = [
+        ["Google ", "www.google.com"], ["Facebook", "www.facebook.com"], ["Youtube", "www.youtube.com"], ["Yahoo", "www.yahoo.com"],
+        ["Baidu", "www.baidu.com"], ["Wikipedia", "www.wikipedia.org"], ["Windows Live", "www.live.com"], ["QQ", "www.qq.com"],
+        ["Twitter", "www.twitter.com"], ["Taobao", "www.taobao.com"], ["Blogspot", "www.blogspot.com"],
+        ["Linkedin", "www.linkedin.com"], ["eBay", "www.ebay.com"], ["Bing", "www.bing.com"],
+        ["Яндекс", "www.yandex.ru"], ["WordPress", "www.wordpress.com"], ["ВКонтакте", "www.vk.com"]
+    ];
+    let code = "";
+    for(let i = 0; i < AppListArray.length; i++) {
+        code += '<a><div onmouseover="over_var=1;" onmouseout="over_var=0;" onclick="setClientIP(\'' + AppListArray[i][1] + '\');"><strong>' + AppListArray[i][0] + '</strong></div></a>';
+    }
+    code += '<!--[if lte IE 6.5]><iframe class="hackiframe2"></iframe><![endif]-->';
+    document.getElementById("ClientList_Block_PC").innerHTML = code;
+}
+
+function pullLANIPList(obj) {
+    let element = document.getElementById('ClientList_Block_PC');
+    let isMenuopen = element.offsetWidth > 0 || element.offsetHeight > 0;
+    if (isMenuopen == 0) {
+        obj.src = "/ext/lzr/arrow-top.gif"
+        document.getElementById("ClientList_Block_PC").style.display = 'block';
+        document.form.destIP.focus();
+    } else {
+        hideClients_Block();
+    }
+}
+
+function hideCNT(_val) {
+    document.getElementById("toolsTextArea").innerHTML = "";
+    if (document.getElementById("toolsButton").disabled) {
+        $("#loadingToolsIcon").hide();
+        $("#toolsButton").show();
+        document.getElementById("toolsButton").disabled = false;
+    }
+    if (_val == "0") {
+        document.getElementById("cmdMethod").value = _val;
+        document.getElementById("destIPCNT_tr").style.display = "";
+        document.getElementById("dnsIPAddressCNT_tr").style.display = "";
+        addressHeight = 0;
+    } else if (_val == "1") {
+        document.getElementById("cmdMethod").value = _val;
+        document.getElementById("destIPCNT_tr").style.display = "none";
+        document.getElementById("dnsIPAddressCNT_tr").style.display = "none";
+        unlockHeight = 0;
+    } else if (_val == "2") {
+        document.getElementById("cmdMethod").value = _val;
+        document.getElementById("destIPCNT_tr").style.display = "none";
+        document.getElementById("dnsIPAddressCNT_tr").style.display = "none";
+    }
+}
+
+function getAddressInfo() {
+    let h = 0;
+    $.ajax({
+        async: true,
+        url: '/ext/lzr/LZRAddress.html',
+        dataType: 'text',
+        error: function(xhr) {
+            if (xhr.status == 404) {
+                document.getElementById("toolsTextArea").innerHTML = "";
+                $("#loadingToolsIcon").hide();
+                $("#toolsButton").fadeIn(500);
+                document.getElementById("toolsButton").disabled = false;
+            } else
+                setTimeout(getAddressInfo, 1000);
+        },
+        success: function(response) {
+            let infoString = htmlEnDeCode.htmlEncode(response.toString());
+            h = $("#toolsTextArea").scrollTop();
+            if (!(addressHeight > 0 && h < addressHeight) 
+                && document.getElementById("cmdMethod").value == "0") {
+                let _log = '';
+                let _string = infoString.split('\n');
+                for (let i = 0; i < _string.length; i++) {
+                    _log += _string[i] + '\n';
+                    if (_string[i].search(/[\]][\:]$/) > 20) {
+                        $("#loadingToolsIcon").hide();
+                        $("#toolsButton").show();
+                        document.getElementById("toolsButton").disabled = false;
+                    } else if (_string[i].indexOf("\]\:") > 20 
+                        && !document.getElementById("toolsButton").disabled) {
+                        document.getElementById("toolsButton").disabled = true;
+                        $("#toolsButton").hide();
+                        $("#loadingToolsIcon").show();
+                    }
+                }
+                if (document.getElementById("cmdMethod").value == "0")
+                    document.getElementById("toolsTextArea").innerHTML = _log;
+                $("#toolsTextArea").animate({ scrollTop: 9999999 }, "slow");
+                setTimeout('addressHeight = $("#toolsTextArea").scrollTop();', 500);
+            }
+            setTimeout(getAddressInfo, 3000);
+        }
+    });
+}
+
+function getUnlockInfo() {
+    let h = 0;
+    $.ajax({
+        async: true,
+        url: '/ext/lzr/LZRUnlock.html',
+        dataType: 'text',
+        error: function(xhr) {
+            if (xhr.status == 404) {
+                document.getElementById("toolsTextArea").innerHTML = "";
+                $("#loadingToolsIcon").hide();
+                $("#toolsButton").fadeIn(500);
+                document.getElementById("toolsButton").disabled = false;
+            } else
+                setTimeout(getUnlockInfo, 1000);
+        },
+        success: function(response) {
+            let infoString = htmlEnDeCode.htmlEncode(response.toString());
+            h = $("#toolsTextArea").scrollTop();
+            if (!(unlockHeight > 0 && h < unlockHeight) 
+                && document.getElementById("cmdMethod").value == "1") {
+                let _log = '';
+                let _string = infoString.split('\n');
+                for (let i = 0; i < _string.length; i++) {
+                    _log += _string[i] + '\n';
+                    if (_string[i].search(/[\]][\:]$/) > 20) {
+                        $("#loadingToolsIcon").hide();
+                        $("#toolsButton").show();
+                        document.getElementById("toolsButton").disabled = false;
+                    } else if (_string[i].indexOf("\]\:") > 20 
+                        && !document.getElementById("toolsButton").disabled) {
+                        document.getElementById("toolsButton").disabled = true;
+                        $("#toolsButton").hide();
+                        $("#loadingToolsIcon").show();
+                    }
+                }
+                if (document.getElementById("cmdMethod").value == "1")
+                    document.getElementById("toolsTextArea").innerHTML = _log;
+                $("#toolsTextArea").animate({ scrollTop: 9999999 }, "slow");
+                setTimeout('unlockHeight = $("#toolsTextArea").scrollTop();', 500);
+            }
+            setTimeout(getUnlockInfo, 3000);
+        }
+    });
+}
+
+function toolsCommand() {
+    let val = document.getElementById("cmdMethod").value;
+    if (val == "2") {
+        if (!confirm("「恢复缺省配置」将不可恢复的清除用户所有已配置数据。\n\n  确定要执行此操作吗？"))
+            return;
+        $("#amng_custom").val("");
+        document.form.action_script.value = "start_LZDefault";
+        document.form.action_wait.value = 10;
+        showLoading();
+        document.form.submit();
+    } else if (val == "1") {
+        if (!confirm("「解除程序运行锁」后会造成同步运行安全机制失效，需重新启动策略路由才可恢复。\n\n  确定要执行此操作吗？"))
+            return;
+        document.getElementById("toolsButton").disabled = true;
+        $("#toolsButton").hide();
+        $("#loadingToolsIcon").fadeIn(500);
+        document.getElementById("toolsTextArea").innerHTML = "";
+        unlockHeight = 0;
+        document.scriptActionsForm.action_script.value = 'start_LZUnlock';
+        document.scriptActionsForm.submit();
+    } else if (val == "0") {
+        let destIPVal = document.getElementById("destIP").value;
+        if (destIPVal == "") {
+            alert("「目标」不能为空！");
+            return;
+        }
+        if (!validator.targetDomainName($("#destIP")))
+            return;
+        let dnsIPAddressVal = document.getElementById("dnsIPAddress").value;
+        document.getElementById("toolsButton").disabled = true;
+        $("#toolsButton").hide();
+        $("#loadingToolsIcon").fadeIn(500);
+        document.getElementById("toolsTextArea").innerHTML = "";
+        addressHeight = 0;
+        document.scriptActionsForm.action_script.value = "start_LZAddress_#" + destIPVal + "#" + dnsIPAddressVal + "#";
+        document.scriptActionsForm.submit();
+    }
+}
+
+function initAjaxTextArea() {
+    document.getElementById('statusArea').scrollTop = 9999999;//make Scroll_y bottom
+    setTimeout(getStatus, 100);
+    document.getElementById('toolsTextArea').scrollTop = 9999999;//make Scroll_y bottom
+    setTimeout(getAddressInfo, 100);
+    setTimeout(getUnlockInfo, 100);
 }
 
 function initial() {
@@ -1099,18 +1359,27 @@ function initial() {
     initPolicyEnableCtrl();
     loadCustomSettings();
     if (isNewVersion()) {
-        if (!loadPolicySettings(1))
+        loadPolicyFlag = 1;
+        if (!loadPolicySettings()) {
+            loadPolicyFlag = 0;
             loadPolicySettings();
+        }
         restart = true;
-    } else if(!loadPolicySettings())
-        loadPolicySettings(1);
+    } else {
+        loadPolicyFlag = 0;
+        if(!loadPolicySettings()) {
+            loadPolicyFlag = 1;
+            loadPolicySettings();
+        }
+    }
     show_menu();
     initControls();
     inithideDivPage();
     initSwitchDivPage();
+    showLANIPList();
+    document.body.addEventListener("click", function(_evt) {control_dropdown_client_block("ClientList_Block_PC", "pull_arrow", _evt);});
+    initAjaxTextArea();
     if (restart) applyRule();
-    document.getElementById('statusArea').scrollTop = 9999999;//make Scroll_y bottom
-    setTimeout(getStatus, 100);
 }
 
 $(document).ready(function() {

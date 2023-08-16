@@ -1,5 +1,5 @@
 #!/bin/sh
-# lzinstall.sh v4.0.7
+# lzinstall.sh v4.0.8
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ RULE script for Asuswrt-Merlin Router
@@ -9,7 +9,7 @@
 
 #BEIGIN
 
-LZ_VERSION=v4.0.7
+LZ_VERSION=v4.0.8
 TIMEOUT=10
 CURRENT_PATH="${0%/*}"
 [ "${CURRENT_PATH:0:1}" != '/' ] && CURRENT_PATH="$( pwd )${CURRENT_PATH#*.}"
@@ -147,6 +147,7 @@ PATH_CONFIGS="${PATH_LZ}/configs"
 PATH_FUNC="${PATH_LZ}/func"
 PATH_JS="${PATH_LZ}/js"
 PATH_WEBS="${PATH_LZ}/webs"
+PATH_IMAGES="${PATH_LZ}/images"
 PATH_DATA="${PATH_LZ}/data"
 PATH_TMP="${PATH_LZ}/tmp"
 
@@ -154,6 +155,7 @@ mkdir -p "${PATH_CONFIGS}" > /dev/null 2>&1
 mkdir -p "${PATH_FUNC}" > /dev/null 2>&1
 mkdir -p "${PATH_JS}" > /dev/null 2>&1
 mkdir -p "${PATH_WEBS}" > /dev/null 2>&1
+mkdir -p "${PATH_IMAGES}" > /dev/null 2>&1
 mkdir -p "${PATH_DATA}" > /dev/null 2>&1
 mkdir -p "${PATH_TMP}" > /dev/null 2>&1
 
@@ -166,6 +168,7 @@ cp -rpf "${CURRENT_PATH}/lz/configs" "${PATH_LZ}" > /dev/null 2>&1
 cp -rpf "${CURRENT_PATH}/lz/func" "${PATH_LZ}" > /dev/null 2>&1
 cp -rpf "${CURRENT_PATH}/lz/js" "${PATH_LZ}" > /dev/null 2>&1
 cp -rpf "${CURRENT_PATH}/lz/webs" "${PATH_LZ}" > /dev/null 2>&1
+cp -rpf "${CURRENT_PATH}/lz/images" "${PATH_LZ}" > /dev/null 2>&1
 
 find "${CURRENT_PATH}/lz/data" -name "*_cidr.txt" -print0 2> /dev/null | xargs -0 -I {} cp -rpf {} "${PATH_DATA}" > /dev/null 2>&1
 [ ! -f "${PATH_DATA}/custom_data_1.txt" ] && cp -rp "${CURRENT_PATH}/lz/data/custom_data_1.txt" "${PATH_DATA}" > /dev/null 2>&1
@@ -223,17 +226,26 @@ EOF_SERVICE_INTERFACE
         ! grep -m 1 '^.*$' "/jffs/scripts/service-event" | grep -q "^#!/bin/sh" \
             && sed -i 'l1 s:^.*\(#!/bin/sh.*$\):\1/g' "/jffs/scripts/service-event"
     fi
-    local cmd_str1="if echo \"\${2}\" | /bin/grep -q \"LZRule\"; then if [ \"\${1}\" = \"start\" ] || [ \"\${1}\" = \"restart\" ]; then \"${PATH_LZ}/lz_rule.sh\"; elif [ \"\${1}\" = \"stop\" ]; then \"${PATH_LZ}/lz_rule.sh\" \"STOP\"; fi fi"
-    local cmd_str2="if echo \"\${2}\" | /bin/grep -q \"LZStatus\"; then if [ \"\${1}\" = \"start\" ] || [ \"\${1}\" = \"restart\" ]; then \"${PATH_LZ}/lz_rule.sh\" \"status\"; fi fi"
+    local cmd_str1="if [ \"\${2}\" = \"LZRule\" ]; then if [ \"\${1}\" = \"start\" ] || [ \"\${1}\" = \"restart\" ]; then \"${PATH_LZ}/lz_rule.sh\"; elif [ \"\${1}\" = \"stop\" ]; then \"${PATH_LZ}/lz_rule.sh\" \"STOP\"; fi fi"
+    local cmd_str2="if [ \"\${2}\" = \"LZStatus\" ]; then if [ \"\${1}\" = \"start\" ] || [ \"\${1}\" = \"restart\" ]; then \"${PATH_LZ}/lz_rule.sh\" \"status\"; fi fi"
+    local cmd_str3="if [ \"\${2}\" = \"LZUnlock\" ]; then if [ \"\${1}\" = \"start\" ] || [ \"\${1}\" = \"restart\" ]; then \"${PATH_LZ}/lz_rule.sh\" \"unlock\"; fi fi"
+    local cmd_str4="if [ \"\${2}\" = \"LZDefault\" ]; then if [ \"\${1}\" = \"start\" ] || [ \"\${1}\" = \"restart\" ]; then \"${PATH_LZ}/lz_rule.sh\" \"default\"; fi fi"
+    local cmd_str5="if [ \"\${2%%_*}\" = \"LZAddress\" ]; then if [ \"\${1}\" = \"start\" ] || [ \"\${1}\" = \"restart\" ]; then \"${PATH_LZ}/${PROJECT_FILENAME}\" \"address\" \"\$( echo \"\${2}\" | cut -f2 -d'#' )\" \"\$( echo \"\${2}\" | cut -f3 -d'#' )\"; fi fi"
     if ! grep -qE "LZRule.*start.*restart.*${PATH_LZ}/lz_rule[\.]sh.*stop.*${PATH_LZ}/lz_rule[\.]sh.*STOP\"; fi fi" "/jffs/scripts/service-event" \
-        || ! grep -qE "LZStatus.*start.*restart.*${PATH_LZ}/lz_rule[\.]sh.*status\"; fi fi" "/jffs/scripts/service-event"; then
-        sed -i -e "/LZRule/d" -e "/LZStatus/d" "/jffs/scripts/service-event"
-        printf "\n%s # Added by LZ\n%s # Added by LZ\n" "${cmd_str1}" "${cmd_str2}" >> "/jffs/scripts/service-event"
+        || ! grep -qE "LZStatus.*start.*restart.*${PATH_LZ}/lz_rule[\.]sh.*status\"; fi fi" "/jffs/scripts/service-event" \
+        || ! grep -qE "LZUnlock.*start.*restart.*${PATH_LZ}/lz_rule[\.]sh.*unlock\"; fi fi" "/jffs/scripts/service-event" \
+        || ! grep -qE "LZDefault.*start.*restart.*${PATH_LZ}/lz_rule[\.]sh.*default\"; fi fi" "/jffs/scripts/service-event" \
+        || ! grep -qE "LZAddress.*start.*restart.*${PATH_LZ}/lz_rule[\.]sh.*address.*cut.*echo.*cut.*)\"; fi fi" "/jffs/scripts/service-event"; then
+        sed -i -e "/LZRule/d" -e "/LZStatus/d" -e "/LZUnlock/d" -e "/LZDefault/d" -e "/LZAddress/d" "/jffs/scripts/service-event"
+        printf "\n%s # Added by LZ\n%s # Added by LZ\n%s # Added by LZ\n%s # Added by LZ\n%s # Added by LZ\n" "${cmd_str1}" "${cmd_str2}" "${cmd_str3}" "${cmd_str4}" "${cmd_str5}" >> "/jffs/scripts/service-event"
         sed -i "/^[ \t]*$/d" "/jffs/scripts/service-event"
     fi
     chmod +x "/jffs/scripts/service-event"
     { ! grep -qE "LZRule.*start.*restart.*${PATH_LZ}/lz_rule[\.]sh.*stop.*${PATH_LZ}/lz_rule[\.]sh.*STOP\"; fi fi" "/jffs/scripts/service-event" \
-        || ! grep -qE "LZStatus.*start.*restart.*${PATH_LZ}/lz_rule[\.]sh.*status\"; fi fi" "/jffs/scripts/service-event"; } && return "1"
+        || ! grep -qE "LZStatus.*start.*restart.*${PATH_LZ}/lz_rule[\.]sh.*status\"; fi fi" "/jffs/scripts/service-event" \
+        || ! grep -qE "LZUnlock.*start.*restart.*${PATH_LZ}/lz_rule[\.]sh.*unlock\"; fi fi" "/jffs/scripts/service-event" \
+        || ! grep -qE "LZDefault.*start.*restart.*${PATH_LZ}/lz_rule[\.]sh.*default\"; fi fi" "/jffs/scripts/service-event" \
+        || ! grep -qE "LZAddress.*start.*restart.*${PATH_LZ}/lz_rule[\.]sh.*address.*cut.*echo.*cut.*)\"; fi fi" "/jffs/scripts/service-event"; } && return "1"
     return "0"
 }
 
@@ -291,12 +303,18 @@ lz_mount_web_ui() {
         fi
         rm -f "$PATH_WEB_LZR/"* > /dev/null 2>&1
         ln -s "${PATH_JS}/lz_policy_routing.js" "${PATH_WEB_LZR}/lz_policy_routing.js" > /dev/null 2>&1
+        ln -s "${PATH_IMAGES}/favicon.png" "${PATH_WEB_LZR}/favicon.png" > /dev/null 2>&1
+        ln -s "${PATH_IMAGES}/InternetScan.gif" "${PATH_WEB_LZR}/InternetScan.gif" > /dev/null 2>&1
+        ln -s "${PATH_IMAGES}/arrow-down.gif" "${PATH_WEB_LZR}/arrow-down.gif" > /dev/null 2>&1
+        ln -s "${PATH_IMAGES}/arrow-top.gif" "${PATH_WEB_LZR}/arrow-top.gif" > /dev/null 2>&1
         ln -s "/jffs/scripts/firewall-start" "${PATH_WEB_LZR}/LZRState.html" > /dev/null 2>&1
         ln -s "${PATH_LZ}/lz_rule.sh" "${PATH_WEB_LZR}/LZRVersion.html" > /dev/null 2>&1
         ln -s "${PATH_CONFIGS}/lz_rule_config.sh" "${PATH_WEB_LZR}/LZRConfig.html" > /dev/null 2>&1
         ln -s "${PATH_CONFIGS}/lz_rule_config.box" "${PATH_WEB_LZR}/LZRBKData.html" > /dev/null 2>&1
         ln -s "${PATH_FUNC}/lz_define_global_variables.sh" "${PATH_WEB_LZR}/LZRGlobal.html" > /dev/null 2>&1
         ln -s "${PATH_TMP}/status.log" "${PATH_WEB_LZR}/LZRStatus.html" > /dev/null 2>&1
+        ln -s "${PATH_TMP}/unlock.log" "${PATH_WEB_LZR}/LZRUnlock.html" > /dev/null 2>&1
+        ln -s "${PATH_TMP}/address.log" "${PATH_WEB_LZR}/LZRAddress.html" > /dev/null 2>&1
         ! which md5sum > /dev/null 2>&1 && break
         local page_name="$( lz_get_webui_page )"
         [ -z "${page_name}" ] && break

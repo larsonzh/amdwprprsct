@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_initialize_config.sh v4.0.7
+# lz_initialize_config.sh v4.0.8
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 初始化脚本配置
@@ -1453,7 +1453,7 @@ lz_get_config_data() {
                 || $1 == "custom_config_scripts_filename" \
                 || $1 == "custom_dualwan_scripts_filename") {
                 flag=2;
-                if (value !~ /^[\"]([\/][a-zA-Z0-9_\-][a-zA-Z0-9_\-\.]*)+[\"]$|^([\/][a-zA-Z0-9_\-][a-zA-Z0-9_\-\.]*)+$/ \
+                if ((value !~ /^[\"]([\/][a-zA-Z0-9_\-][a-zA-Z0-9_\-\.]*)+[\"]$/ && value !~ /^([\/][a-zA-Z0-9_\-][a-zA-Z0-9_\-\.]*)+$/) \
                     || value ~ /[\.][\.]/)
                     invalid=2;
             } else if ($1 == "pre_dns") {
@@ -2009,7 +2009,7 @@ lz_get_box_data() {
                 || key == "custom_config_scripts_filename" \
                 || key == "custom_dualwan_scripts_filename") {
                 flag=2;
-                if (value !~ /^[\"]([\/][a-zA-Z0-9_\-][a-zA-Z0-9_\-\.]*)+[\"]$|^([\/][a-zA-Z0-9_\-][a-zA-Z0-9_\-\.]*)+$/ \
+                if ((value !~ /^[\"]([\/][a-zA-Z0-9_\-][a-zA-Z0-9_\-\.]*)+[\"]$/ && value !~ /^([\/][a-zA-Z0-9_\-][a-zA-Z0-9_\-\.]*)+$/) \
                     || value ~ /[\.][\.]/)
                     invalid=2;
             } else if (key == "pre_dns") {

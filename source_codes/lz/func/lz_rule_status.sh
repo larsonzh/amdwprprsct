@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_status.sh v4.0.7
+# lz_rule_status.sh v4.0.8
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 显示脚本运行状态脚本
@@ -133,10 +133,9 @@ lz_unset_isp_wan_port_status_variable() {
 lz_get_ipv4_data_file_item_total_status() {
     local retval="0"
     [ -f "${1}" ] && {
-        retval="$( sed -e '/^[ \t]*[#]/d' -e 's/[#].*$//g' -e 's/[ \t][ \t]*/ /g' -e 's/^[ ]//' -e 's/[ ]$//' -e '/^[ ]*$/d' "${1}" 2> /dev/null \
-            | awk -v count="0" '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
+        retval="$( awk -v count="0" '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
             && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
-            && NF >= "1" && !i[$1]++ {count++} END{print count}' )"
+            && NF >= "1" && !i[$1]++ {count++} END{print count}' "${1}" )"
     }
     echo "${retval}"
 }
@@ -149,11 +148,10 @@ lz_get_ipv4_data_file_item_total_status() {
 lz_get_ipv4_data_file_valid_item_total_status() {
     local retval="0"
     [ -f "${1}" ] && {
-        retval="$( sed -e '/^[ \t]*[#]/d' -e 's/[#].*$//g' -e 's/[ \t][ \t]*/ /g' -e 's/^[ ]//' -e 's/[ ]$//' -e '/^[ ]*$/d' "${1}" 2> /dev/null \
-            | awk -v count="0" '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
+        retval="$( awk -v count="0" '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
             && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
             && $1 != "0.0.0.0/0" \
-            && NF >= "1" && !i[$1]++ {count++} END{print count}' )"
+            && NF >= "1" && !i[$1]++ {count++} END{print count}' "${1}" )"
     }
     echo "${retval}"
 }
@@ -166,12 +164,11 @@ lz_get_ipv4_data_file_valid_item_total_status() {
 lz_get_ipv4_src_to_dst_data_file_item_total_status() {
     local retval="0"
     [ -f "${1}" ] && {
-        retval="$( sed -e '/^[ \t]*[#]/d' -e 's/[#].*$//g' -e 's/[ \t][ \t]*/ /g' -e 's/^[ ]//' -e 's/[ ]$//' -e '/^[ ]*$/d' "${1}" 2> /dev/null \
-            | awk -v count="0" '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
+        retval="$( awk -v count="0" '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
             && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
             && $2 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
             && $2 !~ /[3-9][0-9][0-9]/ && $2 !~ /[2][6-9][0-9]/ && $2 !~ /[2][5][6-9]/ && $2 !~ /[\/][4-9][0-9]/ && $2 !~ /[\/][3][3-9]/ \
-            && NF >= "2" && !i[$1"_"$2]++ {count++} END{print count}' )"
+            && NF >= "2" && !i[$1"_"$2]++ {count++} END{print count}' "${1}" )"
     }
     echo "${retval}"
 }
@@ -200,8 +197,7 @@ lz_get_domain_data_file_item_total_status() {
 lz_get_unkonwn_ipv4_src_addr_data_file_item_status() {
     local retval="1"
     [ -f "${1}" ] && {
-        retval="$( sed -e '/^[ \t]*[#]/d' -e 's/[#].*$//g' -e 's/[ \t][ \t]*/ /g' -e 's/^[ ]//' -e 's/[ ]$//' -e '/^[ ]*$/d' "${1}" 2> /dev/null \
-            | awk '$1 == "0.0.0.0/0" && NF >= "1" {print "0"; exit}' )"
+        retval="$( awk '$1 == "0.0.0.0/0" && NF >= "1" {print "0"; exit}' "${1}" )"
         [ -z "${retval}" ] && retval="1"
     }
     return "${retval}"
@@ -216,8 +212,7 @@ lz_get_unkonwn_ipv4_src_addr_data_file_item_status() {
 lz_get_unkonwn_ipv4_src_dst_addr_data_file_item_status() {
     local retval="1"
     [ -f "${1}" ] && {
-        retval="$( sed -e '/^[ \t]*[#]/d' -e 's/[#].*$//g' -e 's/[ \t][ \t]*/ /g' -e 's/^[ ]//' -e 's/[ ]$//' -e '/^[ ]*$/d' "${1}" 2> /dev/null \
-            | awk '$1 == "0.0.0.0/0" && $2 == "0.0.0.0/0" && NF >= "2" {print "0"; exit}' )"
+        retval="$( awk '$1 == "0.0.0.0/0" && $2 == "0.0.0.0/0" && NF >= "2" {print "0"; exit}' "${1}" )"
         [ -z "${retval}" ] && retval="1"
     }
     return "${retval}"
@@ -232,8 +227,7 @@ lz_get_unkonwn_ipv4_src_dst_addr_data_file_item_status() {
 lz_get_unkonwn_ipv4_src_dst_addr_port_data_file_item_status() {
     local retval="1"
     [ -f "${1}" ] && {
-        retval="$( sed -e '/^[ \t]*[#]/d' -e 's/[#].*$//g' -e 's/[ \t][ \t]*/ /g' -e 's/^[ ]//' -e 's/[ ]$//' -e '/^[ ]*$/d' "${1}" 2> /dev/null \
-            | awk '$1 == "0.0.0.0/0" && $2 == "0.0.0.0/0" && NF == "2" {print "0"; exit}' )"
+        retval="$( awk '$1 == "0.0.0.0/0" && $2 == "0.0.0.0/0" && NF == "2" {print "0"; exit}' "${1}" )"
         [ -z "${retval}" ] && retval="1"
     }
     return "${retval}"
@@ -247,13 +241,12 @@ lz_get_unkonwn_ipv4_src_dst_addr_port_data_file_item_status() {
 lz_get_ipv4_src_dst_addr_port_data_file_item_total_status() {
     local retval="0"
     [ -f "${1}" ] && {
-        retval="$( sed -e '/^[ \t]*[#]/d' -e 's/[#].*$//g' -e 's/[ \t][ \t]*/ /g' -e 's/^[ ]//' -e 's/[ ]$//' -e '/^[ ]*$/d' "${1}" 2> /dev/null \
-            | tr '[:A-Z:]' '[:a-z:]' \
-            | awk '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
+        retval="$( awk '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
             && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
             && $2 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
             && $2 !~ /[3-9][0-9][0-9]/ && $2 !~ /[2][6-9][0-9]/ && $2 !~ /[2][5][6-9]/ && $2 !~ /[\/][4-9][0-9]/ && $2 !~ /[\/][3][3-9]/ \
-            && NF >= "2" && !i[$1"_"$2"_"$3"_"$4]++ {print $1,$2,$3,$4}' \
+            && NF >= "2" && !i[$1"_"$2"_"$3"_"$4]++ {print $1,$2,$3,$4}' "${1}" \
+            | tr '[:A-Z:]' '[:a-z:]' \
             | awk -v count="0" '$3 ~ /^tcp$|^udp$|^udplite$|^sctp$/ && $4 ~ /^[1-9][0-9,:]*[0-9]$/ && NF == "4" {
                 count++
                 next
@@ -424,36 +417,36 @@ lz_init_cfg_data_status() {
     [ "${status_isp_wan_port_9-undefined}" = "undefined" ] && status_isp_wan_port_9=0
     [ "${status_isp_wan_port_10-undefined}" = "undefined" ] && status_isp_wan_port_10=0
     [ "${status_custom_data_wan_port_1-undefined}" = "undefined" ] && status_custom_data_wan_port_1=5
-    [ "${status_custom_data_file_1-undefined}" = "undefined" ] && status_custom_data_file_1="\"${PATH_DATA}/custom_data_1.txt\""
+    [ "${status_custom_data_file_1-undefined}" = "undefined" ] && status_custom_data_file_1="${PATH_DATA}/custom_data_1.txt"
     [ "${status_custom_data_wan_port_2-undefined}" = "undefined" ] && status_custom_data_wan_port_2=5
-    [ "${status_custom_data_file_2-undefined}" = "undefined" ] && status_custom_data_file_2="\"${PATH_DATA}/custom_data_2.txt\""
+    [ "${status_custom_data_file_2-undefined}" = "undefined" ] && status_custom_data_file_2="${PATH_DATA}/custom_data_2.txt"
     [ "${status_wan_1_domain-undefined}" = "undefined" ] && status_wan_1_domain=5
-    [ "${status_wan_1_domain_client_src_addr_file-undefined}" = "undefined" ] && status_wan_1_domain_client_src_addr_file="\"${PATH_DATA}/wan_1_domain_client_src_addr.txt\""
-    [ "${status_wan_1_domain_file-undefined}" = "undefined" ] && status_wan_1_domain_file="\"${PATH_DATA}/wan_1_domain.txt\""
+    [ "${status_wan_1_domain_client_src_addr_file-undefined}" = "undefined" ] && status_wan_1_domain_client_src_addr_file="${PATH_DATA}/wan_1_domain_client_src_addr.txt"
+    [ "${status_wan_1_domain_file-undefined}" = "undefined" ] && status_wan_1_domain_file="${PATH_DATA}/wan_1_domain.txt"
     [ "${status_wan_2_domain-undefined}" = "undefined" ] && status_wan_2_domain=5
-    [ "${status_wan_2_domain_client_src_addr_file-undefined}" = "undefined" ] && status_wan_2_domain_client_src_addr_file="\"${PATH_DATA}/wan_2_domain_client_src_addr.txt\""
-    [ "${status_wan_2_domain_file-undefined}" = "undefined" ] && status_wan_2_domain_file="\"${PATH_DATA}/wan_2_domain.txt\""
+    [ "${status_wan_2_domain_client_src_addr_file-undefined}" = "undefined" ] && status_wan_2_domain_client_src_addr_file="${PATH_DATA}/wan_2_domain_client_src_addr.txt"
+    [ "${status_wan_2_domain_file-undefined}" = "undefined" ] && status_wan_2_domain_file="${PATH_DATA}/wan_2_domain.txt"
     [ "${status_wan_1_client_src_addr-undefined}" = "undefined" ] && status_wan_1_client_src_addr=5
-    [ "${status_wan_1_client_src_addr_file-undefined}" = "undefined" ] && status_wan_1_client_src_addr_file="\"${PATH_DATA}/wan_1_client_src_addr.txt\""
+    [ "${status_wan_1_client_src_addr_file-undefined}" = "undefined" ] && status_wan_1_client_src_addr_file="${PATH_DATA}/wan_1_client_src_addr.txt"
     [ "${status_wan_2_client_src_addr-undefined}" = "undefined" ] && status_wan_2_client_src_addr=5
-    [ "${status_wan_2_client_src_addr_file-undefined}" = "undefined" ] && status_wan_2_client_src_addr_file="\"${PATH_DATA}/wan_2_client_src_addr.txt\""
+    [ "${status_wan_2_client_src_addr_file-undefined}" = "undefined" ] && status_wan_2_client_src_addr_file="${PATH_DATA}/wan_2_client_src_addr.txt"
     [ "${status_high_wan_1_client_src_addr-undefined}" = "undefined" ] && status_high_wan_1_client_src_addr=5
-    [ "${status_high_wan_1_client_src_addr_file-undefined}" = "undefined" ] && status_high_wan_1_client_src_addr_file="\"${PATH_DATA}/high_wan_1_client_src_addr.txt\""
+    [ "${status_high_wan_1_client_src_addr_file-undefined}" = "undefined" ] && status_high_wan_1_client_src_addr_file="${PATH_DATA}/high_wan_1_client_src_addr.txt"
     [ "${status_high_wan_2_client_src_addr-undefined}" = "undefined" ] && status_high_wan_2_client_src_addr=5
-    [ "${status_high_wan_2_client_src_addr_file-undefined}" = "undefined" ] && status_high_wan_2_client_src_addr_file="\"${PATH_DATA}/high_wan_2_client_src_addr.txt\""
+    [ "${status_high_wan_2_client_src_addr_file-undefined}" = "undefined" ] && status_high_wan_2_client_src_addr_file="${PATH_DATA}/high_wan_2_client_src_addr.txt"
     [ "${status_wan_1_src_to_dst_addr-undefined}" = "undefined" ] && status_wan_1_src_to_dst_addr=5
-    [ "${status_wan_1_src_to_dst_addr_file-undefined}" = "undefined" ] && status_wan_1_src_to_dst_addr_file="\"${PATH_DATA}/wan_1_src_to_dst_addr.txt\""
+    [ "${status_wan_1_src_to_dst_addr_file-undefined}" = "undefined" ] && status_wan_1_src_to_dst_addr_file="${PATH_DATA}/wan_1_src_to_dst_addr.txt"
     [ "${status_wan_2_src_to_dst_addr-undefined}" = "undefined" ] && status_wan_2_src_to_dst_addr=5
-    [ "${status_wan_2_src_to_dst_addr_file-undefined}" = "undefined" ] && status_wan_2_src_to_dst_addr_file="\"${PATH_DATA}/wan_2_src_to_dst_addr.txt\""
+    [ "${status_wan_2_src_to_dst_addr_file-undefined}" = "undefined" ] && status_wan_2_src_to_dst_addr_file="${PATH_DATA}/wan_2_src_to_dst_addr.txt"
     [ "${status_high_wan_1_src_to_dst_addr-undefined}" = "undefined" ] && status_high_wan_1_src_to_dst_addr=5
-    [ "${status_high_wan_1_src_to_dst_addr_file-undefined}" = "undefined" ] && status_high_wan_1_src_to_dst_addr_file="\"${PATH_DATA}/high_wan_1_src_to_dst_addr.txt\""
+    [ "${status_high_wan_1_src_to_dst_addr_file-undefined}" = "undefined" ] && status_high_wan_1_src_to_dst_addr_file="${PATH_DATA}/high_wan_1_src_to_dst_addr.txt"
     [ "${status_wan_1_src_to_dst_addr_port-undefined}" = "undefined" ] && status_wan_1_src_to_dst_addr_port=5
-    [ "${status_wan_1_src_to_dst_addr_port_file-undefined}" = "undefined" ] && status_wan_1_src_to_dst_addr_port_file="\"${PATH_DATA}/wan_1_src_to_dst_addr_port.txt\""
+    [ "${status_wan_1_src_to_dst_addr_port_file-undefined}" = "undefined" ] && status_wan_1_src_to_dst_addr_port_file="${PATH_DATA}/wan_1_src_to_dst_addr_port.txt"
     [ "${status_wan_2_src_to_dst_addr_port-undefined}" = "undefined" ] && status_wan_2_src_to_dst_addr_port=5
-    [ "${status_wan_2_src_to_dst_addr_port_file-undefined}" = "undefined" ] && status_wan_2_src_to_dst_addr_port_file="\"${PATH_DATA}/wan_2_src_to_dst_addr_port.txt\""
+    [ "${status_wan_2_src_to_dst_addr_port_file-undefined}" = "undefined" ] && status_wan_2_src_to_dst_addr_port_file="${PATH_DATA}/wan_2_src_to_dst_addr_port.txt"
     [ "${status_high_wan_1_src_to_dst_addr_port-undefined}" = "undefined" ] && status_high_wan_1_src_to_dst_addr_port=5
-    [ "${status_high_wan_1_src_to_dst_addr_port_file-undefined}" = "undefined" ] && status_high_wan_1_src_to_dst_addr_port_file="\"${PATH_DATA}/high_wan_1_src_to_dst_addr_port.txt\""
-    [ "${status_local_ipsets_file-undefined}" = "undefined" ] && status_local_ipsets_file="\"${PATH_DATA}/local_ipsets_data.txt\""
+    [ "${status_high_wan_1_src_to_dst_addr_port_file-undefined}" = "undefined" ] && status_high_wan_1_src_to_dst_addr_port_file="${PATH_DATA}/high_wan_1_src_to_dst_addr_port.txt"
+    [ "${status_local_ipsets_file-undefined}" = "undefined" ] && status_local_ipsets_file="${PATH_DATA}/local_ipsets_data.txt"
     [ "${status_wan_access_port-undefined}" = "undefined" ] && status_wan_access_port=0
     [ "${status_ovs_client_wan_port-undefined}" = "undefined" ] && status_ovs_client_wan_port=0
     [ "${status_vpn_client_polling_time-undefined}" = "undefined" ] && status_vpn_client_polling_time=5
@@ -465,8 +458,8 @@ lz_init_cfg_data_status() {
     [ "${status_wan2_iptv_mode-undefined}" = "undefined" ] && status_wan2_iptv_mode=5
     [ "${status_iptv_igmp_switch-undefined}" = "undefined" ] && status_iptv_igmp_switch=5
     [ "${status_iptv_access_mode-undefined}" = "undefined" ] && status_iptv_access_mode=1
-    [ "${status_iptv_box_ip_lst_file-undefined}" = "undefined" ] && status_iptv_box_ip_lst_file="\"${PATH_DATA}/iptv_box_ip_lst.txt\""
-    [ "${status_iptv_isp_ip_lst_file-undefined}" = "undefined" ] && status_iptv_isp_ip_lst_file="\"${PATH_DATA}/iptv_isp_ip_lst.txt\""
+    [ "${status_iptv_box_ip_lst_file-undefined}" = "undefined" ] && status_iptv_box_ip_lst_file="${PATH_DATA}/iptv_box_ip_lst.txt"
+    [ "${status_iptv_isp_ip_lst_file-undefined}" = "undefined" ] && status_iptv_isp_ip_lst_file="${PATH_DATA}/iptv_isp_ip_lst.txt"
     [ "${status_wan1_udpxy_switch-undefined}" = "undefined" ] && status_wan1_udpxy_switch=5
     [ "${status_wan1_udpxy_port-undefined}" = "undefined" ] && status_wan1_udpxy_port=8686
     [ "${status_wan2_udpxy_switch-undefined}" = "undefined" ] && status_wan2_udpxy_switch=5
@@ -699,18 +692,15 @@ lz_get_box_data_status() {
                 || key == "status_iptv_box_ip_lst_file" \
                 || key == "status_iptv_isp_ip_lst_file") {
                 flag=2;
-                if (value !~ /^[\"]([\/][a-zA-Z0-9_\-][a-zA-Z0-9_\-\.]*)+[\"]$|^([\/][a-zA-Z0-9_\-][a-zA-Z0-9_\-\.]*)+$/ \
+                if ((value !~ /^[\"]([\/][a-zA-Z0-9_\-][a-zA-Z0-9_\-\.]*)+[\"]$/ && value !~ /^([\/][a-zA-Z0-9_\-][a-zA-Z0-9_\-\.]*)+$/) \
                     || value ~ /[\.][\.]/)
                     invalid=2;
             }
             if (flag == 0) next;
             if (invalid == 2)
-                value="\\\""i[key]"\\\"";
+                value="\""i[key]"\"";
             else if (invalid != 0 && invalid != 6)
                 value=i[key];
-            if (flag == 2 && invalid != 2 \
-                && match(value, /^[\"][^\"]*[\"]$/) > 0)
-                value="\\\""value"\\\"";
             print key"="value;
             if (invalid != 6) count++;
             if (count == total) exit;
@@ -1490,11 +1480,11 @@ lz_add_net_address_status_sets() {
     local NOMATCH=""
     [ "${3}" != "0" ] && NOMATCH=" nomatch"
     ipset -q create "${2}" nethash maxelem 4294967295 #--hashsize 1024 mexleme 65536
-    sed -e '/^[ \t]*[#]/d' -e 's/[#].*$//g' -e 's/[ \t][ \t]*/ /g' -e 's/^[ ]//' -e 's/[ ]$//' -e '/^[ ]*$/d' "${1}" 2> /dev/null \
-        | awk '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
+    awk '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
         && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
         && $1 != "0.0.0.0/0" \
-        && NF >= "1" && !i[$1]++ {print "'"-! del ${2} "'"$1"'"\n-! add ${2} "'"$1"'"${NOMATCH}"'"} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
+        && NF >= "1" && !i[$1]++ {print "'"-! del ${2} "'"$1"'"\n-! add ${2} "'"$1"'"${NOMATCH}"'"} END{print "COMMIT"}' "${1}" \
+        | ipset restore > /dev/null 2>&1
 }
 
 ## 获取路由器WAN出口IPv4公网IP地址状态函数
@@ -3196,6 +3186,7 @@ __status_main() {
     fi
 }
 
+sed -i '1,$d' "${STATUS_LOG}" 2> /dev/null
 {
     echo "$(lzdate) [$$]: "
     echo "$(lzdate)" [$$]: LZ "${LZ_VERSION}" script commands start......
@@ -3203,7 +3194,7 @@ __status_main() {
     echo "$(lzdate)" [$$]: ---------------------------------------------
     echo "$(lzdate)" [$$]: Location: "${PATH_LZ}"
     echo "$(lzdate)" [$$]: ---------------------------------------------
-} > "${STATUS_LOG}" 2> /dev/null
+} >> "${STATUS_LOG}" 2> /dev/null
 
 if [ ! -f "${PATH_CONFIGS}/lz_rule_config.box" ]; then
     echo "$(lzdate)" [$$]: LZ "${LZ_VERSION}" script hasn\'t been started and initialized, please restart. | tee -ai "${STATUS_LOG}" 2> /dev/null

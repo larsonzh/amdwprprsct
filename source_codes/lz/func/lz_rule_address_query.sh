@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_address_query.sh v4.0.7
+# lz_rule_address_query.sh v4.0.8
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 网址信息查询脚本
@@ -89,10 +89,9 @@ lz_aq_unset_isp_wan_port_variable() {
 lz_aq_get_ipv4_data_file_item_total() {
     local retval="0"
     [ -f "${1}" ] && {
-        retval="$( sed -e '/^[ \t]*[#]/d' -e 's/[#].*$//g' -e 's/[ \t][ \t]*/ /g' -e 's/^[ ]//' -e 's/[ ]$//' -e '/^[ ]*$/d' "${1}" 2> /dev/null \
-            | awk -v count="0" '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
+        retval="$( awk -v count="0" '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
             && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
-            && NF >= "1" && !i[$1]++ {count++} END{print count}' )"
+            && NF >= "1" && !i[$1]++ {count++} END{print count}' "${1}" )"
     }
     echo "${retval}"
 }
@@ -106,8 +105,7 @@ lz_aq_get_ipv4_data_file_item_total() {
 lz_aq_get_unkonwn_ipv4_src_addr_data_file_item() {
     local retval="1"
     [ -f "${1}" ] && {
-        retval="$( sed -e '/^[ \t]*[#]/d' -e 's/[#].*$//g' -e 's/[ \t][ \t]*/ /g' -e 's/^[ ]//' -e 's/[ ]$//' -e '/^[ ]*$/d' "${1}" 2> /dev/null \
-            | awk '$1 == "0.0.0.0/0" && NF >= "1" {print "0"; exit}' )"
+        retval="$( awk '$1 == "0.0.0.0/0" && NF >= "1" {print "0"; exit}' "${1}" )"
         [ -z "${retval}" ] && retval="1"
     }
     return "${retval}"
@@ -122,8 +120,7 @@ lz_aq_get_unkonwn_ipv4_src_addr_data_file_item() {
 lz_aq_get_unkonwn_ipv4_src_dst_addr_data_file_item() {
     local retval="1"
     [ -f "${1}" ] && {
-        retval="$( sed -e '/^[ \t]*[#]/d' -e 's/[#].*$//g' -e 's/[ \t][ \t]*/ /g' -e 's/^[ ]//' -e 's/[ ]$//' -e '/^[ ]*$/d' "${1}" 2> /dev/null \
-            | awk '$1 == "0.0.0.0/0" && $2 == "0.0.0.0/0" && NF >= "2" {print "0"; exit}' )"
+        retval="$( awk '$1 == "0.0.0.0/0" && $2 == "0.0.0.0/0" && NF >= "2" {print "0"; exit}' "${1}" )"
         [ -z "${retval}" ] && retval="1"
     }
     return "${retval}"
@@ -138,8 +135,7 @@ lz_aq_get_unkonwn_ipv4_src_dst_addr_data_file_item() {
 lz_aq_get_unkonwn_ipv4_src_dst_addr_port_data_file_item() {
     local retval="1"
     [ -f "${1}" ] && {
-        retval="$( sed -e '/^[ \t]*[#]/d' -e 's/[#].*$//g' -e 's/[ \t][ \t]*/ /g' -e 's/^[ ]//' -e 's/[ ]$//' -e '/^[ ]*$/d' "${1}" 2> /dev/null \
-            | awk '$1 == "0.0.0.0/0" && $2 == "0.0.0.0/0" && NF == "2" {print "0"; exit}' )"
+        retval="$( awk '$1 == "0.0.0.0/0" && $2 == "0.0.0.0/0" && NF == "2" {print "0"; exit}' "${1}" )"
         [ -z "${retval}" ] && retval="1"
     }
     return "${retval}"
@@ -157,11 +153,11 @@ lz_aq_add_net_address_sets() {
     local NOMATCH=""
     [ "${3}" != "0" ] && NOMATCH=" nomatch"
     ipset -q create "${2}" nethash maxelem 4294967295 #--hashsize 1024 mexleme 65536
-    sed -e '/^[ \t]*[#]/d' -e 's/[#].*$//g' -e 's/[ \t][ \t]*/ /g' -e 's/^[ ]//' -e 's/[ ]$//' -e '/^[ ]*$/d' "${1}" 2> /dev/null \
-        | awk '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
+    awk '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
         && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
         && $1 != "0.0.0.0/0" \
-        && NF >= "1" && !i[$1]++ {print "'"-! del ${2} "'"$1"'"\n-! add ${2} "'"$1"'"${NOMATCH}"'"} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
+        && NF >= "1" && !i[$1]++ {print "'"-! del ${2} "'"$1"'"\n-! add ${2} "'"$1"'"${NOMATCH}"'"} END{print "COMMIT"}' "${1}" \
+        | ipset restore > /dev/null 2>&1
 }
 
 ## 创建或加载网段均分出口数据集函数
@@ -184,8 +180,7 @@ lz_aq_add_ed_net_address_sets() {
     [ "${3}" != "0" ] && NOMATCH=" nomatch"
     ipset -q create "${2}" nethash maxelem 4294967295 #--hashsize 1024 mexleme 65536
     [ "${5}" != "0" ] && local_ed_num="$(( local_ed_num + 1 ))"
-    sed -e '/^[ \t]*[#]/d' -e 's/[#].*$//g' -e 's/[ \t][ \t]*/ /g' -e 's/^[ ]//' -e 's/[ ]$//' -e '/^[ ]*$/d' "${1}" 2> /dev/null \
-        | awk -v count="0" -v criterion="${5}" -v ed_num="${local_ed_num}" '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
+    awk -v count="0" -v criterion="${5}" -v ed_num="${local_ed_num}" '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
         && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
         && NF >= "1" && !i[$1]++ {
             count++
@@ -194,7 +189,8 @@ lz_aq_add_ed_net_address_sets() {
                 if (count >= ed_num) exit
             }
             else if (count >= ed_num && $1 != "0.0.0.0/0") print "'"-! del ${2} "'"$1"'"\n-! add ${2} "'"$1"'"${NOMATCH}"'"
-        } END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
+        } END{print "COMMIT"}' "${1}" \
+        | ipset restore > /dev/null 2>&1
 }
 
 ## 创建或加载源网址/网段至目标网址/网段列表数据中未指明源网址/网段的目标网址/网段至数据集函数
@@ -209,12 +205,12 @@ lz_aq_add_dst_net_address_sets() {
     local NOMATCH=""
     [ "${3}" != "0" ] && NOMATCH=" nomatch"
     ipset -q create "${2}" nethash maxelem 4294967295 #--hashsize 1024 mexleme 65536
-    sed -e '/^[ \t]*[#]/d' -e 's/[#].*$//g' -e 's/[ \t][ \t]*/ /g' -e 's/^[ ]//' -e 's/[ ]$//' -e '/^[ ]*$/d' "${1}" 2> /dev/null \
-        | awk '$1 == "0.0.0.0/0" \
+    awk '$1 == "0.0.0.0/0" \
         && $2 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
         && $2 !~ /[3-9][0-9][0-9]/ && $2 !~ /[2][6-9][0-9]/ && $2 !~ /[2][5][6-9]/ && $2 !~ /[\/][4-9][0-9]/ && $2 !~ /[\/][3][3-9]/ \
         && $2 != "0.0.0.0/0" \
-        && NF >= "2" && !i[$1"_"$2]++ {print "'"-! del ${2} "'"$2"'"\n-! add ${2} "'"$2"'"${NOMATCH}"'"} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
+        && NF >= "2" && !i[$1"_"$2]++ {print "'"-! del ${2} "'"$2"'"\n-! add ${2} "'"$2"'"${NOMATCH}"'"} END{print "COMMIT"}' "${1}" \
+        | ipset restore > /dev/null 2>&1
 }
 
 ## 创建或加载客户端IPv4网址/网段至预设IPv4目标网址/网段协议端口动态分流条目列表数据中未指明源网址/网段的非协议端口目标网址/网段至数据集函数
@@ -229,13 +225,13 @@ lz_aq_add_client_dest_port_net_address_sets() {
     local NOMATCH=""
     [ "${3}" != "0" ] && NOMATCH=" nomatch"
     ipset -q create "${2}" nethash maxelem 4294967295 #--hashsize 1024 mexleme 65536
-    sed -e '/^[ \t]*[#]/d' -e 's/[#].*$//g' -e 's/[ \t][ \t]*/ /g' -e 's/^[ ]//' -e 's/[ ]$//' -e '/^[ ]*$/d' "${1}" 2> /dev/null \
-        | awk '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
+    awk '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
         && $1 == "0.0.0.0/0" \
         && $2 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
         && $2 !~ /[3-9][0-9][0-9]/ && $2 !~ /[2][6-9][0-9]/ && $2 !~ /[2][5][6-9]/ && $2 !~ /[\/][4-9][0-9]/ && $2 !~ /[\/][3][3-9]/ \
         && $2 != "0.0.0.0/0" \
-        && NF == "2" && !i[$1"_"$2]++ {print "'"-! del ${2} "'"$1"'"\n-! add ${2} "'"$1"'"${NOMATCH}"'"} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
+        && NF == "2" && !i[$1"_"$2]++ {print "'"-! del ${2} "'"$1"'"\n-! add ${2} "'"$1"'"${NOMATCH}"'"} END{print "COMMIT"}' "${1}" \
+        | ipset restore > /dev/null 2>&1
 }
 
 ## 获取IPSET数据集条目数函数
@@ -667,31 +663,31 @@ lz_aq_init_cfg_data() {
     [ "${aq_isp_wan_port_9-undefined}" = "undefined" ] && aq_isp_wan_port_9=0
     [ "${aq_isp_wan_port_10-undefined}" = "undefined" ] && aq_isp_wan_port_10=0
     [ "${aq_custom_data_wan_port_1-undefined}" = "undefined" ] && aq_custom_data_wan_port_1=5
-    [ "${aq_custom_data_file_1-undefined}" = "undefined" ] && aq_custom_data_file_1="\"${PATH_DATA}/custom_data_1.txt\""
+    [ "${aq_custom_data_file_1-undefined}" = "undefined" ] && aq_custom_data_file_1="${PATH_DATA}/custom_data_1.txt"
     [ "${aq_custom_data_wan_port_2-undefined}" = "undefined" ] && aq_custom_data_wan_port_2=5
-    [ "${aq_custom_data_file_2-undefined}" = "undefined" ] && aq_custom_data_file_2="\"${PATH_DATA}/custom_data_2.txt\""
+    [ "${aq_custom_data_file_2-undefined}" = "undefined" ] && aq_custom_data_file_2="${PATH_DATA}/custom_data_2.txt"
     [ "${aq_wan_1_domain-undefined}" = "undefined" ] && aq_wan_1_domain=5
     [ "${aq_wan_2_domain-undefined}" = "undefined" ] && aq_wan_2_domain=5
     [ "${aq_wan_1_client_src_addr-undefined}" = "undefined" ] && aq_wan_1_client_src_addr=5
-    [ "${aq_wan_1_client_src_addr_file-undefined}" = "undefined" ] && aq_wan_1_client_src_addr_file="\"${PATH_DATA}/wan_1_client_src_addr.txt\""
+    [ "${aq_wan_1_client_src_addr_file-undefined}" = "undefined" ] && aq_wan_1_client_src_addr_file="${PATH_DATA}/wan_1_client_src_addr.txt"
     [ "${aq_wan_2_client_src_addr-undefined}" = "undefined" ] && aq_wan_2_client_src_addr=5
-    [ "${aq_wan_2_client_src_addr_file-undefined}" = "undefined" ] && aq_wan_2_client_src_addr_file="\"${PATH_DATA}/wan_2_client_src_addr.txt\""
+    [ "${aq_wan_2_client_src_addr_file-undefined}" = "undefined" ] && aq_wan_2_client_src_addr_file="${PATH_DATA}/wan_2_client_src_addr.txt"
     [ "${aq_high_wan_1_client_src_addr-undefined}" = "undefined" ] && aq_high_wan_1_client_src_addr=5
-    [ "${aq_high_wan_1_client_src_addr_file-undefined}" = "undefined" ] && aq_high_wan_1_client_src_addr_file="\"${PATH_DATA}/high_wan_1_client_src_addr.txt\""
+    [ "${aq_high_wan_1_client_src_addr_file-undefined}" = "undefined" ] && aq_high_wan_1_client_src_addr_file="${PATH_DATA}/high_wan_1_client_src_addr.txt"
     [ "${aq_high_wan_2_client_src_addr-undefined}" = "undefined" ] && aq_high_wan_2_client_src_addr=5
-    [ "${aq_high_wan_2_client_src_addr_file-undefined}" = "undefined" ] && aq_high_wan_2_client_src_addr_file="\"${PATH_DATA}/high_wan_2_client_src_addr.txt\""
+    [ "${aq_high_wan_2_client_src_addr_file-undefined}" = "undefined" ] && aq_high_wan_2_client_src_addr_file="${PATH_DATA}/high_wan_2_client_src_addr.txt"
     [ "${aq_wan_1_src_to_dst_addr-undefined}" = "undefined" ] && aq_wan_1_src_to_dst_addr=5
-    [ "${aq_wan_1_src_to_dst_addr_file-undefined}" = "undefined" ] && aq_wan_1_src_to_dst_addr_file="\"${PATH_DATA}/wan_1_src_to_dst_addr.txt\""
+    [ "${aq_wan_1_src_to_dst_addr_file-undefined}" = "undefined" ] && aq_wan_1_src_to_dst_addr_file="${PATH_DATA}/wan_1_src_to_dst_addr.txt"
     [ "${aq_wan_2_src_to_dst_addr-undefined}" = "undefined" ] && aq_wan_2_src_to_dst_addr=5
-    [ "${aq_wan_2_src_to_dst_addr_file-undefined}" = "undefined" ] && aq_wan_2_src_to_dst_addr_file="\"${PATH_DATA}/wan_2_src_to_dst_addr.txt\""
+    [ "${aq_wan_2_src_to_dst_addr_file-undefined}" = "undefined" ] && aq_wan_2_src_to_dst_addr_file="${PATH_DATA}/wan_2_src_to_dst_addr.txt"
     [ "${aq_high_wan_1_src_to_dst_addr-undefined}" = "undefined" ] && aq_high_wan_1_src_to_dst_addr=5
-    [ "${aq_high_wan_1_src_to_dst_addr_file-undefined}" = "undefined" ] && aq_high_wan_1_src_to_dst_addr_file="\"${PATH_DATA}/high_wan_1_src_to_dst_addr.txt\""
+    [ "${aq_high_wan_1_src_to_dst_addr_file-undefined}" = "undefined" ] && aq_high_wan_1_src_to_dst_addr_file="${PATH_DATA}/high_wan_1_src_to_dst_addr.txt"
     [ "${aq_wan_1_src_to_dst_addr_port-undefined}" = "undefined" ] && aq_wan_1_src_to_dst_addr_port=5
-    [ "${aq_wan_1_src_to_dst_addr_port_file-undefined}" = "undefined" ] && aq_wan_1_src_to_dst_addr_port_file="\"${PATH_DATA}/wan_1_src_to_dst_addr_port.txt\""
+    [ "${aq_wan_1_src_to_dst_addr_port_file-undefined}" = "undefined" ] && aq_wan_1_src_to_dst_addr_port_file="${PATH_DATA}/wan_1_src_to_dst_addr_port.txt"
     [ "${aq_wan_2_src_to_dst_addr_port-undefined}" = "undefined" ] && aq_wan_2_src_to_dst_addr_port=5
-    [ "${aq_wan_2_src_to_dst_addr_port_file-undefined}" = "undefined" ] && aq_wan_2_src_to_dst_addr_port_file="\"${PATH_DATA}/wan_2_src_to_dst_addr_port.txt\""
+    [ "${aq_wan_2_src_to_dst_addr_port_file-undefined}" = "undefined" ] && aq_wan_2_src_to_dst_addr_port_file="${PATH_DATA}/wan_2_src_to_dst_addr_port.txt"
     [ "${aq_high_wan_1_src_to_dst_addr_port-undefined}" = "undefined" ] && aq_high_wan_1_src_to_dst_addr_port=5
-    [ "${aq_high_wan_1_src_to_dst_addr_port_file-undefined}" = "undefined" ] && aq_high_wan_1_src_to_dst_addr_port_file="\"${PATH_DATA}/high_wan_1_src_to_dst_addr_port.txt\""
+    [ "${aq_high_wan_1_src_to_dst_addr_port_file-undefined}" = "undefined" ] && aq_high_wan_1_src_to_dst_addr_port_file="${PATH_DATA}/high_wan_1_src_to_dst_addr_port.txt"
     [ "${aq_usage_mode-undefined}" = "undefined" ] && aq_usage_mode=0
 }
 
@@ -856,18 +852,15 @@ lz_aq_get_box_data() {
                 || key == "aq_wan_2_src_to_dst_addr_port_file" \
                 || key == "aq_high_wan_1_src_to_dst_addr_port_file") {
                 flag=2;
-                if (value !~ /^[\"]([\/][a-zA-Z0-9_\-][a-zA-Z0-9_\-\.]*)+[\"]$|^([\/][a-zA-Z0-9_\-][a-zA-Z0-9_\-\.]*)+$/ \
+                if ((value !~ /^[\"]([\/][a-zA-Z0-9_\-][a-zA-Z0-9_\-\.]*)+[\"]$/ && value !~ /^([\/][a-zA-Z0-9_\-][a-zA-Z0-9_\-\.]*)+$/) \
                     || value ~ /[\.][\.]/)
                     invalid=2;
             }
             if (flag == 0) next;
             if (invalid == 2)
-                value="\\\""i[key]"\\\"";
+                value="\""i[key]"\"";
             else if (invalid != 0 && invalid != 6)
                 value=i[key];
-            if (flag == 2 && invalid != 2 \
-                && match(value, /^[\"][^\"]*[\"]$/) > 0)
-                value="\\\""value"\\\"";
             print key"="value;
             if (invalid != 6) count++;
             if (count == total) exit;
@@ -973,9 +966,9 @@ lz_aq_resolve_ip() {
 ## 返回值：
 ##     显示网址信息
 lz_show_address_info() {
-    echo "$(lzdate)" [$$]: ---------------------------------------------
+    echo "$(lzdate)" [$$]: --------------------------------------------- | tee -ai "${ADDRESS_LOG}" 2> /dev/null
     if [ -z "${6}" ]; then
-        echo "$(lzdate)" [$$]: "  ${1}"
+        echo "$(lzdate)" [$$]: "  ${1}" | tee -ai "${ADDRESS_LOG}" 2> /dev/null
     else
         local local_space=""
         local x="${#1}"
@@ -984,24 +977,24 @@ lz_show_address_info() {
             local_space="${local_space} "
             x="$(( x + 1 ))"
         done
-        echo "$(lzdate)" [$$]: "  ${1}      ${local_space}${6}"
+        echo "$(lzdate)" [$$]: "  ${1}      ${local_space}${6}" | tee -ai "${ADDRESS_LOG}" 2> /dev/null
     fi
     if [ "${3}" = "$(( AQ_ISP_TOTAL + 1 ))" ]; then 
-        echo "$(lzdate)" [$$]: "  Local LAN address"
+        echo "$(lzdate)" [$$]: "  Local LAN address" | tee -ai "${ADDRESS_LOG}" 2> /dev/null
     elif [ "${3}" = "$(( AQ_ISP_TOTAL + 2 ))" ]; then 
         if [ "${2}" = "0" ]; then
-            echo "$(lzdate)" [$$]: "  Primary WAN          Local/Private IP"
+            echo "$(lzdate)" [$$]: "  Primary WAN          Local/Private IP" | tee -ai "${ADDRESS_LOG}" 2> /dev/null
         else
-            echo "$(lzdate)" [$$]: "  Local/Private address"
+            echo "$(lzdate)" [$$]: "  Local/Private address" | tee -ai "${ADDRESS_LOG}" 2> /dev/null
         fi
     elif [ "${3}" = "$(( AQ_ISP_TOTAL + 3 ))" ]; then 
         if [ "${2}" = "0" ]; then
-            echo "$(lzdate)" [$$]: "  Secondary WAN        Local/Private IP"
+            echo "$(lzdate)" [$$]: "  Secondary WAN        Local/Private IP" | tee -ai "${ADDRESS_LOG}" 2> /dev/null
         else
-            echo "$(lzdate)" [$$]: "  Local/Private address"
+            echo "$(lzdate)" [$$]: "  Local/Private address" | tee -ai "${ADDRESS_LOG}" 2> /dev/null
         fi
     elif [ "${3}" = "$(( AQ_ISP_TOTAL + 4 ))" ]; then 
-        echo "$(lzdate)" [$$]: "  Private network address"
+        echo "$(lzdate)" [$$]: "  Private network address" | tee -ai "${ADDRESS_LOG}" 2> /dev/null
     elif echo "${1}" | sed -e 's/^[ \t]*\([^ \t].*$\)/\1/g' -e 's/[ \t][ \t]*/ /g' -e 's/\(^.*[^ ]\)[ ]*$/\1/g' \
                 -e '/[3-9][0-9][0-9]/d' -e '/[2][6-9][0-9]/d' -e '/[2][5][6-9]/d' -e 's/\/.*$//g' \
                 | grep -qEo '^([0-9]{1,3}[\.]){3}[0-9]{1,3}$'; then
@@ -1009,25 +1002,25 @@ lz_show_address_info() {
             if [ "${4}" = "0" ]; then
                 local local_isp_wan_port="$( lz_aq_get_isp_wan_port "${3}" )"
                 if [ "${local_isp_wan_port}" = "0" ]; then
-                    echo "$(lzdate)" [$$]: "  Primary WAN          ${5}"
+                    echo "$(lzdate)" [$$]: "  Primary WAN          ${5}" | tee -ai "${ADDRESS_LOG}" 2> /dev/null
                 elif [ "${local_isp_wan_port}" = "1" ]; then
-                    echo "$(lzdate)" [$$]: "  Secondary WAN        ${5}"
+                    echo "$(lzdate)" [$$]: "  Secondary WAN        ${5}" | tee -ai "${ADDRESS_LOG}" 2> /dev/null
                 else
-                    echo "$(lzdate)" [$$]: "  Load Balancing       ${5}"
+                    echo "$(lzdate)" [$$]: "  Load Balancing       ${5}" | tee -ai "${ADDRESS_LOG}" 2> /dev/null
                 fi
             elif [ "${4}" = "1" ]; then
-                echo "$(lzdate)" [$$]: "  Primary WAN          ${5}"
+                echo "$(lzdate)" [$$]: "  Primary WAN          ${5}" | tee -ai "${ADDRESS_LOG}" 2> /dev/null
             else
-                echo "$(lzdate)" [$$]: "  Secondary WAN        ${5}"
+                echo "$(lzdate)" [$$]: "  Secondary WAN        ${5}" | tee -ai "${ADDRESS_LOG}" 2> /dev/null
             fi
         else
-            echo "$(lzdate)" [$$]: "  ${5}"
+            echo "$(lzdate)" [$$]: "  ${5}" | tee -ai "${ADDRESS_LOG}" 2> /dev/null
         fi
     else
-        echo "$(lzdate)" [$$]: "  Can't be resolved to an IPv4 address."
+        echo "$(lzdate)" [$$]: "  Can't be resolved to an IPv4 address." | tee -ai "${ADDRESS_LOG}" 2> /dev/null
     fi
     if [ "${10}" = "0" ]; then
-        echo "$(lzdate)" [$$]: ---------------------------------------------
+        echo "$(lzdate)" [$$]: --------------------------------------------- | tee -ai "${ADDRESS_LOG}" 2> /dev/null
         if [ -n "${7}" ]; then
             local local_dns_server_name="${8}"
             [ -z "${local_dns_server_name}" ] && local_dns_server_name="Anonymous DNS Host"
@@ -1038,9 +1031,11 @@ lz_show_address_info() {
                 local_space="${local_space} "
                 x="$(( x + 1 ))"
             done
-            echo "$(lzdate)" [$$]: "  Number of entries    ${9}"
-            echo "$(lzdate)" [$$]: "  ${7}      ${local_space}${local_dns_server_name}"
-            echo "$(lzdate)" [$$]: ---------------------------------------------
+            {
+                echo "$(lzdate)" [$$]: "  Number of entries    ${9}"
+                echo "$(lzdate)" [$$]: "  ${7}      ${local_space}${local_dns_server_name}"
+                echo "$(lzdate)" [$$]: ---------------------------------------------
+            } | tee -ai "${ADDRESS_LOG}" 2> /dev/null
         fi
     fi
 }
@@ -1391,7 +1386,7 @@ __aq_main() {
     lz_aq_get_box_data
 
     if [ "${aq_version}" != "${LZ_VERSION}" ]; then
-        echo "$(lzdate)" [$$]: LZ "${LZ_VERSION}" script hasn\'t been started and initialized, please restart.
+        echo "$(lzdate)" [$$]: LZ "${LZ_VERSION}" script hasn\'t been started and initialized, please restart. | tee -ai "${ADDRESS_LOG}" 2> /dev/null
         return
     fi
 
@@ -1417,17 +1412,28 @@ __aq_main() {
     elif ip route | grep -q default && [ -n "${aq_route_local_ip}" ] && [ -n "${aq_route_local_ip_cidr_mask}" ]; then
         lz_query_address "$( lz_aq_resolve_ip "${1}" "${2}" )"
     else
-        echo "$(lzdate)" [$$]: LZ "${LZ_VERSION}" script can\'t access the Internet, so the query function can\'t be used.
+        echo "$(lzdate)" [$$]: LZ "${LZ_VERSION}" "script can't access the Internet, so the query function can't be used." | tee -ai "${ADDRESS_LOG}" 2> /dev/null
     fi
 }
 
 if [ ! -f "${PATH_CONFIGS}/lz_rule_config.box" ]; then
-    echo "$(lzdate)" [$$]: LZ "${LZ_VERSION}" script hasn\'t been started and initialized, please restart.
+    echo "$(lzdate)" [$$]: LZ "${LZ_VERSION}" script hasn\'t been started and initialized, please restart. | tee -ai "${ADDRESS_LOG}" 2> /dev/null
     return
 fi
 
-echo "$(lzdate)" [$$]: Start network address information query.
-echo "$(lzdate)" [$$]: Don\'t interrupt \& please wait......
+sed -i '1,$d' "${ADDRESS_LOG}" 2> /dev/null
+{
+    echo "$(lzdate) [$$]: "
+    echo "$(lzdate)" [$$]: LZ "${LZ_VERSION}" script commands start......
+    echo "$(lzdate)" [$$]: By LZ \(larsonzhang@gmail.com\)
+    echo "$(lzdate)" [$$]: ---------------------------------------------
+    echo "$(lzdate)" [$$]: Location: "${PATH_LZ}"
+    echo "$(lzdate)" [$$]: ---------------------------------------------
+} >> "${ADDRESS_LOG}" 2> /dev/null
+{
+    echo "$(lzdate)" [$$]: Start network address information query.
+    echo "$(lzdate)" [$$]: Don\'t interrupt \& please wait......
+} | tee -ai "${ADDRESS_LOG}" 2> /dev/null
 
 ## 定义网址信息查询用常量
 lz_define_aq_constant
@@ -1448,5 +1454,10 @@ lz_unset_aq_parameter_variable
 
 ## 卸载网址信息查询用常量
 lz_uninstall_aq_constant
+
+{
+    echo "$(lzdate)" [$$]: LZ "${LZ_VERSION}" script commands executed!
+    echo "$(lzdate)" [$$]:
+} >> "${ADDRESS_LOG}" 2> /dev/null
 
 #END

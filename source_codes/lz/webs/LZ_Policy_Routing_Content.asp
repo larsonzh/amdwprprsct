@@ -6,12 +6,51 @@
             <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
             <meta HTTP-EQUIV="Pragma" CONTENT="no-cache">
             <meta HTTP-EQUIV="Expires" CONTENT="-1">
-            <link rel="shortcut icon" href="images/favicon.png">
-            <link rel="icon" href="images/favicon.png">
+            <link rel="shortcut icon" href="ext/lzr/favicon.png">
+            <link rel="icon" href="ext/lzr/favicon.png">
             <title>LZ - Policy Routing</title>
             <link rel="stylesheet" type="text/css" href="index_style.css">
             <link rel="stylesheet" type="text/css" href="form_style.css">
             <link rel="stylesheet" type="text/css" href="device-map/device-map.css">
+            <link rel="stylesheet" type="text/css" href="/js/table/table.css">
+            <style>
+            #ClientList_Block_PC {
+                border:1px outset #999;
+                background-color:#576D73;
+                position:absolute;
+                *margin-top:26px;
+                margin-left:2px;
+                *margin-left:-353px;
+                width:346px;
+                text-align:left;
+                height:auto;
+                overflow-y:auto;
+                z-index:200;
+                padding: 1px;
+                display:none;
+            }
+            #ClientList_Block_PC div {
+                background-color:#576D73;
+                height:auto;
+                *height:20px;
+                line-height:20px;
+                text-decoration:none;
+                font-family: Lucida Console;
+                padding-left:2px;
+            }
+            #ClientList_Block_PC a {
+                background-color:#EFEFEF;
+                color:#FFF;
+                font-size:12px;
+                font-family:Arial, Helvetica, sans-serif;
+                text-decoration:none;
+            }
+            #ClientList_Block_PC div:hover {
+                background-color:#3366FF;
+                color:#FFFFFF;
+                cursor:default;
+            }
+            </style>
             <script language="JavaScript" type="text/javascript" src="/state.js"></script>
             <script type="text/javascript" language="JavaScript" src="/help.js"></script>
             <script language="JavaScript" type="text/javascript" src="/general.js"></script>
@@ -30,10 +69,6 @@
                     async: false,
                     url: '/ext/lzr/LZRGlobal.html',
                     dataType: 'text',
-                    error: function(xhr) {
-                        if (xhr.status != 404)
-                            setTimeout(isNewVersion, 1000);
-                    },
                     success: function(result) {
                         retVal = (result.match(/QnkgTFog5aaZ5aaZ5ZGc77yI6Juk6J[\+]G5aKp5YS[\/]77yJ/m) != null) ? true : false;
                     }
@@ -878,6 +913,13 @@
                                                                     </td>
                                                                 </tr>
                                                             </table>
+                                                            <div class="apply_gen">
+                                                                <input name="statusButton" id="statusButton" type="button" class="button_gen" onclick="queryStatus()" value="获取运行状态"/>
+                                                                <img id="loadingStatusIcon" style="display:none;" src="/ext/lzr/InternetScan.gif">
+                                                            </div>
+                                                            <div style="margin-top:8px">
+                                                                <textarea cols="63" rows="27" wrap="off" readonly="readonly" id="statusArea" class="textarea_ssh_table" style="width:99%; font-family:'Courier New', Courier, mono; font-size:11px;"></textarea>
+                                                            </div>
                                                         </div>
                                                         <div id="iPTVConfig">
                                                             <table width="100%" border="1" align="center" cellpadding="4" cellspacing="0" bordercolor="#6b8fa3" class="FormTable">
@@ -1063,26 +1105,59 @@
                                                                 </tr>
                                                             </table>
                                                         </div>
+                                                        <div id="scriptTools">
+                                                            <table width="100%" border="1" align="center" cellpadding="4" cellspacing="0" bordercolor="#6b8fa3" class="FormTable">
+                                                                <thead>
+                                                                    <tr>
+                                                                        <td colspan="2"><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(85);">快捷命令</a></td>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tr>
+                                                                    <th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(86);">命令</a></th>
+                                                                    <td>
+                                                                        <select id="cmdMethod" name="cmdMethod" class="input_option" style="margin-left:2px;" onchange="hideCNT(this.value);">
+                                                                            <option value="0" selected>查询路由器出口</option>
+                                                                            <option value="1">解除程序运行锁</option>
+                                                                            <option value="2">恢复缺省配置参数 (慎重)&nbsp;</option>
+                                                                        </select>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr id="destIPCNT_tr">
+                                                                    <th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(87);">目标</a></th>
+                                                                    <td>
+                                                                        <input id="destIP" type="text" maxlength="100" class="input_32_table" name="destIP" onClick="hideClients_Block();" value="" onchange="checkdestIPTextField(this)" placeholder="ex: www.google.com" autocorrect="off" autocapitalize="off">
+                                                                        <img id="pull_arrow" height="14px;" src="/ext/lzr/arrow-down.gif" style="position:absolute;*margin-left:-3px;*margin-top:1px;" onclick="pullLANIPList(this);" title="选择互联网服务地址。" onmouseover="over_var=1;" onmouseout="over_var=0;">
+                                                                        <div id="ClientList_Block_PC" class="ClientList_Block_PC"></div>
+                                                                        <br />
+                                                                        <span id="alert_block" style="color:#FC0;display:none"></span>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr id="dnsIPAddressCNT_tr">
+                                                                    <th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(88);">DNS 服务器</a></th>
+                                                                    <td>
+                                                                        <input type="text" maxlength="15" class="input_15_table" id="dnsIPAddress" name="dnsIPAddress" value="" onKeyPress="return validator.isIPAddr(this, event);" onchange="checkDNSIPaddrField(this)" placeholder="ex: 8.8.8.8" autocorrect="off" autocapitalize="off">
+                                                                    </td>
+                                                                </tr>
+                                                            </table>
+                                                            <div class="apply_gen">
+                                                                <input name="toolsButton" id="toolsButton" type="button" class="button_gen" onclick="toolsCommand()" value="执行命令"/>
+                                                                <img id="loadingToolsIcon" style="display:none;" src="/ext/lzr/InternetScan.gif">
+                                                            </div>
+                                                            <div style="margin-top:8px">
+                                                                <textarea cols="63" rows="27" wrap="off" readonly="readonly" id="toolsTextArea" class="textarea_ssh_table" style="width:99%; font-family:'Courier New', Courier, mono; font-size:11px;"></textarea>
+                                                            </div>
+                                                        </div>
                                                         <div class="apply_gen">
                                                             <input name="button" type="button" class="button_gen" onclick="applyRule()" value="应用本页面设置"/>
                                                         </div>
                                                     </form>
-                                                    <div id="queryStatus">
-                                                        <form method="post" name="statusForm" action="/start_apply.htm" target="hidden_frame">
-                                                            <input type="hidden" name="current_page" value="">
-                                                            <input type="hidden" name="next_page" value="">
-                                                            <input type="hidden" name="action_mode" value="apply">
-                                                            <input type="hidden" name="action_script" value="">
-                                                            <input type="hidden" name="action_wait" value="">
-                                                            <br />
-                                                            <div style="margin-top:8px">
-                                                                <textarea cols="63" rows="27" wrap="off" readonly="readonly" id="statusArea" class="textarea_ssh_table" style="width:99%; font-family:'Courier New', Courier, mono; font-size:11px;"></textarea>
-                                                            </div>
-                                                            <div class="apply_gen">
-                                                                <input name="statusButton" id="statusButton" type="button" class="button_gen" onclick="queryStatus()" value="获取运行状态"/>
-                                                            </div>
-                                                        </form>
-                                                    </div>
+                                                    <form method="post" name="scriptActionsForm" action="/start_apply.htm" target="hidden_frame">
+                                                        <input type="hidden" name="current_page" value="">
+                                                        <input type="hidden" name="next_page" value="">
+                                                        <input type="hidden" name="action_mode" value="apply">
+                                                        <input type="hidden" name="action_script" value="">
+                                                        <input type="hidden" name="action_wait" value="">
+                                                    </form>
                                                 </td>
                                             </tr>
                                         </tbody>
