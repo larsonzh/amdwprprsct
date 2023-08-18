@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v4.0.8
+# lz_rule_func.sh v4.0.9
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 #BEIGIN
@@ -5893,6 +5893,7 @@ lz_start_single_net_iptv_box_services() {
     local rt_main="$( ip route show )"
 
     local local_info=
+    local local_ppp_fault="none"
     [ -n "${iptv_wan0_ifname}" ] && [ -n "${iptv_wan1_ifname}" ] \
         && ! lz_show_routing_table "${rt_main}" | awk '$1 == "default" && $5 == "'"${iptv_wan0_ifname}"'" {exit(1)}' \
         && ! lz_show_routing_table "${rt_main}" | awk '$1 == "default" && $5 == "'"${iptv_wan1_ifname}"'" {exit(1)}' && {
@@ -5918,6 +5919,7 @@ lz_start_single_net_iptv_box_services() {
         && ! lz_show_routing_table "${rt_main}" | awk '$1 == "default" && $5 == "'"${iptv_wan0_ifname}"'" {exit(1)}' \
         && lz_show_routing_table "${rt_main}" | awk '$1 == "default" && $5 == "'"${iptv_wan0_pppoe_ifname}"'" {exit(1)}' \
         && local_info="1" \
+        && local_ppp_fault="0" \
         && echo "$(lzdate)" [$$]: Primary WAN \( "${iptv_wan0_pppoe_ifname}" \) PPPoE fault. | tee -ai "${SYSLOG}" 2> /dev/null
     if [ "$( nvram get "wan1_enable" )" = "1" ] && ! nvram get "wans_dualwan" | grep -qw "none"; then
         [ -z "${iptv_wan1_ifname}" ] && {
@@ -5938,12 +5940,16 @@ lz_start_single_net_iptv_box_services() {
         && ! lz_show_routing_table "${rt_main}" | awk '$1 == "default" && $5 == "'"${iptv_wan1_ifname}"'" {exit(1)}' \
         && lz_show_routing_table "${rt_main}" | awk '$1 == "default" && $5 == "'"${iptv_wan1_pppoe_ifname}"'" {exit(1)}' \
         && local_info="1" \
+        && local_ppp_fault="1" \
         && echo "$(lzdate)" [$$]: Secondary WAN \( "${iptv_wan1_pppoe_ifname}" \) PPPoE fault. | tee -ai "${SYSLOG}" 2> /dev/null
     [ "$( nvram get "wans_mode" )" = "lb" ] \
         && [ "$( nvram get "wan0_enable" )" = "1" ] && [ "$( nvram get "wan1_enable" )" = "1" ] \
         && [ -n "$( nvram get "wan0_proto_t" )" ] && [ -n "$( nvram get "wan1_proto_t" )" ] \
         && local_info="1" \
-        && echo "$(lzdate)" [$$]: Dual WAN \( "$( nvram get "wan0_proto" )" -- "$( nvram get "wan1_proto" )" \) startup failed. | tee -ai "${SYSLOG}" 2> /dev/null
+        && {
+            [ "${local_ppp_fault}" != "none" ] && restart_pppoe="${local_ppp_fault}"
+            echo "$(lzdate)" [$$]: Dual WAN \( "$( nvram get "wan0_proto" )" -- "$( nvram get "wan1_proto" )" \) startup failed. | tee -ai "${SYSLOG}" 2> /dev/null
+        }
 
     ## 获取IPTV接口ID标识和网关地址
     local iptv_interface_id_0=

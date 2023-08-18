@@ -270,7 +270,7 @@
                                                             <table width="100%" border="1" align="center" cellpadding="4" cellspacing="0" bordercolor="#6b8fa3" class="FormTable">
                                                                 <thead>
                                                                     <tr>
-                                                                        <td colspan="2"><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(13);">运营商 IP 地址数据维护</a></td>
+                                                                        <td colspan="2"><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(13);">运营商 IP 地址数据</a></td>
                                                                     </tr>
                                                                 </thead>
                                                                 <tr>
@@ -1117,8 +1117,9 @@
                                                                     <td>
                                                                         <select id="cmdMethod" name="cmdMethod" class="input_option" style="margin-left:2px;" onchange="hideCNT(this.value);">
                                                                             <option value="0" selected>查询路由器出口</option>
-                                                                            <option value="1">解除程序运行锁</option>
-                                                                            <option value="2">恢复缺省配置参数 (慎重)&nbsp;</option>
+                                                                            <option value="1">更新运营商 IP 地址数据</option>
+                                                                            <option value="2">解除程序运行锁</option>
+                                                                            <option value="3">恢复缺省配置参数 (慎重)&nbsp;</option>
                                                                         </select>
                                                                     </td>
                                                                 </tr>

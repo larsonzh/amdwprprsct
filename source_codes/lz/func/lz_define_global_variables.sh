@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_define_global_variables.sh v4.0.8
+# lz_define_global_variables.sh v4.0.9
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 # QnkgTFog5aaZ5aaZ5ZGc77yI6Juk6J+G5aKp5YS/77yJ（首次运行标识，切勿修改）
 
@@ -39,9 +39,6 @@ CLEAR_ROUTE_CACHE_TIMEER_ID="lz_clear_route_cache"
 
 ## 定时更新ISP网络运营商CIDR网段数据时间ID
 UPDATE_ISPIP_DATA_TIMEER_ID="lz_update_ispip_data"
-
-## 更新ISP网络运营商CIDR网段数据脚本文件名
-UPDATE_FILENAME="lz_update_ispip_data.sh"
 
 ## 更新ISP网络运营商CIDR网段数据文件临时下载目录
 PATH_TMP_DATA="${PATH_TMP}/data"

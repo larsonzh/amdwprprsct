@@ -1,5 +1,5 @@
 #!/bin/sh
-# lzinstall.sh v4.0.8
+# lzinstall.sh v4.0.9
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ RULE script for Asuswrt-Merlin Router
@@ -9,7 +9,7 @@
 
 #BEIGIN
 
-LZ_VERSION=v4.0.8
+LZ_VERSION=v4.0.9
 TIMEOUT=10
 CURRENT_PATH="${0%/*}"
 [ "${CURRENT_PATH:0:1}" != '/' ] && CURRENT_PATH="$( pwd )${CURRENT_PATH#*.}"
@@ -230,29 +230,31 @@ EOF_SERVICE_INTERFACE
     local cmd_str2="if [ \"\${2}\" = \"LZStatus\" ]; then if [ \"\${1}\" = \"start\" ] || [ \"\${1}\" = \"restart\" ]; then \"${PATH_LZ}/lz_rule.sh\" \"status\"; fi fi"
     local cmd_str3="if [ \"\${2}\" = \"LZUnlock\" ]; then if [ \"\${1}\" = \"start\" ] || [ \"\${1}\" = \"restart\" ]; then \"${PATH_LZ}/lz_rule.sh\" \"unlock\"; fi fi"
     local cmd_str4="if [ \"\${2}\" = \"LZDefault\" ]; then if [ \"\${1}\" = \"start\" ] || [ \"\${1}\" = \"restart\" ]; then \"${PATH_LZ}/lz_rule.sh\" \"default\"; fi fi"
-    local cmd_str5="if [ \"\${2%%_*}\" = \"LZAddress\" ]; then if [ \"\${1}\" = \"start\" ] || [ \"\${1}\" = \"restart\" ]; then \"${PATH_LZ}/${PROJECT_FILENAME}\" \"address\" \"\$( echo \"\${2}\" | cut -f2 -d'#' )\" \"\$( echo \"\${2}\" | cut -f3 -d'#' )\"; fi fi"
-    if ! grep -qE "LZRule.*start.*restart.*${PATH_LZ}/lz_rule[\.]sh.*stop.*${PATH_LZ}/lz_rule[\.]sh.*STOP\"; fi fi" "/jffs/scripts/service-event" \
-        || ! grep -qE "LZStatus.*start.*restart.*${PATH_LZ}/lz_rule[\.]sh.*status\"; fi fi" "/jffs/scripts/service-event" \
-        || ! grep -qE "LZUnlock.*start.*restart.*${PATH_LZ}/lz_rule[\.]sh.*unlock\"; fi fi" "/jffs/scripts/service-event" \
-        || ! grep -qE "LZDefault.*start.*restart.*${PATH_LZ}/lz_rule[\.]sh.*default\"; fi fi" "/jffs/scripts/service-event" \
-        || ! grep -qE "LZAddress.*start.*restart.*${PATH_LZ}/lz_rule[\.]sh.*address.*cut.*echo.*cut.*)\"; fi fi" "/jffs/scripts/service-event"; then
-        sed -i -e "/LZRule/d" -e "/LZStatus/d" -e "/LZUnlock/d" -e "/LZDefault/d" -e "/LZAddress/d" "/jffs/scripts/service-event"
-        printf "\n%s # Added by LZ\n%s # Added by LZ\n%s # Added by LZ\n%s # Added by LZ\n%s # Added by LZ\n" "${cmd_str1}" "${cmd_str2}" "${cmd_str3}" "${cmd_str4}" "${cmd_str5}" >> "/jffs/scripts/service-event"
+    local cmd_str5="if [ \"\${2%%_*}\" = \"LZAddress\" ]; then if [ \"\${1}\" = \"start\" ] || [ \"\${1}\" = \"restart\" ]; then \"${PATH_LZ}/lz_rule.sh\" \"address\" \"\$( echo \"\${2}\" | cut -f2 -d'#' )\" \"\$( echo \"\${2}\" | cut -f3 -d'#' )\"; fi fi"
+    local cmd_str6="if [ \"\${2}\" = \"LZUpdate\" ]; then if [ \"\${1}\" = \"start\" ] || [ \"\${1}\" = \"restart\" ]; then [ -f \"${PATH_LZ}/lz_update_ispip_data.sh\" ] && \"${PATH_LZ}/lz_update_ispip_data.sh\"; fi fi"
+    if ! grep -q "LZRule.*start.*restart.*${PATH_LZ}/lz_rule[\.]sh.*stop.*${PATH_LZ}/lz_rule[\.]sh.*STOP\"; fi fi" "/jffs/scripts/service-event" \
+        || ! grep -q "LZStatus.*start.*restart.*${PATH_LZ}/lz_rule[\.]sh.*status\"; fi fi" "/jffs/scripts/service-event" \
+        || ! grep -q "LZUnlock.*start.*restart.*${PATH_LZ}/lz_rule[\.]sh.*unlock\"; fi fi" "/jffs/scripts/service-event" \
+        || ! grep -q "LZDefault.*start.*restart.*${PATH_LZ}/lz_rule[\.]sh.*default\"; fi fi" "/jffs/scripts/service-event" \
+        || ! grep -q "LZAddress.*start.*restart.*${PATH_LZ}/lz_rule[\.]sh.*address.*cut.*echo.*cut.*)\"; fi fi" "/jffs/scripts/service-event" \
+        || ! grep -q "LZUpdate.*start.*restart.*${PATH_LZ}/lz_update_ispip_data[\.]sh.*[\&][\&].*${PATH_LZ}/lz_update_ispip_data[\.]sh\"; fi fi" "/jffs/scripts/service-event"; then
+        sed -i -e "/LZRule/d" -e "/LZStatus/d" -e "/LZUnlock/d" -e "/LZDefault/d" -e "/LZAddress/d" -e "/LZUpdate/d" "/jffs/scripts/service-event"
+        printf "\n%s # Added by LZ\n%s # Added by LZ\n%s # Added by LZ\n%s # Added by LZ\n%s # Added by LZ\n%s # Added by LZ\n" "${cmd_str1}" "${cmd_str2}" "${cmd_str3}" "${cmd_str4}" "${cmd_str5}" "${cmd_str6}" >> "/jffs/scripts/service-event"
         sed -i "/^[ \t]*$/d" "/jffs/scripts/service-event"
     fi
     chmod +x "/jffs/scripts/service-event"
-    { ! grep -qE "LZRule.*start.*restart.*${PATH_LZ}/lz_rule[\.]sh.*stop.*${PATH_LZ}/lz_rule[\.]sh.*STOP\"; fi fi" "/jffs/scripts/service-event" \
-        || ! grep -qE "LZStatus.*start.*restart.*${PATH_LZ}/lz_rule[\.]sh.*status\"; fi fi" "/jffs/scripts/service-event" \
-        || ! grep -qE "LZUnlock.*start.*restart.*${PATH_LZ}/lz_rule[\.]sh.*unlock\"; fi fi" "/jffs/scripts/service-event" \
-        || ! grep -qE "LZDefault.*start.*restart.*${PATH_LZ}/lz_rule[\.]sh.*default\"; fi fi" "/jffs/scripts/service-event" \
-        || ! grep -qE "LZAddress.*start.*restart.*${PATH_LZ}/lz_rule[\.]sh.*address.*cut.*echo.*cut.*)\"; fi fi" "/jffs/scripts/service-event"; } && return "1"
+    { ! grep -q "LZRule.*start.*restart.*${PATH_LZ}/lz_rule[\.]sh.*stop.*${PATH_LZ}/lz_rule[\.]sh.*STOP\"; fi fi" "/jffs/scripts/service-event" \
+        || ! grep -q "LZStatus.*start.*restart.*${PATH_LZ}/lz_rule[\.]sh.*status\"; fi fi" "/jffs/scripts/service-event" \
+        || ! grep -q "LZUnlock.*start.*restart.*${PATH_LZ}/lz_rule[\.]sh.*unlock\"; fi fi" "/jffs/scripts/service-event" \
+        || ! grep -q "LZDefault.*start.*restart.*${PATH_LZ}/lz_rule[\.]sh.*default\"; fi fi" "/jffs/scripts/service-event" \
+        || ! grep -q "LZAddress.*start.*restart.*${PATH_LZ}/lz_rule[\.]sh.*address.*cut.*echo.*cut.*)\"; fi fi" "/jffs/scripts/service-event" \
+        || ! grep -q "LZUpdate.*start.*restart.*${PATH_LZ}/lz_update_ispip_data[\.]sh.*[\&][\&].*${PATH_LZ}/lz_update_ispip_data[\.]sh\"; fi fi" "/jffs/scripts/service-event"; } && return "1"
     return "0"
 }
 
 lz_clear_service_event_command() {
-    if [ -f "/jffs/scripts/service-event" ] \
-        && grep -q "lz_rule[\.]sh" "/jffs/scripts/service-event"; then
-        sed -i "/lz_rule[\.]sh/d" "/jffs/scripts/service-event" > /dev/null 2>&1
+    if [ -f "/jffs/scripts/service-event" ]; then
+        sed -i -e '/lz_rule[\.]sh/d' -e '/lz_update_ispip_data[\.]sh/d' "/jffs/scripts/service-event" > /dev/null 2>&1
         return "0"
     fi
     return "1"

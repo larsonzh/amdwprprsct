@@ -1,5 +1,5 @@
 /*
-# lz_policy_routing.js v4.0.8
+# lz_policy_routing.js v4.0.9
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ JavaScript for Asuswrt-Merlin Router
@@ -42,20 +42,21 @@ function showProduct() {
 }
 
 function getPolicyState() {
-    policySettingsArray["policyEnable"] = false;
+    let retVal = false;
     $.ajax({
         async: false,
         url: '/ext/lzr/LZRState.html',
         dataType: 'text',
         success: function(result) {
-            policySettingsArray.policyEnable = result.match(/^[ \t]*[\w\/]+lz_rule[\.]sh[ \t]*([#].*){0,1}$/m) != null;
+            retVal = result.match(/^[ \t]*[\w\/]+lz_rule[\.]sh[ \t]*([#].*){0,1}$/m) != null;
         }
     });
-    return policySettingsArray.policyEnable;
+    return retVal;
 }
 
 function initPolicyEnableCtrl() {
-    $('#lzr_policy_routing_enable').iphoneSwitch(getPolicyState(),
+    policySettingsArray["policyEnable"] = getPolicyState();
+    $('#lzr_policy_routing_enable').iphoneSwitch(policySettingsArray["policyEnable"],
         function() {policySettingsArray["policyEnable"] = true;},
         function() {policySettingsArray["policyEnable"] = false;}
     );
@@ -582,7 +583,7 @@ function openOverHint(itemNum) {
         content += "<b>负载均衡</b>：由系统采用链路负载均衡技术自动分配流量出口，但容易导致网络访问不正常。<br />";
         content += "<br /><b>策略执行优先级</b>：详见<b>基本设置&nbsp;-&nbsp;策略路由优先级</b></div>";
     } else if (itemNum == 13) {
-        content = "<div><b>运营商 IP 地址数据</b>经常发生变化，建议<b>启用定时更新</b>。</div>";
+        content = "<div><b>运营商 IP 地址数据</b>经常发生变化，建议<b>启用定时更新</b>。<br /><br />亦可前往<b>外部网络(WAN) - 策略路由(IPv4) - 工具 - 快捷命令 - 命令 - 运营商 IP 地址数据</b>手动更新数据。</div>";
     } else if (itemNum == 14) {
         content = "<div><b>动态分流模式</b>时自动与同一出口的运营商 IP 地址数据合集，采用同一条限定优先级的动态路由策略。<br />";
         content += "<br /><b>静态分流模式</b>时采用专属的自定义目标 IP 地址静态路由策略。<br />";
@@ -689,7 +690,7 @@ function openOverHint(itemNum) {
         content += "192.168.50.101&nbsp;103.10.4.108<br />";
         content += "0.0.0.0/0&nbsp;202.89.233.100<br />";
         content += "<br />可以用 <b>0.0.0.0/0</b> 表示所有未知IP地址。<br />";
-        content += "<br />建议列表条目数量不要多于512条，否则易导致软件启动时系统策略路由库加载数据时间过长。<br />";
+        content += "<br />建议列表条目数量不要多于512条，否则易导致软件启动时系统<b>策略路由</b>库加载数据时间过长。<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 31) {
         content = "<div>文件中具体定义使用<b>第二 WAN 口客户端至预设目标 IP 地址静态直通策略</b>的客户端 IP 地址和目标 IP 地址。<br />";
@@ -699,7 +700,7 @@ function openOverHint(itemNum) {
         content += "<br />例如：<br />";
         content += "192.168.50.102&nbsp;210.74.0.0/16<br />";
         content += "<br />可以用 <b>0.0.0.0/0</b> 表示所有未知IP地址。<br />";
-        content += "<br />建议列表条目数量不要多于512条，否则易导致软件启动时系统策略路由库加载数据时间过长。<br />";
+        content += "<br />建议列表条目数量不要多于512条，否则易导致软件启动时系统<b>策略路由</b>库加载数据时间过长。<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 32) {
         content = "<div>指定客户端以高优先级的静态路由方式访问预设目标 IP 地址时使用的流量出口。<br />";
@@ -712,7 +713,7 @@ function openOverHint(itemNum) {
         content += "<br />例如：<br />";
         content += "192.168.50.0/27&nbsp;0.0.0.0/0<br />";
         content += "<br />可以用 <b>0.0.0.0/0</b> 表示所有未知IP地址。<br />";
-        content += "<br />建议列表条目数量不要多于512条，否则易导致软件启动时系统策略路由库加载数据时间过长。<br />";
+        content += "<br />建议列表条目数量不要多于512条，否则易导致软件启动时系统<b>策略路由</b>库加载数据时间过长。<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 34) {
         content = "<div>按照目标地址的协议端口设定流量出口。<br />";
@@ -838,16 +839,16 @@ function openOverHint(itemNum) {
         caption = "应用模式";
         content = "<div>缺省为<b>动态分流模式</b> (推荐)。<br />";
         content += "<br /><b>动态路由</b>：<br />";
-        content += "采用基于连接跟踪的报文数据包地址匹配标记导流的数据路由传输技术，能通过算法动态生成数据经由路径，较少占用系统策略路由库静态资源。<br />";
+        content += "采用基于连接跟踪的报文数据包地址匹配标记导流的数据路由传输技术，能通过算法动态生成数据经由路径，较少占用系统<b>策略路由</b>库静态资源。<br />";
         content += "<br /><b>静态路由</b>：<br />";
-        content += "采用按数据来源和目标地址通过经由路径规则直接映射网络出口的数据路由传输技术，当经由路径规则条目数很多时会大量占用系统策略路由库的静态资源，若硬件平台性能有限，会出现数据库启动加载时间过长的现象。<br />";
+        content += "采用按数据来源和目标地址通过经由路径规则直接映射网络出口的数据路由传输技术，当经由路径规则条目数很多时会大量占用系统<b>策略路由</b>库的静态资源，若硬件平台性能有限，会出现数据库启动加载时间过长的现象。<br />";
         content += "<br /><b>动态分流模式</b>：<br />";
         content += "国内及国外运营商目标 IP 地址流量采用<b>动态路由</b>技术，其他功能中混合使用<b>静态路由</b>技术，适用于绝大部分功能。<br />";
         content += "路由器主机内应用的流量出口由设备系统内部自动分配，不受用户定义的流量策略控制，用户规则只作用于路由器内网终端访问外网时的流量。<br />";
         content += "<br /><b>静态分流模式</b>：<br />";
         content += "国内及国外运营商目标 IP 地址流量采用<b>静态路由</b>技术。一个通道采用逐条匹配用户策略的方式传输流量，之外的流量则不再逐条匹配，而是采取整体推送的方式传输至另一通道，从而节省设备系统资源，提高传输效率。<br />";
         content += "路由器主机内部应用的流量出口按用户所定义的流量策略分配。<br />";
-        content += "<br />本工具提供两种应用模式 (<b>动态分流模式</b>、<b>静态路由</b>)，将<b>动态路由</b>、<b>静态路由</b>两种作用于路由器 WAN 口通道的基础网络数据路由传输技术，组合形成策略路由服务的多种运行模式，并在此基础上结合运营商 IP 地址数据及出口参数配置等场景因素进行更高层的应用级封装，对软件运行时参数进行自动化配置，从而最大限度的降低用户配置参数的复杂度和难度。</div>";
+        content += "<br />本工具提供两种应用模式 (<b>动态分流模式</b>、<b>静态路由</b>)，将<b>动态路由</b>、<b>静态路由</b>两种作用于路由器 WAN 口通道的基础网络数据路由传输技术，组合形成<b>策略路由</b>服务的多种运行模式，并在此基础上结合运营商 IP 地址数据及出口参数配置等场景因素进行更高层的应用级封装，对软件运行时参数进行自动化配置，从而最大限度的降低用户配置参数的复杂度和难度。</div>";
     } else if (itemNum == 49) {
         content = "<div>缺省使用<b>系统 DNS </b>。<br />";
         content += "<br />在<b>域名地址动态访问策略</b>第一次启动时，提前对域名地址列表中的域名地址进行 IPv4 地址解析，能提高系统后续的路由策略执行效率，降低 DNS 污染对网络访问的影响。<br />";
@@ -1007,12 +1008,14 @@ function openOverHint(itemNum) {
         content = "<div><b>命令</b>选项：<br />";
         content += "<ul>";
         content += "<li>查询路由器出口 (缺省)</li>";
+        content += "<li>更新运营商 IP 地址数据</li>";
         content += "<li>解除程序运行锁</li>";
         content += "<li>恢复缺省配置参数</li>";
         content += "</ul>";
         content += "<b>查询路由器出口</b>：<br />根据目标主机域名或 IP 地址，查询访问该地址流量使用的路由器出口，以及该主机地址的运营商归属。域名解析后可能会得到多个 IP 地址，由此会出现多条信息。<br />";
-        content += "<br /><b>解除程序运行锁</b>：<br />软件启动或操作过程中，若操作 ctrl+c 组合键，或其他意外原因造成运行中断，导致程序被内部的同步运行安全机制锁住，在不重启路由器的情况下，无法再次启动或有关命令无法继续执行，可通过此命令强制解锁，然后请再次重新启动策略路由，即可恢复正常。<b>注意</b>，正常运行过程中不要随意执行此命令，以免造成安全机制失效。<br />";
-        content += "<br /><b>恢复缺省配置参数</b>：<br />将策略路由工作参数恢复至初始<b>缺省</b>状态。此操作将<b>不可恢复</b>的清除用户所有已配置数据，执行此命令请务必<b>慎重</b>。</div>";
+        content += "<br /><b>更新运营商 IP 地址数据</b>：<br />通过互联网手动更新<b>策略路由</b>中的<b>运营商 IP 地址数据</b>库。该数据经常发生变化，为保证业务的精准性，请定期及时更新。亦可在<b>外部网络(WAN) - 策略路由(IPv4) - 基础 - 运营商 IP 地址数据</b>中<b>启用定时更新</b>。<br />";
+        content += "<br /><b>解除程序运行锁</b>：<br />软件启动或操作过程中，若操作 ctrl+c 组合键，或其他意外原因造成运行中断，导致程序被内部的同步运行安全机制锁住，在不重启路由器的情况下，无法再次启动或有关命令无法继续执行，可通过此命令强制解锁，然后请再次重新启动<b>策略路由</b>，即可恢复正常。<b>注意</b>，正常运行过程中不要随意执行此命令，以免造成安全机制失效。<br />";
+        content += "<br /><b>恢复缺省配置参数</b>：<br />将<b>策略路由</b>工作参数恢复至初始<b>缺省</b>状态。此操作将<b>不可恢复</b>的清除用户所有已配置数据，执行此命令请务必<b>慎重</b>。</div>";
     } else if (itemNum == 87) {
         content = "<div>目标主机的<b>域名地址</b>或 <b>IP 地址</b>，内容不可为空。</div>";
     } else if (itemNum == 88) {
@@ -1020,7 +1023,7 @@ function openOverHint(itemNum) {
     } else if (itemNum == 100) {
         mode = 1;
         caption = "基本设置 - 策略路由优先级";
-        content = "<div>策略路由优先级顺序：由高到低排列，系统抢先执行高优先级策略。<br />";
+        content = "<div><b>策略路由</b>优先级顺序：由高到低排列，系统抢先执行高优先级策略。<br />";
         content += "<ol>";
         content += "<li>负载均衡</li>";
         content += "<li>IPTV 机顶盒</li>";
@@ -1089,9 +1092,11 @@ function getPolicyChangedItem(_dataArray) {
 }
 
 function applyRule() {
+    if (!policySettingsArray.hasOwnProperty("policyEnable"))
+        return;
     $("[name*=lzr_]").prop("disabled", false);
     $("#amng_custom").val(JSON.stringify(getPolicyChangedItem($("#ruleForm").serializeObject())).replace(/\"lzr_/g, "\"lz_rule_"));
-    document.form.action_script.value = (policySettingsArray.hasOwnProperty("policyEnable")) ? policySettingsArray.policyEnable ? "start_LZRule" : "stop_LZRule" : "";
+    document.form.action_script.value = policySettingsArray.policyEnable ? "start_LZRule" : "stop_LZRule";
     document.form.action_wait.value = 10;
     showLoading();
     document.form.submit();
@@ -1153,7 +1158,7 @@ function queryStatus() {
 let over_var = 0;
 function hideClients_Block() {
     document.getElementById("pull_arrow").src = "/ext/lzr/arrow-down.gif";
-    document.getElementById('ClientList_Block_PC').style.display='none';
+    document.getElementById('ClientList_Block_PC').style.display = 'none';
 }
 
 function setClientIP(ipaddr) {
@@ -1203,15 +1208,11 @@ function hideCNT(_val) {
         document.getElementById("destIPCNT_tr").style.display = "";
         document.getElementById("dnsIPAddressCNT_tr").style.display = "";
         addressHeight = 0;
-    } else if (_val == "1") {
+    } else if (_val >= "1" && _val <= "3") {
         document.getElementById("cmdMethod").value = _val;
         document.getElementById("destIPCNT_tr").style.display = "none";
         document.getElementById("dnsIPAddressCNT_tr").style.display = "none";
         unlockHeight = 0;
-    } else if (_val == "2") {
-        document.getElementById("cmdMethod").value = _val;
-        document.getElementById("destIPCNT_tr").style.display = "none";
-        document.getElementById("dnsIPAddressCNT_tr").style.display = "none";
     }
 }
 
@@ -1279,7 +1280,7 @@ function getUnlockInfo() {
             let infoString = htmlEnDeCode.htmlEncode(response.toString());
             h = $("#toolsTextArea").scrollTop();
             if (!(unlockHeight > 0 && h < unlockHeight) 
-                && document.getElementById("cmdMethod").value == "1") {
+                && document.getElementById("cmdMethod").value == "2") {
                 let _log = '';
                 let _string = infoString.split('\n');
                 for (let i = 0; i < _string.length; i++) {
@@ -1295,7 +1296,7 @@ function getUnlockInfo() {
                         $("#loadingToolsIcon").show();
                     }
                 }
-                if (document.getElementById("cmdMethod").value == "1")
+                if (document.getElementById("cmdMethod").value == "2")
                     document.getElementById("toolsTextArea").innerHTML = _log;
                 $("#toolsTextArea").animate({ scrollTop: 9999999 }, "slow");
                 setTimeout('unlockHeight = $("#toolsTextArea").scrollTop();', 500);
@@ -1307,7 +1308,7 @@ function getUnlockInfo() {
 
 function toolsCommand() {
     let val = document.getElementById("cmdMethod").value;
-    if (val == "2") {
+    if (val == "3") {
         if (!confirm("「恢复缺省配置」将不可恢复的清除用户所有已配置数据。\n\n  确定要执行此操作吗？"))
             return;
         $("#amng_custom").val("");
@@ -1315,8 +1316,8 @@ function toolsCommand() {
         document.form.action_wait.value = 10;
         showLoading();
         document.form.submit();
-    } else if (val == "1") {
-        if (!confirm("「解除程序运行锁」后会造成同步运行安全机制失效，需重新启动策略路由才可恢复。\n\n  确定要执行此操作吗？"))
+    } else if (val == "2") {
+        if (!confirm("「解除程序运行锁」后会造成同步运行安全机制失效，需重新启动「策略路由」才可恢复。\n\n  确定要执行此操作吗？"))
             return;
         document.getElementById("toolsButton").disabled = true;
         $("#toolsButton").hide();
@@ -1325,6 +1326,22 @@ function toolsCommand() {
         unlockHeight = 0;
         document.scriptActionsForm.action_script.value = 'start_LZUnlock';
         document.scriptActionsForm.submit();
+    } else if (val == "1") {
+        document.getElementById("toolsButton").disabled = true;
+        $("#toolsButton").hide();
+        $("#loadingToolsIcon").fadeIn(500);
+        if (!getPolicyState()) {
+            alert("「策略路由」未开启，启动后才可执行此操作。");
+            $("#loadingToolsIcon").hide();
+            $("#toolsButton").show();
+            document.getElementById("toolsButton").disabled = false;
+            return;
+        }
+        $("#amng_custom").val("");
+        document.form.action_script.value = "start_LZUpdate";
+        document.form.action_wait.value = 15;
+        showLoading();
+        document.form.submit();
     } else if (val == "0") {
         let destIPVal = document.getElementById("destIP").value;
         if (destIPVal == "") {

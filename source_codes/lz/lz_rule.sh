@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule.sh v4.0.8
+# lz_rule.sh v4.0.9
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # 本软件采用CIDR（无类别域间路由，Classless Inter-Domain Routing）技术，是一个在Internet上创建附加地
@@ -80,7 +80,7 @@
 ## -------------全局数据定义及初始化-------------------
 
 ## 版本号
-LZ_VERSION=v4.0.8
+LZ_VERSION=v4.0.9
 
 ## 运行状态查询命令
 SHOW_STATUS="status"
@@ -150,6 +150,9 @@ UNLOCK_LOG="${PATH_TMP}/unlock.log"
 
 ## 脚本网址信息查询命令执行记录文件名
 ADDRESS_LOG="${PATH_TMP}/address.log"
+
+## 更新ISP网络运营商CIDR网段数据脚本文件名
+UPDATE_FILENAME="lz_update_ispip_data.sh"
 
 if [ "${1}" != "${SHOW_STATUS}" ] && [ "${1}" != "${ADDRESS_QUERY}" ] \
     && [ "${1}" != "${FORCED_UNLOCKING}" ]; then
@@ -356,15 +359,22 @@ lz_check_instance() {
 
 ## 实例退出处理函数
 ## 输入项：
-##     $1--主执行脚本运行输入参数
+##     $1--主执行脚本运行输入参数$0
+##     $2--主执行脚本运行输入参数$1
 ##     全局变量及常量
 ## 返回值：无
 lz_instance_exit() {
+    local restart_pppoe_count="0"
+    if [ "${restart_pppoe}" ] && [ "${restart_pppoe_count}" = "0" ]; then
+        sed -i "s|^[ \t]*local restart_pppoe_count=\"0\"|local restart_pppoe_count=\"1\"|" "${1}" > /dev/null 2>&1
+    elif [ "${restart_pppoe_count}" != "0" ]; then
+        sed -i "s|^[ \t]*local restart_pppoe_count=.*$|local restart_pppoe_count=\"0\"|" "${1}" > /dev/null 2>&1
+    fi
     [ -f "${INSTANCE_LIST}" ] && ! grep -q 'lz_' "${INSTANCE_LIST}" && rm -f "${INSTANCE_LIST}" > /dev/null 2>&1
     [ -f "${LOCK_FILE}" ] && flock -u "${LOCK_FILE_ID}" > /dev/null 2>&1
-    if [ "${drop_sys_caches}" = "0" ] && [ "${1}" != "${ISPIP_DATA_UPDATE}" ] && [ -f /proc/sys/vm/drop_caches ]; then
-        if [ "${1}" != "${SHOW_STATUS}" ] && [ "${1}" != "${ADDRESS_QUERY}" ] \
-            && [ "${1}" != "${FORCED_UNLOCKING}" ]; then
+    if [ "${drop_sys_caches}" = "0" ] && [ "${2}" != "${ISPIP_DATA_UPDATE}" ] && [ -f /proc/sys/vm/drop_caches ]; then
+        if [ "${2}" != "${SHOW_STATUS}" ] && [ "${2}" != "${ADDRESS_QUERY}" ] \
+            && [ "${2}" != "${FORCED_UNLOCKING}" ]; then
             {
                 ip route flush cache \
                 && sync \
@@ -378,7 +388,11 @@ lz_instance_exit() {
     ## 更新DDNS服务
     ## 输入项：无
     ## 返回值：0
-    [ "${1}" != "${UNMOUNT_WEB_UI}" ] && lz_update_ddns
+    [ "${2}" != "${UNMOUNT_WEB_UI}" ] && { [ ! "${restart_pppoe}" ] || { [ "${restart_pppoe}" ] && [ "${restart_pppoe_count}" != "0" ]; }; } && lz_update_ddns
+
+    ## 双线路负载均衡PPPoE失败时重启一次
+    [ "${restart_pppoe}" ] && [ "${restart_pppoe_count}" = "0" ] \
+        && service "restart_wan_if ${restart_pppoe};restart_stubby" > /dev/null 2>&1
 }
 
 ## 创建事件接口函数
@@ -453,17 +467,15 @@ lz_create_firewall_start_command() {
     else
         echo "$(lzdate)" [$$]: "firewall-start interface registration failed." | tee -ai "${SYSLOG}" 2> /dev/null
     fi
-    if which opkg > /dev/null 2>&1 && [ "${PATH_LZ}" = "/opt/home/lz" ]; then
-        lz_create_event_interface "${BOOT_USB_MOUNT_NAME}" "${PATH_LZ}" "${PROJECT_FILENAME}"
-    else
-        ## 清除post-mount中脚本引导项
-        ## 输入项：
-        ##     全局常量
-        ## 返回值：
-        ##     0--清除成功
-        ##     1--未清除
-        lz_clear_post_mount_command
-    fi
+    ## 清除post-mount中脚本引导项
+    ## 输入项：
+    ##     全局常量
+    ## 返回值：
+    ##     0--清除成功
+    ##     1--未清除
+    lz_clear_post_mount_command
+    which opkg > /dev/null 2>&1 && [ "${PATH_LZ}" = "/opt/home/lz" ] \
+        && lz_create_event_interface "${BOOT_USB_MOUNT_NAME}" "${PATH_LZ}" "${PROJECT_FILENAME}"
 }
 
 ## 清除firewall-start中脚本引导项函数
@@ -522,6 +534,9 @@ lz_clear_openvpn_event_command() {
 ##     $14--待执行的命令行5
 ##     $15--命令行5检索字符串
 ##     $16--命令行5关键字符串
+##     $17--待执行的命令行6
+##     $18--命令行6检索字符串
+##     $19--命令行6关键字符串
 ##     全局常量
 ## 返回值：
 ##     0--成功
@@ -546,13 +561,13 @@ EOF_SERVICE_INTERFACE
         ! grep -m 1 '^.*$' "${PATH_BOOTLOADER}/${1}" | grep -q "^#!/bin/sh" \
             && sed -i 'l1 s:^.*\(#!/bin/sh.*$\):\1/g' "${PATH_BOOTLOADER}/${1}"
     fi
-    if ! grep -qE "${3}" "${PATH_BOOTLOADER}/${1}" || ! grep -qE "${6}" "${PATH_BOOTLOADER}/${1}" || ! grep -qE "${9}" "${PATH_BOOTLOADER}/${1}" || ! grep -qE "${12}" "${PATH_BOOTLOADER}/${1}" || ! grep -qE "${15}" "${PATH_BOOTLOADER}/${1}"; then
-        sed -i -e "/${4}/d" -e "/${7}/d" -e "/${10}/d" -e "/${13}/d" -e "/${16}/d" "${PATH_BOOTLOADER}/${1}"
-        printf "\n%s # Added by LZ\n%s # Added by LZ\n%s # Added by LZ\n%s # Added by LZ\n%s # Added by LZ\n" "${2}" "${5}" "${8}" "${11}" "${14}" >> "${PATH_BOOTLOADER}/${1}"
+    if ! grep -qE "${3}" "${PATH_BOOTLOADER}/${1}" || ! grep -qE "${6}" "${PATH_BOOTLOADER}/${1}" || ! grep -qE "${9}" "${PATH_BOOTLOADER}/${1}" || ! grep -qE "${12}" "${PATH_BOOTLOADER}/${1}" || ! grep -qE "${15}" "${PATH_BOOTLOADER}/${1}" || ! grep -qE "${18}" "${PATH_BOOTLOADER}/${1}"; then
+        sed -i -e "/${4}/d" -e "/${7}/d" -e "/${10}/d" -e "/${13}/d" -e "/${16}/d" -e "/${19}/d" "${PATH_BOOTLOADER}/${1}"
+        printf "\n%s # Added by LZ\n%s # Added by LZ\n%s # Added by LZ\n%s # Added by LZ\n%s # Added by LZ\n%s # Added by LZ\n" "${2}" "${5}" "${8}" "${11}" "${14}" "${17}" >> "${PATH_BOOTLOADER}/${1}"
         sed -i "/^[ \t]*$/d" "${PATH_BOOTLOADER}/${1}"
     fi
     chmod +x "${PATH_BOOTLOADER}/${1}"
-    { ! grep -qE "${3}" "${PATH_BOOTLOADER}/${1}" || ! grep -qE "${6}" "${PATH_BOOTLOADER}/${1}" || ! grep -qE "${9}" "${PATH_BOOTLOADER}/${1}" || ! grep -qE "${12}" "${PATH_BOOTLOADER}/${1}" || ! grep -qE "${15}" "${PATH_BOOTLOADER}/${1}"; } && return "1"
+    { ! grep -qE "${3}" "${PATH_BOOTLOADER}/${1}" || ! grep -qE "${6}" "${PATH_BOOTLOADER}/${1}" || ! grep -qE "${9}" "${PATH_BOOTLOADER}/${1}" || ! grep -qE "${12}" "${PATH_BOOTLOADER}/${1}" || ! grep -qE "${15}" "${PATH_BOOTLOADER}/${1}" || ! grep -qE "${18}" "${PATH_BOOTLOADER}/${1}"; } && return "1"
     return "0"
 }
 
@@ -563,9 +578,8 @@ EOF_SERVICE_INTERFACE
 ##     0--清除成功
 ##     1--未清除
 lz_clear_service_event_command() {
-    if [ -f "${PATH_BOOTLOADER}/${SERVICE_EVENT_NAME}" ] \
-        && grep -q "${PROJECT_FILENAME}" "${PATH_BOOTLOADER}/${SERVICE_EVENT_NAME}"; then
-        sed -i "/${PROJECT_FILENAME}/d" "${PATH_BOOTLOADER}/${SERVICE_EVENT_NAME}" > /dev/null 2>&1
+    if [ -f "${PATH_BOOTLOADER}/${SERVICE_EVENT_NAME}" ]; then
+        sed -i -e "/${PROJECT_FILENAME}/d" -e "/${UPDATE_FILENAME}/d" "${PATH_BOOTLOADER}/${SERVICE_EVENT_NAME}" > /dev/null 2>&1
         return "0"
     fi
     return "1"
@@ -587,6 +601,8 @@ lz_create_service_event_command() {
     local key_str4="LZDefault.*start.*restart.*${PATH_LZ}/${PROJECT_FILENAME}.*default\"; fi fi"
     local cmd_str5="if [ \"\${2%%_*}\" = \"LZAddress\" ]; then if [ \"\${1}\" = \"start\" ] || [ \"\${1}\" = \"restart\" ]; then \"${PATH_LZ}/${PROJECT_FILENAME}\" \"address\" \"\$( echo \"\${2}\" | cut -f2 -d'#' )\" \"\$( echo \"\${2}\" | cut -f3 -d'#' )\"; fi fi"
     local key_str5="LZAddress.*start.*restart.*${PATH_LZ}/${PROJECT_FILENAME}.*address.*cut.*echo.*cut.*)\"; fi fi"
+    local cmd_str6="if [ \"\${2}\" = \"LZUpdate\" ]; then if [ \"\${1}\" = \"start\" ] || [ \"\${1}\" = \"restart\" ]; then [ -f \"${PATH_LZ}/${UPDATE_FILENAME}\" ] && \"${PATH_LZ}/${UPDATE_FILENAME}\"; fi fi"
+    local key_str6="LZUpdate.*start.*restart.*${PATH_LZ}/${UPDATE_FILENAME}.*[\&][\&].*${PATH_LZ}/${UPDATE_FILENAME}\"; fi fi"
     ## 创建服务事件接口
     ## 输入项：
     ##     $1--系统服务事件接口文件名
@@ -605,11 +621,14 @@ lz_create_service_event_command() {
     ##     $14--待执行的命令行5
     ##     $15--命令行5检索字符串
     ##     $16--命令行5关键字符串
+    ##     $17--待执行的命令行6
+    ##     $18--命令行6检索字符串
+    ##     $19--命令行6关键字符串
     ##     全局常量
     ## 返回值：
     ##     0--成功
     ##     1--失败
-    if lz_create_service_event_interface "${SERVICE_EVENT_NAME}" "${cmd_str1}" "${key_str1}" "LZRule" "${cmd_str2}" "${key_str2}" "LZStatus" "${cmd_str3}" "${key_str3}" "LZUnlock" "${cmd_str4}" "${key_str4}" "LZDefault" "${cmd_str5}" "${key_str5}" "LZAddress"; then
+    if lz_create_service_event_interface "${SERVICE_EVENT_NAME}" "${cmd_str1}" "${key_str1}" "LZRule" "${cmd_str2}" "${key_str2}" "LZStatus" "${cmd_str3}" "${key_str3}" "LZUnlock" "${cmd_str4}" "${key_str4}" "LZDefault" "${cmd_str5}" "${key_str5}" "LZAddress" "${cmd_str6}" "${key_str6}" "LZUpdate"; then
         if [ "${1}" = "stop" ] || [ "${1}" = "STOP" ]; then
             echo "$(lzdate)" [$$]: "The service-event interface has continued to register." | tee -ai "${SYSLOG}" 2> /dev/null
         else
@@ -1209,10 +1228,11 @@ if lz_project_file_management "${1}"; then
 
                 ## 实例退出处理
                 ## 输入项：
-                ##     $1--主执行脚本运行输入参数
+                ##     $1--主执行脚本运行输入参数$0
+                ##     $2--主执行脚本运行输入参数$1
                 ##     全局变量及常量
                 ## 返回值：无
-                lz_instance_exit "${1}"
+                lz_instance_exit "${0}" "${1}"
 
                 exit
             fi
@@ -1247,6 +1267,6 @@ else
     echo "$(lzdate)" [$$]:
 fi
 
-lz_instance_exit "${1}"
+lz_instance_exit "${0}" "${1}"
 
 #END
