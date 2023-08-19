@@ -9,6 +9,10 @@ Asuswrt-Merlin dual WAN port router policy routing service configuration tool
 
 软件具有 Web 操作页面，直接嵌入 Asuswrt-Merlin 原生界面，风格保持一致，支持梅林 384.5 及以上的固件版本。页面位于「外部网络(WAN) - 策略路由」，程序启动时自动挂载，全程提供内容详尽的悬浮式帮助。如未出现「 策略路由」页面，说明所用固件不支持该功能。
 
+当前版本软件同时支持 Web 操作页面和命令行两种方式下使用，即使有些固件不支持本软件在 Web 操作页面下使用，但也可能支持命令行方式。
+
+由于软件在不断迭代和改善的过程中，始终保持很好的向下兼容性，建议用户尽可能使用当前最新版本软件。
+
 <strong>主要功能</strong>
 
 <strong>一、基础功能</strong>
