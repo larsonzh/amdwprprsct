@@ -57,8 +57,8 @@
 
     使用安装工具软件将安装包上传至路由器临时目录，SSH
     终端窗口进入安装包所在目录，通过 Linux 解压缩包命令
-    解压，然后在新获得的文件目录中，运行其中的
-    lzinstall.sh安 装脚本，即可完成脚本的安装/升级。
+    解压，然后在新获得的文件目录中，运行其中的 install.sh
+    或 lzinstall.sh 安装脚本，即可完成脚本的安装/升级。
 
     安装过程不会覆盖用户在脚本目录中自己创建的文件或在
     data目录中已有的用户自定义数据文件。
@@ -75,6 +75,10 @@
         然后进入解压出的目录 lz_rule-v[版本号] 内执行文件
         运行权限设置：
 
+            chmod +x ./install.sh
+
+            或
+
             chmod +x ./lzinstall.sh
 
     b)tgz 包解压命令
@@ -89,9 +93,17 @@
 
             △ 安装至路由器 /jffs/scripts 目录内:
 
+                ./install.sh
+
+                或
+
                 ./lzinstall.sh
 
             △ 安装至路由器 USB 盘 /opt/home 目录内:
+
+                ./install.sh entware
+
+                或
 
                 ./lzinstall.sh entware
 
