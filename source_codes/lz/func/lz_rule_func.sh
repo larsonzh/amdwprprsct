@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v4.0.9
+# lz_rule_func.sh v4.1.0
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 #BEIGIN

@@ -1,5 +1,5 @@
 #!/bin/sh
-# uninstall.sh v4.0.9
+# uninstall.sh v4.1.0
 # By LZ (larsonzhang@gmail.com)
 
 # LZ RULE script for Asuswrt-Merlin Router
@@ -8,7 +8,7 @@
 
 # BEIGIN
 
-LZ_VERSION=v4.0.9
+LZ_VERSION=v4.1.0
 TIMEOUT=10
 CURRENT_PATH="${0%/*}"
 [ "${CURRENT_PATH:0:1}" != '/' ] && CURRENT_PATH="$( pwd )${CURRENT_PATH#*.}"
@@ -78,6 +78,7 @@ rm -f "${CURRENT_PATH}/images/InternetScan.gif" > /dev/null 2>&1
 rm -f "${CURRENT_PATH}/images/arrow-down.gif" > /dev/null 2>&1
 rm -f "${CURRENT_PATH}/images/arrow-top.gif" > /dev/null 2>&1
 rm -f "${CURRENT_PATH}/webs/LZ_Policy_Routing_Content.asp" > /dev/null 2>&1
+rm -f "${CURRENT_PATH}/interface/lz_rule_service.sh" > /dev/null 2>&1
 rm -f "${CURRENT_PATH}/data/lz_all_cn_cidr.txt" > /dev/null 2>&1
 rm -f "${CURRENT_PATH}/data/lz_chinatelecom_cidr.txt" > /dev/null 2>&1
 rm -f "${CURRENT_PATH}/data/lz_unicom_cnc_cidr.txt" > /dev/null 2>&1
