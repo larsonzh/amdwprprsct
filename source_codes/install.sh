@@ -1,5 +1,5 @@
 #!/bin/sh
-# install.sh v4.1.0
+# install.sh v4.1.1
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ RULE script for Asuswrt-Merlin Router
@@ -11,7 +11,7 @@
 
 #BEIGIN
 
-LZ_VERSION=v4.1.0
+LZ_VERSION=v4.1.1
 TIMEOUT=10
 CURRENT_PATH="${0%/*}"
 [ "${CURRENT_PATH:0:1}" != '/' ] && CURRENT_PATH="$( pwd )${CURRENT_PATH#*.}"
@@ -289,20 +289,26 @@ lz_mount_web_ui() {
             mkdir -p "${PATH_WEB_LZR}" > /dev/null 2>&1
             [ ! -d "${PATH_WEB_LZR}" ] && break
         fi
-        rm -f "$PATH_WEB_LZR/"* > /dev/null 2>&1
+        rm -f "${PATH_WEB_LZR}/"* > /dev/null 2>&1
         ln -s "${PATH_JS}/lz_policy_routing.js" "${PATH_WEB_LZR}/lz_policy_routing.js" > /dev/null 2>&1
         ln -s "${PATH_IMAGES}/favicon.png" "${PATH_WEB_LZR}/favicon.png" > /dev/null 2>&1
         ln -s "${PATH_IMAGES}/InternetScan.gif" "${PATH_WEB_LZR}/InternetScan.gif" > /dev/null 2>&1
         ln -s "${PATH_IMAGES}/arrow-down.gif" "${PATH_WEB_LZR}/arrow-down.gif" > /dev/null 2>&1
         ln -s "${PATH_IMAGES}/arrow-top.gif" "${PATH_WEB_LZR}/arrow-top.gif" > /dev/null 2>&1
         ln -s "/jffs/scripts/firewall-start" "${PATH_WEB_LZR}/LZRState.html" > /dev/null 2>&1
+        ln -s "/jffs/scripts/service-event" "${PATH_WEB_LZR}/LZRService.html" > /dev/null 2>&1
+        ln -s "/jffs/scripts/openvpn-event" "${PATH_WEB_LZR}/LZROpenvpn.html" > /dev/null 2>&1
+        ln -s "/jffs/scripts/post-mount" "${PATH_WEB_LZR}/LZRPostMount.html" > /dev/null 2>&1
         ln -s "${PATH_LZ}/lz_rule.sh" "${PATH_WEB_LZR}/LZRVersion.html" > /dev/null 2>&1
         ln -s "${PATH_CONFIGS}/lz_rule_config.sh" "${PATH_WEB_LZR}/LZRConfig.html" > /dev/null 2>&1
         ln -s "${PATH_CONFIGS}/lz_rule_config.box" "${PATH_WEB_LZR}/LZRBKData.html" > /dev/null 2>&1
         ln -s "${PATH_FUNC}/lz_define_global_variables.sh" "${PATH_WEB_LZR}/LZRGlobal.html" > /dev/null 2>&1
         ln -s "${PATH_TMP}/status.log" "${PATH_WEB_LZR}/LZRStatus.html" > /dev/null 2>&1
-        ln -s "${PATH_TMP}/unlock.log" "${PATH_WEB_LZR}/LZRUnlock.html" > /dev/null 2>&1
+        ln -s "${PATH_TMP}/routing.log" "${PATH_WEB_LZR}/LZRRouting.html" > /dev/null 2>&1
+        ln -s "${PATH_TMP}/rules.log" "${PATH_WEB_LZR}/LZRRules.html" > /dev/null 2>&1
         ln -s "${PATH_TMP}/address.log" "${PATH_WEB_LZR}/LZRAddress.html" > /dev/null 2>&1
+        ln -s "${PATH_TMP}/crontab.log" "${PATH_WEB_LZR}/LZRCrontab.html" > /dev/null 2>&1
+        ln -s "${PATH_TMP}/unlock.log" "${PATH_WEB_LZR}/LZRUnlock.html" > /dev/null 2>&1
         ! which md5sum > /dev/null 2>&1 && break
         local page_name="$( lz_get_webui_page )"
         [ -z "${page_name}" ] && break

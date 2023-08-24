@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule.sh v4.1.0
+# lz_rule.sh v4.1.1
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # 本软件采用CIDR（无类别域间路由，Classless Inter-Domain Routing）技术，是一个在Internet上创建附加地
@@ -80,7 +80,7 @@
 ## -------------全局数据定义及初始化-------------------
 
 ## 版本号
-LZ_VERSION=v4.1.0
+LZ_VERSION=v4.1.1
 
 ## 运行状态查询命令
 SHOW_STATUS="status"
@@ -148,11 +148,20 @@ OPENVPN_EVENT_INTERFACE_NAME="lz_openvpn_event.sh"
 ## 运行状态记录文件名
 STATUS_LOG="${PATH_TMP}/status.log"
 
-## 脚本解锁命令执行记录文件名
-UNLOCK_LOG="${PATH_TMP}/unlock.log"
-
 ## 脚本网址信息查询命令执行记录文件名
 ADDRESS_LOG="${PATH_TMP}/address.log"
+
+## 系统路由表查询命令执行记录文件名
+ROUTING_LOG="${PATH_TMP}/routing.log"
+
+## 系统路由规则查询命令执行记录文件名
+RULES_LOG="${PATH_TMP}/rules.log"
+
+## 系统定时任务查询命令执行记录文件名
+CRONTAB_LOG="${PATH_TMP}/crontab.log"
+
+## 脚本解锁命令执行记录文件名
+UNLOCK_LOG="${PATH_TMP}/unlock.log"
 
 ## 更新ISP网络运营商CIDR网段数据脚本文件名
 UPDATE_FILENAME="lz_update_ispip_data.sh"
@@ -266,8 +275,11 @@ lz_project_file_management() {
     cd "${PATH_LZ}/" > /dev/null 2>&1 && chmod -R 775 ./* > /dev/null 2>&1
 
     touch "${STATUS_LOG}" 2> /dev/null
-    touch "${UNLOCK_LOG}" 2> /dev/null
+    touch "${ROUTING_LOG}" 2> /dev/null
+    touch "${RULES_LOG}" 2> /dev/null
     touch "${ADDRESS_LOG}" 2> /dev/null
+    touch "${CRONTAB_LOG}" 2> /dev/null
+    touch "${UNLOCK_LOG}" 2> /dev/null
     [ "${1}" = "${UNMOUNT_WEB_UI}" ] && return "0"
 
     ## 检查脚本关键文件是否存在，若有不存在项则退出运行。
@@ -676,20 +688,27 @@ lz_mount_web_ui() {
         fi
         sed -i -e 's/^[ \t]*//g' -e 's/[ \t]*$//g' -e '/^$/d' "${PATH_JS}/lz_policy_routing.js" > /dev/null 2>&1
         sed -i -e 's/^[ \t]*//g' -e 's/[ \t]*$//g' -e '/^$/d' "${PATH_WEBS}/LZ_Policy_Routing_Content.asp" > /dev/null 2>&1
-        rm -f "$PATH_WEB_LZR/"* > /dev/null 2>&1
+        rm -f "${PATH_WEB_LZR}/"* > /dev/null 2>&1
         ln -s "${PATH_JS}/lz_policy_routing.js" "${PATH_WEB_LZR}/lz_policy_routing.js" > /dev/null 2>&1
         ln -s "${PATH_IMAGES}/favicon.png" "${PATH_WEB_LZR}/favicon.png" > /dev/null 2>&1
         ln -s "${PATH_IMAGES}/InternetScan.gif" "${PATH_WEB_LZR}/InternetScan.gif" > /dev/null 2>&1
         ln -s "${PATH_IMAGES}/arrow-down.gif" "${PATH_WEB_LZR}/arrow-down.gif" > /dev/null 2>&1
         ln -s "${PATH_IMAGES}/arrow-top.gif" "${PATH_WEB_LZR}/arrow-top.gif" > /dev/null 2>&1
         ln -s "${PATH_BOOTLOADER}/${BOOTLOADER_NAME}" "${PATH_WEB_LZR}/LZRState.html" > /dev/null 2>&1
+        ln -s "${PATH_BOOTLOADER}/${SERVICE_EVENT_NAME}" "${PATH_WEB_LZR}/LZRService.html" > /dev/null 2>&1
+        ln -s "${PATH_BOOTLOADER}/${OPENVPN_EVENT_NAME}" "${PATH_WEB_LZR}/LZROpenvpn.html" > /dev/null 2>&1
+        ln -s "${PATH_BOOTLOADER}/${BOOT_USB_MOUNT_NAME}" "${PATH_WEB_LZR}/LZRPostMount.html" > /dev/null 2>&1
         ln -s "${PATH_LZ}/${PROJECT_FILENAME}" "${PATH_WEB_LZR}/LZRVersion.html" > /dev/null 2>&1
         ln -s "${PATH_CONFIGS}/lz_rule_config.sh" "${PATH_WEB_LZR}/LZRConfig.html" > /dev/null 2>&1
         ln -s "${PATH_CONFIGS}/lz_rule_config.box" "${PATH_WEB_LZR}/LZRBKData.html" > /dev/null 2>&1
         ln -s "${PATH_FUNC}/lz_define_global_variables.sh" "${PATH_WEB_LZR}/LZRGlobal.html" > /dev/null 2>&1
         ln -s "${STATUS_LOG}" "${PATH_WEB_LZR}/LZRStatus.html" > /dev/null 2>&1
-        ln -s "${UNLOCK_LOG}" "${PATH_WEB_LZR}/LZRUnlock.html" > /dev/null 2>&1
+        ln -s "${ROUTING_LOG}" "${PATH_WEB_LZR}/LZRRouting.html" > /dev/null 2>&1
+        ln -s "${RULES_LOG}" "${PATH_WEB_LZR}/LZRRules.html" > /dev/null 2>&1
         ln -s "${ADDRESS_LOG}" "${PATH_WEB_LZR}/LZRAddress.html" > /dev/null 2>&1
+        ln -s "${CRONTAB_LOG}" "${PATH_WEB_LZR}/LZRCrontab.html" > /dev/null 2>&1
+        ln -s "${UNLOCK_LOG}" "${PATH_WEB_LZR}/LZRUnlock.html" > /dev/null 2>&1
+
         ! which md5sum > /dev/null 2>&1 && break
         local page_name="$( lz_get_webui_page )"
         [ -z "${page_name}" ] && break
@@ -1168,8 +1187,11 @@ if lz_project_file_management "${1}"; then
         echo "$(lzdate)" [$$]: Policy Routing Web UI has been unmounted. | tee -ai "${SYSLOG}" 2> /dev/null
     else
         sed -i '1,$d' "${STATUS_LOG}" 2> /dev/null
-        sed -i '1,$d' "${UNLOCK_LOG}" 2> /dev/null
+        sed -i '1,$d' "${ROUTING_LOG}" 2> /dev/null
+        sed -i '1,$d' "${RULES_LOG}" 2> /dev/null
         sed -i '1,$d' "${ADDRESS_LOG}" 2> /dev/null
+        sed -i '1,$d' "${CRONTAB_LOG}" 2> /dev/null
+        sed -i '1,$d' "${UNLOCK_LOG}" 2> /dev/null
         ## 极限情况下文件锁偶有锁不住的情况发生，与预期不符。利用系统自带的策略路由数据库做进程间异步模式同步，
         ## 虽会降低些效率，代码也不好看，但作为同步过程中的二次防御手段还是很值得。一旦脚本执行过程中意外中断，
         ## 可通过手工删除垃圾规则条目或重启路由器清理策略路由库中的垃圾数据

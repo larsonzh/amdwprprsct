@@ -1117,9 +1117,16 @@
                                                                     <td>
                                                                         <select id="cmdMethod" name="cmdMethod" class="input_option" style="margin-left:2px;" onchange="hideCNT(this.value);">
                                                                             <option value="0" selected>查询路由器出口</option>
-                                                                            <option value="1">更新运营商 IP 地址数据</option>
-                                                                            <option value="2">解除程序运行锁</option>
-                                                                            <option value="3">恢复缺省配置参数 (慎重)&nbsp;</option>
+                                                                            <option value="1">显示系统路由表</option>
+                                                                            <option value="2">显示系统路由规则</option>
+                                                                            <option value="3">显示系统定时任务</option>
+                                                                            <option value="4">显示 firewall-start 启动项</option>
+                                                                            <option value="5">显示 service-event 服务触发项&nbsp;</option>
+                                                                            <option value="6">显示 openvpn-event 事件触发项</option>
+                                                                            <option value="7">显示 post-mount 挂载启动项</option>
+                                                                            <option value="8">更新运营商 IP 地址数据</option>
+                                                                            <option value="9">解除程序运行锁</option>
+                                                                            <option value="10">恢复缺省配置参数 (慎重)</option>
                                                                         </select>
                                                                     </td>
                                                                 </tr>

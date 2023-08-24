@@ -1,5 +1,5 @@
 #!/bin/sh
-# uninstall.sh v4.1.0
+# uninstall.sh v4.1.1
 # By LZ (larsonzhang@gmail.com)
 
 # LZ RULE script for Asuswrt-Merlin Router
@@ -8,7 +8,7 @@
 
 # BEIGIN
 
-LZ_VERSION=v4.1.0
+LZ_VERSION=v4.1.1
 TIMEOUT=10
 CURRENT_PATH="${0%/*}"
 [ "${CURRENT_PATH:0:1}" != '/' ] && CURRENT_PATH="$( pwd )${CURRENT_PATH#*.}"
@@ -92,8 +92,11 @@ rm -f "${CURRENT_PATH}/data/lz_mo_cidr.txt" > /dev/null 2>&1
 rm -f "${CURRENT_PATH}/data/lz_tw_cidr.txt" > /dev/null 2>&1
 rm -f "${CURRENT_PATH}/data/cookies.isp" > /dev/null 2>&1
 rm -f "${CURRENT_PATH}/tmp/status.log" > /dev/null 2>&1
-rm -f "${CURRENT_PATH}/tmp/unlock.log" > /dev/null 2>&1
+rm -f "${CURRENT_PATH}/tmp/routing.log" > /dev/null 2>&1
+rm -f "${CURRENT_PATH}/tmp/rules.log" > /dev/null 2>&1
 rm -f "${CURRENT_PATH}/tmp/address.log" > /dev/null 2>&1
+rm -f "${CURRENT_PATH}/tmp/crontab.log" > /dev/null 2>&1
+rm -f "${CURRENT_PATH}/tmp/unlock.log" > /dev/null 2>&1
 rm -f "${CURRENT_PATH}/lz_rule.sh" > /dev/null 2>&1
 rm -f "${CURRENT_PATH}/uninstall.sh" > /dev/null 2>&1
 rm -f "${CURRENT_PATH}/Changelog.txt" > /dev/null 2>&1
