@@ -1,5 +1,5 @@
 #!/bin/sh
-# install.sh v4.1.1
+# install.sh v4.1.2
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ RULE script for Asuswrt-Merlin Router
@@ -11,7 +11,7 @@
 
 #BEIGIN
 
-LZ_VERSION=v4.1.1
+LZ_VERSION=v4.1.2
 TIMEOUT=10
 CURRENT_PATH="${0%/*}"
 [ "${CURRENT_PATH:0:1}" != '/' ] && CURRENT_PATH="$( pwd )${CURRENT_PATH#*.}"
@@ -240,9 +240,9 @@ EOF_SERVICE_INTERFACE
             && sed -i 'l1 s:^.*\(#!/bin/sh.*$\):\1/g' "/jffs/scripts/service-event"
     fi
     sed -i -e '/lz_rule[\.]sh/d' -e '/lz_update_ispip_data[\.]sh/d' -e '/lz_rule_service[\.]sh/d' "/jffs/scripts/service-event"
-    sed -i -e "\$a ${PATH_INTERFACE}/lz_rule_service.sh \"\$\{1\}\" \"\$\{2\}\" # Added by LZRule" -e "/^[ \t]*$/d" "/jffs/scripts/service-event"
+    sed -i -e "\$a ${PATH_INTERFACE}/lz_rule_service.sh \$\{@\} # Added by LZRule" -e "/^[ \t]*$/d" "/jffs/scripts/service-event"
     chmod +x "/jffs/scripts/service-event"
-    ! grep -q "${PATH_INTERFACE}/lz_rule_service[\.]sh \"\$[\{]1[\}]\" \"\$[\{]2[\}]\"" "/jffs/scripts/service-event" && return "1"
+    ! grep -q "${PATH_INTERFACE}/lz_rule_service[\.]sh \$[\{]@[\}]" "/jffs/scripts/service-event" && return "1"
     return "0"
 }
 
@@ -309,6 +309,7 @@ lz_mount_web_ui() {
         ln -s "${PATH_TMP}/address.log" "${PATH_WEB_LZR}/LZRAddress.html" > /dev/null 2>&1
         ln -s "${PATH_TMP}/crontab.log" "${PATH_WEB_LZR}/LZRCrontab.html" > /dev/null 2>&1
         ln -s "${PATH_TMP}/unlock.log" "${PATH_WEB_LZR}/LZRUnlock.html" > /dev/null 2>&1
+        ln -s "/var/lock/lz_rule_instance.lock" "${PATH_WEB_LZR}/LZRInstance.html" > /dev/null 2>&1
         ! which md5sum > /dev/null 2>&1 && break
         local page_name="$( lz_get_webui_page )"
         [ -z "${page_name}" ] && break

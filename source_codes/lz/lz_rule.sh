@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule.sh v4.1.1
+# lz_rule.sh v4.1.2
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # 本软件采用CIDR（无类别域间路由，Classless Inter-Domain Routing）技术，是一个在Internet上创建附加地
@@ -80,7 +80,7 @@
 ## -------------全局数据定义及初始化-------------------
 
 ## 版本号
-LZ_VERSION=v4.1.1
+LZ_VERSION=v4.1.2
 
 ## 运行状态查询命令
 SHOW_STATUS="status"
@@ -212,6 +212,12 @@ WAN0="100"
 ## 第二WAN口路由表ID号
 WAN1="200"
 
+## ppp0失败标识文件名
+PPP0_FAULT_FILE="/tmp/lz_ppp0_fault"
+
+## ppp1失败标识文件名
+PPP1_FAULT_FILE="/tmp/lz_ppp1_fault"
+
 if [ "${1}" != "${FORCED_UNLOCKING}" ]; then
     echo "lz_${1}" >> "${INSTANCE_LIST}"
     ## 设置文件同步锁
@@ -219,9 +225,9 @@ if [ "${1}" != "${FORCED_UNLOCKING}" ]; then
     eval "exec ${LOCK_FILE_ID}<>${LOCK_FILE}"
     flock -x "$LOCK_FILE_ID" > /dev/null 2>&1
     ## 运行实例处理
-    sed -i -e '/^$/d' -e '/^[ ]*$/d' -e '1d' "${INSTANCE_LIST}" > /dev/null 2>&1
+    sed -i -e '/^$/d' -e '/^[ \t]*$/d' -e '1d' "${INSTANCE_LIST}" > /dev/null 2>&1
     if grep -q 'lz_' "${INSTANCE_LIST}" 2> /dev/null; then
-        local_instance="$( grep 'lz_' ${INSTANCE_LIST} | sed -n 1p | sed -e 's/^[ ]*//g' -e 's/[ ]*$//g' )"
+        local_instance="$( grep 'lz_' ${INSTANCE_LIST} | sed -n 1p | sed -e 's/^[ \t]*//g' -e 's/[ \t]*$//g' )"
         if [ "${local_instance}" = "lz_${1}" ] && [ "${local_instance}" != "lz_${SHOW_STATUS}" ] \
             && [ "${local_instance}" != "lz_${ADDRESS_QUERY}" ]; then
             unset local_instance
@@ -366,7 +372,7 @@ lz_update_ddns() {
 ##     1--无新实例开始运行
 lz_check_instance() {
     ! grep -q 'lz_' "${INSTANCE_LIST}" 2> /dev/null && return "1"
-    local local_instance="$( grep 'lz_' "${INSTANCE_LIST}" | sed -n 1p | sed -e 's/^[ ]*//g' -e 's/[ ]*$//g' )"
+    local local_instance="$( grep 'lz_' "${INSTANCE_LIST}" | sed -n 1p | sed -e 's/^[ \t]*//g' -e 's/[ \t]*$//g' )"
     if [ "${local_instance}" != "lz_${1}" ] || [ "${local_instance}" = "lz_${SHOW_STATUS}" ] \
         || [ "${local_instance}" = "lz_${ADDRESS_QUERY}" ]; then
         return "1"
@@ -383,12 +389,21 @@ lz_check_instance() {
 ##     全局变量及常量
 ## 返回值：无
 lz_instance_exit() {
-    local restart_pppoe_count="0"
-    if [ "${restart_pppoe}" ] && [ "${restart_pppoe_count}" = "0" ]; then
-        sed -i "s|^[ \t]*local restart_pppoe_count=\"0\"|local restart_pppoe_count=\"1\"|" "${1}" > /dev/null 2>&1
-    elif [ "${restart_pppoe_count}" != "0" ]; then
-        sed -i "s|^[ \t]*local restart_pppoe_count=.*$|local restart_pppoe_count=\"0\"|" "${1}" > /dev/null 2>&1
+    ## PPPoE失败恢复处理
+    local ppp0_restart="0" ppp1_restart="0"
+    if [ "${restart_ppp0}" ]; then
+        [ ! -f "${PPP0_FAULT_FILE}" ] && ppp0_restart="1"
+        touch "${PPP0_FAULT_FILE}" 2> /dev/null
+    elif [ -f "${PPP0_FAULT_FILE}" ]; then
+        rm -f "${PPP0_FAULT_FILE}" > /dev/null 2>&1
     fi
+    if [ "${restart_ppp1}" ]; then
+        [ ! -f "${PPP1_FAULT_FILE}" ] && ppp1_restart="1"
+        touch "${PPP1_FAULT_FILE}" 2> /dev/null
+    elif [ -f "${PPP1_FAULT_FILE}" ]; then
+        rm -f "${PPP1_FAULT_FILE}" > /dev/null 2>&1
+    fi
+
     [ -f "${INSTANCE_LIST}" ] && ! grep -q 'lz_' "${INSTANCE_LIST}" && rm -f "${INSTANCE_LIST}" > /dev/null 2>&1
     [ -f "${LOCK_FILE}" ] && flock -u "${LOCK_FILE_ID}" > /dev/null 2>&1
     if [ "${drop_sys_caches}" = "0" ] && [ "${2}" != "${ISPIP_DATA_UPDATE}" ] && [ -f /proc/sys/vm/drop_caches ]; then
@@ -407,11 +422,11 @@ lz_instance_exit() {
     ## 更新DDNS服务
     ## 输入项：无
     ## 返回值：0
-    [ "${2}" != "${UNMOUNT_WEB_UI}" ] && { [ ! "${restart_pppoe}" ] || { [ "${restart_pppoe}" ] && [ "${restart_pppoe_count}" != "0" ]; }; } && lz_update_ddns
+    [ "${2}" != "${UNMOUNT_WEB_UI}" ] && [ "${ppp0_restart}" = "0" ] && [ "${ppp1_restart}" = "0" ] && lz_update_ddns
 
-    ## 双线路负载均衡PPPoE失败时重启一次
-    [ "${restart_pppoe}" ] && [ "${restart_pppoe_count}" = "0" ] \
-        && service "restart_wan_if ${restart_pppoe};restart_stubby" > /dev/null 2>&1
+    ## 开机PPPoE失败时重启一次
+    [ "${ppp0_restart}" = "1" ] && service "restart_wan_if 0;restart_stubby" > /dev/null 2>&1
+    [ "${ppp1_restart}" = "1" ] && service "restart_wan_if 1;restart_stubby" > /dev/null 2>&1
 }
 
 ## 创建事件接口函数
@@ -583,12 +598,12 @@ EOF_SERVICE_INTERFACE
         ! grep -m 1 '^.*$' "${PATH_BOOTLOADER}/${1}" | grep -q "^#!/bin/sh" \
             && sed -i 'l1 s:^.*\(#!/bin/sh.*$\):\1/g' "${PATH_BOOTLOADER}/${1}"
     fi
-    if ! grep -q "${2}/${3} \"\$[\{]1[\}]\" \"\$[\{]2[\}]\"" "${PATH_BOOTLOADER}/${1}"; then
+    if ! grep -q "${2}/${3} \$[\{]@[\}]" "${PATH_BOOTLOADER}/${1}"; then
         sed -i "/${3}/d" "${PATH_BOOTLOADER}/${1}"
-        sed -i -e "\$a ${2}/${3} \"\$\{1\}\" \"\$\{2\}\" # Added by LZRule" -e "/^[ \t]*$/d" "${PATH_BOOTLOADER}/${1}"
+        sed -i -e "\$a ${2}/${3} \$\{@\} # Added by LZRule" -e "/^[ \t]*$/d" "${PATH_BOOTLOADER}/${1}"
     fi
     chmod +x "${PATH_BOOTLOADER}/${1}"
-    ! grep -q "${2}/${3} \"\$[\{]1[\}]\" \"\$[\{]2[\}]\"" "${PATH_BOOTLOADER}/${1}" && return "1"
+    ! grep -q "${2}/${3} \$[\{]@[\}]" "${PATH_BOOTLOADER}/${1}" && return "1"
     return "0"
 }
 
@@ -708,6 +723,7 @@ lz_mount_web_ui() {
         ln -s "${ADDRESS_LOG}" "${PATH_WEB_LZR}/LZRAddress.html" > /dev/null 2>&1
         ln -s "${CRONTAB_LOG}" "${PATH_WEB_LZR}/LZRCrontab.html" > /dev/null 2>&1
         ln -s "${UNLOCK_LOG}" "${PATH_WEB_LZR}/LZRUnlock.html" > /dev/null 2>&1
+        ln -s "${INSTANCE_LIST}" "${PATH_WEB_LZR}/LZRInstance.html" > /dev/null 2>&1
 
         ! which md5sum > /dev/null 2>&1 && break
         local page_name="$( lz_get_webui_page )"

@@ -1,5 +1,5 @@
 /*
-# lz_policy_routing.js v4.1.1
+# lz_policy_routing.js v4.1.2
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ JavaScript for Asuswrt-Merlin Router
@@ -1101,15 +1101,37 @@ function getPolicyChangedItem(_dataArray) {
     return _dataArray;
 }
 
-function applyRule() {
+function saveSettings() {
     if (!policySettingsArray.hasOwnProperty("policyEnable"))
         return;
     $("[name*=lzr_]").prop("disabled", false);
     $("#amng_custom").val(JSON.stringify(getPolicyChangedItem($("#ruleForm").serializeObject())).replace(/\"lzr_/g, "\"lz_rule_"));
     document.form.action_script.value = policySettingsArray.policyEnable ? "start_LZRule" : "stop_LZRule";
-    document.form.action_wait.value = 10;
+    document.form.action_wait.value = "10";
     showLoading();
     document.form.submit();
+}
+
+function isInstance() {
+    let retVal = true;
+    $.ajax({
+        async: false,
+        url: '/ext/lzr/LZRInstance.html',
+        dataType: 'text',
+        error: function(xhr) {
+            if (xhr.status == 404) {
+                retVal = false;
+            }
+        },
+    });
+    return retVal;
+}
+
+function applyRule() {
+    if (isInstance())
+        alert("上一个任务正在进行中，请稍后再试。");
+    else
+        saveSettings();
 }
 
 let height = 0;
@@ -1157,12 +1179,17 @@ function getStatus() {
 }
 
 function queryStatus() {
+    if (isInstance()) {
+        alert("上一个任务正在进行中，请稍后再试。");
+        return;
+    }
     document.getElementById("statusButton").disabled = true;
     $("#statusButton").hide();
     $("#loadingStatusIcon").fadeIn(300);
     document.getElementById("statusArea").innerHTML = "";
     height = 0;
     document.scriptActionsForm.action_script.value = 'start_LZStatus';
+    document.scriptActionsForm.action_wait.value = "0";
     document.scriptActionsForm.submit();
 }
 
@@ -1575,6 +1602,7 @@ function showRouting() {
     document.getElementById("toolsTextArea").innerHTML = "";
     routingHeight = 0;
     document.scriptActionsForm.action_script.value = 'start_LZRouting';
+    document.scriptActionsForm.action_wait.value = "0";
     document.scriptActionsForm.submit();
 }
 
@@ -1582,6 +1610,7 @@ function showRules() {
     document.getElementById("toolsTextArea").innerHTML = "";
     rulesHeight = 0;
     document.scriptActionsForm.action_script.value = 'start_LZRtRules';
+    document.scriptActionsForm.action_wait.value = "0";
     document.scriptActionsForm.submit();
 }
 
@@ -1589,6 +1618,7 @@ function showCrontab() {
     document.getElementById("toolsTextArea").innerHTML = "";
     crontabHeight = 0;
     document.scriptActionsForm.action_script.value = 'start_LZCrontab';
+    document.scriptActionsForm.action_wait.value = "0";
     document.scriptActionsForm.submit();
 }
 
@@ -1630,9 +1660,14 @@ function hideCNT(_val) {
         document.getElementById("cmdMethod").value = _val;
         document.getElementById("destIPCNT_tr").style.display = "none";
         document.getElementById("dnsIPAddressCNT_tr").style.display = "none";
+        let operable = !isInstance();
         if (val >= 1 && val <= 7) {
             $("#toolsButton").val("刷新命令");
-            disabledToolsButton(300);
+            if (!operable && val >= 1 && val < 4) {
+                if (document.getElementById("toolsButton").disabled)
+                    enabledToolsButton();
+            } else
+                disabledToolsButton(300);
         } else {
             $("#toolsButton").val("执行命令");
             if (document.getElementById("toolsButton").disabled)
@@ -1641,21 +1676,21 @@ function hideCNT(_val) {
         switch (val) {
             case 1:
                 routingHeight = 0;
-                if (!routingShowed) {
+                if (operable && !routingShowed) {
                     showRouting();
                     routingShowed = true;
                 }
                 break;
             case 2:
                 rulesHeight = 0;
-                if (!rulesShowed) {
+                if (operable && !rulesShowed) {
                     showRules();
                     rulesShowed = true;
                 }
                 break;
             case 3:
                 crontabHeight = 0;
-                if (!crontabShowed) {
+                if (operable && !crontabShowed) {
                     showCrontab();
                     crontabShowed = true;
                 }
@@ -1683,6 +1718,10 @@ function hideCNT(_val) {
 
 function toolsCommand() {
     let val = parseInt(document.getElementById("cmdMethod").value);
+    if ((val < 4 || val > 7) && isInstance()) {
+        alert("上一个任务正在进行中，请稍后再试。");
+        return;
+    }
     if (val >= 1 && val <= 7)
         disabledToolsButton(300);
     switch (val) {
@@ -1699,6 +1738,7 @@ function toolsCommand() {
             document.getElementById("toolsTextArea").innerHTML = "";
             addressHeight = 0;
             document.scriptActionsForm.action_script.value = "start_LZAddress_#" + destIPVal + "#" + dnsIPAddressVal + "#";
+            document.scriptActionsForm.action_wait.value = "0";
             document.scriptActionsForm.submit();
             break;
         case 1:
@@ -1731,7 +1771,7 @@ function toolsCommand() {
             }
             $("#amng_custom").val("");
             document.form.action_script.value = "start_LZUpdate";
-            document.form.action_wait.value = 15;
+            document.form.action_wait.value = "15";
             showLoading();
             document.form.submit();
             break;
@@ -1742,6 +1782,7 @@ function toolsCommand() {
             document.getElementById("toolsTextArea").innerHTML = "";
             unlockHeight = 0;
             document.scriptActionsForm.action_script.value = 'start_LZUnlock';
+            document.scriptActionsForm.action_wait.value = "0";
             document.scriptActionsForm.submit();
             break;
         case 10:
@@ -1749,7 +1790,7 @@ function toolsCommand() {
                 break;
             $("#amng_custom").val("");
             document.form.action_script.value = "start_LZDefault";
-            document.form.action_wait.value = 10;
+            document.form.action_wait.value = "10";
             showLoading();
             document.form.submit();
             break;
@@ -1800,7 +1841,7 @@ function initial() {
     showLANIPList();
     document.body.addEventListener("click", function(_evt) {control_dropdown_client_block("ClientList_Block_PC", "pull_arrow", _evt);});
     initAjaxTextArea();
-    if (restart) applyRule();
+    if (restart) saveSettings();
 }
 
 $(document).ready(function() {

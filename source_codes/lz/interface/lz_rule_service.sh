@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_service.sh v4.1.1
+# lz_rule_service.sh v4.1.2
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 服务接口脚本
@@ -47,11 +47,11 @@ case "${2}" in
         printf "\nTotal: %s\n" "${count}" >> "${PATH_LZ}/tmp/routing.log"
     ;;
     LZRtRules)
-        ip rule show | awk 'BEGIN{system("printf \"%s %s \n\n\" \"$( date +\"%F %T\")\" \"[$$]:\"")} \
+        ip rule show | awk -v pid="[${$}]:" 'BEGIN{system("printf \"%s %s \n\n\" \"$( date +\"%F %T\")\" "pid)} \
             {print $0} END{printf "\nTotal: %s\n", NR}' > "${PATH_LZ}/tmp/rules.log"
     ;;
     LZCrontab)
-        crontab -l | awk 'BEGIN{system("printf \"%s %s \n\n\" \"$( date +\"%F %T\")\" \"[$$]:\"")} {print $0} END{printf "\nTotal: %s\n", NR}' > "${PATH_LZ}/tmp/crontab.log"
+        crontab -l | awk -v pid="[${$}]:" 'BEGIN{system("printf \"%s %s \n\n\" \"$( date +\"%F %T\")\" "pid)} {print $0} END{printf "\nTotal: %s\n", NR}' > "${PATH_LZ}/tmp/crontab.log"
     ;;
     LZUpdate)
         [ -f "${PATH_LZ}/lz_update_ispip_data.sh" ] && "${PATH_LZ}/lz_update_ispip_data.sh"
