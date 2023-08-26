@@ -1367,14 +1367,13 @@ lz_ss_support_status() {
 ## 获取服务事件接口注册状态函数
 ## 输入项：
 ##     $1--系统事件接口全路径文件名
-##     $2--命令行1检索字符串
-##     $3--命令行2检索字符串
+##     $2--事件触发接口全路径文件名
 ## 返回值：
 ##     0--已注册
 ##     1--未注册
 lz_get_service_event_interface_status() {
-    if [ ! -f "${1}" ] || [ -z "${2}" ] || [ -z "${3}" ]; then return "1"; fi;
-    { ! grep -qE "${2}" "${1}" || ! grep -qE "${3}" "${1}"; } && return "1"
+    if [ ! -f "${1}" ] || [ ! -f "${2}" ]; then return "1"; fi;
+    ! grep -q "^[ 	]*${2}[ 	][ 	]*\$[\{]@[\}][ 	][ 	]*[\&]" "${1}" && return "1"
     return "0"
 }
 
@@ -1387,7 +1386,7 @@ lz_get_service_event_interface_status() {
 ##     1--未注册
 lz_get_event_interface_status() {
     if [ ! -f "${1}" ] || [ ! -f "${2}" ]; then return "1"; fi;
-    ! grep -q "^[ \t]*${2}" "${1}" && return "1"
+    ! grep -q "^[ 	]*${2}" "${1}" && return "1"
     return "0"
 }
 
@@ -3220,12 +3219,11 @@ fi
 ## 获取服务事件接口注册状态
 ## 输入项：
 ##     $1--系统事件接口全路径文件名
-##     $2--命令行1检索字符串
-##     $3--命令行2检索字符串
+##     $2--事件触发接口全路径文件名
 ## 返回值：
 ##     0--已注册
 ##     1--未注册
-if lz_get_service_event_interface_status "${PATH_BOOTLOADER}/${STATUS_SERVICE_EVENT_NAME}" "LZRule.*start.*restart.*${PATH_LZ}/${STATUS_PROJECT_FILENAME}.*stop.*${PATH_LZ}/${STATUS_PROJECT_FILENAME}.*STOP\"; fi fi" "LZStatus.*start.*restart.*${PATH_LZ}/${STATUS_PROJECT_FILENAME}.*status\"; fi fi"; then
+if lz_get_service_event_interface_status "${PATH_BOOTLOADER}/${STATUS_SERVICE_EVENT_NAME}" "${PATH_INTERFACE}/${SERVICE_INTERFACE_NAME}"; then
     echo "$(lzdate)" [$$]: "service-event interface has been registered." | tee -ai "${STATUS_LOG}" 2> /dev/null
 else
     echo "$(lzdate)" [$$]: "service-event interface is not registered." | tee -ai "${STATUS_LOG}" 2> /dev/null

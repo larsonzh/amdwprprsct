@@ -240,9 +240,9 @@ EOF_SERVICE_INTERFACE
             && sed -i 'l1 s:^.*\(#!/bin/sh.*$\):\1/g' "/jffs/scripts/service-event"
     fi
     sed -i -e '/lz_rule[\.]sh/d' -e '/lz_update_ispip_data[\.]sh/d' -e '/lz_rule_service[\.]sh/d' "/jffs/scripts/service-event"
-    sed -i -e "\$a ${PATH_INTERFACE}/lz_rule_service.sh \$\{@\} # Added by LZRule" -e "/^[ \t]*$/d" "/jffs/scripts/service-event"
+    sed -i -e "\$a ${PATH_INTERFACE}/lz_rule_service.sh \$\{@\} \& # Added by LZRule" -e "/^[ \t]*$/d" "/jffs/scripts/service-event"
     chmod +x "/jffs/scripts/service-event"
-    ! grep -q "${PATH_INTERFACE}/lz_rule_service[\.]sh \$[\{]@[\}]" "/jffs/scripts/service-event" && return "1"
+    ! grep -q "^${PATH_INTERFACE}/lz_rule_service[\.]sh \$[\{]@[\}] [\&]" "/jffs/scripts/service-event" && return "1"
     return "0"
 }
 

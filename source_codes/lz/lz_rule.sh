@@ -458,12 +458,12 @@ EOF_INTERFACE
         ! grep -m 1 '^.*$' "${PATH_BOOTLOADER}/${1}" | grep -q "^#!/bin/sh" \
             && sed -i 'l1 s:^.*\(#!/bin/sh.*$\):\1/g' "${PATH_BOOTLOADER}/${1}"
     fi
-    if ! grep -q "${2}/${3}" "${PATH_BOOTLOADER}/${1}"; then
+    if ! grep -q "^${2}/${3}" "${PATH_BOOTLOADER}/${1}"; then
         sed -i "/${3}/d" "${PATH_BOOTLOADER}/${1}"
         sed -i -e "\$a ${2}/${3} # Added by LZRule" -e "/^[ \t]*$/d" "${PATH_BOOTLOADER}/${1}"
     fi
     chmod +x "${PATH_BOOTLOADER}/${1}"
-    ! grep -q "${2}/${3}" "${PATH_BOOTLOADER}/${1}" && return "1"
+    ! grep -q "^${2}/${3}" "${PATH_BOOTLOADER}/${1}" && return "1"
     return "0"
 }
 
@@ -598,12 +598,12 @@ EOF_SERVICE_INTERFACE
         ! grep -m 1 '^.*$' "${PATH_BOOTLOADER}/${1}" | grep -q "^#!/bin/sh" \
             && sed -i 'l1 s:^.*\(#!/bin/sh.*$\):\1/g' "${PATH_BOOTLOADER}/${1}"
     fi
-    if ! grep -q "${2}/${3} \$[\{]@[\}]" "${PATH_BOOTLOADER}/${1}"; then
+    if ! grep -q "^${2}/${3} \$[\{]@[\}] [\&]" "${PATH_BOOTLOADER}/${1}"; then
         sed -i "/${3}/d" "${PATH_BOOTLOADER}/${1}"
-        sed -i -e "\$a ${2}/${3} \$\{@\} # Added by LZRule" -e "/^[ \t]*$/d" "${PATH_BOOTLOADER}/${1}"
+        sed -i -e "\$a ${2}/${3} \$\{@\} \& # Added by LZRule" -e "/^[ \t]*$/d" "${PATH_BOOTLOADER}/${1}"
     fi
     chmod +x "${PATH_BOOTLOADER}/${1}"
-    ! grep -q "${2}/${3} \$[\{]@[\}]" "${PATH_BOOTLOADER}/${1}" && return "1"
+    ! grep -q "^${2}/${3} \$[\{]@[\}] [\&]" "${PATH_BOOTLOADER}/${1}" && return "1"
     return "0"
 }
 

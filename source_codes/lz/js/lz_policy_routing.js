@@ -1718,7 +1718,7 @@ function hideCNT(_val) {
 
 function toolsCommand() {
     let val = parseInt(document.getElementById("cmdMethod").value);
-    if ((val < 4 || val > 7) && isInstance()) {
+    if ((val < 4 || (val > 7 && val != 9)) && isInstance()) {
         alert("上一个任务正在进行中，请稍后再试。");
         return;
     }
