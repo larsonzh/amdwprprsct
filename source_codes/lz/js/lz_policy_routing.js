@@ -1,5 +1,5 @@
 /*
-# lz_policy_routing.js v4.1.2
+# lz_policy_routing.js v4.1.3
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ JavaScript for Asuswrt-Merlin Router
@@ -29,7 +29,10 @@ function showProduct() {
     let currentProductId = document.form.productid.value;
     (currentProductId == "undefined" || currentProductId == null || currentProductId == "") && (currentProductId = '<% nvram_get("odmpid"); %>');
     (currentProductId == "") && (currentProductId = '<% nvram_get("model"); %>');
-    (currentProductId != "") && (currentProductId = " for " + currentProductId);
+    if (currentProductId != "") {
+        document.title = "ASUS Wireless Router " + currentProductId +" - 策略路由";
+        currentProductId = " for " + currentProductId;
+    }
     if (policySettingsArray.hasOwnProperty("version") && policySettingsArray.version != "")
         $("#lzr_producid").html(`LZ RULE ${policySettingsArray.version} ${currentProductId} by 妙妙呜&#8482;`);
     else $("#lzr_producid").html(`LZ RULE ${currentProductId} by 妙妙呜&#8482;`);

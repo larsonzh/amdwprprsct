@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_address_query.sh v4.1.2
+# lz_rule_address_query.sh v4.1.3
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 网址信息查询脚本
@@ -895,22 +895,22 @@ lz_aq_get_isp_data_item_total_variable() {
 ## 返回值：
 ##     IPv4网络IP地址^_域名^_DNS服务器地址^_DNS服务器名称
 lz_aq_resolve_ip() {
-    local local_ip="$( echo "${1}" | sed -e 's/^[ \t]*\([^ \t].*$\)/\1/g' -e 's/[ \t][ \t]*/ /g' \
+    local local_ip="$( echo "${1}" | sed -e 's/^[ \t]*\([^ \t].*$\)/\1/g' -e 's/[ \t]\+/ /g' \
                         -e 's/\(^.*[^ ]\)[ ]*$/\1/g' -e '/[3-9][0-9][0-9]/d' -e '/[2][6-9][0-9]/d' \
                         -e '/[2][5][6-9]/d' -e 's/\/.*$//g' \
                         | grep -Eo '^([0-9]{1,3}[\.]){3}[0-9]{1,3}$' | sed -n 1p )"
-    local local_domain_name="$( echo "${1}" | sed -e 's/^[ \t]*\([^ \t].*$\)/\1/g' -e 's/[ \t][ \t]*/ /g' \
+    local local_domain_name="$( echo "${1}" | sed -e 's/^[ \t]*\([^ \t].*$\)/\1/g' -e 's/[ \t]\+/ /g' \
                                 -e 's/\(^.*[^ ]\)[ ]*$/\1/g' -e 's/^.*\:\/\///g' -e 's/^[^ ]\{0,6\}\://g' \
                                 -e 's/\/.*$//g' | sed -n 1p | tr '[:A-Z:]' '[:a-z:]' )"
     local local_dns_server_ip=""
     local local_dns_server_name=""
     if [ "${local_ip}" = "${local_domain_name}" ]; then
         local_domain_name=""
-        [ -z "${local_ip}" ] && local_ip="$( echo "${1}" | sed -e 's/^[ \t]*\([^ \t].*$\)/\1/g' -e 's/[ \t][ \t]*/ /g' \
+        [ -z "${local_ip}" ] && local_ip="$( echo "${1}" | sed -e 's/^[ \t]*\([^ \t].*$\)/\1/g' -e 's/[ \t]\+/ /g' \
                                             -e 's/\(^.*[^ ]\)[ ]*$/\1/g' | sed -n 1p | tr '[:A-Z:]' '[:a-z:]' )"
     else
         local local_dnslookup_server="$( echo "${2}" | sed -e 's/^[ \t]*\([^ \t].*$\)/\1/g' \
-                                        -e 's/[ \t][ \t]*/ /g' \
+                                        -e 's/[ \t]\+/ /g' \
                                         -e 's/\(^.*[^ ]\)[ ]*$/\1/g' \
                                         -e '/[3-9][0-9][0-9]/d' -e '/[2][6-9][0-9]/d' \
                                         -e '/[2][5][6-9]/d' -e 's/\/.*$//g' \
@@ -927,7 +927,7 @@ lz_aq_resolve_ip() {
             local_domain_name="$( echo "${local_info}" | sed '1,3d' | grep -i Name | awk '{print $2}' | sed -n 1p )"
             [ -z "${local_domain_name}" ] && local_domain_name="$( echo "${1}" \
                                                                 | sed -e 's/^[ \t]*\([^ \t].*$\)/\1/g' \
-                                                                -e 's/[ \t][ \t]*/ /g' \
+                                                                -e 's/[ \t]\+/ /g' \
                                                                 -e 's/\(^.*[^ ]\)[ ]*$/\1/g' \
                                                                 -e 's/^.*\:\/\///g' \
                                                                 -e 's/^[^ ]\{0,6\}\://g' \
@@ -937,12 +937,12 @@ lz_aq_resolve_ip() {
             local_dns_server_name="$( echo "${local_info}" | sed -n 2p | awk '{print $4}' \
                                     | sed 's/[\.]$//g' | tr '[:A-Z:]' '[:a-z:]' )"
             [ -z "${local_ip}" ] && {
-                local_ip="$( echo "${1}" | sed -e 's/^[ \t]*\([^ \t].*$\)/\1/g' -e 's/[ \t][ \t]*/ /g' -e 's/\(^.*[^ ]\)[ ]*$/\1/g' \
+                local_ip="$( echo "${1}" | sed -e 's/^[ \t]*\([^ \t].*$\)/\1/g' -e 's/[ \t]\+/ /g' -e 's/\(^.*[^ ]\)[ ]*$/\1/g' \
                             | sed -n 1p| tr '[:A-Z:]' '[:a-z:]' )"
                 local_domain_name=""
             }
         else
-            local_ip="$( echo "${1}" | sed -e 's/^[ \t]*\([^ \t].*$\)/\1/g' -e 's/[ \t][ \t]*/ /g' -e 's/\(^.*[^ ]\)[ ]*$/\1/g' \
+            local_ip="$( echo "${1}" | sed -e 's/^[ \t]*\([^ \t].*$\)/\1/g' -e 's/[ \t]\+/ /g' -e 's/\(^.*[^ ]\)[ ]*$/\1/g' \
                         | sed -n 1p| tr '[:A-Z:]' '[:a-z:]' )"
             local_domain_name=""
         fi
@@ -995,7 +995,7 @@ lz_show_address_info() {
         fi
     elif [ "${3}" = "$(( AQ_ISP_TOTAL + 4 ))" ]; then 
         echo "$(lzdate)" [$$]: "  Private network address" | tee -ai "${ADDRESS_LOG}" 2> /dev/null
-    elif echo "${1}" | sed -e 's/^[ \t]*\([^ \t].*$\)/\1/g' -e 's/[ \t][ \t]*/ /g' -e 's/\(^.*[^ ]\)[ ]*$/\1/g' \
+    elif echo "${1}" | sed -e 's/^[ \t]*\([^ \t].*$\)/\1/g' -e 's/[ \t]\+/ /g' -e 's/\(^.*[^ ]\)[ ]*$/\1/g' \
                 -e '/[3-9][0-9][0-9]/d' -e '/[2][6-9][0-9]/d' -e '/[2][5][6-9]/d' -e 's/\/.*$//g' \
                 | grep -qEo '^([0-9]{1,3}[\.]){3}[0-9]{1,3}$'; then
         if [ "${2}" = "0" ]; then
@@ -1078,7 +1078,7 @@ lz_query_address() {
     local local_ip_item_total="$( echo "${local_net_ip}" | wc -l )"
 
     if [ "${local_ip_item_total}" -le "1" ]; then
-        if echo "${local_net_ip}" | sed -e 's/^[ \t]*\([^ \t].*$\)/\1/g' -e 's/[ \t][ \t]*/ /g' -e 's/\(^.*[^ ]\)[ ]*$/\1/g' \
+        if echo "${local_net_ip}" | sed -e 's/^[ \t]*\([^ \t].*$\)/\1/g' -e 's/[ \t]\+/ /g' -e 's/\(^.*[^ ]\)[ ]*$/\1/g' \
                 -e '/[3-9][0-9][0-9]/d' -e '/[2][6-9][0-9]/d' -e '/[2][5][6-9]/d' -e 's/\/.*$//g' \
                 | grep -qEo '^([0-9]{1,3}[\.]){3}[0-9]{1,3}$'; then
             ipset -q flush lz_aq_ispip_tmp_sets && ipset -q destroy lz_aq_ispip_tmp_sets
@@ -1416,12 +1416,6 @@ __aq_main() {
     fi
 }
 
-if [ ! -f "${PATH_CONFIGS}/lz_rule_config.box" ]; then
-    echo "$(lzdate)" [$$]: LZ "${LZ_VERSION}" script hasn\'t been started and initialized, please restart. | tee -ai "${ADDRESS_LOG}" 2> /dev/null
-    return
-fi
-
-sed -i '1,$d' "${ADDRESS_LOG}" 2> /dev/null
 {
     echo "$(lzdate) [$$]: "
     echo "$(lzdate)" [$$]: LZ "${LZ_VERSION}" script commands start......
@@ -1429,32 +1423,38 @@ sed -i '1,$d' "${ADDRESS_LOG}" 2> /dev/null
     echo "$(lzdate)" [$$]: ---------------------------------------------
     echo "$(lzdate)" [$$]: Location: "${PATH_LZ}"
     echo "$(lzdate)" [$$]: ---------------------------------------------
-} >> "${ADDRESS_LOG}" 2> /dev/null
-{
-    echo "$(lzdate)" [$$]: Start network address information query.
-    echo "$(lzdate)" [$$]: Don\'t interrupt \& please wait......
-} | tee -ai "${ADDRESS_LOG}" 2> /dev/null
+} > "${ADDRESS_LOG}" 2> /dev/null
+if [ -f "${PATH_CONFIGS}/lz_rule_config.box" ]; then
+    {
+        echo "$(lzdate)" [$$]: Start network address information query.
+        echo "$(lzdate)" [$$]: Don\'t interrupt \& please wait......
+    } | tee -ai "${ADDRESS_LOG}" 2> /dev/null
 
-## 定义网址信息查询用常量
-lz_define_aq_constant
+    ## 定义网址信息查询用常量
+    lz_define_aq_constant
 
-## 设置网址信息查询用变量
-lz_set_aq_parameter_variable
+    ## 设置网址信息查询用变量
+    lz_set_aq_parameter_variable
 
-## 网址信息查询
-## 输入项：
-##     $1--主执行脚本运行输入参数（网络地址）
-##     $2--第三方DNS服务器IP地址（可选项）
-##     全局常量及变量
-## 返回值：无
-__aq_main "${1}" "${2}"
+    ## 网址信息查询
+    ## 输入项：
+    ##     $1--主执行脚本运行输入参数（网络地址）
+    ##     $2--第三方DNS服务器IP地址（可选项）
+    ##     全局常量及变量
+    ## 返回值：无
+    __aq_main "${1}" "${2}"
 
-## 卸载网址信息查询用变量
-lz_unset_aq_parameter_variable
+    ## 卸载网址信息查询用变量
+    lz_unset_aq_parameter_variable
 
-## 卸载网址信息查询用常量
-lz_uninstall_aq_constant
-
+    ## 卸载网址信息查询用常量
+    lz_uninstall_aq_constant
+else
+    {
+        echo "$(lzdate)" [$$]: LZ "${LZ_VERSION}" script hasn\'t been started and initialized, please restart.
+        echo "$(lzdate)" [$$]: ---------------------------------------------
+    } | tee -ai "${ADDRESS_LOG}" 2> /dev/null
+fi
 {
     echo "$(lzdate)" [$$]: LZ "${LZ_VERSION}" script commands executed!
     echo "$(lzdate)" [$$]:

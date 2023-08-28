@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_status.sh v4.1.2
+# lz_rule_status.sh v4.1.3
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 显示脚本运行状态脚本
@@ -181,7 +181,7 @@ lz_get_ipv4_src_to_dst_data_file_item_total_status() {
 lz_get_domain_data_file_item_total_status() {
     local retval="0"
     [ -f "${1}" ] && {
-        retval="$( sed -e "s/\'//g" -e 's/\"//g' -e 's/[ \t][ \t]*/ /g' -e 's/^[ ]*//g' -e '/^[#]/d' -e 's/[#].*$//g' -e 's/^\([^ ]*\).*$/\1/g' \
+        retval="$( sed -e "s/\'//g" -e 's/\"//g' -e 's/[ \t]\+/ /g' -e 's/^[ ]*//g' -e '/^[#]/d' -e 's/[#].*$//g' -e 's/^\([^ ]*\).*$/\1/g' \
                 -e 's/^[^ ]*[\:][\/][\/]//g' -e 's/^[^ ]\{0,6\}[\:]//g' -e 's/[\/]*$//g' -e 's/[ ]*$//g' -e '/^[\.]*$/d' -e '/^[\.]*[^\.]*$/d' \
                 -e '/^[ ]*$/d' "${1}" 2> /dev/null | tr '[:A-Z:]' '[:a-z:]' | awk -v count="0" 'NF >= "1" && !i[$1]++ {count++} END{print count}' )"
     }
@@ -1373,7 +1373,7 @@ lz_ss_support_status() {
 ##     1--未注册
 lz_get_service_event_interface_status() {
     if [ ! -f "${1}" ] || [ ! -f "${2}" ]; then return "1"; fi;
-    ! grep -q "^[ 	]*${2}[ 	][ 	]*\$[\{]@[\}][ 	][ 	]*[\&]" "${1}" && return "1"
+    ! grep -q "^[ 	]*${2}[ 	]\+\$[\{]@[\}][ 	]\+[\&]" "${1}" && return "1"
     return "0"
 }
 
@@ -3185,7 +3185,6 @@ __status_main() {
     fi
 }
 
-sed -i '1,$d' "${STATUS_LOG}" 2> /dev/null
 {
     echo "$(lzdate) [$$]: "
     echo "$(lzdate)" [$$]: LZ "${LZ_VERSION}" script commands start......
@@ -3193,73 +3192,71 @@ sed -i '1,$d' "${STATUS_LOG}" 2> /dev/null
     echo "$(lzdate)" [$$]: ---------------------------------------------
     echo "$(lzdate)" [$$]: Location: "${PATH_LZ}"
     echo "$(lzdate)" [$$]: ---------------------------------------------
-} >> "${STATUS_LOG}" 2> /dev/null
+} > "${STATUS_LOG}" 2> /dev/null
 
-if [ ! -f "${PATH_CONFIGS}/lz_rule_config.box" ]; then
+if [ -f "${PATH_CONFIGS}/lz_rule_config.box" ]; then
+    ## 定义基本运行状态常量
+    lz_define_status_constant
+
+    ## 获取挂载WEB界面状态
+    ## 输入项：
+    ##     全局常量
+    ## 返回值：
+    ##     0--成功
+    ##     1--失败
+    if lz_get_mount_web_ui_status; then
+        echo "$(lzdate)" [$$]: "Policy Routing Web UI has been mounted." | tee -ai "${STATUS_LOG}" 2> /dev/null
+    else
+        echo "$(lzdate)" [$$]: "Policy Routing Web UI is not mounted." | tee -ai "${STATUS_LOG}" 2> /dev/null
+    fi
+
+    ## service-event事件接口状态
+    ## 获取服务事件接口注册状态
+    ## 输入项：
+    ##     $1--系统事件接口全路径文件名
+    ##     $2--事件触发接口全路径文件名
+    ## 返回值：
+    ##     0--已注册
+    ##     1--未注册
+    if lz_get_service_event_interface_status "${PATH_BOOTLOADER}/${STATUS_SERVICE_EVENT_NAME}" "${PATH_INTERFACE}/${SERVICE_INTERFACE_NAME}"; then
+        echo "$(lzdate)" [$$]: "service-event interface has been registered." | tee -ai "${STATUS_LOG}" 2> /dev/null
+    else
+        echo "$(lzdate)" [$$]: "service-event interface is not registered." | tee -ai "${STATUS_LOG}" 2> /dev/null
+    fi
+
+    ## 获取firewall-start事件接口状态
+    ## 获取事件接口注册状态
+    ## 输入项：
+    ##     $1--系统事件接口全路径文件名
+    ##     $2--事件触发接口全路径文件名
+    ## 返回值：
+    ##     0--已注册
+    ##     1--未注册
+    if lz_get_event_interface_status "${PATH_BOOTLOADER}/${STATUS_BOOTLOADER_NAME}" "${PATH_LZ}/${STATUS_PROJECT_FILENAME}"; then
+        echo "$(lzdate)" [$$]: "firewall-start interface has been registered." | tee -ai "${STATUS_LOG}" 2> /dev/null
+    else
+        echo "$(lzdate)" [$$]: "firewall-start interface is not registered." | tee -ai "${STATUS_LOG}" 2> /dev/null
+    fi
+
+    echo "$(lzdate)" [$$]: Getting the router device status information...... | tee -ai "${STATUS_LOG}" 2> /dev/null
+
+    ## 设置脚本基本运行状态参数变量
+    lz_set_parameter_status_variable
+
+    ## 运行状态查询
+    ## 输入项：
+    ##     全局常量及变量
+    ## 返回值：无
+    __status_main
+
+    ## 卸载脚本基本运行状态参数变量
+    lz_unset_parameter_status_variable
+
+    ## 卸载基本运行状态常量
+    lz_uninstall_status_constant
+else
     echo "$(lzdate)" [$$]: LZ "${LZ_VERSION}" script hasn\'t been started and initialized, please restart. | tee -ai "${STATUS_LOG}" 2> /dev/null
-    return
 fi
-
-## 定义基本运行状态常量
-lz_define_status_constant
-
-## 获取挂载WEB界面状态
-## 输入项：
-##     全局常量
-## 返回值：
-##     0--成功
-##     1--失败
-if lz_get_mount_web_ui_status; then
-    echo "$(lzdate)" [$$]: "Policy Routing Web UI has been mounted." | tee -ai "${STATUS_LOG}" 2> /dev/null
-else
-    echo "$(lzdate)" [$$]: "Policy Routing Web UI is not mounted." | tee -ai "${STATUS_LOG}" 2> /dev/null
-fi
-
-## service-event事件接口状态
-## 获取服务事件接口注册状态
-## 输入项：
-##     $1--系统事件接口全路径文件名
-##     $2--事件触发接口全路径文件名
-## 返回值：
-##     0--已注册
-##     1--未注册
-if lz_get_service_event_interface_status "${PATH_BOOTLOADER}/${STATUS_SERVICE_EVENT_NAME}" "${PATH_INTERFACE}/${SERVICE_INTERFACE_NAME}"; then
-    echo "$(lzdate)" [$$]: "service-event interface has been registered." | tee -ai "${STATUS_LOG}" 2> /dev/null
-else
-    echo "$(lzdate)" [$$]: "service-event interface is not registered." | tee -ai "${STATUS_LOG}" 2> /dev/null
-fi
-
-## 获取firewall-start事件接口状态
-## 获取事件接口注册状态
-## 输入项：
-##     $1--系统事件接口全路径文件名
-##     $2--事件触发接口全路径文件名
-## 返回值：
-##     0--已注册
-##     1--未注册
-if lz_get_event_interface_status "${PATH_BOOTLOADER}/${STATUS_BOOTLOADER_NAME}" "${PATH_LZ}/${STATUS_PROJECT_FILENAME}"; then
-    echo "$(lzdate)" [$$]: "firewall-start interface has been registered." | tee -ai "${STATUS_LOG}" 2> /dev/null
-else
-    echo "$(lzdate)" [$$]: "firewall-start interface is not registered." | tee -ai "${STATUS_LOG}" 2> /dev/null
-fi
-
-echo "$(lzdate)" [$$]: Getting the router device status information...... | tee -ai "${STATUS_LOG}" 2> /dev/null
-
-## 设置脚本基本运行状态参数变量
-lz_set_parameter_status_variable
-
-## 运行状态查询
-## 输入项：
-##     全局常量及变量
-## 返回值：无
-__status_main
-
-## 卸载脚本基本运行状态参数变量
-lz_unset_parameter_status_variable
-
-## 卸载基本运行状态常量
-lz_uninstall_status_constant
-
 {
     echo "$(lzdate)" [$$]: ---------------------------------------------
     echo "$(lzdate)" [$$]: LZ "${LZ_VERSION}" script commands executed!

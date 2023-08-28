@@ -8,7 +8,7 @@
             <meta HTTP-EQUIV="Expires" CONTENT="-1">
             <link rel="shortcut icon" href="ext/lzr/favicon.png">
             <link rel="icon" href="ext/lzr/favicon.png">
-            <title>LZ - Policy Routing</title>
+            <title>ASUS Wireless Router <% nvram_get("productid"); %> - 策略路由</title>
             <link rel="stylesheet" type="text/css" href="index_style.css">
             <link rel="stylesheet" type="text/css" href="form_style.css">
             <link rel="stylesheet" type="text/css" href="device-map/device-map.css">

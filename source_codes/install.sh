@@ -1,5 +1,5 @@
 #!/bin/sh
-# install.sh v4.1.2
+# install.sh v4.1.3
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ RULE script for Asuswrt-Merlin Router
@@ -11,7 +11,7 @@
 
 #BEIGIN
 
-LZ_VERSION=v4.1.2
+LZ_VERSION=v4.1.3
 TIMEOUT=10
 CURRENT_PATH="${0%/*}"
 [ "${CURRENT_PATH:0:1}" != '/' ] && CURRENT_PATH="$( pwd )${CURRENT_PATH#*.}"
@@ -221,26 +221,18 @@ lz_clear_service_event_command() {
 
 lz_create_service_event_interface() {
     [ ! -d "/jffs/scripts" ] && mkdir -p "/jffs/scripts"
-    if [ ! -f "/jffs/scripts/service-event" ]; then
-        cat > "/jffs/scripts/service-event" 2> /dev/null <<EOF_SERVICE_INTERFACE
-#!/bin/sh
-EOF_SERVICE_INTERFACE
-    fi
+    [ ! -s "/jffs/scripts/service-event" ] && printf "#!/bin/sh\n" >> "/jffs/scripts/service-event"
     [ ! -f "/jffs/scripts/service-event" ] && return "1"
-    if ! grep -m 1 '^.*$' "/jffs/scripts/service-event" | grep -q "#!/bin/sh"; then
-        if [ "$( grep -c '^.*$' "/jffs/scripts/service-event" )" = "0" ]; then
+    if ! grep -qm 1 '^[ 	]*#!/bin/sh$' "/jffs/scripts/service-event"; then
+        sed -i '/^[ \t]*#!\/bin\/sh/d' "/jffs/scripts/service-event"
+        if [ ! -s "/jffs/scripts/service-event" ]; then
             echo "#!/bin/sh" >> "/jffs/scripts/service-event"
-        elif grep '^.*$' "/jffs/scripts/service-event" | grep -q "#!/bin/sh"; then
-            sed -i -e '/!\/bin\/sh/d' -e '1i #!\/bin\/sh' "/jffs/scripts/service-event"
         else
             sed -i '1i #!\/bin\/sh' "/jffs/scripts/service-event"
         fi
-    else
-        ! grep -m 1 '^.*$' "/jffs/scripts/service-event" | grep -q "^#!/bin/sh" \
-            && sed -i 'l1 s:^.*\(#!/bin/sh.*$\):\1/g' "/jffs/scripts/service-event"
     fi
-    sed -i -e '/lz_rule[\.]sh/d' -e '/lz_update_ispip_data[\.]sh/d' -e '/lz_rule_service[\.]sh/d' "/jffs/scripts/service-event"
-    sed -i -e "\$a ${PATH_INTERFACE}/lz_rule_service.sh \$\{@\} \& # Added by LZRule" -e "/^[ \t]*$/d" "/jffs/scripts/service-event"
+    sed -i -e "/^[ \t]*$/d" -e '/lz_rule[\.]sh/d' -e '/lz_update_ispip_data[\.]sh/d' -e '/lz_rule_service[\.]sh/d' "/jffs/scripts/service-event"
+    sed -i "\$a ${PATH_INTERFACE}/lz_rule_service.sh \$\{@\} \& # Added by LZRule" "/jffs/scripts/service-event"
     chmod +x "/jffs/scripts/service-event"
     ! grep -q "^${PATH_INTERFACE}/lz_rule_service[\.]sh \$[\{]@[\}] [\&]" "/jffs/scripts/service-event" && return "1"
     return "0"

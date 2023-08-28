@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule.sh v4.1.2
+# lz_rule.sh v4.1.3
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # 本软件采用CIDR（无类别域间路由，Classless Inter-Domain Routing）技术，是一个在Internet上创建附加地
@@ -80,7 +80,7 @@
 ## -------------全局数据定义及初始化-------------------
 
 ## 版本号
-LZ_VERSION=v4.1.2
+LZ_VERSION=v4.1.3
 
 ## 运行状态查询命令
 SHOW_STATUS="status"
@@ -429,6 +429,29 @@ lz_instance_exit() {
     [ "${ppp1_restart}" = "1" ] && service "restart_wan_if 1;restart_stubby" > /dev/null 2>&1
 }
 
+## 创建事件接口文件头函数
+## 输入项：
+##     $1--系统事件接口文件名
+##     全局常量
+## 返回值：
+##     0--成功
+##     1--失败
+lz_create_event_interface_file_header() {
+    [ ! -d "${PATH_BOOTLOADER}" ] && mkdir -p "${PATH_BOOTLOADER}"
+    [ ! -s "${PATH_BOOTLOADER}/${1}" ] && echo "#!/bin/sh" >> "${PATH_BOOTLOADER}/${1}"
+    [ ! -f "${PATH_BOOTLOADER}/${1}" ] && return "1"
+    if ! grep -qm 1 '^[ 	]*#!/bin/sh$' "${PATH_BOOTLOADER}/${1}"; then
+        sed -i '/^[ \t]*#!\/bin\/sh/d' "${PATH_BOOTLOADER}/${1}"
+        if [ ! -s "${PATH_BOOTLOADER}/${1}" ]; then
+            echo "#!/bin/sh" >> "${PATH_BOOTLOADER}/${1}"
+        else
+            sed -i '1i #!\/bin\/sh' "${PATH_BOOTLOADER}/${1}"
+        fi
+    fi
+    sed -i "/^[ \t]*$/d" "${PATH_BOOTLOADER}/${1}"
+    return "0"
+}
+
 ## 创建事件接口函数
 ## 输入项：
 ##     $1--系统事件接口文件名
@@ -439,28 +462,51 @@ lz_instance_exit() {
 ##     0--成功
 ##     1--失败
 lz_create_event_interface() {
-    [ ! -d "${PATH_BOOTLOADER}" ] && mkdir -p "${PATH_BOOTLOADER}"
-    if [ ! -f "${PATH_BOOTLOADER}/${1}" ]; then
-        cat > "${PATH_BOOTLOADER}/${1}" 2> /dev/null <<EOF_INTERFACE
-#!/bin/sh
-EOF_INTERFACE
-    fi
-    [ ! -f "${PATH_BOOTLOADER}/${1}" ] && return "1"
-    if ! grep -m 1 '^.*$' "${PATH_BOOTLOADER}/${1}" | grep -q "#!/bin/sh"; then
-        if [ "$( grep -c '^.*$' "${PATH_BOOTLOADER}/${1}" )" = "0" ]; then
-            echo "#!/bin/sh" >> "${PATH_BOOTLOADER}/${1}"
-        elif grep '^.*$' "${PATH_BOOTLOADER}/${1}" | grep -q "#!/bin/sh"; then
-            sed -i -e '/!\/bin\/sh/d' -e '1i #!\/bin\/sh' "${PATH_BOOTLOADER}/${1}"
-        else
-            sed -i '1i #!\/bin\/sh' "${PATH_BOOTLOADER}/${1}"
-        fi
-    else
-        ! grep -m 1 '^.*$' "${PATH_BOOTLOADER}/${1}" | grep -q "^#!/bin/sh" \
-            && sed -i 'l1 s:^.*\(#!/bin/sh.*$\):\1/g' "${PATH_BOOTLOADER}/${1}"
-    fi
-    if ! grep -q "^${2}/${3}" "${PATH_BOOTLOADER}/${1}"; then
+    ## 创建事件接口文件头
+    ## 输入项：
+    ##     $1--系统事件接口文件名
+    ##     全局常量
+    ## 返回值：
+    ##     0--成功
+    ##     1--失败
+    ! lz_create_event_interface_file_header "${1}" && return "1"
+    if ! sed -n 2p "${PATH_BOOTLOADER}/${1}" | grep -q "^${2}/${3}"; then
         sed -i "/${3}/d" "${PATH_BOOTLOADER}/${1}"
-        sed -i -e "\$a ${2}/${3} # Added by LZRule" -e "/^[ \t]*$/d" "${PATH_BOOTLOADER}/${1}"
+        sed -i "1a ${2}/${3} # Added by LZRule" "${PATH_BOOTLOADER}/${1}"
+    fi
+    chmod +x "${PATH_BOOTLOADER}/${1}"
+    ! grep -q "^${2}/${3}" "${PATH_BOOTLOADER}/${1}" && return "1"
+    return "0"
+}
+
+## 创建post-mount事件接口函数
+## 输入项：
+##     $1--系统事件接口文件名
+##     $2--待接口文件所在路径
+##     $3--待接口文件名称
+##     全局常量
+## 返回值：
+##     0--成功
+##     1--失败
+lz_create_post_mount_event_interface() {
+    ## 创建事件接口文件头
+    ## 输入项：
+    ##     $1--系统事件接口文件名
+    ##     全局常量
+    ## 返回值：
+    ##     0--成功
+    ##     1--失败
+    ! lz_create_event_interface_file_header "${1}" && return "1"
+    local lineNo="$( grep -En '^[ 	]*[\.][ 	]+[\/]jffs[\/]addons[\/]diversion[\/]mount[\-]entware[\.]div([ 	]|$)' "${PATH_BOOTLOADER}/${1}" | sed -n 1p | sed 's/:.*$//g' | sed -n '/[1-9][0-9]*/p' )"
+    [ -z "${lineNo}" ] && lineNo="$( grep -En '^[^#]+[\/]mount[\-]entware[\.]div([ 	]|$)' "${PATH_BOOTLOADER}/${1}" | sed -n 1p | sed 's/:.*$//g' | sed -n '/[1-9][0-9]*/p' )"
+    if [ -n "${lineNo}" ]; then
+        if ! sed -n "$(( lineNo + 1 ))p" "${PATH_BOOTLOADER}/${1}" | grep -q "^${2}/${3}"; then
+            sed -i "/${3}/d" "${PATH_BOOTLOADER}/${1}"
+            sed -i "${lineNo}a ${2}/${3} # Added by LZRule" "${PATH_BOOTLOADER}/${1}"
+        fi
+    elif ! grep -q "^${2}/${3}"; then
+        sed -i "/${3}/d" "${PATH_BOOTLOADER}/${1}"
+        sed -i "\$a ${2}/${3} # Added by LZRule" "${PATH_BOOTLOADER}/${1}"
     fi
     chmod +x "${PATH_BOOTLOADER}/${1}"
     ! grep -q "^${2}/${3}" "${PATH_BOOTLOADER}/${1}" && return "1"
@@ -508,8 +554,17 @@ lz_create_firewall_start_command() {
     ##     0--清除成功
     ##     1--未清除
     lz_clear_post_mount_command
+    ## 创建post-mount事件接口
+    ## 输入项：
+    ##     $1--系统事件接口文件名
+    ##     $2--待接口文件所在路径
+    ##     $3--待接口文件名称
+    ##     全局常量
+    ## 返回值：
+    ##     0--成功
+    ##     1--失败
     which opkg > /dev/null 2>&1 && [ "${PATH_LZ}" = "/opt/home/lz" ] \
-        && lz_create_event_interface "${BOOT_USB_MOUNT_NAME}" "${PATH_LZ}" "${PROJECT_FILENAME}"
+        && lz_create_post_mount_event_interface "${BOOT_USB_MOUNT_NAME}" "${PATH_LZ}" "${PROJECT_FILENAME}"
 }
 
 ## 清除firewall-start中脚本引导项函数
@@ -579,28 +634,17 @@ lz_clear_service_event_command() {
 ##     0--成功
 ##     1--失败
 lz_create_service_event_interface() {
-    [ ! -d "${PATH_BOOTLOADER}" ] && mkdir -p "${PATH_BOOTLOADER}"
-    if [ ! -f "${PATH_BOOTLOADER}/${1}" ]; then
-        cat > "${PATH_BOOTLOADER}/${1}" 2> /dev/null <<EOF_SERVICE_INTERFACE
-#!/bin/sh
-EOF_SERVICE_INTERFACE
-    fi
-    [ ! -f "${PATH_BOOTLOADER}/${1}" ] && return "1"
-    if ! grep -m 1 '^.*$' "${PATH_BOOTLOADER}/${1}" | grep -q "#!/bin/sh"; then
-        if [ "$( grep -c '^.*$' "${PATH_BOOTLOADER}/${1}" )" = "0" ]; then
-            echo "#!/bin/sh" >> "${PATH_BOOTLOADER}/${1}"
-        elif grep '^.*$' "${PATH_BOOTLOADER}/${1}" | grep -q "#!/bin/sh"; then
-            sed -i -e '/!\/bin\/sh/d' -e '1i #!\/bin\/sh' "${PATH_BOOTLOADER}/${1}"
-        else
-            sed -i '1i #!\/bin\/sh' "${PATH_BOOTLOADER}/${1}"
-        fi
-    else
-        ! grep -m 1 '^.*$' "${PATH_BOOTLOADER}/${1}" | grep -q "^#!/bin/sh" \
-            && sed -i 'l1 s:^.*\(#!/bin/sh.*$\):\1/g' "${PATH_BOOTLOADER}/${1}"
-    fi
-    if ! grep -q "^${2}/${3} \$[\{]@[\}] [\&]" "${PATH_BOOTLOADER}/${1}"; then
+    ## 创建事件接口文件头
+    ## 输入项：
+    ##     $1--系统事件接口文件名
+    ##     全局常量
+    ## 返回值：
+    ##     0--成功
+    ##     1--失败
+    ! lz_create_event_interface_file_header "${1}" && return "1"
+    if ! sed -n 2p "${PATH_BOOTLOADER}/${1}" | grep -q "^${2}/${3} \$[\{]@[\}] [\&]"; then
         sed -i "/${3}/d" "${PATH_BOOTLOADER}/${1}"
-        sed -i -e "\$a ${2}/${3} \$\{@\} \& # Added by LZRule" -e "/^[ \t]*$/d" "${PATH_BOOTLOADER}/${1}"
+        sed -i "1a ${2}/${3} \$\{@\} \& # Added by LZRule" "${PATH_BOOTLOADER}/${1}"
     fi
     chmod +x "${PATH_BOOTLOADER}/${1}"
     ! grep -q "^${2}/${3} \$[\{]@[\}] [\&]" "${PATH_BOOTLOADER}/${1}" && return "1"
@@ -1153,7 +1197,7 @@ if lz_project_file_management "${1}"; then
         ## 返回值：无
         llz_forced_unlocking() {
             local local_db_unlocked="0"
-			until [ "$( ip rule show | grep -c "from 168.168.168.168 to 169.169.169.169" )" -le "0" ]
+            until [ "$( ip rule show | grep -c "from 168.168.168.168 to 169.169.169.169" )" -le "0" ]
             do
                 ip rule show | awk -F: '/from 168.168.168.168 to 169.169.169.169/ {system("ip rule del prio "$1" > /dev/null 2>&1")}'
                 ip route flush cache > /dev/null 2>&1
@@ -1172,7 +1216,6 @@ if lz_project_file_management "${1}"; then
                 echo "$(lzdate)" [$$]: There is no program synchronization lock. | tee -ai "${UNLOCK_LOG}" 2> /dev/null
             fi
         }
-        sed -i '1,$d' "${UNLOCK_LOG}" 2> /dev/null
         {
             echo "$(lzdate) [$$]: "
             echo "$(lzdate)" [$$]: LZ "${LZ_VERSION}" script commands start......
@@ -1180,7 +1223,7 @@ if lz_project_file_management "${1}"; then
             echo "$(lzdate)" [$$]: ---------------------------------------------
             echo "$(lzdate)" [$$]: Location: "${PATH_LZ}"
             echo "$(lzdate)" [$$]: ---------------------------------------------
-        } >> "${UNLOCK_LOG}" 2> /dev/null
+        } > "${UNLOCK_LOG}" 2> /dev/null
         llz_forced_unlocking
         {
             echo "$(lzdate)" [$$]: ---------------------------------------------
@@ -1192,8 +1235,9 @@ if lz_project_file_management "${1}"; then
         eval "${CALL_FUNC_SUBROUTINE}/lz_rule_status.sh"
     elif [ "${1}" = "${ADDRESS_QUERY}" ]; then
         ## 载入函数功能定义
-        if [ -z "${2}" ] || echo "${2}" | grep -qo '^[ ]*$'; then
+        if [ -z "${2}" ] || echo "${2}" | grep -q '^[ ]*$'; then
             echo "$(lzdate)" [$$]: The input parameter \( network address \) can\'t be null.
+            echo "$(lzdate)" [$$]: ---------------------------------------------
         else
             eval "${CALL_FUNC_SUBROUTINE}/lz_rule_address_query.sh" "${2}" "${3}"
         fi
@@ -1202,12 +1246,12 @@ if lz_project_file_management "${1}"; then
         lz_unmount_web_ui
         echo "$(lzdate)" [$$]: Policy Routing Web UI has been unmounted. | tee -ai "${SYSLOG}" 2> /dev/null
     else
-        sed -i '1,$d' "${STATUS_LOG}" 2> /dev/null
-        sed -i '1,$d' "${ROUTING_LOG}" 2> /dev/null
-        sed -i '1,$d' "${RULES_LOG}" 2> /dev/null
-        sed -i '1,$d' "${ADDRESS_LOG}" 2> /dev/null
-        sed -i '1,$d' "${CRONTAB_LOG}" 2> /dev/null
-        sed -i '1,$d' "${UNLOCK_LOG}" 2> /dev/null
+        echo > "${STATUS_LOG}" 2> /dev/null
+        echo > "${ROUTING_LOG}" 2> /dev/null
+        echo > "${RULES_LOG}" 2> /dev/null
+        echo > "${ADDRESS_LOG}" 2> /dev/null
+        echo > "${CRONTAB_LOG}" 2> /dev/null
+        echo > "${UNLOCK_LOG}" 2> /dev/null
         ## 极限情况下文件锁偶有锁不住的情况发生，与预期不符。利用系统自带的策略路由数据库做进程间异步模式同步，
         ## 虽会降低些效率，代码也不好看，但作为同步过程中的二次防御手段还是很值得。一旦脚本执行过程中意外中断，
         ## 可通过手工删除垃圾规则条目或重启路由器清理策略路由库中的垃圾数据
