@@ -978,7 +978,7 @@ lz_get_policy_mode_status() {
         local local_isp_wan_port="$( lz_get_isp_wan_port_status "${1}" )"
         local isp_total="0"
         { [ "${local_isp_wan_port}" = "0" ] || [ "${local_isp_wan_port}" = "1" ]; } \
-            && custou_total="$( lz_get_isp_data_item_total_status_variable "${1}" )"
+            && isp_total="$( lz_get_isp_data_item_total_status_variable "${1}" )"
         [ "${local_isp_wan_port}" = "0" ] && local_wan1_isp_addr_total="$(( local_wan1_isp_addr_total + isp_total ))"
         [ "${local_isp_wan_port}" = "1" ] && local_wan2_isp_addr_total="$(( local_wan2_isp_addr_total + isp_total ))"
         ## 计算均分出口时两WAN口网段条目累计值状态
