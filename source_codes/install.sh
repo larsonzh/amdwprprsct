@@ -223,7 +223,7 @@ lz_create_service_event_interface() {
     [ ! -d "/jffs/scripts" ] && mkdir -p "/jffs/scripts"
     [ ! -s "/jffs/scripts/service-event" ] && printf "#!/bin/sh\n" >> "/jffs/scripts/service-event"
     [ ! -f "/jffs/scripts/service-event" ] && return "1"
-    if ! grep -qm 1 '^[ 	]*#!/bin/sh$' "/jffs/scripts/service-event"; then
+    if ! grep -qm 1 '^#!/bin/sh$' "/jffs/scripts/service-event"; then
         sed -i '/^[ \t]*#!\/bin\/sh/d' "/jffs/scripts/service-event"
         if [ ! -s "/jffs/scripts/service-event" ]; then
             echo "#!/bin/sh" >> "/jffs/scripts/service-event"
@@ -231,8 +231,8 @@ lz_create_service_event_interface() {
             sed -i '1i #!\/bin\/sh' "/jffs/scripts/service-event"
         fi
     fi
-    sed -i -e "/^[ \t]*$/d" -e '/lz_rule[\.]sh/d' -e '/lz_update_ispip_data[\.]sh/d' -e '/lz_rule_service[\.]sh/d' "/jffs/scripts/service-event"
-    sed -i "\$a ${PATH_INTERFACE}/lz_rule_service.sh \$\{@\} \& # Added by LZRule" "/jffs/scripts/service-event"
+    sed -i '2,${/^[ \t]*#!\/bin\/sh/d;/lz_rule[\.]sh/d;/lz_update_ispip_data[\.]sh/d;/lz_rule_service[\.]sh/d;/^[ \t]*$/d;}' "/jffs/scripts/service-event"
+    sed -i "1a ${PATH_INTERFACE}/lz_rule_service.sh \$\{@\} \& # Added by LZRule" "/jffs/scripts/service-event"
     chmod +x "/jffs/scripts/service-event"
     ! grep -q "^${PATH_INTERFACE}/lz_rule_service[\.]sh \$[\{]@[\}] [\&]" "/jffs/scripts/service-event" && return "1"
     return "0"

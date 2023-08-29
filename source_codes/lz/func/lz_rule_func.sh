@@ -470,100 +470,10 @@ lz_get_policy_mode() {
     ##     0--成功
     ##     1--失败
     lz_adjust_traffic_policy && adjust_traffic_policy="0"
-
-    ! ip route show | grep -q nexthop && policy_mode="5" && return "1"
-    [ "${usage_mode}" = "0" ] && policy_mode="5" && return "1"
-
-    local_wan1_isp_addr_total="0"
-    local_wan2_isp_addr_total="0"
-
-    ## 计算均分出口时两WAN口网段条目累计值函数
-    ## 输入项：
-    ##     $1--ISP网络运营商索引号（0~10）
-    ##     $2--是否反向（1：反向；非1：正向）
-    ##     全局变量及常量
-    ##         local_wan1_isp_addr_total--第一WAN口网段条目累计值
-    ##         local_wan2_isp_addr_total--第二WAN口网段条目累计值
-    ## 返回值：
-    ##     local_wan1_isp_addr_total--第一WAN口网段条目累计值
-    ##     local_wan2_isp_addr_total--第二WAN口网段条目累计值
-    llz_cal_equal_division() {
-        local local_equal_division_total="$( lz_get_isp_data_item_total_variable "${1}" )"
-        if [ "${2}" != "1" ]; then
-            local_wan1_isp_addr_total="$(( local_wan1_isp_addr_total + local_equal_division_total/2 + local_equal_division_total%2 ))"
-            local_wan2_isp_addr_total="$(( local_wan2_isp_addr_total + local_equal_division_total/2 ))"
-        else
-            local_wan1_isp_addr_total="$(( local_wan1_isp_addr_total + local_equal_division_total/2 ))"
-            local_wan2_isp_addr_total="$(( local_wan2_isp_addr_total +local_equal_division_total/2 + local_equal_division_total%2 ))"
-        fi
-    }
-
-    ## 计算运营商目标网段均分出口时两WAN口网段条目累计值函数
-    ## 输入项：
-    ##     $1--ISP网络运营商索引号（0~10）
-    ##     全局变量及常量
-    ##         local_wan1_isp_addr_total--第一WAN口网段条目累计值
-    ##         local_wan2_isp_addr_total--第二WAN口网段条目累计值
-    ## 返回值：
-    ##     local_wan1_isp_addr_total--第一WAN口网段条目累计值
-    ##     local_wan2_isp_addr_total--第二WAN口网段条目累计值
-    llz_cal_isp_equal_division() {
-        local local_isp_wan_port="$( lz_get_isp_wan_port "${1}" )"
-        local isp_total="0"
-        { [ "${local_isp_wan_port}" = "0" ] || [ "${local_isp_wan_port}" = "1" ]; } \
-            && isp_total="$( lz_get_isp_data_item_total_variable "${1}" )"
-        [ "${local_isp_wan_port}" = "0" ] && local_wan1_isp_addr_total="$(( local_wan1_isp_addr_total + isp_total ))"
-        [ "${local_isp_wan_port}" = "1" ] && local_wan2_isp_addr_total="$(( local_wan2_isp_addr_total + isp_total ))"
-        ## 计算均分出口时两WAN口网段条目累计值
-        ## 输入项：
-        ##     $1--ISP网络运营商索引号（0~10）
-        ##     $2--是否反向（1：反向；非1：正向）
-        ##     全局变量及常量
-        ##         local_wan1_isp_addr_total--第一WAN口网段条目累计值
-        ##         local_wan2_isp_addr_total--第二WAN口网段条目累计值
-        ## 返回值：
-        ##     local_wan1_isp_addr_total--第一WAN口网段条目累计值
-        ##     local_wan2_isp_addr_total--第二WAN口网段条目累计值
-        [ "${local_isp_wan_port}" = "2" ] && llz_cal_equal_division "${1}"
-        [ "${local_isp_wan_port}" = "3" ] && llz_cal_equal_division "${1}" "1"
-    }
-
-#	[ "${isp_wan_port_0}" = "0" ] && let local_wan1_isp_addr_total+="${isp_data_0_item_total}"
-#	[ "${isp_wan_port_0}" = "1" ] && let local_wan2_isp_addr_total+="${isp_data_0_item_total}"
-
-    local local_index="1"
-    until [ "${local_index}" -gt "${ISP_TOTAL}" ]
-    do
-        ## 计算运营商目标网段均分出口时两WAN口网段条目累计值
-        ## 输入项：
-        ##     $1--ISP网络运营商索引号（0~10）
-        ##     全局变量及常量
-        ##         local_wan1_isp_addr_total--第一WAN口网段条目累计值
-        ##         local_wan2_isp_addr_total--第二WAN口网段条目累计值
-        ## 返回值：
-        ##     local_wan1_isp_addr_total--第一WAN口网段条目累计值
-        ##     local_wan2_isp_addr_total--第二WAN口网段条目累计值
-        llz_cal_isp_equal_division "${local_index}"
-        local_index="$(( local_index + 1 ))"
-    done
-
-    local custou_total="0"
-    { [ "${custom_data_wan_port_1}" = "0" ] || [ "${custom_data_wan_port_1}" = "1" ]; } \
-        && custou_total="$( lz_get_ipv4_data_file_valid_item_total "${custom_data_file_1}" )"
-    [ "${custom_data_wan_port_1}" = "0" ] && local_wan1_isp_addr_total="$(( local_wan1_isp_addr_total + custou_total ))"
-    [ "${custom_data_wan_port_1}" = "1" ] && local_wan2_isp_addr_total="$(( local_wan2_isp_addr_total + custou_total ))"
-
-    { [ "${custom_data_wan_port_2}" = "0" ] || [ "${custom_data_wan_port_2}" = "1" ]; } \
-        && custou_total="$( lz_get_ipv4_data_file_valid_item_total "${custom_data_file_2}" )"
-    [ "${custom_data_wan_port_2}" = "0" ] && local_wan1_isp_addr_total="$(( local_wan1_isp_addr_total + custou_total ))"
-    [ "${custom_data_wan_port_2}" = "1" ] && local_wan2_isp_addr_total="$(( local_wan2_isp_addr_total + custou_total ))"
-
-    if [ "${local_wan1_isp_addr_total}" -lt "${local_wan2_isp_addr_total}" ]; then policy_mode="0"; else policy_mode="1"; fi;
-    [ "${isp_wan_port_0}" = "0" ] && policy_mode="1"
-    [ "${isp_wan_port_0}" = "1" ] && policy_mode="0"
-
-    unset local_wan1_isp_addr_total
-    unset local_wan2_isp_addr_total
+    ! ip route show | grep -q nexthop && policy_mode="5" && return "1" ## 单线路模式
+    [ "${usage_mode}" = "0" ] && policy_mode="5" && return "1" ## 模式3（动态分流模式）
+    [ "${isp_wan_port_0}" = "0" ] && policy_mode="1" ## 模式2（静态分流模式）
+    [ "${isp_wan_port_0}" = "1" ] && policy_mode="0" ## 模式1（静态分流模式）
 
     return "0"
 }

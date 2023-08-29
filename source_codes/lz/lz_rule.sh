@@ -440,7 +440,7 @@ lz_create_event_interface_file_header() {
     [ ! -d "${PATH_BOOTLOADER}" ] && mkdir -p "${PATH_BOOTLOADER}"
     [ ! -s "${PATH_BOOTLOADER}/${1}" ] && echo "#!/bin/sh" >> "${PATH_BOOTLOADER}/${1}"
     [ ! -f "${PATH_BOOTLOADER}/${1}" ] && return "1"
-    if ! grep -qm 1 '^[ 	]*#!/bin/sh$' "${PATH_BOOTLOADER}/${1}"; then
+    if ! grep -qm 1 '^#!/bin/sh$' "${PATH_BOOTLOADER}/${1}"; then
         sed -i '/^[ \t]*#!\/bin\/sh/d' "${PATH_BOOTLOADER}/${1}"
         if [ ! -s "${PATH_BOOTLOADER}/${1}" ]; then
             echo "#!/bin/sh" >> "${PATH_BOOTLOADER}/${1}"
@@ -448,7 +448,7 @@ lz_create_event_interface_file_header() {
             sed -i '1i #!\/bin\/sh' "${PATH_BOOTLOADER}/${1}"
         fi
     fi
-    sed -i "/^[ \t]*$/d" "${PATH_BOOTLOADER}/${1}"
+    sed -i '2,${/^[ \t]*#!\/bin\/sh/d;/^[ \t]*$/d;}' "${PATH_BOOTLOADER}/${1}"
     return "0"
 }
 
@@ -474,6 +474,7 @@ lz_create_event_interface() {
         sed -i "/${3}/d" "${PATH_BOOTLOADER}/${1}"
         sed -i "1a ${2}/${3} # Added by LZRule" "${PATH_BOOTLOADER}/${1}"
     fi
+    sed -i "3,\${/${3}/d;}" "${PATH_BOOTLOADER}/${1}"
     chmod +x "${PATH_BOOTLOADER}/${1}"
     ! grep -q "^${2}/${3}" "${PATH_BOOTLOADER}/${1}" && return "1"
     return "0"
@@ -497,6 +498,7 @@ lz_create_post_mount_event_interface() {
     ##     0--成功
     ##     1--失败
     ! lz_create_event_interface_file_header "${1}" && return "1"
+    [ "$( grep -c "${3}" )" != "1" ] && sed -i "/${3}/d" "${PATH_BOOTLOADER}/${1}"
     local lineNo="$( grep -En '^[ 	]*[\.][ 	]+[\/]jffs[\/]addons[\/]diversion[\/]mount[\-]entware[\.]div([ 	]|$)' "${PATH_BOOTLOADER}/${1}" | sed -n 1p | sed 's/:.*$//g' | sed -n '/[1-9][0-9]*/p' )"
     [ -z "${lineNo}" ] && lineNo="$( grep -En '^[^#]+[\/]mount[\-]entware[\.]div([ 	]|$)' "${PATH_BOOTLOADER}/${1}" | sed -n 1p | sed 's/:.*$//g' | sed -n '/[1-9][0-9]*/p' )"
     if [ -n "${lineNo}" ]; then
@@ -646,6 +648,7 @@ lz_create_service_event_interface() {
         sed -i "/${3}/d" "${PATH_BOOTLOADER}/${1}"
         sed -i "1a ${2}/${3} \$\{@\} \& # Added by LZRule" "${PATH_BOOTLOADER}/${1}"
     fi
+    sed -i "3,\${/${3}/d;}" "${PATH_BOOTLOADER}/${1}"
     chmod +x "${PATH_BOOTLOADER}/${1}"
     ! grep -q "^${2}/${3} \$[\{]@[\}] [\&]" "${PATH_BOOTLOADER}/${1}" && return "1"
     return "0"
