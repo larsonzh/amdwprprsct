@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule.sh v4.1.3
+# lz_rule.sh v4.1.4
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # 本软件采用CIDR（无类别域间路由，Classless Inter-Domain Routing）技术，是一个在Internet上创建附加地
@@ -80,7 +80,7 @@
 ## -------------全局数据定义及初始化-------------------
 
 ## 版本号
-LZ_VERSION=v4.1.3
+LZ_VERSION=v4.1.4
 
 ## 运行状态查询命令
 SHOW_STATUS="status"
@@ -151,13 +151,16 @@ STATUS_LOG="${PATH_TMP}/status.log"
 ## 脚本网址信息查询命令执行记录文件名
 ADDRESS_LOG="${PATH_TMP}/address.log"
 
-## 系统路由表查询命令执行记录文件名
+## 系统路由表显示命令执行记录文件名
 ROUTING_LOG="${PATH_TMP}/routing.log"
 
-## 系统路由规则查询命令执行记录文件名
+## 系统路由规则显示命令执行记录文件名
 RULES_LOG="${PATH_TMP}/rules.log"
 
-## 系统定时任务查询命令执行记录文件名
+## 系统防火墙规则链显示命令执行记录文件名
+IPTABLES_LOG="${PATH_TMP}/iptables.log"
+
+## 系统定时任务显示命令执行记录文件名
 CRONTAB_LOG="${PATH_TMP}/crontab.log"
 
 ## 脚本解锁命令执行记录文件名
@@ -225,9 +228,9 @@ if [ "${1}" != "${FORCED_UNLOCKING}" ]; then
     eval "exec ${LOCK_FILE_ID}<>${LOCK_FILE}"
     flock -x "$LOCK_FILE_ID" > /dev/null 2>&1
     ## 运行实例处理
-    sed -i -e '/^$/d' -e '/^[ \t]*$/d' -e '1d' "${INSTANCE_LIST}" > /dev/null 2>&1
+    sed -i -e '/^$/d' -e '/^[[:space:]]*$/d' -e '1d' "${INSTANCE_LIST}" > /dev/null 2>&1
     if grep -q 'lz_' "${INSTANCE_LIST}" 2> /dev/null; then
-        local_instance="$( grep 'lz_' ${INSTANCE_LIST} | sed -n 1p | sed -e 's/^[ \t]*//g' -e 's/[ \t]*$//g' )"
+        local_instance="$( grep 'lz_' ${INSTANCE_LIST} | sed -n 1p | sed -e 's/^[[:space:]]*//g' -e 's/[[:space:]]*$//g' )"
         if [ "${local_instance}" = "lz_${1}" ] && [ "${local_instance}" != "lz_${SHOW_STATUS}" ] \
             && [ "${local_instance}" != "lz_${ADDRESS_QUERY}" ]; then
             unset local_instance
@@ -281,9 +284,10 @@ lz_project_file_management() {
     cd "${PATH_LZ}/" > /dev/null 2>&1 && chmod -R 775 ./* > /dev/null 2>&1
 
     touch "${STATUS_LOG}" 2> /dev/null
+    touch "${ADDRESS_LOG}" 2> /dev/null
     touch "${ROUTING_LOG}" 2> /dev/null
     touch "${RULES_LOG}" 2> /dev/null
-    touch "${ADDRESS_LOG}" 2> /dev/null
+    touch "${IPTABLES_LOG}" 2> /dev/null
     touch "${CRONTAB_LOG}" 2> /dev/null
     touch "${UNLOCK_LOG}" 2> /dev/null
     [ "${1}" = "${UNMOUNT_WEB_UI}" ] && return "0"
@@ -372,7 +376,7 @@ lz_update_ddns() {
 ##     1--无新实例开始运行
 lz_check_instance() {
     ! grep -q 'lz_' "${INSTANCE_LIST}" 2> /dev/null && return "1"
-    local local_instance="$( grep 'lz_' "${INSTANCE_LIST}" | sed -n 1p | sed -e 's/^[ \t]*//g' -e 's/[ \t]*$//g' )"
+    local local_instance="$( grep 'lz_' "${INSTANCE_LIST}" | sed -n 1p | sed -e 's/^[[:space:]]*//g' -e 's/[[:space:]]*$//g' )"
     if [ "${local_instance}" != "lz_${1}" ] || [ "${local_instance}" = "lz_${SHOW_STATUS}" ] \
         || [ "${local_instance}" = "lz_${ADDRESS_QUERY}" ]; then
         return "1"
@@ -429,6 +433,22 @@ lz_instance_exit() {
     [ "${ppp1_restart}" = "1" ] && service "restart_wan_if 1;restart_stubby" > /dev/null 2>&1
 }
 
+## 格式化路径文件名正则表达式字符串函数
+## 输入项：
+##     $1--路径文件名
+## 返回值：
+##     字符串
+lz_format_filename_regular_expression_string() { echo "${1}" | sed -e 's/\//[\\\/]/g' -e 's/\./[\\.]/g'; }
+
+## 获取删除文件名行正则表达式字符串函数
+## 输入项：
+##     $1--文件名字符串
+## 返回值：
+##     删除文件名行正则表达式字符串
+lz_get_delete_row_regular_expression_string() {
+    echo "\(\(^[^#]*\([^[:alnum:]#_\-]\|[[:space:]]\)\)\|^\)$( lz_format_filename_regular_expression_string "${1}" )\([^[:alnum:]_\-]\|[[:space:]]\|$\)"
+}
+
 ## 创建事件接口文件头函数
 ## 输入项：
 ##     $1--系统事件接口文件名
@@ -441,14 +461,14 @@ lz_create_event_interface_file_header() {
     [ ! -s "${PATH_BOOTLOADER}/${1}" ] && echo "#!/bin/sh" >> "${PATH_BOOTLOADER}/${1}"
     [ ! -f "${PATH_BOOTLOADER}/${1}" ] && return "1"
     if ! grep -qm 1 '^#!/bin/sh$' "${PATH_BOOTLOADER}/${1}"; then
-        sed -i '/^[ \t]*#!\/bin\/sh/d' "${PATH_BOOTLOADER}/${1}"
+        sed -i '/^[:space:]*#!\/bin\/sh/d' "${PATH_BOOTLOADER}/${1}"
         if [ ! -s "${PATH_BOOTLOADER}/${1}" ]; then
             echo "#!/bin/sh" >> "${PATH_BOOTLOADER}/${1}"
         else
             sed -i '1i #!\/bin\/sh' "${PATH_BOOTLOADER}/${1}"
         fi
     fi
-    sed -i '2,${/^[ \t]*#!\/bin\/sh/d;/^[ \t]*$/d;}' "${PATH_BOOTLOADER}/${1}"
+    sed -i '2,${/^[:space:]*#!\/bin\/sh/d;/^[:space:]*$/d;}' "${PATH_BOOTLOADER}/${1}"
     return "0"
 }
 
@@ -470,13 +490,14 @@ lz_create_event_interface() {
     ##     0--成功
     ##     1--失败
     ! lz_create_event_interface_file_header "${1}" && return "1"
-    if ! sed -n 2p "${PATH_BOOTLOADER}/${1}" | grep -q "^${2}/${3}"; then
-        sed -i "/${3}/d" "${PATH_BOOTLOADER}/${1}"
+    local regExpFilename="$( lz_format_filename_regular_expression_string "${2}/${3}" )"
+    if ! sed -n 2p "${PATH_BOOTLOADER}/${1}" | grep -q "^${regExpFilename}"; then
+        sed -i "/$( lz_get_delete_row_regular_expression_string "${3}" )/d" "${PATH_BOOTLOADER}/${1}"
         sed -i "1a ${2}/${3} # Added by LZRule" "${PATH_BOOTLOADER}/${1}"
     fi
-    sed -i "3,\${/${3}/d;}" "${PATH_BOOTLOADER}/${1}"
+    sed -i "3,\${/$( lz_get_delete_row_regular_expression_string "${3}" )/d;}" "${PATH_BOOTLOADER}/${1}"
     chmod +x "${PATH_BOOTLOADER}/${1}"
-    ! grep -q "^${2}/${3}" "${PATH_BOOTLOADER}/${1}" && return "1"
+    ! grep -q "^${regExpFilename}" "${PATH_BOOTLOADER}/${1}" && return "1"
     return "0"
 }
 
@@ -498,20 +519,23 @@ lz_create_post_mount_event_interface() {
     ##     0--成功
     ##     1--失败
     ! lz_create_event_interface_file_header "${1}" && return "1"
-    [ "$( grep -c "${3}" )" != "1" ] && sed -i "/${3}/d" "${PATH_BOOTLOADER}/${1}"
-    local lineNo="$( grep -En '^[ 	]*[\.][ 	]+[\/]jffs[\/]addons[\/]diversion[\/]mount[\-]entware[\.]div([ 	]|$)' "${PATH_BOOTLOADER}/${1}" | sed -n 1p | sed 's/:.*$//g' | sed -n '/[1-9][0-9]*/p' )"
-    [ -z "${lineNo}" ] && lineNo="$( grep -En '^[^#]+[\/]mount[\-]entware[\.]div([ 	]|$)' "${PATH_BOOTLOADER}/${1}" | sed -n 1p | sed 's/:.*$//g' | sed -n '/[1-9][0-9]*/p' )"
+    local regExpFilename="$( lz_format_filename_regular_expression_string "${2}/${3}" )"
+    local lineNo="$( grep -En '^[[:space:]]*[\.][[:space:]]+[\/]jffs[\/]addons[\/]diversion[\/]mount[\-]entware[\.]div([[:space:]]|$)' "${PATH_BOOTLOADER}/${1}" \
+        | sed -n 1p | sed 's/:.*$//g' | sed -n '/[1-9][0-9]*/p' )"
+    [ -z "${lineNo}" ] && lineNo="$( grep -En '^[^#]+[\/]mount[\-]entware[\.]div([[:space:]]|$)' "${PATH_BOOTLOADER}/${1}" \
+        | sed -n 1p | sed 's/:.*$//g' | sed -n '/[1-9][0-9]*/p' )"
     if [ -n "${lineNo}" ]; then
-        if ! sed -n "$(( lineNo + 1 ))p" "${PATH_BOOTLOADER}/${1}" | grep -q "^${2}/${3}"; then
-            sed -i "/${3}/d" "${PATH_BOOTLOADER}/${1}"
+        if ! sed -n "$(( lineNo + 1 ))p" "${PATH_BOOTLOADER}/${1}" | grep -q "^${regExpFilename}"; then
+            sed -i "/$( lz_get_delete_row_regular_expression_string "${3}" )/d" "${PATH_BOOTLOADER}/${1}"
             sed -i "${lineNo}a ${2}/${3} # Added by LZRule" "${PATH_BOOTLOADER}/${1}"
         fi
-    elif ! grep -q "^${2}/${3}"; then
-        sed -i "/${3}/d" "${PATH_BOOTLOADER}/${1}"
+        sed -i "$(( lineNo + 2 )),\${/$( lz_get_delete_row_regular_expression_string "${3}" )/d;}" "${PATH_BOOTLOADER}/${1}"
+    elif ! grep -q "^${regExpFilename}"; then
+        sed -i "/$( lz_get_delete_row_regular_expression_string "${3}" )/d" "${PATH_BOOTLOADER}/${1}"
         sed -i "\$a ${2}/${3} # Added by LZRule" "${PATH_BOOTLOADER}/${1}"
     fi
     chmod +x "${PATH_BOOTLOADER}/${1}"
-    ! grep -q "^${2}/${3}" "${PATH_BOOTLOADER}/${1}" && return "1"
+    ! grep -q "^${regExpFilename}" "${PATH_BOOTLOADER}/${1}" && return "1"
     return "0"
 }
 
@@ -522,10 +546,10 @@ lz_create_post_mount_event_interface() {
 ##     0--清除成功
 ##     1--未清除
 lz_clear_post_mount_command() {
-    if [ -f "${PATH_BOOTLOADER}/${BOOT_USB_MOUNT_NAME}" ] \
-        && grep -q "${PROJECT_FILENAME}" "${PATH_BOOTLOADER}/${BOOT_USB_MOUNT_NAME}"; then
-        sed -i "/${PROJECT_FILENAME}/d" "${PATH_BOOTLOADER}/${BOOT_USB_MOUNT_NAME}" > /dev/null 2>&1
-            return "0"
+    if [ -s "${PATH_BOOTLOADER}/${BOOT_USB_MOUNT_NAME}" ] \
+        && grep -q "$( lz_format_filename_regular_expression_string "${PROJECT_FILENAME}" )" "${PATH_BOOTLOADER}/${BOOT_USB_MOUNT_NAME}"; then
+        sed -i "/$( lz_get_delete_row_regular_expression_string "${PROJECT_FILENAME}" )/d" "${PATH_BOOTLOADER}/${BOOT_USB_MOUNT_NAME}"
+        return "0"
     fi
     return "1"
 }
@@ -576,9 +600,9 @@ lz_create_firewall_start_command() {
 ##     0--清除成功
 ##     1--未清除
 lz_clear_firewall_start_command() {
-    if [ -f "${PATH_BOOTLOADER}/${BOOTLOADER_NAME}" ] \
-        && grep -q "${PROJECT_FILENAME}" "${PATH_BOOTLOADER}/${BOOTLOADER_NAME}"; then
-        sed -i "/${PROJECT_FILENAME}/d" "${PATH_BOOTLOADER}/${BOOTLOADER_NAME}" > /dev/null 2>&1
+    if [ -s "${PATH_BOOTLOADER}/${BOOTLOADER_NAME}" ] \
+        && grep -q "$( lz_format_filename_regular_expression_string "${PROJECT_FILENAME}" )" "${PATH_BOOTLOADER}/${BOOTLOADER_NAME}"; then
+        sed -i "/$( lz_get_delete_row_regular_expression_string "${PROJECT_FILENAME}" )/d" "${PATH_BOOTLOADER}/${BOOTLOADER_NAME}"
         echo "$(lzdate)" [$$]: "Successfully unregistered firewall-start interface." | tee -ai "${SYSLOG}" 2> /dev/null
         return "0"
     fi
@@ -594,13 +618,12 @@ lz_clear_firewall_start_command() {
 ##     1--未清除
 lz_clear_openvpn_event_command() {
     local retval="1"
-    [ -f "${PATH_BOOTLOADER}/${OPENVPN_EVENT_NAME}" ] && {
-        if grep -q "${OPENVPN_EVENT_INTERFACE_NAME}" "${PATH_BOOTLOADER}/${OPENVPN_EVENT_NAME}"; then
-            sed -i "/${OPENVPN_EVENT_INTERFACE_NAME}/d" "${PATH_BOOTLOADER}/${OPENVPN_EVENT_NAME}" > /dev/null 2>&1
-            echo "$(lzdate)" [$$]: "Successfully unregistered openvpn-event interface." | tee -ai "${SYSLOG}" 2> /dev/null
-            retval="0"
-        fi
-    }
+    if [ -s "${PATH_BOOTLOADER}/${OPENVPN_EVENT_NAME}" ] \
+        && grep -q "$( lz_format_filename_regular_expression_string "${OPENVPN_EVENT_INTERFACE_NAME}" )" "${PATH_BOOTLOADER}/${OPENVPN_EVENT_NAME}"; then
+        sed -i "/$( lz_get_delete_row_regular_expression_string "${OPENVPN_EVENT_INTERFACE_NAME}" )/d" "${PATH_BOOTLOADER}/${OPENVPN_EVENT_NAME}"
+        echo "$(lzdate)" [$$]: "Successfully unregistered openvpn-event interface." | tee -ai "${SYSLOG}" 2> /dev/null
+        retval="0"
+    fi
     [ "${1}" = "STOP" ] && [ -f "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}" ] && {
         rm -f "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}" > /dev/null 2>&1
     }
@@ -615,11 +638,16 @@ lz_clear_openvpn_event_command() {
 ##     0--清除成功
 ##     1--未清除
 lz_clear_service_event_command() {
-    if [ -f "${PATH_BOOTLOADER}/${SERVICE_EVENT_NAME}" ]; then
+    if [ -s "${PATH_BOOTLOADER}/${SERVICE_EVENT_NAME}" ]; then
         if [ "${1}" = "0" ]; then
-            sed -i -e "/${PROJECT_FILENAME}/d" -e "/${UPDATE_FILENAME}/d" "${PATH_BOOTLOADER}/${SERVICE_EVENT_NAME}" > /dev/null 2>&1
+            sed -i -e "/$( lz_get_delete_row_regular_expression_string "${PROJECT_FILENAME}" )/d" \
+                -e "/$( lz_get_delete_row_regular_expression_string "${UPDATE_FILENAME}" )/d" \
+                "${PATH_BOOTLOADER}/${SERVICE_EVENT_NAME}"
         else
-            sed -i -e "/${PROJECT_FILENAME}/d" -e "/${UPDATE_FILENAME}/d" -e "/${SERVICE_INTERFACE_NAME}/d" "${PATH_BOOTLOADER}/${SERVICE_EVENT_NAME}" > /dev/null 2>&1
+            sed -i -e "/$( lz_get_delete_row_regular_expression_string "${PROJECT_FILENAME}" )/d" \
+                -e "/$( lz_get_delete_row_regular_expression_string "${UPDATE_FILENAME}" )/d" \
+                -e "/$( lz_get_delete_row_regular_expression_string "${SERVICE_INTERFACE_NAME}" )/d" \
+                "${PATH_BOOTLOADER}/${SERVICE_EVENT_NAME}"
         fi
         return "0"
     fi
@@ -644,13 +672,14 @@ lz_create_service_event_interface() {
     ##     0--成功
     ##     1--失败
     ! lz_create_event_interface_file_header "${1}" && return "1"
-    if ! sed -n 2p "${PATH_BOOTLOADER}/${1}" | grep -q "^${2}/${3} \$[\{]@[\}] [\&]"; then
-        sed -i "/${3}/d" "${PATH_BOOTLOADER}/${1}"
+    local regExpFilename="$( lz_format_filename_regular_expression_string "${2}/${3}" )"
+    if ! sed -n 2p "${PATH_BOOTLOADER}/${1}" | grep -q "^${regExpFilename} \$[\{]@[\}] [\&]"; then
+        sed -i "/$( lz_get_delete_row_regular_expression_string "${3}" )/d" "${PATH_BOOTLOADER}/${1}"
         sed -i "1a ${2}/${3} \$\{@\} \& # Added by LZRule" "${PATH_BOOTLOADER}/${1}"
     fi
-    sed -i "3,\${/${3}/d;}" "${PATH_BOOTLOADER}/${1}"
+    sed -i "3,\${/$( lz_get_delete_row_regular_expression_string "${3}" )/d;}" "${PATH_BOOTLOADER}/${1}"
     chmod +x "${PATH_BOOTLOADER}/${1}"
-    ! grep -q "^${2}/${3} \$[\{]@[\}] [\&]" "${PATH_BOOTLOADER}/${1}" && return "1"
+    ! grep -q "^${regExpFilename} \$[\{]@[\}] [\&]" "${PATH_BOOTLOADER}/${1}" && return "1"
     return "0"
 }
 
@@ -720,7 +749,7 @@ lz_unmount_web_ui() {
         umount "/www/require/modules/menuTree.js" > /dev/null 2>&1
         local page_name="$( lz_get_webui_page )"
         if [ -n "${page_name}" ]; then
-            [ -f "/tmp/menuTree.js" ] && sed -i "/${page_name}/d" "/tmp/menuTree.js" 2> /dev/null
+            [ -f "/tmp/menuTree.js" ] && sed -i "/$( echo "${page_name}" | sed -e 's/\//[\\\/]/g' -e 's/\./[\\.]/g' )/d" "/tmp/menuTree.js" 2> /dev/null
             rm -f "${PATH_WEBPAGE}/${page_name}" > /dev/null 2>&1
             rm -f "${PATH_WEBPAGE}/${page_name%.*}.title" > /dev/null 2>&1
         fi
@@ -748,8 +777,8 @@ lz_mount_web_ui() {
             mkdir -p "${PATH_WEB_LZR}" > /dev/null 2>&1
             [ ! -d "${PATH_WEB_LZR}" ] && break
         fi
-        sed -i -e 's/^[ \t]*//g' -e 's/[ \t]*$//g' -e '/^$/d' "${PATH_JS}/lz_policy_routing.js" > /dev/null 2>&1
-        sed -i -e 's/^[ \t]*//g' -e 's/[ \t]*$//g' -e '/^$/d' "${PATH_WEBS}/LZ_Policy_Routing_Content.asp" > /dev/null 2>&1
+        sed -i -e 's/^[[:space:]]*//g' -e 's/[[:space:]]*$//g' -e '/^$/d' "${PATH_JS}/lz_policy_routing.js" > /dev/null 2>&1
+        sed -i -e 's/^[[:space:]]*//g' -e 's/[[:space:]]*$//g' -e '/^$/d' "${PATH_WEBS}/LZ_Policy_Routing_Content.asp" > /dev/null 2>&1
         rm -f "${PATH_WEB_LZR}/"* > /dev/null 2>&1
         ln -s "${PATH_JS}/lz_policy_routing.js" "${PATH_WEB_LZR}/lz_policy_routing.js" > /dev/null 2>&1
         ln -s "${PATH_IMAGES}/favicon.png" "${PATH_WEB_LZR}/favicon.png" > /dev/null 2>&1
@@ -765,9 +794,10 @@ lz_mount_web_ui() {
         ln -s "${PATH_CONFIGS}/lz_rule_config.box" "${PATH_WEB_LZR}/LZRBKData.html" > /dev/null 2>&1
         ln -s "${PATH_FUNC}/lz_define_global_variables.sh" "${PATH_WEB_LZR}/LZRGlobal.html" > /dev/null 2>&1
         ln -s "${STATUS_LOG}" "${PATH_WEB_LZR}/LZRStatus.html" > /dev/null 2>&1
+        ln -s "${ADDRESS_LOG}" "${PATH_WEB_LZR}/LZRAddress.html" > /dev/null 2>&1
         ln -s "${ROUTING_LOG}" "${PATH_WEB_LZR}/LZRRouting.html" > /dev/null 2>&1
         ln -s "${RULES_LOG}" "${PATH_WEB_LZR}/LZRRules.html" > /dev/null 2>&1
-        ln -s "${ADDRESS_LOG}" "${PATH_WEB_LZR}/LZRAddress.html" > /dev/null 2>&1
+        ln -s "${IPTABLES_LOG}" "${PATH_WEB_LZR}/LZRIptables.html" > /dev/null 2>&1
         ln -s "${CRONTAB_LOG}" "${PATH_WEB_LZR}/LZRCrontab.html" > /dev/null 2>&1
         ln -s "${UNLOCK_LOG}" "${PATH_WEB_LZR}/LZRUnlock.html" > /dev/null 2>&1
         ln -s "${INSTANCE_LIST}" "${PATH_WEB_LZR}/LZRInstance.html" > /dev/null 2>&1
@@ -788,10 +818,10 @@ lz_mount_web_ui() {
 			cp -f "/www/require/modules/menuTree.js" "/tmp/" > /dev/null 2>&1
             [ ! -f "/tmp/menuTree.js" ] && break
 		fi
-		sed -i "/${page_name}/d" "/tmp/menuTree.js" 2> /dev/null
+		sed -i "/$( echo "${page_name}" | sed -e 's/\//[\\\/]/g' -e 's/\./[\\.]/g' )/d" "/tmp/menuTree.js" 2> /dev/null
 		sed -i "/{url: \"Advanced_WANPort_Content.asp\", tabName:.*},/a {url: \"${page_name}\", tabName: \"策略路由\"}," "/tmp/menuTree.js" 2> /dev/null
 		mount -o bind "/tmp/menuTree.js" "/www/require/modules/menuTree.js" > /dev/null 2>&1
-        ! grep -q "{url: \"${page_name}\", tabName:.*}," "/www/require/modules/menuTree.js" 2> /dev/null && break
+        ! grep -q "{url: \"$( echo "${page_name}" | sed -e 's/\//[\\\/]/g' -e 's/\./[\\.]/g' )\", tabName:.*}," "/www/require/modules/menuTree.js" 2> /dev/null && break
         retval="0"
         break
     done
@@ -1238,7 +1268,7 @@ if lz_project_file_management "${1}"; then
         eval "${CALL_FUNC_SUBROUTINE}/lz_rule_status.sh"
     elif [ "${1}" = "${ADDRESS_QUERY}" ]; then
         ## 载入函数功能定义
-        if [ -z "${2}" ] || echo "${2}" | grep -q '^[ ]*$'; then
+        if [ -z "${2}" ] || echo "${2}" | grep -q '^[[:space:]]*$'; then
             echo "$(lzdate)" [$$]: The input parameter \( network address \) can\'t be null.
             echo "$(lzdate)" [$$]: ---------------------------------------------
         else
@@ -1250,9 +1280,10 @@ if lz_project_file_management "${1}"; then
         echo "$(lzdate)" [$$]: Policy Routing Web UI has been unmounted. | tee -ai "${SYSLOG}" 2> /dev/null
     else
         echo > "${STATUS_LOG}" 2> /dev/null
+        echo > "${ADDRESS_LOG}" 2> /dev/null
         echo > "${ROUTING_LOG}" 2> /dev/null
         echo > "${RULES_LOG}" 2> /dev/null
-        echo > "${ADDRESS_LOG}" 2> /dev/null
+        echo > "${IPTABLES_LOG}" 2> /dev/null
         echo > "${CRONTAB_LOG}" 2> /dev/null
         echo > "${UNLOCK_LOG}" 2> /dev/null
         ## 极限情况下文件锁偶有锁不住的情况发生，与预期不符。利用系统自带的策略路由数据库做进程间异步模式同步，

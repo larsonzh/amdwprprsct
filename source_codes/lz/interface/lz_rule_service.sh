@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_service.sh v4.1.3
+# lz_rule_service.sh v4.1.4
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 服务接口脚本
@@ -50,8 +50,66 @@ case "${2}" in
         ip rule show | awk -v pid="[${$}]:" 'BEGIN{system("printf \"%s %s \n\n\" \"$( date +\"%F %T\")\" "pid)} \
             {print $0} END{printf "\nTotal: %s\n", NR}' > "${PATH_LZ}/tmp/rules.log"
     ;;
+    LZIptables)
+        printf "%s [%s]: \n" "$( date +"%F %T")" "${$}" > "${PATH_LZ}/tmp/iptables.log"
+        count="0"
+        if iptables -t mangle -L PREROUTING 2> /dev/null | grep -q "^Chain PREROUTING"; then
+            {
+                printf "\n"
+                iptables -t mangle -L PREROUTING -v -n --line-numbers 2> /dev/null
+            } >> "${PATH_LZ}/tmp/iptables.log"
+            count="$(( count + 1 ))"
+            if iptables -t mangle -L PREROUTING 2> /dev/null | grep -qw "^LZPRTING"; then
+                {
+                    printf "\n"
+                    iptables -t mangle -L LZPRTING -v -n --line-numbers 2> /dev/null
+                } >> "${PATH_LZ}/tmp/iptables.log"
+                count="$(( count + 1 ))"
+                if iptables -t mangle -L LZPRTING 2> /dev/null | grep -qw "^LZPRCNMK"; then
+                    {
+                        printf "\n"
+                        iptables -t mangle -L LZPRCNMK -v -n --line-numbers 2> /dev/null
+                    } >> "${PATH_LZ}/tmp/iptables.log"
+                    count="$(( count + 1 ))"
+                fi
+            fi
+            if iptables -t mangle -L PREROUTING 2> /dev/null | grep -qw "^balance"; then
+                {
+                    printf "\n"
+                    iptables -t mangle -L balance -v -n --line-numbers 2> /dev/null
+                } >> "${PATH_LZ}/tmp/iptables.log"
+                count="$(( count + 1 ))"
+            fi
+        fi
+        if iptables -t mangle -L OUTPUT 2> /dev/null | grep -q "^Chain OUTPUT"; then
+            {
+                printf "\n"
+                iptables -t mangle -L OUTPUT -v -n --line-numbers 2> /dev/null
+            } >> "${PATH_LZ}/tmp/iptables.log"
+            count="$(( count + 1 ))"
+            if iptables -t mangle -L OUTPUT 2> /dev/null | grep -qw "^LZOUTPUT"; then
+                {
+                    printf "\n"
+                    iptables -t mangle -L LZOUTPUT -v -n --line-numbers 2> /dev/null
+                } >> "${PATH_LZ}/tmp/iptables.log"
+                count="$(( count + 1 ))"
+            fi
+        fi
+        if iptables -L FORWARD 2> /dev/null | grep -q "^Chain FORWARD" \
+            && iptables -L FORWARD 2> /dev/null | grep -qw "^LZHASHFORWARD"; then
+            {
+                printf "\n"
+                iptables -L FORWARD -v -n --line-numbers 2> /dev/null
+                printf "\n"
+                iptables -L LZHASHFORWARD -v -n --line-numbers 2> /dev/null
+            } >> "${PATH_LZ}/tmp/iptables.log"
+            count="$(( count + 2 ))"
+        fi
+        printf "\nTotal: %s\n" "${count}" >> "${PATH_LZ}/tmp/iptables.log"
+    ;;
     LZCrontab)
-        crontab -l | awk -v pid="[${$}]:" 'BEGIN{system("printf \"%s %s \n\n\" \"$( date +\"%F %T\")\" "pid)} {print $0} END{printf "\nTotal: %s\n", NR}' > "${PATH_LZ}/tmp/crontab.log"
+        crontab -l | awk -v pid="[${$}]:" 'BEGIN{system("printf \"%s %s \n\n\" \"$( date +\"%F %T\")\" "pid)} \
+            {print $0} END{printf "\nTotal: %s\n", NR}' > "${PATH_LZ}/tmp/crontab.log"
     ;;
     LZUpdate)
         [ -f "${PATH_LZ}/lz_update_ispip_data.sh" ] && "${PATH_LZ}/lz_update_ispip_data.sh"

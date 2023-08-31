@@ -1,5 +1,5 @@
 #!/bin/sh
-# install.sh v4.1.3
+# install.sh v4.1.4
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ RULE script for Asuswrt-Merlin Router
@@ -11,7 +11,7 @@
 
 #BEIGIN
 
-LZ_VERSION=v4.1.3
+LZ_VERSION=v4.1.4
 TIMEOUT=10
 CURRENT_PATH="${0%/*}"
 [ "${CURRENT_PATH:0:1}" != '/' ] && CURRENT_PATH="$( pwd )${CURRENT_PATH#*.}"
@@ -205,15 +205,24 @@ if [ "${PATH_LZ}" != "/jffs/scripts/lz" ]; then
     sed -i "s:/jffs/scripts/lz/:${PATH_LZ}/:g" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
 fi
 
-sed -i -e 's/^[ \t]*//g' -e 's/[ \t]*$//g' -e '/^$/d' "${PATH_JS}/lz_policy_routing.js" > /dev/null 2>&1
-sed -i -e 's/^[ \t]*//g' -e 's/[ \t]*$//g' -e '/^$/d' "${PATH_WEBS}/LZ_Policy_Routing_Content.asp" > /dev/null 2>&1
+sed -i -e 's/^[[:space:]]*//g' -e 's/[[:space:]]*$//g' -e '/^$/d' "${PATH_JS}/lz_policy_routing.js" > /dev/null 2>&1
+sed -i -e 's/^[[:space:]]*//g' -e 's/[[:space:]]*$//g' -e '/^$/d' "${PATH_WEBS}/LZ_Policy_Routing_Content.asp" > /dev/null 2>&1
 
 PATH_WEBPAGE="$( readlink "/www/user" )"
 PATH_WEB_LZR="${PATH_WEBPAGE}/lzr"
 
+lz_format_filename_regular_expression_string() { echo "${1}" | sed -e 's/\//[\\\/]/g' -e 's/\./[\\.]/g'; }
+
+lz_get_delete_row_regular_expression_string() {
+    echo "\(\(^[^#]*\([^[:alnum:]#_\-]\|[[:space:]]\)\)\|^\)$( lz_format_filename_regular_expression_string "${1}" )\([^[:alnum:]_\-]\|[[:space:]]\|$\)"
+}
+
 lz_clear_service_event_command() {
     if [ -f "/jffs/scripts/service-event" ]; then
-        sed -i -e '/lz_rule[\.]sh/d' -e '/lz_update_ispip_data[\.]sh/d' -e '/lz_rule_service[\.]sh/d' "/jffs/scripts/service-event" > /dev/null 2>&1
+        sed -i -e "/$( lz_get_delete_row_regular_expression_string "lz_rule.sh" )/d" \
+            -e "/$( lz_get_delete_row_regular_expression_string "lz_update_ispip_data.sh" )/d" \
+            -e "/$( lz_get_delete_row_regular_expression_string "lz_rule_service.sh" )/d" \
+            "/jffs/scripts/service-event" > /dev/null 2>&1
         return "0"
     fi
     return "1"
@@ -224,14 +233,20 @@ lz_create_service_event_interface() {
     [ ! -s "/jffs/scripts/service-event" ] && printf "#!/bin/sh\n" >> "/jffs/scripts/service-event"
     [ ! -f "/jffs/scripts/service-event" ] && return "1"
     if ! grep -qm 1 '^#!/bin/sh$' "/jffs/scripts/service-event"; then
-        sed -i '/^[ \t]*#!\/bin\/sh/d' "/jffs/scripts/service-event"
+        sed -i '/^[[:space:]]*#!\/bin\/sh/d' "/jffs/scripts/service-event"
         if [ ! -s "/jffs/scripts/service-event" ]; then
             echo "#!/bin/sh" >> "/jffs/scripts/service-event"
         else
             sed -i '1i #!\/bin\/sh' "/jffs/scripts/service-event"
         fi
     fi
-    sed -i '2,${/^[ \t]*#!\/bin\/sh/d;/lz_rule[\.]sh/d;/lz_update_ispip_data[\.]sh/d;/lz_rule_service[\.]sh/d;/^[ \t]*$/d;}' "/jffs/scripts/service-event"
+    sed -i "2,\${
+            /^[[:space:]]*#!\/bin\/sh/d;
+            /$( lz_get_delete_row_regular_expression_string "lz_rule.sh" )/d;
+            /$( lz_get_delete_row_regular_expression_string "lz_update_ispip_data.sh" )/d;
+            /$( lz_get_delete_row_regular_expression_string "lz_rule_service.sh" )/d;
+            /^[[:space:]]*$/d;
+        }" "/jffs/scripts/service-event"
     sed -i "1a ${PATH_INTERFACE}/lz_rule_service.sh \$\{@\} \& # Added by LZRule" "/jffs/scripts/service-event"
     chmod +x "/jffs/scripts/service-event"
     ! grep -q "^${PATH_INTERFACE}/lz_rule_service[\.]sh \$[\{]@[\}] [\&]" "/jffs/scripts/service-event" && return "1"
@@ -259,7 +274,7 @@ lz_unmount_web_ui() {
         umount "/www/require/modules/menuTree.js" > /dev/null 2>&1
         local page_name="$( lz_get_webui_page )"
         if [ -n "${page_name}" ]; then
-            [ -f "/tmp/menuTree.js" ] && sed -i "/${page_name}/d" "/tmp/menuTree.js" 2> /dev/null
+            [ -f "/tmp/menuTree.js" ] && sed -i "/$( lz_format_filename_regular_expression_string "${page_name}" )/d" "/tmp/menuTree.js" 2> /dev/null
             rm -f "${PATH_WEBPAGE}/${page_name}" > /dev/null 2>&1
             rm -f "${PATH_WEBPAGE}/${page_name%.*}.title" > /dev/null 2>&1
         fi
@@ -296,9 +311,10 @@ lz_mount_web_ui() {
         ln -s "${PATH_CONFIGS}/lz_rule_config.box" "${PATH_WEB_LZR}/LZRBKData.html" > /dev/null 2>&1
         ln -s "${PATH_FUNC}/lz_define_global_variables.sh" "${PATH_WEB_LZR}/LZRGlobal.html" > /dev/null 2>&1
         ln -s "${PATH_TMP}/status.log" "${PATH_WEB_LZR}/LZRStatus.html" > /dev/null 2>&1
+        ln -s "${PATH_TMP}/address.log" "${PATH_WEB_LZR}/LZRAddress.html" > /dev/null 2>&1
         ln -s "${PATH_TMP}/routing.log" "${PATH_WEB_LZR}/LZRRouting.html" > /dev/null 2>&1
         ln -s "${PATH_TMP}/rules.log" "${PATH_WEB_LZR}/LZRRules.html" > /dev/null 2>&1
-        ln -s "${PATH_TMP}/address.log" "${PATH_WEB_LZR}/LZRAddress.html" > /dev/null 2>&1
+        ln -s "${PATH_TMP}/iptables.log" "${PATH_WEB_LZR}/LZRIptables.html" > /dev/null 2>&1
         ln -s "${PATH_TMP}/crontab.log" "${PATH_WEB_LZR}/LZRCrontab.html" > /dev/null 2>&1
         ln -s "${PATH_TMP}/unlock.log" "${PATH_WEB_LZR}/LZRUnlock.html" > /dev/null 2>&1
         ln -s "/var/lock/lz_rule_instance.lock" "${PATH_WEB_LZR}/LZRInstance.html" > /dev/null 2>&1
@@ -318,10 +334,10 @@ lz_mount_web_ui() {
             cp -f "/www/require/modules/menuTree.js" "/tmp/" > /dev/null 2>&1
             [ ! -f "/tmp/menuTree.js" ] && break
         fi
-        sed -i "/${page_name}/d" "/tmp/menuTree.js" 2> /dev/null
+        sed -i "/$( lz_format_filename_regular_expression_string "${page_name}" )/d" "/tmp/menuTree.js" 2> /dev/null
         sed -i "/{url: \"Advanced_WANPort_Content.asp\", tabName:.*},/a {url: \"${page_name}\", tabName: \"策略路由\"}," "/tmp/menuTree.js" 2> /dev/null
         mount -o bind "/tmp/menuTree.js" "/www/require/modules/menuTree.js" > /dev/null 2>&1
-        ! grep -q "{url: \"${page_name}\", tabName:.*}," "/www/require/modules/menuTree.js" 2> /dev/null && break
+        ! grep -q "{url: \"$( lz_format_filename_regular_expression_string "${page_name}" )\", tabName:.*}," "/www/require/modules/menuTree.js" 2> /dev/null && break
         retval="0"
         break
     done

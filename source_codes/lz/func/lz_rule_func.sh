@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v4.1.3
+# lz_rule_func.sh v4.1.4
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 #BEIGIN
@@ -104,7 +104,7 @@ lz_get_ipv4_src_to_dst_data_file_item_total() {
 ## 返回值：
 ##     域名地址条目列表
 lz_get_domain_list() {
-    sed -e "s/\'//g" -e 's/\"//g' -e 's/[ \t]\+/ /g' -e 's/^[ ]*//g' -e '/^[#]/d' -e 's/[#].*$//g' -e 's/^\([^ ]*\).*$/\1/g' \
+    sed -e "s/\'//g" -e 's/\"//g' -e 's/[[:space:]]\+/ /g' -e 's/^[ ]*//g' -e '/^[#]/d' -e 's/[#].*$//g' -e 's/^\([^ ]*\).*$/\1/g' \
         -e 's/^[^ ]*[\:][\/][\/]//g' -e 's/^[^ ]\{0,6\}[\:]//g' -e 's/[\/]*$//g' -e 's/[ ]*$//g' -e '/^[\.]*$/d' -e '/^[\.]*[^\.]*$/d' \
         -e '/^[ ]*$/d' "${1}" 2> /dev/null | tr '[:A-Z:]' '[:a-z:]'
 }

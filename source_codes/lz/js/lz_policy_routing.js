@@ -1,5 +1,5 @@
 /*
-# lz_policy_routing.js v4.1.3
+# lz_policy_routing.js v4.1.4
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ JavaScript for Asuswrt-Merlin Router
@@ -18,7 +18,7 @@ function getVersion() {
         url: '/ext/lzr/LZRVersion.html',
         dataType: 'text',
         success: function(result) {
-            let buf = result.match(/^[ \t]*LZ_VERSION[=][\w\.]*/m);
+            let buf = result.match(/^[\s]*LZ_VERSION[=][\w\.]*/m);
             if (buf != null) policySettingsArray.version = (buf.length > 0) ? buf[0].replace(/^.*[=]/, "") : "";
         }
     });
@@ -45,7 +45,7 @@ function getPolicyState() {
         url: '/ext/lzr/LZRState.html',
         dataType: 'text',
         success: function(result) {
-            retVal = result.match(/^[ \t]*[\w\/]+lz_rule[\.]sh[ \t]*([#].*){0,1}$/m) != null;
+            retVal = result.match(/^[\s]*[\w\/]+lz_rule[\.]sh[\s]*([#].*){0,1}$/m) != null;
         }
     });
     return retVal;
@@ -62,7 +62,8 @@ function initPolicyEnableCtrl() {
 let customSettings;
 function loadCustomSettings() {
     customSettings = '<% get_custom_settings(); %>';
-    if (typeof customSettings == "string" && /^[ \t]*[\{]([ \t]*[\"][^\"]+[\"][ \t]*[\:][ \t]*[\"][^\"]*[\"][ \t][,])*[ \t]*[\"][^\"]+[\"][ \t]*[:][ \t]*[\"][^\"]*[\"][ \t][\}][ \t]*$|^[ \t]*[\{]([ \t]*[\"][^\"]+[\"][ \t]*[:][ \t]*[\"][^\"]*[\"][ \t]){0,1}[\}][ \t]*$/.test(customSettings)) {
+    if (typeof customSettings == "string" 
+        && /^[\s]*[\{]([\s]*[\"][^\"]+[\"][\s]*[:][\s]*[\"][^\"]*[\"][\s][,])*[\s]*[\"][^\"]+[\"][\s]*[:][\s]*[\"][^\"]*[\"][\s][\}][\s]*$|^[\s]*[\{]([\s]*[\"][^\"]+[\"][\s]*[:][\s]*[\"][^\"]*[\"][\s]){0,1}[\}][\s]*$/.test(customSettings)) {
         customSettings = JSON.parse(customSettings);
         for (let prop in customSettings) {
             if (Object.prototype.hasOwnProperty.call(customSettings, prop))
@@ -96,10 +97,10 @@ function loadPolicySettings() {
         url: fileUrl,
         dataType: 'text',
         success: function(result) {
-            let buf = result.match(/^[ \t]*[\w]+[=].*$/gm);
+            let buf = result.match(/^[\s]*[\w]+[=].*$/gm);
             if (buf == null) return;
             while (buf.length > 0) {
-                buf[0] = buf[0].replace(/^[ \t]+|[# \t].*$|[\'\"]/g, "").split('=');
+                buf[0] = buf[0].replace(/^[\s]+|[# \t].*$|[\'\"]/g, "").split('=');
                 buf[0][0] = "lzr_" + buf[0][0].replace(/^lz_config_/, "");
                 (buf[0][1] == null) && (buf[0][1] = "");
                 if (buf[0][1] == "true" || buf[0][1] == "false")
@@ -1009,6 +1010,7 @@ function openOverHint(itemNum) {
         content += "<li>查询路由器出口 (缺省)</li>";
         content += "<li>显示系统路由表</li>";
         content += "<li>显示系统路由规则</li>";
+        content += "<li>显示系统防火墙规则链</li>";
         content += "<li>显示系统定时任务</li>";
         content += "<li>显示 firewall-start 启动项</li>";
         content += "<li>显示 service-event 服务触发项</li>";
@@ -1021,6 +1023,7 @@ function openOverHint(itemNum) {
         content += "<b>查询路由器出口</b>：<br />根据目标主机域名或 IP 地址，查询访问该地址流量使用的路由器出口，以及该主机地址的运营商归属。域名解析后可能会得到多个 IP 地址，由此会出现多条信息。<br />";
         content += "<br /><b>显示系统路由表</b>：<br />显示当前系统中，<b>策略路由</b>所依赖的路由表，以及路由表内容。<br />";
         content += "<br /><b>显示系统路由规则</b>：<br />显示当前系统<b>策略路由</b>库中的所有路由规则项。<br />";
+        content += "<br /><b>显示系统防火墙规则链</b>：<br />显示当前与<b>策略路由</b>运行有关的系统主要防火墙规则链及其内容。<br />";
         content += "<br /><b>显示系统定时任务</b>：<br />显示路由器系统中当前存在的定时任务。<br />";
         content += "<br /><b>显示 firewall-start 启动项</b>：<br />显示系统启动、防火墙动作、WAN 口 IP 改变、网络重连或掉线、拨号连接等网络事件发生时，触发启动执行的命令或软件项。<b>策略路由</b>启动后会在此放置自启动命令。<br />";
         content += "<br /><b>显示 service-event 服务触发项</b>：<br />显示由服务事件触发启动执行的自定义命令或软件项。<b>策略路由</b>通过该服务事件触发项由前台页面向后台服务发送工作指令。<br />";
@@ -1334,6 +1337,47 @@ function getRulesInfo() {
     });
 }
 
+let iptablesHeight = 0;
+function getIptablesInfo() {
+    let h = 0;
+    $.ajax({
+        async: true,
+        url: '/ext/lzr/LZRIptables.html',
+        dataType: 'text',
+        error: function(xhr) {
+            if (xhr.status == 404)
+                enabledToolsButton(500);
+            else
+                setTimeout(getIptablesInfo, 1000);
+        },
+        success: function(response) {
+            h = $("#toolsTextArea").scrollTop();
+            if (divLabelArray["Tools"][2] == "1" 
+                && document.getElementById("cmdMethod").value == "3" 
+                && !(iptablesHeight > 0 && h < iptablesHeight)) {
+                let _log = '';
+                let infoString = htmlEnDeCode.htmlEncode(response.toString());
+                let _string = infoString.split('\n');
+                for (let i = 0; i < _string.length; i++) {
+                    _log += _string[i] + '\n';
+                    if (_string[i] != "" 
+                        && !document.getElementById("toolsButton").disabled)
+                        disabledToolsButton();
+                    else if (_string[i].search(/^Total[\:]/) == 0)
+                        enabledToolsButton();
+                }
+                document.getElementById("toolsTextArea").innerHTML = _log;
+                $("#toolsTextArea").animate({ scrollTop: 9999999 }, "slow");
+                if (document.getElementById("toolsButton").disabled)
+                    setTimeout('iptablesHeight = $("#toolsTextArea").scrollTop();', 500);
+                else
+                iptablesHeight = 9999999;
+            }
+            setTimeout(getIptablesInfo, 3000);
+        }
+    });
+}
+
 let crontabHeight = 0;
 function getCrontabInfo() {
     let h = 0;
@@ -1350,7 +1394,7 @@ function getCrontabInfo() {
         success: function(response) {
             h = $("#toolsTextArea").scrollTop();
             if (divLabelArray["Tools"][2] == "1" 
-                && document.getElementById("cmdMethod").value == "3" 
+                && document.getElementById("cmdMethod").value == "4" 
                 && !(crontabHeight > 0 && h < crontabHeight)) {
                 let _log = '';
                 let infoString = htmlEnDeCode.htmlEncode(response.toString());
@@ -1391,7 +1435,7 @@ function getFirewallStartInfo() {
         success: function(response) {
             h = $("#toolsTextArea").scrollTop();
             if (divLabelArray["Tools"][2] == "1" 
-                && document.getElementById("cmdMethod").value == "4" 
+                && document.getElementById("cmdMethod").value == "5" 
                 && !(fireHeight > 0 && h < fireHeight)) {
                 let _log = '';
                 let infoString = htmlEnDeCode.htmlEncode(response.toString());
@@ -1428,7 +1472,7 @@ function getServiceEventInfo() {
         success: function(response) {
             h = $("#toolsTextArea").scrollTop();
             if (divLabelArray["Tools"][2] == "1" 
-                && document.getElementById("cmdMethod").value == "5" 
+                && document.getElementById("cmdMethod").value == "6" 
                 && !(serviceHeight > 0 && h < serviceHeight)) {
                 let _log = '';
                 let infoString = htmlEnDeCode.htmlEncode(response.toString());
@@ -1465,7 +1509,7 @@ function getOpenVPNEventInfo() {
         success: function(response) {
             h = $("#toolsTextArea").scrollTop();
             if (divLabelArray["Tools"][2] == "1" 
-                && document.getElementById("cmdMethod").value == "6" 
+                && document.getElementById("cmdMethod").value == "7" 
                 && !(openvpnHeight > 0 && h < openvpnHeight)) {
                 let _log = '';
                 let infoString = htmlEnDeCode.htmlEncode(response.toString());
@@ -1502,7 +1546,7 @@ function getPostMountInfo() {
         success: function(response) {
             h = $("#toolsTextArea").scrollTop();
             if (divLabelArray["Tools"][2] == "1" 
-                && document.getElementById("cmdMethod").value == "7" 
+                && document.getElementById("cmdMethod").value == "8" 
                 && !(mountHeight > 0 && h < mountHeight)) {
                 let _log = '';
                 let infoString = htmlEnDeCode.htmlEncode(response.toString());
@@ -1539,7 +1583,7 @@ function getUnlockInfo() {
         success: function(response) {
             h = $("#toolsTextArea").scrollTop();
             if (divLabelArray["Tools"][2] == "1" 
-                && document.getElementById("cmdMethod").value == "9" 
+                && document.getElementById("cmdMethod").value == "10" 
                 && !(unlockHeight > 0 && h < unlockHeight)) {
                 let _log = '';
                 let infoString = htmlEnDeCode.htmlEncode(response.toString());
@@ -1617,6 +1661,14 @@ function showRules() {
     document.scriptActionsForm.submit();
 }
 
+function showIptables() {
+    document.getElementById("toolsTextArea").innerHTML = "";
+    iptablesHeight = 0;
+    document.scriptActionsForm.action_script.value = 'start_LZIptables';
+    document.scriptActionsForm.action_wait.value = "0";
+    document.scriptActionsForm.submit();
+}
+
 function showCrontab() {
     document.getElementById("toolsTextArea").innerHTML = "";
     crontabHeight = 0;
@@ -1647,6 +1699,7 @@ function showPostMount() {
 
 let routingShowed = false;
 let rulesShowed = false;
+let iptablesShowed = false;
 let crontabShowed = false;
 function hideCNT(_val) {
     document.getElementById("toolsTextArea").innerHTML = "";
@@ -1659,14 +1712,14 @@ function hideCNT(_val) {
         if (document.getElementById("toolsButton").disabled)
             enabledToolsButton();
         addressHeight = 0;
-    } else if (val >= 1 && val <= 10) {
+    } else if (val >= 1 && val <= 11) {
         document.getElementById("cmdMethod").value = _val;
         document.getElementById("destIPCNT_tr").style.display = "none";
         document.getElementById("dnsIPAddressCNT_tr").style.display = "none";
         let operable = !isInstance();
-        if (val >= 1 && val <= 7) {
+        if (val >= 1 && val <= 8) {
             $("#toolsButton").val("刷新命令");
-            if (!operable && val >= 1 && val < 4) {
+            if (!operable && val >= 1 && val < 5) {
                 if (document.getElementById("toolsButton").disabled)
                     enabledToolsButton();
             } else
@@ -1692,25 +1745,32 @@ function hideCNT(_val) {
                 }
                 break;
             case 3:
+                iptablesHeight = 0;
+                if (operable && !iptablesShowed) {
+                    showIptables();
+                    iptablesShowed = true;
+                }
+                break;
+            case 4:
                 crontabHeight = 0;
                 if (operable && !crontabShowed) {
                     showCrontab();
                     crontabShowed = true;
                 }
                 break;
-            case 4:
+            case 5:
                 showFirewallStart();
                 break;
-            case 5:
+            case 6:
                 showServiceEvent();
                 break;
-            case 6:
+            case 7:
                 showOpenVPNEvent();
                 break;
-            case 7:
+            case 8:
                 showPostMount();
                 break;
-            case 9:
+            case 10:
                 unlockHeight = 0;
                 break;
             default:
@@ -1721,11 +1781,11 @@ function hideCNT(_val) {
 
 function toolsCommand() {
     let val = parseInt(document.getElementById("cmdMethod").value);
-    if ((val < 4 || (val > 7 && val != 9)) && isInstance()) {
+    if ((val < 5 || (val > 8 && val != 10)) && isInstance()) {
         alert("上一个任务正在进行中，请稍后再试。");
         return;
     }
-    if (val >= 1 && val <= 7)
+    if (val >= 1 && val <= 8)
         disabledToolsButton(300);
     switch (val) {
         case 0:
@@ -1751,21 +1811,24 @@ function toolsCommand() {
             showRules();
             break;
         case 3:
-            showCrontab();
+            showIptables();
             break;
         case 4:
-            showFirewallStart();
+            showCrontab();
             break;
         case 5:
-            showServiceEvent();
+            showFirewallStart();
             break;
         case 6:
-            showOpenVPNEvent();
+            showServiceEvent();
             break;
         case 7:
-            showPostMount();
+            showOpenVPNEvent();
             break;
         case 8:
+            showPostMount();
+            break;
+        case 9:
             disabledToolsButton(300);
             if (!getPolicyState()) {
                 alert("「策略路由」未开启，启动后才可执行此操作。");
@@ -1778,7 +1841,7 @@ function toolsCommand() {
             showLoading();
             document.form.submit();
             break;
-        case 9:
+        case 10:
             if (!confirm("「解除程序运行锁」后会造成同步运行安全机制失效，需重新启动「策略路由」才可恢复。\n\n  确定要执行此操作吗？"))
                 break;
             disabledToolsButton(300);
@@ -1788,7 +1851,7 @@ function toolsCommand() {
             document.scriptActionsForm.action_wait.value = "0";
             document.scriptActionsForm.submit();
             break;
-        case 10:
+        case 11:
             if (!confirm("「恢复缺省配置」将不可恢复的清除用户所有已配置数据。\n\n  确定要执行此操作吗？"))
                 break;
             $("#amng_custom").val("");
@@ -1809,6 +1872,7 @@ function initAjaxTextArea() {
     setTimeout(getAddressInfo, 100);
     setTimeout(getRoutingTableInfo, 100);
     setTimeout(getRulesInfo, 100);
+    setTimeout(getIptablesInfo, 100);
     setTimeout(getCrontabInfo, 100);
     setTimeout(getFirewallStartInfo, 100);
     setTimeout(getServiceEventInfo, 100);

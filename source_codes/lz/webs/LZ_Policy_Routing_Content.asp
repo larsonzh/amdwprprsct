@@ -918,7 +918,7 @@
                                                                 <img id="loadingStatusIcon" style="display:none;" src="/ext/lzr/InternetScan.gif">
                                                             </div>
                                                             <div style="margin-top:8px">
-                                                                <textarea cols="63" rows="27" wrap="off" readonly="readonly" id="statusArea" class="textarea_ssh_table" style="width:99%; font-family:'Courier New', Courier, mono; font-size:11px;"></textarea>
+                                                                <textarea cols="63" rows="27" wrap="off" readonly="readonly" id="statusArea" class="textarea_ssh_table" style="width:99%; font-family:'Courier New', Courier, mono; font-size:11px;background-color:black;"></textarea>
                                                             </div>
                                                         </div>
                                                         <div id="iPTVConfig">
@@ -1119,14 +1119,15 @@
                                                                             <option value="0" selected>查询路由器出口</option>
                                                                             <option value="1">显示系统路由表</option>
                                                                             <option value="2">显示系统路由规则</option>
-                                                                            <option value="3">显示系统定时任务</option>
-                                                                            <option value="4">显示 firewall-start 启动项</option>
-                                                                            <option value="5">显示 service-event 服务触发项&nbsp;</option>
-                                                                            <option value="6">显示 openvpn-event 事件触发项</option>
-                                                                            <option value="7">显示 post-mount 挂载启动项</option>
-                                                                            <option value="8">更新运营商 IP 地址数据</option>
-                                                                            <option value="9">解除程序运行锁</option>
-                                                                            <option value="10">恢复缺省配置参数 (慎重)</option>
+                                                                            <option value="3">显示系统防火墙规则链</option>
+                                                                            <option value="4">显示系统定时任务</option>
+                                                                            <option value="5">显示 firewall-start 启动项</option>
+                                                                            <option value="6">显示 service-event 服务触发项&nbsp;</option>
+                                                                            <option value="7">显示 openvpn-event 事件触发项</option>
+                                                                            <option value="8">显示 post-mount 挂载启动项</option>
+                                                                            <option value="9">更新运营商 IP 地址数据</option>
+                                                                            <option value="10">解除程序运行锁</option>
+                                                                            <option value="11">恢复缺省配置参数 (慎重)</option>
                                                                         </select>
                                                                     </td>
                                                                 </tr>
@@ -1152,7 +1153,7 @@
                                                                 <img id="loadingToolsIcon" style="display:none;" src="/ext/lzr/InternetScan.gif">
                                                             </div>
                                                             <div style="margin-top:8px">
-                                                                <textarea cols="63" rows="27" wrap="off" readonly="readonly" id="toolsTextArea" class="textarea_ssh_table" style="width:99%; font-family:'Courier New', Courier, mono; font-size:11px;"></textarea>
+                                                                <textarea cols="63" rows="27" wrap="off" readonly="readonly" id="toolsTextArea" class="textarea_ssh_table" style="width:99%; font-family:'Courier New', Courier, mono; font-size:11px;background-color:black;"></textarea>
                                                             </div>
                                                         </div>
                                                         <div class="apply_gen">

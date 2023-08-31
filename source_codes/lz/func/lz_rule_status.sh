@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_status.sh v4.1.3
+# lz_rule_status.sh v4.1.4
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 显示脚本运行状态脚本
@@ -181,7 +181,7 @@ lz_get_ipv4_src_to_dst_data_file_item_total_status() {
 lz_get_domain_data_file_item_total_status() {
     local retval="0"
     [ -f "${1}" ] && {
-        retval="$( sed -e "s/\'//g" -e 's/\"//g' -e 's/[ \t]\+/ /g' -e 's/^[ ]*//g' -e '/^[#]/d' -e 's/[#].*$//g' -e 's/^\([^ ]*\).*$/\1/g' \
+        retval="$( sed -e "s/\'//g" -e 's/\"//g' -e 's/[[:space:]]\+/ /g' -e 's/^[ ]*//g' -e '/^[#]/d' -e 's/[#].*$//g' -e 's/^\([^ ]*\).*$/\1/g' \
                 -e 's/^[^ ]*[\:][\/][\/]//g' -e 's/^[^ ]\{0,6\}[\:]//g' -e 's/[\/]*$//g' -e 's/[ ]*$//g' -e '/^[\.]*$/d' -e '/^[\.]*[^\.]*$/d' \
                 -e '/^[ ]*$/d' "${1}" 2> /dev/null | tr '[:A-Z:]' '[:a-z:]' | awk -v count="0" 'NF >= "1" && !i[$1]++ {count++} END{print count}' )"
     }
@@ -1282,7 +1282,7 @@ lz_ss_support_status() {
 ##     1--未注册
 lz_get_service_event_interface_status() {
     if [ ! -f "${1}" ] || [ ! -f "${2}" ]; then return "1"; fi;
-    ! grep -q "^[ 	]*${2}[ 	]\+\$[\{]@[\}][ 	]\+[\&]" "${1}" && return "1"
+    ! grep -q "^[[:space:]]*$( lz_format_filename_regular_expression_string "${2}" )[[:space:]]\+\$[\{]@[\}][[:space:]]\+[\&]" "${1}" && return "1"
     return "0"
 }
 
@@ -1295,7 +1295,7 @@ lz_get_service_event_interface_status() {
 ##     1--未注册
 lz_get_event_interface_status() {
     if [ ! -f "${1}" ] || [ ! -f "${2}" ]; then return "1"; fi;
-    ! grep -q "^[ 	]*${2}" "${1}" && return "1"
+    ! grep -q "^[[:space:]]*$( lz_format_filename_regular_expression_string "${2}" )" "${1}" && return "1"
     return "0"
 }
 
@@ -2912,7 +2912,7 @@ lz_get_mount_web_ui_status() {
         [ -z "${page_name}" ] && break
         [ ! -f "${PATH_WEBPAGE}/${page_name}" ] && break
         [ ! -f "/www/require/modules/menuTree.js" ] && break
-        ! grep -q "{url: \"${page_name}\", tabName:.*}," "/www/require/modules/menuTree.js" 2> /dev/null && break
+        ! grep -q "{url: \"$( echo "${page_name}" | sed -e 's/\//[\\\/]/g' -e 's/\./[\\.]/g' )\", tabName:.*}," "/www/require/modules/menuTree.js" 2> /dev/null && break
         retval="0"
         break
     done

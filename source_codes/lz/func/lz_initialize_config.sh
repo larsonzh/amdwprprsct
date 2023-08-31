@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_initialize_config.sh v4.1.3
+# lz_initialize_config.sh v4.1.4
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 初始化脚本配置
@@ -2149,50 +2149,50 @@ lz_cfg_is_changed() {
 ##     全局常量及变量
 ## 返回值：无
 lz_restore_config() {
-    [ "${local_all_foreign_wan_port_changed}" = "1" ] && sed -i "s|^[ \t]*all_foreign_wan_port=${local_all_foreign_wan_port}|all_foreign_wan_port=${local_ini_all_foreign_wan_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_chinatelecom_wan_port_changed}" = "1" ] && sed -i "s|^[ \t]*chinatelecom_wan_port=${local_chinatelecom_wan_port}|chinatelecom_wan_port=${local_ini_chinatelecom_wan_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_unicom_cnc_wan_port_changed}" = "1" ] && sed -i "s|^[ \t]*unicom_cnc_wan_port=${local_unicom_cnc_wan_port}|unicom_cnc_wan_port=${local_ini_unicom_cnc_wan_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_cmcc_wan_port_changed}" = "1" ] && sed -i "s|^[ \t]*cmcc_wan_port=${local_cmcc_wan_port}|cmcc_wan_port=${local_ini_cmcc_wan_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_crtc_wan_port_changed}" = "1" ] && sed -i "s|^[ \t]*crtc_wan_port=${local_crtc_wan_port}|crtc_wan_port=${local_ini_crtc_wan_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_cernet_wan_port_changed}" = "1" ] && sed -i "s|^[ \t]*cernet_wan_port=${local_cernet_wan_port}|cernet_wan_port=${local_ini_cernet_wan_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_gwbn_wan_port_changed}" = "1" ] && sed -i "s|^[ \t]*gwbn_wan_port=${local_gwbn_wan_port}|gwbn_wan_port=${local_ini_gwbn_wan_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_othernet_wan_port_changed}" = "1" ] && sed -i "s|^[ \t]*othernet_wan_port=${local_othernet_wan_port}|othernet_wan_port=${local_ini_othernet_wan_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_hk_wan_port_changed}" = "1" ] && sed -i "s|^[ \t]*hk_wan_port=${local_hk_wan_port}|hk_wan_port=${local_ini_hk_wan_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_mo_wan_port_changed}" = "1" ] && sed -i "s|^[ \t]*mo_wan_port=${local_mo_wan_port}|mo_wan_port=${local_ini_mo_wan_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_tw_wan_port_changed}" = "1" ] && sed -i "s|^[ \t]*tw_wan_port=${local_tw_wan_port}|tw_wan_port=${local_ini_tw_wan_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_all_foreign_wan_port_changed}" = "1" ] && sed -i "s|^[[:space:]]*all_foreign_wan_port=${local_all_foreign_wan_port}|all_foreign_wan_port=${local_ini_all_foreign_wan_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_chinatelecom_wan_port_changed}" = "1" ] && sed -i "s|^[[:space:]]*chinatelecom_wan_port=${local_chinatelecom_wan_port}|chinatelecom_wan_port=${local_ini_chinatelecom_wan_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_unicom_cnc_wan_port_changed}" = "1" ] && sed -i "s|^[[:space:]]*unicom_cnc_wan_port=${local_unicom_cnc_wan_port}|unicom_cnc_wan_port=${local_ini_unicom_cnc_wan_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_cmcc_wan_port_changed}" = "1" ] && sed -i "s|^[[:space:]]*cmcc_wan_port=${local_cmcc_wan_port}|cmcc_wan_port=${local_ini_cmcc_wan_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_crtc_wan_port_changed}" = "1" ] && sed -i "s|^[[:space:]]*crtc_wan_port=${local_crtc_wan_port}|crtc_wan_port=${local_ini_crtc_wan_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_cernet_wan_port_changed}" = "1" ] && sed -i "s|^[[:space:]]*cernet_wan_port=${local_cernet_wan_port}|cernet_wan_port=${local_ini_cernet_wan_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_gwbn_wan_port_changed}" = "1" ] && sed -i "s|^[[:space:]]*gwbn_wan_port=${local_gwbn_wan_port}|gwbn_wan_port=${local_ini_gwbn_wan_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_othernet_wan_port_changed}" = "1" ] && sed -i "s|^[[:space:]]*othernet_wan_port=${local_othernet_wan_port}|othernet_wan_port=${local_ini_othernet_wan_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_hk_wan_port_changed}" = "1" ] && sed -i "s|^[[:space:]]*hk_wan_port=${local_hk_wan_port}|hk_wan_port=${local_ini_hk_wan_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_mo_wan_port_changed}" = "1" ] && sed -i "s|^[[:space:]]*mo_wan_port=${local_mo_wan_port}|mo_wan_port=${local_ini_mo_wan_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_tw_wan_port_changed}" = "1" ] && sed -i "s|^[[:space:]]*tw_wan_port=${local_tw_wan_port}|tw_wan_port=${local_ini_tw_wan_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
 
-    [ "${local_regularly_update_ispip_data_enable_changed}" = "1" ] && sed -i "s|^[ \t]*regularly_update_ispip_data_enable=${local_regularly_update_ispip_data_enable}|regularly_update_ispip_data_enable=${local_ini_regularly_update_ispip_data_enable}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_ruid_interval_day_changed}" = "1" ] && sed -i "s|^[ \t]*ruid_interval_day=.*$|ruid_interval_day=${local_ini_ruid_interval_day}  ## 间隔天数（1~31）；\"ruid_interval_day=5\"表示每隔5天。|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_ruid_timer_hour_changed}" = "1" ] && sed -i "s|^[ \t]*ruid_timer_hour=.*$|ruid_timer_hour=${local_ini_ruid_timer_hour}    ## 时间小时数（0~23，\*表示由系统指定）；\"ruid_timer_hour=3\"表示更新当天的凌晨3点。|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_ruid_timer_min_changed}" = "1" ] && sed -i "s|^[ \t]*ruid_timer_min=.*$|ruid_timer_min=${local_ini_ruid_timer_min}    ## 时间分钟数（0~59，\*表示由系统指定）；\"ruid_timer_min=18\"表示更新当天的凌晨3点18分。|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_ruid_retry_num_changed}" = "1" ] && sed -i "s|^[ \t]*ruid_retry_num=${local_ruid_retry_num}|ruid_retry_num=${local_ini_ruid_retry_num}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_regularly_update_ispip_data_enable_changed}" = "1" ] && sed -i "s|^[[:space:]]*regularly_update_ispip_data_enable=${local_regularly_update_ispip_data_enable}|regularly_update_ispip_data_enable=${local_ini_regularly_update_ispip_data_enable}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_ruid_interval_day_changed}" = "1" ] && sed -i "s|^[[:space:]]*ruid_interval_day=.*$|ruid_interval_day=${local_ini_ruid_interval_day}  ## 间隔天数（1~31）；\"ruid_interval_day=5\"表示每隔5天。|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_ruid_timer_hour_changed}" = "1" ] && sed -i "s|^[[:space:]]*ruid_timer_hour=.*$|ruid_timer_hour=${local_ini_ruid_timer_hour}    ## 时间小时数（0~23，\*表示由系统指定）；\"ruid_timer_hour=3\"表示更新当天的凌晨3点。|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_ruid_timer_min_changed}" = "1" ] && sed -i "s|^[[:space:]]*ruid_timer_min=.*$|ruid_timer_min=${local_ini_ruid_timer_min}    ## 时间分钟数（0~59，\*表示由系统指定）；\"ruid_timer_min=18\"表示更新当天的凌晨3点18分。|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_ruid_retry_num_changed}" = "1" ] && sed -i "s|^[[:space:]]*ruid_retry_num=${local_ruid_retry_num}|ruid_retry_num=${local_ini_ruid_retry_num}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
 
-    [ "${local_custom_data_wan_port_1_changed}" = "1" ] && sed -i "s|^[ \t]*custom_data_wan_port_1=${local_custom_data_wan_port_1}|custom_data_wan_port_1=${local_ini_custom_data_wan_port_1}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_custom_data_file_1_changed}" = "1" ] && sed -i "s|^[ \t]*custom_data_file_1=${local_custom_data_file_1}|custom_data_file_1=${local_ini_custom_data_file_1}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_custom_data_wan_port_2_changed}" = "1" ] && sed -i "s|^[ \t]*custom_data_wan_port_2=${local_custom_data_wan_port_2}|custom_data_wan_port_2=${local_ini_custom_data_wan_port_2}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_custom_data_file_2_changed}" = "1" ] && sed -i "s|^[ \t]*custom_data_file_2=${local_custom_data_file_2}|custom_data_file_2=${local_ini_custom_data_file_2}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_custom_data_wan_port_1_changed}" = "1" ] && sed -i "s|^[[:space:]]*custom_data_wan_port_1=${local_custom_data_wan_port_1}|custom_data_wan_port_1=${local_ini_custom_data_wan_port_1}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_custom_data_file_1_changed}" = "1" ] && sed -i "s|^[[:space:]]*custom_data_file_1=${local_custom_data_file_1}|custom_data_file_1=${local_ini_custom_data_file_1}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_custom_data_wan_port_2_changed}" = "1" ] && sed -i "s|^[[:space:]]*custom_data_wan_port_2=${local_custom_data_wan_port_2}|custom_data_wan_port_2=${local_ini_custom_data_wan_port_2}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_custom_data_file_2_changed}" = "1" ] && sed -i "s|^[[:space:]]*custom_data_file_2=${local_custom_data_file_2}|custom_data_file_2=${local_ini_custom_data_file_2}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
 
-    [ "${local_wan_1_domain_changed}" = "1" ] && sed -i "s|^[ \t]*wan_1_domain=${local_wan_1_domain}|wan_1_domain=${local_ini_wan_1_domain}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_wan_1_domain_client_src_addr_file_changed}" = "1" ] && sed -i "s|^[ \t]*wan_1_domain_client_src_addr_file=${local_wan_1_domain_client_src_addr_file}|wan_1_domain_client_src_addr_file=${local_ini_wan_1_domain_client_src_addr_file}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_wan_1_domain_file_changed}" = "1" ] && sed -i "s|^[ \t]*wan_1_domain_file=${local_wan_1_domain_file}|wan_1_domain_file=${local_ini_wan_1_domain_file}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_wan_2_domain_changed}" = "1" ] && sed -i "s|^[ \t]*wan_2_domain=${local_wan_2_domain}|wan_2_domain=${local_ini_wan_2_domain}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_wan_2_domain_client_src_addr_file_changed}" = "1" ] && sed -i "s|^[ \t]*wan_2_domain_client_src_addr_file=${local_wan_2_domain_client_src_addr_file}|wan_2_domain_client_src_addr_file=${local_ini_wan_2_domain_client_src_addr_file}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_wan_2_domain_file_changed}" = "1" ] && sed -i "s|^[ \t]*wan_2_domain_file=${local_wan_2_domain_file}|wan_2_domain_file=${local_ini_wan_2_domain_file}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan_1_domain_changed}" = "1" ] && sed -i "s|^[[:space:]]*wan_1_domain=${local_wan_1_domain}|wan_1_domain=${local_ini_wan_1_domain}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan_1_domain_client_src_addr_file_changed}" = "1" ] && sed -i "s|^[[:space:]]*wan_1_domain_client_src_addr_file=${local_wan_1_domain_client_src_addr_file}|wan_1_domain_client_src_addr_file=${local_ini_wan_1_domain_client_src_addr_file}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan_1_domain_file_changed}" = "1" ] && sed -i "s|^[[:space:]]*wan_1_domain_file=${local_wan_1_domain_file}|wan_1_domain_file=${local_ini_wan_1_domain_file}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan_2_domain_changed}" = "1" ] && sed -i "s|^[[:space:]]*wan_2_domain=${local_wan_2_domain}|wan_2_domain=${local_ini_wan_2_domain}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan_2_domain_client_src_addr_file_changed}" = "1" ] && sed -i "s|^[[:space:]]*wan_2_domain_client_src_addr_file=${local_wan_2_domain_client_src_addr_file}|wan_2_domain_client_src_addr_file=${local_ini_wan_2_domain_client_src_addr_file}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan_2_domain_file_changed}" = "1" ] && sed -i "s|^[[:space:]]*wan_2_domain_file=${local_wan_2_domain_file}|wan_2_domain_file=${local_ini_wan_2_domain_file}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
 
-    [ "${local_wan_1_client_src_addr_changed}" = "1" ] && sed -i "s|^[ \t]*wan_1_client_src_addr=${local_wan_1_client_src_addr}|wan_1_client_src_addr=${local_ini_wan_1_client_src_addr}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_wan_1_client_src_addr_file_changed}" = "1" ] && sed -i "s|^[ \t]*wan_1_client_src_addr_file=${local_wan_1_client_src_addr_file}|wan_1_client_src_addr_file=${local_ini_wan_1_client_src_addr_file}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_wan_2_client_src_addr_changed}" = "1" ] && sed -i "s|^[ \t]*wan_2_client_src_addr=${local_wan_2_client_src_addr}|wan_2_client_src_addr=${local_ini_wan_2_client_src_addr}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_wan_2_client_src_addr_file_changed}" = "1" ] && sed -i "s|^[ \t]*wan_2_client_src_addr_file=${local_wan_2_client_src_addr_file}|wan_2_client_src_addr_file=${local_ini_wan_2_client_src_addr_file}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_high_wan_1_client_src_addr_changed}" = "1" ] && sed -i "s|^[ \t]*high_wan_1_client_src_addr=${local_high_wan_1_client_src_addr}|high_wan_1_client_src_addr=${local_ini_high_wan_1_client_src_addr}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_high_wan_1_client_src_addr_file_changed}" = "1" ] && sed -i "s|^[ \t]*high_wan_1_client_src_addr_file=${local_high_wan_1_client_src_addr_file}|high_wan_1_client_src_addr_file=${local_ini_high_wan_1_client_src_addr_file}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_high_wan_2_client_src_addr_changed}" = "1" ] && sed -i "s|^[ \t]*high_wan_2_client_src_addr=${local_high_wan_2_client_src_addr}|high_wan_2_client_src_addr=${local_ini_high_wan_2_client_src_addr}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_high_wan_2_client_src_addr_file_changed}" = "1" ] && sed -i "s|^[ \t]*high_wan_2_client_src_addr_file=${local_high_wan_2_client_src_addr_file}|high_wan_2_client_src_addr_file=${local_ini_high_wan_2_client_src_addr_file}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_wan_1_src_to_dst_addr_changed}" = "1" ] && sed -i "s|^[ \t]*wan_1_src_to_dst_addr=${local_wan_1_src_to_dst_addr}|wan_1_src_to_dst_addr=${local_ini_wan_1_src_to_dst_addr}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_wan_1_src_to_dst_addr_file_changed}" = "1" ] && sed -i "s|^[ \t]*wan_1_src_to_dst_addr_file=${local_wan_1_src_to_dst_addr_file}|wan_1_src_to_dst_addr_file=${local_ini_wan_1_src_to_dst_addr_file}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_wan_2_src_to_dst_addr_changed}" = "1" ] && sed -i "s|^[ \t]*wan_2_src_to_dst_addr=${local_wan_2_src_to_dst_addr}|wan_2_src_to_dst_addr=${local_ini_wan_2_src_to_dst_addr}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_wan_2_src_to_dst_addr_file_changed}" = "1" ] && sed -i "s|^[ \t]*wan_2_src_to_dst_addr_file=${local_wan_2_src_to_dst_addr_file}|wan_2_src_to_dst_addr_file=${local_ini_wan_2_src_to_dst_addr_file}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_high_wan_1_src_to_dst_addr_changed}" = "1" ] && sed -i "s|^[ \t]*high_wan_1_src_to_dst_addr=${local_high_wan_1_src_to_dst_addr}|high_wan_1_src_to_dst_addr=${local_ini_high_wan_1_src_to_dst_addr}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_high_wan_1_src_to_dst_addr_file_changed}" = "1" ] && sed -i "s|^[ \t]*high_wan_1_src_to_dst_addr_file=${local_high_wan_1_src_to_dst_addr_file}|high_wan_1_src_to_dst_addr_file=${local_ini_high_wan_1_src_to_dst_addr_file}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan_1_client_src_addr_changed}" = "1" ] && sed -i "s|^[[:space:]]*wan_1_client_src_addr=${local_wan_1_client_src_addr}|wan_1_client_src_addr=${local_ini_wan_1_client_src_addr}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan_1_client_src_addr_file_changed}" = "1" ] && sed -i "s|^[[:space:]]*wan_1_client_src_addr_file=${local_wan_1_client_src_addr_file}|wan_1_client_src_addr_file=${local_ini_wan_1_client_src_addr_file}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan_2_client_src_addr_changed}" = "1" ] && sed -i "s|^[[:space:]]*wan_2_client_src_addr=${local_wan_2_client_src_addr}|wan_2_client_src_addr=${local_ini_wan_2_client_src_addr}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan_2_client_src_addr_file_changed}" = "1" ] && sed -i "s|^[[:space:]]*wan_2_client_src_addr_file=${local_wan_2_client_src_addr_file}|wan_2_client_src_addr_file=${local_ini_wan_2_client_src_addr_file}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_high_wan_1_client_src_addr_changed}" = "1" ] && sed -i "s|^[[:space:]]*high_wan_1_client_src_addr=${local_high_wan_1_client_src_addr}|high_wan_1_client_src_addr=${local_ini_high_wan_1_client_src_addr}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_high_wan_1_client_src_addr_file_changed}" = "1" ] && sed -i "s|^[[:space:]]*high_wan_1_client_src_addr_file=${local_high_wan_1_client_src_addr_file}|high_wan_1_client_src_addr_file=${local_ini_high_wan_1_client_src_addr_file}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_high_wan_2_client_src_addr_changed}" = "1" ] && sed -i "s|^[[:space:]]*high_wan_2_client_src_addr=${local_high_wan_2_client_src_addr}|high_wan_2_client_src_addr=${local_ini_high_wan_2_client_src_addr}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_high_wan_2_client_src_addr_file_changed}" = "1" ] && sed -i "s|^[[:space:]]*high_wan_2_client_src_addr_file=${local_high_wan_2_client_src_addr_file}|high_wan_2_client_src_addr_file=${local_ini_high_wan_2_client_src_addr_file}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan_1_src_to_dst_addr_changed}" = "1" ] && sed -i "s|^[[:space:]]*wan_1_src_to_dst_addr=${local_wan_1_src_to_dst_addr}|wan_1_src_to_dst_addr=${local_ini_wan_1_src_to_dst_addr}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan_1_src_to_dst_addr_file_changed}" = "1" ] && sed -i "s|^[[:space:]]*wan_1_src_to_dst_addr_file=${local_wan_1_src_to_dst_addr_file}|wan_1_src_to_dst_addr_file=${local_ini_wan_1_src_to_dst_addr_file}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan_2_src_to_dst_addr_changed}" = "1" ] && sed -i "s|^[[:space:]]*wan_2_src_to_dst_addr=${local_wan_2_src_to_dst_addr}|wan_2_src_to_dst_addr=${local_ini_wan_2_src_to_dst_addr}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan_2_src_to_dst_addr_file_changed}" = "1" ] && sed -i "s|^[[:space:]]*wan_2_src_to_dst_addr_file=${local_wan_2_src_to_dst_addr_file}|wan_2_src_to_dst_addr_file=${local_ini_wan_2_src_to_dst_addr_file}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_high_wan_1_src_to_dst_addr_changed}" = "1" ] && sed -i "s|^[[:space:]]*high_wan_1_src_to_dst_addr=${local_high_wan_1_src_to_dst_addr}|high_wan_1_src_to_dst_addr=${local_ini_high_wan_1_src_to_dst_addr}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_high_wan_1_src_to_dst_addr_file_changed}" = "1" ] && sed -i "s|^[[:space:]]*high_wan_1_src_to_dst_addr_file=${local_high_wan_1_src_to_dst_addr_file}|high_wan_1_src_to_dst_addr_file=${local_ini_high_wan_1_src_to_dst_addr_file}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
 
     [ "${local_wan0_dest_tcp_port_changed}" = "1" ] && sed -i "s|^[ ]*wan0_dest_tcp_port=${local_wan0_dest_tcp_port}|wan0_dest_tcp_port=${local_ini_wan0_dest_tcp_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
     [ "${local_wan0_dest_udp_port_changed}" = "1" ] && sed -i "s|^[ ]*wan0_dest_udp_port=${local_wan0_dest_udp_port}|wan0_dest_udp_port=${local_ini_wan0_dest_udp_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
@@ -2211,45 +2211,45 @@ lz_restore_config() {
     [ "${local_high_wan_1_src_to_dst_addr_port_changed}" = "1" ] && sed -i "s|^[ ]*high_wan_1_src_to_dst_addr_port=${local_high_wan_1_src_to_dst_addr_port}|high_wan_1_src_to_dst_addr_port=${local_ini_high_wan_1_src_to_dst_addr_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
     [ "${local_high_wan_1_src_to_dst_addr_port_file_changed}" = "1" ] && sed -i "s|^[ ]*high_wan_1_src_to_dst_addr_port_file=${local_high_wan_1_src_to_dst_addr_port_file}|high_wan_1_src_to_dst_addr_port_file=${local_ini_high_wan_1_src_to_dst_addr_port_file}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
 
-    [ "${local_local_ipsets_file_changed}" = "1" ] && sed -i "s|^[ \t]*local_ipsets_file=${local_local_ipsets_file}|local_ipsets_file=${local_ini_local_ipsets_file}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_local_ipsets_file_changed}" = "1" ] && sed -i "s|^[[:space:]]*local_ipsets_file=${local_local_ipsets_file}|local_ipsets_file=${local_ini_local_ipsets_file}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
 
-    [ "${local_wan_access_port_changed}" = "1" ] && sed -i "s|^[ \t]*wan_access_port=${local_wan_access_port}|wan_access_port=${local_ini_wan_access_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_ovs_client_wan_port_changed}" = "1" ] && sed -i "s|^[ \t]*ovs_client_wan_port=${local_ovs_client_wan_port}|ovs_client_wan_port=${local_ini_ovs_client_wan_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_vpn_client_polling_time_changed}" = "1" ] && sed -i "s|^[ \t]*vpn_client_polling_time=${local_vpn_client_polling_time}|vpn_client_polling_time=${local_ini_vpn_client_polling_time}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_fancyss_support_changed}" = "1" ] && sed -i "s|^[ \t]*fancyss_support=${local_fancyss_support}|fancyss_support=${local_ini_fancyss_support}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan_access_port_changed}" = "1" ] && sed -i "s|^[[:space:]]*wan_access_port=${local_wan_access_port}|wan_access_port=${local_ini_wan_access_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_ovs_client_wan_port_changed}" = "1" ] && sed -i "s|^[[:space:]]*ovs_client_wan_port=${local_ovs_client_wan_port}|ovs_client_wan_port=${local_ini_ovs_client_wan_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_vpn_client_polling_time_changed}" = "1" ] && sed -i "s|^[[:space:]]*vpn_client_polling_time=${local_vpn_client_polling_time}|vpn_client_polling_time=${local_ini_vpn_client_polling_time}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_fancyss_support_changed}" = "1" ] && sed -i "s|^[[:space:]]*fancyss_support=${local_fancyss_support}|fancyss_support=${local_ini_fancyss_support}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
 
-    [ "${local_usage_mode_changed}" = "1" ] && sed -i "s|^[ \t]*usage_mode=${local_usage_mode}|usage_mode=${local_ini_usage_mode}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_dn_pre_resolved_changed}" = "1" ] && sed -i "s|^[ \t]*dn_pre_resolved=${local_dn_pre_resolved}|dn_pre_resolved=${local_ini_dn_pre_resolved}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_pre_dns_changed}" = "1" ] && sed -i "s|^[ \t]*pre_dns=${local_pre_dns}|pre_dns=${local_ini_pre_dns}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_dn_cache_time_changed}" = "1" ] && sed -i "s|^[ \t]*dn_cache_time=${local_dn_cache_time}|dn_cache_time=${local_ini_dn_cache_time}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_route_cache_changed}" = "1" ] && sed -i "s|^[ \t]*route_cache=${local_route_cache}|route_cache=${local_ini_route_cache}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_drop_sys_caches_changed}" = "1" ] && sed -i "s|^[ \t]*drop_sys_caches=${local_drop_sys_caches}|drop_sys_caches=${local_ini_drop_sys_caches}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_clear_route_cache_time_interval_changed}" = "1" ] && sed -i "s|^[ \t]*clear_route_cache_time_interval=${local_clear_route_cache_time_interval}|clear_route_cache_time_interval=${local_ini_clear_route_cache_time_interval}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_usage_mode_changed}" = "1" ] && sed -i "s|^[[:space:]]*usage_mode=${local_usage_mode}|usage_mode=${local_ini_usage_mode}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_dn_pre_resolved_changed}" = "1" ] && sed -i "s|^[[:space:]]*dn_pre_resolved=${local_dn_pre_resolved}|dn_pre_resolved=${local_ini_dn_pre_resolved}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_pre_dns_changed}" = "1" ] && sed -i "s|^[[:space:]]*pre_dns=${local_pre_dns}|pre_dns=${local_ini_pre_dns}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_dn_cache_time_changed}" = "1" ] && sed -i "s|^[[:space:]]*dn_cache_time=${local_dn_cache_time}|dn_cache_time=${local_ini_dn_cache_time}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_route_cache_changed}" = "1" ] && sed -i "s|^[[:space:]]*route_cache=${local_route_cache}|route_cache=${local_ini_route_cache}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_drop_sys_caches_changed}" = "1" ] && sed -i "s|^[[:space:]]*drop_sys_caches=${local_drop_sys_caches}|drop_sys_caches=${local_ini_drop_sys_caches}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_clear_route_cache_time_interval_changed}" = "1" ] && sed -i "s|^[[:space:]]*clear_route_cache_time_interval=${local_clear_route_cache_time_interval}|clear_route_cache_time_interval=${local_ini_clear_route_cache_time_interval}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
 
-    [ "${local_wan1_iptv_mode_changed}" = "1" ] && sed -i "s|^[ \t]*wan1_iptv_mode=${local_wan1_iptv_mode}|wan1_iptv_mode=${local_ini_wan1_iptv_mode}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_wan2_iptv_mode_changed}" = "1" ] && sed -i "s|^[ \t]*wan2_iptv_mode=${local_wan2_iptv_mode}|wan2_iptv_mode=${local_ini_wan2_iptv_mode}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_iptv_igmp_switch_changed}" = "1" ] && sed -i "s|^[ \t]*iptv_igmp_switch=${local_iptv_igmp_switch}|iptv_igmp_switch=${local_ini_iptv_igmp_switch}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_hnd_br0_bcmmcast_mode_changed}" = "1" ] && sed -i "s|^[ \t]*hnd_br0_bcmmcast_mode=${local_hnd_br0_bcmmcast_mode}|hnd_br0_bcmmcast_mode=${local_ini_hnd_br0_bcmmcast_mode}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_iptv_access_mode_changed}" = "1" ] && sed -i "s|^[ \t]*iptv_access_mode=${local_iptv_access_mode}|iptv_access_mode=${local_ini_iptv_access_mode}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_iptv_box_ip_lst_file_changed}" = "1" ] && sed -i "s|^[ \t]*iptv_box_ip_lst_file=${local_iptv_box_ip_lst_file}|iptv_box_ip_lst_file=${local_ini_iptv_box_ip_lst_file}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_iptv_isp_ip_lst_file_changed}" = "1" ] && sed -i "s|^[ \t]*iptv_isp_ip_lst_file=${local_iptv_isp_ip_lst_file}|iptv_isp_ip_lst_file=${local_ini_iptv_isp_ip_lst_file}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_wan1_udpxy_switch_changed}" = "1" ] && sed -i "s|^[ \t]*wan1_udpxy_switch=${local_wan1_udpxy_switch}|wan1_udpxy_switch=${local_ini_wan1_udpxy_switch}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_wan1_udpxy_port_changed}" = "1" ] && sed -i "s|^[ \t]*wan1_udpxy_port=${local_wan1_udpxy_port}|wan1_udpxy_port=${local_ini_wan1_udpxy_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_wan1_udpxy_buffer_changed}" = "1" ] && sed -i "s|^[ \t]*wan1_udpxy_buffer=${local_wan1_udpxy_buffer}|wan1_udpxy_buffer=${local_ini_wan1_udpxy_buffer}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_wan1_udpxy_client_num_changed}" = "1" ] && sed -i "s|^[ \t]*wan1_udpxy_client_num=${local_wan1_udpxy_client_num}|wan1_udpxy_client_num=${local_ini_wan1_udpxy_client_num}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_wan2_udpxy_switch_changed}" = "1" ] && sed -i "s|^[ \t]*wan2_udpxy_switch=${local_wan2_udpxy_switch}|wan2_udpxy_switch=${local_ini_wan2_udpxy_switch}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_wan2_udpxy_port_changed}" = "1" ] && sed -i "s|^[ \t]*wan2_udpxy_port=${local_wan2_udpxy_port}|wan2_udpxy_port=${local_ini_wan2_udpxy_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_wan2_udpxy_buffer_changed}" = "1" ] && sed -i "s|^[ \t]*wan2_udpxy_buffer=${local_wan2_udpxy_buffer}|wan2_udpxy_buffer=${local_ini_wan2_udpxy_buffer}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_wan2_udpxy_client_num_changed}" = "1" ] && sed -i "s|^[ \t]*wan2_udpxy_client_num=${local_wan2_udpxy_client_num}|wan2_udpxy_client_num=${local_ini_wan2_udpxy_client_num}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan1_iptv_mode_changed}" = "1" ] && sed -i "s|^[[:space:]]*wan1_iptv_mode=${local_wan1_iptv_mode}|wan1_iptv_mode=${local_ini_wan1_iptv_mode}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan2_iptv_mode_changed}" = "1" ] && sed -i "s|^[[:space:]]*wan2_iptv_mode=${local_wan2_iptv_mode}|wan2_iptv_mode=${local_ini_wan2_iptv_mode}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_iptv_igmp_switch_changed}" = "1" ] && sed -i "s|^[[:space:]]*iptv_igmp_switch=${local_iptv_igmp_switch}|iptv_igmp_switch=${local_ini_iptv_igmp_switch}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_hnd_br0_bcmmcast_mode_changed}" = "1" ] && sed -i "s|^[[:space:]]*hnd_br0_bcmmcast_mode=${local_hnd_br0_bcmmcast_mode}|hnd_br0_bcmmcast_mode=${local_ini_hnd_br0_bcmmcast_mode}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_iptv_access_mode_changed}" = "1" ] && sed -i "s|^[[:space:]]*iptv_access_mode=${local_iptv_access_mode}|iptv_access_mode=${local_ini_iptv_access_mode}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_iptv_box_ip_lst_file_changed}" = "1" ] && sed -i "s|^[[:space:]]*iptv_box_ip_lst_file=${local_iptv_box_ip_lst_file}|iptv_box_ip_lst_file=${local_ini_iptv_box_ip_lst_file}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_iptv_isp_ip_lst_file_changed}" = "1" ] && sed -i "s|^[[:space:]]*iptv_isp_ip_lst_file=${local_iptv_isp_ip_lst_file}|iptv_isp_ip_lst_file=${local_ini_iptv_isp_ip_lst_file}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan1_udpxy_switch_changed}" = "1" ] && sed -i "s|^[[:space:]]*wan1_udpxy_switch=${local_wan1_udpxy_switch}|wan1_udpxy_switch=${local_ini_wan1_udpxy_switch}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan1_udpxy_port_changed}" = "1" ] && sed -i "s|^[[:space:]]*wan1_udpxy_port=${local_wan1_udpxy_port}|wan1_udpxy_port=${local_ini_wan1_udpxy_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan1_udpxy_buffer_changed}" = "1" ] && sed -i "s|^[[:space:]]*wan1_udpxy_buffer=${local_wan1_udpxy_buffer}|wan1_udpxy_buffer=${local_ini_wan1_udpxy_buffer}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan1_udpxy_client_num_changed}" = "1" ] && sed -i "s|^[[:space:]]*wan1_udpxy_client_num=${local_wan1_udpxy_client_num}|wan1_udpxy_client_num=${local_ini_wan1_udpxy_client_num}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan2_udpxy_switch_changed}" = "1" ] && sed -i "s|^[[:space:]]*wan2_udpxy_switch=${local_wan2_udpxy_switch}|wan2_udpxy_switch=${local_ini_wan2_udpxy_switch}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan2_udpxy_port_changed}" = "1" ] && sed -i "s|^[[:space:]]*wan2_udpxy_port=${local_wan2_udpxy_port}|wan2_udpxy_port=${local_ini_wan2_udpxy_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan2_udpxy_buffer_changed}" = "1" ] && sed -i "s|^[[:space:]]*wan2_udpxy_buffer=${local_wan2_udpxy_buffer}|wan2_udpxy_buffer=${local_ini_wan2_udpxy_buffer}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan2_udpxy_client_num_changed}" = "1" ] && sed -i "s|^[[:space:]]*wan2_udpxy_client_num=${local_wan2_udpxy_client_num}|wan2_udpxy_client_num=${local_ini_wan2_udpxy_client_num}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
 
-    [ "${local_custom_clear_scripts_changed}" = "1" ] && sed -i "s|^[ \t]*custom_clear_scripts=${local_custom_clear_scripts}|custom_clear_scripts=${local_ini_custom_clear_scripts}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_custom_clear_scripts_filename_changed}" = "1" ] && sed -i "s|^[ \t]*custom_clear_scripts_filename=${local_custom_clear_scripts_filename}|custom_clear_scripts_filename=${local_ini_custom_clear_scripts_filename}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_custom_config_scripts_changed}" = "1" ] && sed -i "s|^[ \t]*custom_config_scripts=${local_custom_config_scripts}|custom_config_scripts=${local_ini_custom_config_scripts}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_custom_config_scripts_filename_changed}" = "1" ] && sed -i "s|^[ \t]*custom_config_scripts_filename=${local_custom_config_scripts_filename}|custom_config_scripts_filename=${local_ini_custom_config_scripts_filename}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_custom_dualwan_scripts_changed}" = "1" ] && sed -i "s|^[ \t]*custom_dualwan_scripts=${local_custom_dualwan_scripts}|custom_dualwan_scripts=${local_ini_custom_dualwan_scripts}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_custom_dualwan_scripts_filename_changed}" = "1" ] && sed -i "s|^[ \t]*custom_dualwan_scripts_filename=${local_custom_dualwan_scripts_filename}|custom_dualwan_scripts_filename=${local_ini_custom_dualwan_scripts_filename}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_custom_clear_scripts_changed}" = "1" ] && sed -i "s|^[[:space:]]*custom_clear_scripts=${local_custom_clear_scripts}|custom_clear_scripts=${local_ini_custom_clear_scripts}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_custom_clear_scripts_filename_changed}" = "1" ] && sed -i "s|^[[:space:]]*custom_clear_scripts_filename=${local_custom_clear_scripts_filename}|custom_clear_scripts_filename=${local_ini_custom_clear_scripts_filename}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_custom_config_scripts_changed}" = "1" ] && sed -i "s|^[[:space:]]*custom_config_scripts=${local_custom_config_scripts}|custom_config_scripts=${local_ini_custom_config_scripts}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_custom_config_scripts_filename_changed}" = "1" ] && sed -i "s|^[[:space:]]*custom_config_scripts_filename=${local_custom_config_scripts_filename}|custom_config_scripts_filename=${local_ini_custom_config_scripts_filename}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_custom_dualwan_scripts_changed}" = "1" ] && sed -i "s|^[[:space:]]*custom_dualwan_scripts=${local_custom_dualwan_scripts}|custom_dualwan_scripts=${local_ini_custom_dualwan_scripts}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_custom_dualwan_scripts_filename_changed}" = "1" ] && sed -i "s|^[[:space:]]*custom_dualwan_scripts_filename=${local_custom_dualwan_scripts_filename}|custom_dualwan_scripts_filename=${local_ini_custom_dualwan_scripts_filename}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
 
-    [ "${local_udpxy_used_changed}" = "1" ] && sed -i "s|^[ \t]*udpxy_used=${local_udpxy_used:}udpxy_used=${local_ini_udpxy_used}|" "${PATH_FUNC}/lz_define_global_variables.sh" > /dev/null 2>&1
+    [ "${local_udpxy_used_changed}" = "1" ] && sed -i "s|^[[:space:]]*udpxy_used=${local_udpxy_used:}udpxy_used=${local_ini_udpxy_used}|" "${PATH_FUNC}/lz_define_global_variables.sh" > /dev/null 2>&1
 }
 
 ## 将当前配置优化至IPTV配置函数
@@ -2411,7 +2411,7 @@ lz_get_web_data_to_config() {
             system("sed -i \"s\|\^\[ \\t\]\*"key"=\.\*\$\|"key"="value"\|\" \""fname"\" \> \/dev\/null 2\>\&1");
         }
     }' "${SETTINGSFILE}"
-    sed -i '/^[ \t]*lz_rule_/d' "${SETTINGSFILE}"
+    sed -i '/^[[:space:]]*lz_rule_/d' "${SETTINGSFILE}"
 }
 
 ## 初始化变量
@@ -2525,7 +2525,7 @@ else
 
     [ "${local_ini_udpxy_used}" != "${local_udpxy_used}" ] && local_udpxy_used_changed="1"
     if [ "${local_udpxy_used_changed}" = "1" ]; then
-        sed -i "s|^[ \t]*udpxy_used=${local_udpxy_used}|udpxy_used=${local_ini_udpxy_used}|" "${PATH_FUNC}/lz_define_global_variables.sh" > /dev/null 2>&1
+        sed -i "s|^[[:space:]]*udpxy_used=${local_udpxy_used}|udpxy_used=${local_ini_udpxy_used}|" "${PATH_FUNC}/lz_define_global_variables.sh" > /dev/null 2>&1
         local_udpxy_used="${local_ini_udpxy_used}"
         local_udpxy_used_changed="0"
     fi
@@ -2578,7 +2578,7 @@ else
 
             lz_restore_config
             ## 更新lz_rule_config.box中的版本号
-            sed -i "s|^[ \t]*lz_config_version=${local_ini_version}|lz_config_version=${local_version}|" "${PATH_CONFIGS}/lz_rule_config.box"
+            sed -i "s|^[[:space:]]*lz_config_version=${local_ini_version}|lz_config_version=${local_version}|" "${PATH_CONFIGS}/lz_rule_config.box"
         else
             ## 其它情况需用lz_rule_config.sh中的参数数值同步替换lz_rule_config.box中的参数值
             ## 备份配置参数
