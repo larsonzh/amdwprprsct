@@ -1061,7 +1061,7 @@ __lz_main() {
     if [ "${custom_config_scripts}" = "0" ] && [ -n "${custom_config_scripts_filename}" ]; then
         if [ -f "${custom_config_scripts_filename}" ]; then
             chmod 775 "${custom_config_scripts_filename}" > /dev/null 2>&1
-            eval source "${custom_config_scripts_filename}"
+            eval "${custom_config_scripts_filename}" "${1}" &
         fi
     fi
 

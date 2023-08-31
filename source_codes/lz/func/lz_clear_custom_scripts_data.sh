@@ -12,10 +12,10 @@
 # shellcheck disable=SC2154
 
 ## 执行用户自定义清理资源脚本文件
-if [ "${custom_clear_scripts}" = "0" ]; then
+if [ "${custom_clear_scripts}" = "0" ] && [ -n "${custom_clear_scripts_filename}" ]; then
     if [ -f "${custom_clear_scripts_filename}" ]; then
         chmod +x "${custom_clear_scripts_filename}" > /dev/null 2>&1
-        eval source "${custom_clear_scripts_filename}" "${1}"
+        eval "${custom_clear_scripts_filename}" "${1}" &
     fi
 fi
 

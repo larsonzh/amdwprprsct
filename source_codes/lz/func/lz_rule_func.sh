@@ -5444,10 +5444,10 @@ lz_deployment_routing_policy() {
     fi
 
     ## 执行用户自定义双线路脚本文件
-    if [ "${custom_dualwan_scripts}" = "0" ]; then
+    if [ "${custom_dualwan_scripts}" = "0" ] && [ -n "${custom_dualwan_scripts_filename}" ]; then
         if [ -f "${custom_dualwan_scripts_filename}" ]; then
             chmod +x "${custom_dualwan_scripts_filename}" > /dev/null 2>&1
-            source "${custom_dualwan_scripts_filename}" "${1}"
+            eval "${custom_dualwan_scripts_filename}" "${1}" &
         fi
     fi
 
