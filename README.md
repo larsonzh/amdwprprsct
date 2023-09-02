@@ -73,13 +73,9 @@ Asuswrt-Merlin dual WAN port router policy routing service configuration tool
 
 ### 六、应用界面
 
-![lz_rule](https://github.com/larsonzh/amdwprprsct/assets/73221087/f5aabd7b-5ef7-4b95-b504-906073b08d33)
-
-![lz_rule_rog](https://github.com/larsonzh/amdwprprsct/assets/73221087/a15e36a7-da30-4ea2-b129-7388153c2b38)
-
-![lz_rule_status](https://github.com/larsonzh/amdwprprsct/assets/73221087/8dfd4928-94cb-4521-af9e-da2d85a3d274)
-
-![lz_rule_tools](https://github.com/larsonzh/amdwprprsct/assets/73221087/10b840a5-cb2c-4be5-a9f1-2db8cc93d3d0)
+| ![lz_rule](https://github.com/larsonzh/amdwprprsct/assets/73221087/f5aabd7b-5ef7-4b95-b504-906073b08d33) | ![lz_rule_rog](https://github.com/larsonzh/amdwprprsct/assets/73221087/a15e36a7-da30-4ea2-b129-7388153c2b38) |
+|--------------------------------------------------|--------------------------------------------------|
+| ![lz_rule_status](https://github.com/larsonzh/amdwprprsct/assets/73221087/8dfd4928-94cb-4521-af9e-da2d85a3d274) | ![lz_rule_tools](https://github.com/larsonzh/amdwprprsct/assets/73221087/10b840a5-cb2c-4be5-a9f1-2db8cc93d3d0) |
 
 ### 七、相关资料
 - 华硕改版固件路由器双线路双拨策略分流方案教程（入门必读）
