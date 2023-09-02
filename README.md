@@ -17,7 +17,7 @@ Asuswrt-Merlin dual WAN port router policy routing service configuration tool
 
 在不断迭代和改善的过程中，本软件始终保持良好的向下兼容性，建议用户尽可能使用当前最新版本软件。
 
-<strong>主要功能</strong>
+## <strong>主要功能</strong>
 
 <strong>一、基础功能</strong>
 <ul><li>可按如下11个网络运营商IPv4目标网段的划分分配路由器流量出口：</li>
@@ -91,7 +91,7 @@ Asuswrt-Merlin dual WAN port router policy routing service configuration tool
 <li>华硕arm平台路由器单臂路由终极解决方案教程</li>
 <li>华硕hnd_axhnd_axhnd.675x平台路由器单臂路由解决方案及脚本教程</li></ul>
 
-<strong>安装及使用方法</strong>
+## <strong>安装及使用方法</strong>
 <ul>华硕改版固件路由器双线路双拨策略分流方案
 https://www.koolcenter.com/posts/85
 (出处: KoolCenter)</ul>
