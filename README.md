@@ -89,7 +89,7 @@ Asuswrt-Merlin dual WAN port router policy routing service configuration tool
 - 华硕 hnd_axhnd_axhnd.675x 平台路由器单臂路由解决方案及脚本教程
 
 ## 捐赠
-开源不易，欢迎投喂 😘
+小众需求，开源不易，欢迎投喂 😘
 
 | ![Wechat Pay](/images/wechat.jpg) | ![Alipay](/images/alipay.jpg) |
 |--------------------------------------------------|--------------------------------------------------|
