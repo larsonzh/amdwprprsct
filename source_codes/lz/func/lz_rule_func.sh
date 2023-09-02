@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v4.1.4
+# lz_rule_func.sh v4.1.5
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 #BEIGIN
@@ -1452,6 +1452,8 @@ EOF
     ## 返回值：
     ##     udpxy_used--设置后的值，全局变量
     lz_set_udpxy_used_value "5"
+
+    [ "${local_igmp_start}" = "1" ] && echo "$(lzdate)" [$$]: --------------------------------------------- | tee -ai "${SYSLOG}" 2> /dev/null
 }
 
 
@@ -5441,14 +5443,6 @@ lz_deployment_routing_policy() {
             echo "$(lzdate)" [$$]: IPTV STB \& Multicast service can\'t be used.
             echo "$(lzdate)" [$$]: Enable multicast routing: Disable -\> Enable
         } | tee -ai "${SYSLOG}" 2> /dev/null
-    fi
-
-    ## 执行用户自定义双线路脚本文件
-    if [ "${custom_dualwan_scripts}" = "0" ] && [ -n "${custom_dualwan_scripts_filename}" ]; then
-        if [ -f "${custom_dualwan_scripts_filename}" ]; then
-            chmod +x "${custom_dualwan_scripts_filename}" > /dev/null 2>&1
-            eval "${custom_dualwan_scripts_filename}" "${1}" &
-        fi
     fi
 
     ## 向系统记录输出网段出口信息

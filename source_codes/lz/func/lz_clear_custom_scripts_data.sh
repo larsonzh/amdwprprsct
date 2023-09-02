@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_clear_custom_scripts_data.sh v4.1.4
+# lz_clear_custom_scripts_data.sh v4.1.5
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 清除用户自定义脚本数据
@@ -12,11 +12,15 @@
 # shellcheck disable=SC2154
 
 ## 执行用户自定义清理资源脚本文件
-if [ "${custom_clear_scripts}" = "0" ] && [ -n "${custom_clear_scripts_filename}" ]; then
-    if [ -f "${custom_clear_scripts_filename}" ]; then
-        chmod +x "${custom_clear_scripts_filename}" > /dev/null 2>&1
-        eval "${custom_clear_scripts_filename}" "${1}" &
-    fi
+if [ "${custom_clear_scripts}" = "0" ] && [ -n "${custom_clear_scripts_filename}" ] \
+    && [ -f "${custom_clear_scripts_filename}" ]; then
+    echo "$(lzdate)" [$$]: Starting "${custom_clear_scripts_filename}"...... | tee -ai "${SYSLOG}" 2> /dev/null
+    chmod +x "${custom_clear_scripts_filename}" > /dev/null 2>&1
+    eval "sh ${custom_clear_scripts_filename} 2> /dev/null"
+    {
+        echo "$(lzdate)" [$$]: "${custom_clear_scripts_filename}" has been called.
+        echo "$(lzdate)" [$$]: ---------------------------------------------
+    } | tee -ai "${SYSLOG}" 2> /dev/null
 fi
 
 ## 对在lz_rule_config.sh中定义的用户自定义双线路脚本文件代码中的数据进行清理，释放所占用系统资源。

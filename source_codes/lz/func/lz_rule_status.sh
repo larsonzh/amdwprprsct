@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_status.sh v4.1.4
+# lz_rule_status.sh v4.1.5
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 显示脚本运行状态脚本
@@ -387,6 +387,12 @@ lz_unset_parameter_status_variable() {
     unset status_wan1_udpxy_port
     unset status_wan2_udpxy_switch
     unset status_wan2_udpxy_port
+    unset status_custom_clear_scripts
+    unset status_custom_clear_scripts_filename
+    unset status_custom_config_scripts
+    unset status_custom_config_scripts_filename
+    unset status_custom_dualwan_scripts
+    unset status_custom_dualwan_scripts_filename
 
     ## 卸载ISP网络运营商CIDR网段数据条目数状态变量
     lz_unset_isp_data_item_total_status_variable
@@ -464,6 +470,12 @@ lz_init_cfg_data_status() {
     [ "${status_wan1_udpxy_port-undefined}" = "undefined" ] && status_wan1_udpxy_port=8686
     [ "${status_wan2_udpxy_switch-undefined}" = "undefined" ] && status_wan2_udpxy_switch=5
     [ "${status_wan2_udpxy_port-undefined}" = "undefined" ] && status_wan2_udpxy_port=8888
+    [ "${status_custom_clear_scripts-undefined}" = "undefined" ] && status_custom_clear_scripts=5
+    [ "${status_custom_clear_scripts_filename-undefined}" = "undefined" ] && status_custom_clear_scripts_filename="${PATH_DATA}/custom_clear_scripts.sh"
+    [ "${status_custom_config_scripts-undefined}" = "undefined" ] && status_custom_config_scripts=5
+    [ "${status_custom_config_scripts_filename-undefined}" = "undefined" ] && status_custom_config_scripts_filename="${PATH_DATA}/custom_config.sh"
+    [ "${status_custom_dualwan_scripts-undefined}" = "undefined" ] && status_custom_dualwan_scripts=5
+    [ "${status_custom_dualwan_scripts_filename-undefined}" = "undefined" ] && status_custom_dualwan_scripts_filename="${PATH_DATA}/custom_dualwan_scripts.sh"
 }
 
 ## 获取备份参数状态函数
@@ -543,6 +555,12 @@ lz_get_box_data_status() {
             i["status_wan2_udpxy_port"]=8888;
             i["status_wan2_udpxy_buffer"]=65536;
             i["status_wan2_udpxy_client_num"]=10;
+            i["status_custom_clear_scripts"]=5;
+            i["status_custom_clear_scripts_filename"]=pathd"/custom_clear_scripts.sh";
+            i["status_custom_config_scripts"]=5;
+            i["status_custom_config_scripts_filename"]=pathd"/custom_config.sh";
+            i["status_custom_dualwan_scripts"]=5;
+            i["status_custom_dualwan_scripts_filename"]=pathd"/custom_dualwan_scripts.sh";
             total=length(i);
         } $1 ~ /^lz_config_[a-zA-Z0-9]+/ {
             flag=0;
@@ -605,7 +623,10 @@ lz_get_box_data_status() {
                 || key == "status_wan2_iptv_mode" \
                 || key == "status_iptv_igmp_switch" \
                 || key == "status_wan1_udpxy_switch" \
-                || key == "status_wan2_udpxy_switch") {
+                || key == "status_wan2_udpxy_switch" \
+                || key == "status_custom_clear_scripts" \
+                || key == "status_custom_config_scripts" \
+                || key == "status_custom_dualwan_scripts") {
                 flag=1;
                 if (value !~ /^[0-9]$/)
                     invalid=1;
@@ -690,10 +711,13 @@ lz_get_box_data_status() {
                 || key == "status_high_wan_1_src_to_dst_addr_port_file" \
                 || key == "status_local_ipsets_file" \
                 || key == "status_iptv_box_ip_lst_file" \
-                || key == "status_iptv_isp_ip_lst_file") {
+                || key == "status_iptv_isp_ip_lst_file" \
+                || key == "status_custom_clear_scripts_filename" \
+                || key == "status_custom_config_scripts_filename" \
+                || key == "status_custom_dualwan_scripts_filename") {
                 flag=2;
-                if ((value !~ /^[\"]([\/][a-zA-Z0-9_\-][a-zA-Z0-9_\-\.]*)+[\"]$/ && value !~ /^([\/][a-zA-Z0-9_\-][a-zA-Z0-9_\-\.]*)+$/) \
-                    || value ~ /[\.][\.]/)
+                if ((value !~ /^[\"]([\/][a-zA-Z0-9_\-][a-zA-Z0-9_\.\-]*)+[\"]$/ && value !~ /^([\/][a-zA-Z0-9_\-][a-zA-Z0-9_\.\-]*)+$/) \
+                    || value ~ /[\/][\/]/)
                     invalid=2;
             }
             if (flag == 0) next;
@@ -2953,6 +2977,15 @@ __status_main() {
     ##     status_route_local_ip--路由器本地IP地址，全局变量
     lz_get_route_status_info
 
+    ## 显示执行用户自定义清理资源脚本文件状态信息
+    if [ "${status_custom_clear_scripts}" = "0" ] && [ -n "${status_custom_clear_scripts_filename}" ] \
+        && [ -f "${status_custom_clear_scripts_filename}" ]; then
+        {
+            echo "$(lzdate)" [$$]: "${status_custom_clear_scripts_filename}" has been called.
+            echo "$(lzdate)" [$$]: ---------------------------------------------
+        } | tee -ai "${STATUS_LOG}" 2> /dev/null
+    fi
+
     local local_stop_id=
     ## 检查项目运行状态及启动标识
     if [ -z "$( ipset -q -n list "${STATUS_PROJECT_STATUS_SET}" )" ]; then
@@ -2995,6 +3028,15 @@ __status_main() {
     ## 返回值：无
     lz_show_regularly_update_ispip_data_task
 
+    ## 显示载入外置用户自定义配置脚本文件状态信息
+    if [ "${status_custom_config_scripts}" = "0" ] && [ -n "${status_custom_config_scripts_filename}" ] \
+        && [ -f "${status_custom_config_scripts_filename}" ]; then
+        {
+            echo "$(lzdate)" [$$]: "${status_custom_config_scripts_filename}" has been called.
+            echo "$(lzdate)" [$$]: ---------------------------------------------
+        } | tee -ai "${STATUS_LOG}" 2> /dev/null
+    fi
+
     ## 双线路
     if ip route show | grep -q nexthop && [ -n "${status_route_local_ip}" ]; then
         [ "$( nvram get "wan0_enable" )" = "1" ] && [ "$( nvram get "wan1_enable" )" = "1" ] \
@@ -3034,6 +3076,15 @@ __status_main() {
         lz_ip_rule_output_syslog_status "${STATUS_IP_RULE_PRIO_TOPEST}" "${STATUS_IP_RULE_PRIO}"
 
         echo "$(lzdate)" [$$]: Policy routing service has been started successfully. | tee -ai "${STATUS_LOG}" 2> /dev/null
+
+        ## 显示执行用户自定义双线路脚本文件状态信息
+        if [ "${status_custom_dualwan_scripts}" = "0" ] && [ -n "${status_custom_dualwan_scripts_filename}" ] \
+            && [ -f "${status_custom_dualwan_scripts_filename}" ]; then
+            {
+                echo "$(lzdate)" [$$]: ---------------------------------------------
+                echo "$(lzdate)" [$$]: "${status_custom_dualwan_scripts_filename}" has been called.
+            } | tee -ai "${STATUS_LOG}" 2> /dev/null
+        fi
 
         ## 显示SS服务支持状态
         ## 输入项：
@@ -3147,7 +3198,10 @@ if [ -f "${PATH_CONFIGS}/lz_rule_config.box" ]; then
         echo "$(lzdate)" [$$]: "firewall-start interface is not registered." | tee -ai "${STATUS_LOG}" 2> /dev/null
     fi
 
-    echo "$(lzdate)" [$$]: Getting the router device status information...... | tee -ai "${STATUS_LOG}" 2> /dev/null
+    {
+        echo "$(lzdate)" [$$]: ---------------------------------------------
+        echo "$(lzdate)" [$$]: Getting the router device status information......
+    } | tee -ai "${STATUS_LOG}" 2> /dev/null
 
     ## 设置脚本基本运行状态参数变量
     lz_set_parameter_status_variable

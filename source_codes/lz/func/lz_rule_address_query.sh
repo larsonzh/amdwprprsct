@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_address_query.sh v4.1.4
+# lz_rule_address_query.sh v4.1.5
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 网址信息查询脚本
@@ -852,8 +852,8 @@ lz_aq_get_box_data() {
                 || key == "aq_wan_2_src_to_dst_addr_port_file" \
                 || key == "aq_high_wan_1_src_to_dst_addr_port_file") {
                 flag=2;
-                if ((value !~ /^[\"]([\/][a-zA-Z0-9_\-][a-zA-Z0-9_\-\.]*)+[\"]$/ && value !~ /^([\/][a-zA-Z0-9_\-][a-zA-Z0-9_\-\.]*)+$/) \
-                    || value ~ /[\.][\.]/)
+                if ((value !~ /^[\"]([\/][a-zA-Z0-9_\-][a-zA-Z0-9_\.\-]*)+[\"]$/ && value !~ /^([\/][a-zA-Z0-9_\-][a-zA-Z0-9_\.\-]*)+$/) \
+                    || value ~ /[\/][\/]/)
                     invalid=2;
             }
             if (flag == 0) next;

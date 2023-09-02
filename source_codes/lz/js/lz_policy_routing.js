@@ -1,5 +1,5 @@
 /*
-# lz_policy_routing.js v4.1.4
+# lz_policy_routing.js v4.1.5
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ JavaScript for Asuswrt-Merlin Router
@@ -262,7 +262,7 @@ function checkNumberField(ptr) {
 }
 
 function checkTextField(ptr) {
-    let str = ptr.value.replace(/[^\w\/\.\-]+/g, "").replace(/[\/][\/]+/g, "\/").replace(/[\.][\.]+/g, "\.");
+    let str = ptr.value.replace(/[^\w\/\.\-]+/g, "").replace(/[\/][\/]+/g, "\/");
     if (str == "" && policySettingsArray.hasOwnProperty(ptr.id)) ptr.value = policySettingsArray[ptr.id];
     else if (str != ptr.value) ptr.value = str;
 }

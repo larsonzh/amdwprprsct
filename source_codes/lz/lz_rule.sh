@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule.sh v4.1.4
+# lz_rule.sh v4.1.5
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # 本软件采用CIDR（无类别域间路由，Classless Inter-Domain Routing）技术，是一个在Internet上创建附加地
@@ -80,7 +80,7 @@
 ## -------------全局数据定义及初始化-------------------
 
 ## 版本号
-LZ_VERSION=v4.1.4
+LZ_VERSION=v4.1.5
 
 ## 运行状态查询命令
 SHOW_STATUS="status"
@@ -887,7 +887,10 @@ __lz_main() {
         lz_create_firewall_start_command
     fi
 
-    echo "$(lzdate)" [$$]: Initialization script configuration parameters...... | tee -ai "${SYSLOG}" 2> /dev/null
+    {
+        echo "$(lzdate)" [$$]: ---------------------------------------------
+        echo "$(lzdate)" [$$]: Initialization script configuration parameters......
+    } | tee -ai "${SYSLOG}" 2> /dev/null
 
     ## 初始化脚本配置
     ## 输入项：
@@ -920,6 +923,7 @@ __lz_main() {
 
     {
         echo "$(lzdate)" [$$]: Configuration parameters initialization is complete.
+        echo "$(lzdate)" [$$]: ---------------------------------------------
         echo "$(lzdate)" [$$]: Get the router device information......
     } | tee -ai "${SYSLOG}" 2> /dev/null
 
@@ -1058,11 +1062,15 @@ __lz_main() {
     lz_create_update_ispip_data_file "${1}"
 
     ## 载入外置用户自定义配置脚本文件
-    if [ "${custom_config_scripts}" = "0" ] && [ -n "${custom_config_scripts_filename}" ]; then
-        if [ -f "${custom_config_scripts_filename}" ]; then
-            chmod 775 "${custom_config_scripts_filename}" > /dev/null 2>&1
-            eval "${custom_config_scripts_filename}" "${1}" &
-        fi
+    if [ "${custom_config_scripts}" = "0" ] && [ -n "${custom_config_scripts_filename}" ] \
+        && [ -f "${custom_config_scripts_filename}" ]; then
+        echo "$(lzdate)" [$$]: Starting "${custom_config_scripts_filename}"...... | tee -ai "${SYSLOG}" 2> /dev/null
+        chmod 775 "${custom_config_scripts_filename}" > /dev/null 2>&1
+        eval "sh ${custom_config_scripts_filename} 2> /dev/null"
+        {
+            echo "$(lzdate)" [$$]: "${custom_config_scripts_filename}" has been called.
+            echo "$(lzdate)" [$$]: ---------------------------------------------
+        } | tee -ai "${SYSLOG}" 2> /dev/null
     fi
 
     lz_check_instance "${1}" && return
@@ -1101,6 +1109,18 @@ __lz_main() {
         lz_ip_rule_output_syslog "${IP_RULE_PRIO_TOPEST}" "${IP_RULE_PRIO}"
 
         echo "$(lzdate)" [$$]: Policy routing service has been started successfully. | tee -ai "${SYSLOG}" 2> /dev/null
+
+        ## 执行用户自定义双线路脚本文件
+        if [ "${custom_dualwan_scripts}" = "0" ] && [ -n "${custom_dualwan_scripts_filename}" ] \
+            && [ -f "${custom_dualwan_scripts_filename}" ]; then
+            {
+                echo "$(lzdate)" [$$]: ---------------------------------------------
+                echo "$(lzdate)" [$$]: Starting "${custom_dualwan_scripts_filename}"......
+            } | tee -ai "${SYSLOG}" 2> /dev/null
+            chmod +x "${custom_dualwan_scripts_filename}" > /dev/null 2>&1
+            eval "sh ${custom_dualwan_scripts_filename} 2> /dev/null"
+            echo "$(lzdate)" [$$]: "${custom_dualwan_scripts_filename}" has been called. | tee -ai "${SYSLOG}" 2> /dev/null
+        fi
 
         ## SS服务支持
         ## 输入项：
