@@ -11,6 +11,8 @@ Asuswrt-Merlin dual WAN port router policy routing service configuration tool
 
 当前版本软件同时支持 Web 操作页面和命令行两种方式下使用，即使有些固件不支持本软件在 Web 操作页面下使用，但也可能支持命令行方式。
 
+软件既可安装在路由器 jffs 分区内使用，也支持在路由器 USB 盘的 Entware 软件包管理分区内安装和运行。
+
 在不断迭代和改善的过程中，本软件始终保持良好的向下兼容性，建议用户尽可能使用当前最新版本软件。
 
 <strong>主要功能</strong>
