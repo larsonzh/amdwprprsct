@@ -69,11 +69,11 @@ Asuswrt-Merlin dual WAN port router policy routing service configuration tool
 - 外置用户自定义双线路脚本设置功能。
 - 外置用户自定义清理资源脚本设置功能。
 
-<div align=center><img src="![lz_rule_flow_chart](/images/lz_rule_flow_chart.jpg)"></div>
+<div align=center><img src="/images/lz_rule_flow_chart.jpg"></div>
 
 ### 六、应用界面
 
-| ![lz_rule](/images/lz_rule.jpg) | ![lz_rule_rog](/lz_rule_rog.jpg) |
+| ![lz_rule](/images/lz_rule.jpg) | ![lz_rule_rog](/images/lz_rule_rog.jpg) |
 |--------------------------------------------------|--------------------------------------------------|
 | ![lz_rule_status](/images/lz_rule_status.jpg) | ![lz_rule_tools](/images/lz_rule_tools.jpg) |
 
