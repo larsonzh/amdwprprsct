@@ -17,7 +17,7 @@ Asuswrt-Merlin dual WAN port router policy routing service configuration tool
 
 在不断迭代和改善的过程中，本软件始终保持良好的向下兼容性，建议用户尽可能使用当前最新版本软件。
 
-## <strong>主要功能</strong>
+## 主要功能
 
 <strong>一、基础功能</strong>
 <ul><li>可按如下11个网络运营商IPv4目标网段的划分分配路由器流量出口：</li>
