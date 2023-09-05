@@ -91,5 +91,5 @@ Asuswrt-Merlin dual WAN port router policy routing service configuration tool
 ## 捐赠
 小众需求，开源不易，欢迎投喂 😘
 
-| ![Wechat Pay](/images/wechat.jpg) | ![Alipay](/images/alipay.jpg) |
+| ![Wechat Pay](/images/wechat.png) | ![Alipay](/images/alipay.png) |
 |--------------------------------------------------|--------------------------------------------------|
