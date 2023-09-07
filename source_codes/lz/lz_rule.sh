@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule.sh v4.1.5
+# lz_rule.sh v4.1.6
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # 本软件采用CIDR（无类别域间路由，Classless Inter-Domain Routing）技术，是一个在Internet上创建附加地
@@ -80,7 +80,7 @@
 ## -------------全局数据定义及初始化-------------------
 
 ## 版本号
-LZ_VERSION=v4.1.5
+LZ_VERSION=v4.1.6
 
 ## 运行状态查询命令
 SHOW_STATUS="status"
@@ -135,6 +135,9 @@ BOOT_USB_MOUNT_NAME="post-mount"
 
 ## 系统中的服务事件触发文件名
 SERVICE_EVENT_NAME="service-event"
+
+## DNSMasq配置扩展全路径文件名
+DNSMASQ_CONF_ADD="/jffs/configs/dnsmasq.conf.add"
 
 ## 系统中的服务事件触发接口文件名
 SERVICE_INTERFACE_NAME="lz_rule_service.sh"
@@ -255,33 +258,19 @@ fi
 ##     1--失败
 lz_project_file_management() {
     ## 使项目文件部署路径、配置脚本、功能脚本和数据文件处于可运行状态
+    [ ! -d "/jffs/configs" ] && mkdir -p "/jffs/configs" > /dev/null 2>&1
+    chmod -R 775 "/jffs/configs"/* > /dev/null 2>&1
     [ ! -d "${PATH_LZ}" ] && mkdir -p "${PATH_LZ}" > /dev/null 2>&1
     chmod 775 "${PATH_LZ}" > /dev/null 2>&1
     [ ! -d "${PATH_CONFIGS}" ] && mkdir -p "${PATH_CONFIGS}" > /dev/null 2>&1
-    chmod 775 "${PATH_CONFIGS}" > /dev/null 2>&1
     [ ! -d "${PATH_FUNC}" ] && mkdir -p "${PATH_FUNC}" > /dev/null 2>&1
-    chmod 775 "${PATH_FUNC}" > /dev/null 2>&1
     [ ! -d "${PATH_JS}" ] && mkdir -p "${PATH_JS}" > /dev/null 2>&1
-    chmod 775 "${PATH_JS}" > /dev/null 2>&1
     [ ! -d "${PATH_WEBS}" ] && mkdir -p "${PATH_WEBS}" > /dev/null 2>&1
-    chmod 775 "${PATH_WEBS}" > /dev/null 2>&1
     [ ! -d "${PATH_IMAGES}" ] && mkdir -p "${PATH_IMAGES}" > /dev/null 2>&1
-    chmod 775 "${PATH_IMAGES}" > /dev/null 2>&1
     [ ! -d "${PATH_DATA}" ] && mkdir -p "${PATH_DATA}" > /dev/null 2>&1
-    chmod 775 "${PATH_DATA}" > /dev/null 2>&1
     [ ! -d "${PATH_INTERFACE}" ] && mkdir -p "${PATH_INTERFACE}" > /dev/null 2>&1
-    chmod 775 "${PATH_INTERFACE}" > /dev/null 2>&1
     [ ! -d "${PATH_TMP}" ] && mkdir -p "${PATH_TMP}" > /dev/null 2>&1
-    chmod 775 "${PATH_TMP}" > /dev/null 2>&1
-    cd "${PATH_CONFIGS}/" > /dev/null 2>&1 && chmod -R 775 ./* > /dev/null 2>&1
-    cd "${PATH_FUNC}/" > /dev/null 2>&1 && chmod -R 775 ./* > /dev/null 2>&1
-    cd "${PATH_JS}/" > /dev/null 2>&1 && chmod -R 775 ./* > /dev/null 2>&1
-    cd "${PATH_WEBS}/" > /dev/null 2>&1 && chmod -R 775 ./* > /dev/null 2>&1
-    cd "${PATH_IMAGES}/" > /dev/null 2>&1 && chmod -R 775 ./* > /dev/null 2>&1
-    cd "${PATH_DATA}/" > /dev/null 2>&1 && chmod -R 775 ./* > /dev/null 2>&1
-    cd "${PATH_INTERFACE}/" > /dev/null 2>&1 && chmod -R 775 ./* > /dev/null 2>&1
-    cd "${PATH_TMP}/" > /dev/null 2>&1 && chmod -R 775 ./* > /dev/null 2>&1
-    cd "${PATH_LZ}/" > /dev/null 2>&1 && chmod -R 775 ./* > /dev/null 2>&1
+    chmod -R 775 "${PATH_LZ}"/* > /dev/null 2>&1
 
     touch "${STATUS_LOG}" 2> /dev/null
     touch "${ADDRESS_LOG}" 2> /dev/null
@@ -423,6 +412,10 @@ lz_instance_exit() {
             { ip route flush cache && sync && echo 3 > /proc/sys/vm/drop_caches && printf "%s\n%s LZ %s Free Memory OK\n%s\n" "$(lzdate) [$$]:" "$(lzdate) [$$]:" "${LZ_VERSION}" "$(lzdate) [$$]:"; } 2> /dev/null
         fi
     fi
+
+    ## 重启dnsmasq服务
+    [ "${restart_dnsmasq}" ] && service restart_dnsmasq > /dev/null 2>&1
+
     ## 更新DDNS服务
     ## 输入项：无
     ## 返回值：0
@@ -773,10 +766,12 @@ lz_mount_web_ui() {
             mkdir -p "${PATH_ADDONS}" > /dev/null 2>&1
             [ ! -d "${PATH_ADDONS}" ] && break
         fi
+        chmod -R 775 "${PATH_ADDONS}" > /dev/null 2>&1
         if [ ! -d "${PATH_WEB_LZR}" ]; then
             mkdir -p "${PATH_WEB_LZR}" > /dev/null 2>&1
             [ ! -d "${PATH_WEB_LZR}" ] && break
         fi
+        chmod -R 775 "${PATH_WEB_LZR}" > /dev/null 2>&1
         sed -i -e 's/^[[:space:]]*//g' -e 's/[[:space:]]*$//g' -e '/^$/d' "${PATH_JS}/lz_policy_routing.js" > /dev/null 2>&1
         sed -i -e 's/^[[:space:]]*//g' -e 's/[[:space:]]*$//g' -e '/^$/d' "${PATH_WEBS}/LZ_Policy_Routing_Content.asp" > /dev/null 2>&1
         rm -f "${PATH_WEB_LZR}/"* > /dev/null 2>&1
@@ -789,6 +784,7 @@ lz_mount_web_ui() {
         ln -s "${PATH_BOOTLOADER}/${SERVICE_EVENT_NAME}" "${PATH_WEB_LZR}/LZRService.html" > /dev/null 2>&1
         ln -s "${PATH_BOOTLOADER}/${OPENVPN_EVENT_NAME}" "${PATH_WEB_LZR}/LZROpenvpn.html" > /dev/null 2>&1
         ln -s "${PATH_BOOTLOADER}/${BOOT_USB_MOUNT_NAME}" "${PATH_WEB_LZR}/LZRPostMount.html" > /dev/null 2>&1
+        ln -s "${DNSMASQ_CONF_ADD}" "${PATH_WEB_LZR}/LZRDNSmasq.html" > /dev/null 2>&1
         ln -s "${PATH_LZ}/${PROJECT_FILENAME}" "${PATH_WEB_LZR}/LZRVersion.html" > /dev/null 2>&1
         ln -s "${PATH_CONFIGS}/lz_rule_config.sh" "${PATH_WEB_LZR}/LZRConfig.html" > /dev/null 2>&1
         ln -s "${PATH_CONFIGS}/lz_rule_config.box" "${PATH_WEB_LZR}/LZRBKData.html" > /dev/null 2>&1
@@ -1053,6 +1049,12 @@ __lz_main() {
 
         return
     fi
+
+    ## 加载自定义域名地址解析条目列表数据文件
+    ## 输入项：
+    ##     全局常量及变量
+    ## 返回值：无
+    lz_load_custom_hosts_file
 
     ## 创建更新ISP网络运营商CIDR网段数据的脚本文件及定时任务
     ## 输入项：

@@ -69,8 +69,8 @@
                     async: false,
                     url: '/ext/lzr/LZRGlobal.html',
                     dataType: 'text',
-                    success: function(result) {
-                        retVal = (result.match(/QnkgTFog5aaZ5aaZ5ZGc77yI6Juk6J[\+]G5aKp5YS[\/]77yJ/m) != null) ? true : false;
+                    success: function(response) {
+                        retVal = (response.match(/QnkgTFog5aaZ5aaZ5ZGc77yI6Juk6J[\+]G5aKp5YS[\/]77yJ/m) != null) ? true : false;
                     }
                 });
                 return retVal;
@@ -844,6 +844,18 @@
                                                                     </td>
                                                                 </tr>
                                                                 <tr>
+                                                                    <th rowspan="2"><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(89);">自定义域名地址解析</a></th>
+                                                                    <td colspan="4">
+                                                                        <input type="radio" value="0" name="lzr_custom_hosts" class="content_input_fd">启用
+                                                                        <input type="radio" value="5" name="lzr_custom_hosts" class="content_input_fd">停用
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <input id="lzr_custom_hosts_file" type="text" maxlength="255" class="input_32_table" name="lzr_custom_hosts_file" value="/jffs/scripts/lz/custom_hosts.txt" onchange="checkTextField(this)" autocorrect="off" autocapitalize="off">
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
                                                                     <th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(49);">域名地址预解析</a></th>
                                                                     <td>
                                                                         <select id="lzr_dn_pre_resolved" name="lzr_dn_pre_resolved" class="input_option" style="margin-left:2px;">
@@ -1125,9 +1137,10 @@
                                                                             <option value="6">显示 service-event 服务触发项&nbsp;</option>
                                                                             <option value="7">显示 openvpn-event 事件触发项</option>
                                                                             <option value="8">显示 post-mount 挂载启动项</option>
-                                                                            <option value="9">更新运营商 IP 地址数据</option>
-                                                                            <option value="10">解除程序运行锁</option>
-                                                                            <option value="11">恢复缺省配置参数 (慎重)</option>
+                                                                            <option value="9">显示 dnsmasq.conf.add 配置项</option>
+                                                                            <option value="10">更新运营商 IP 地址数据</option>
+                                                                            <option value="11">解除程序运行锁</option>
+                                                                            <option value="12">恢复缺省配置参数 (慎重)</option>
                                                                         </select>
                                                                     </td>
                                                                 </tr>

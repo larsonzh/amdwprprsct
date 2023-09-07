@@ -1,5 +1,5 @@
 #!/bin/sh
-# install.sh v4.1.5
+# install.sh v4.1.6
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ RULE script for Asuswrt-Merlin Router
@@ -11,7 +11,7 @@
 
 #BEIGIN
 
-LZ_VERSION=v4.1.5
+LZ_VERSION=v4.1.6
 TIMEOUT=10
 CURRENT_PATH="${0%/*}"
 [ "${CURRENT_PATH:0:1}" != '/' ] && CURRENT_PATH="$( pwd )${CURRENT_PATH#*.}"
@@ -178,6 +178,7 @@ cp -rpf "${CURRENT_PATH}/lz/interface" "${PATH_LZ}" > /dev/null 2>&1
 find "${CURRENT_PATH}/lz/data" -name "*_cidr.txt" -print0 2> /dev/null | xargs -0 -I {} cp -rpf {} "${PATH_DATA}" > /dev/null 2>&1
 [ ! -f "${PATH_DATA}/custom_data_1.txt" ] && cp -rp "${CURRENT_PATH}/lz/data/custom_data_1.txt" "${PATH_DATA}" > /dev/null 2>&1
 [ ! -f "${PATH_DATA}/custom_data_2.txt" ] && cp -rp "${CURRENT_PATH}/lz/data/custom_data_2.txt" "${PATH_DATA}" > /dev/null 2>&1
+[ ! -f "${PATH_DATA}/custom_hosts.txt" ] && cp -rp "${CURRENT_PATH}/lz/data/custom_hosts.txt" "${PATH_DATA}" > /dev/null 2>&1
 [ ! -f "${PATH_DATA}/high_wan_1_client_src_addr.txt" ] && cp -rp "${CURRENT_PATH}/lz/data/high_wan_1_client_src_addr.txt" "${PATH_DATA}" > /dev/null 2>&1
 [ ! -f "${PATH_DATA}/high_wan_1_src_to_dst_addr.txt" ] && cp -rp "${CURRENT_PATH}/lz/data/high_wan_1_src_to_dst_addr.txt" "${PATH_DATA}" > /dev/null 2>&1
 [ ! -f "${PATH_DATA}/high_wan_1_src_to_dst_addr_port.txt" ] && cp -rp "${CURRENT_PATH}/lz/data/high_wan_1_src_to_dst_addr_port.txt" "${PATH_DATA}" > /dev/null 2>&1
@@ -196,9 +197,9 @@ find "${CURRENT_PATH}/lz/data" -name "*_cidr.txt" -print0 2> /dev/null | xargs -
 [ ! -f "${PATH_DATA}/wan_2_src_to_dst_addr.txt" ] && cp -rp "${CURRENT_PATH}/lz/data/wan_2_src_to_dst_addr.txt" "${PATH_DATA}" > /dev/null 2>&1
 [ ! -f "${PATH_DATA}/wan_2_src_to_dst_addr_port.txt" ] && cp -rp "${CURRENT_PATH}/lz/data/wan_2_src_to_dst_addr_port.txt" "${PATH_DATA}" > /dev/null 2>&1
 
-chmod 775 "${PATH_LZ}/lz_rule.sh" > /dev/null 2>&1
-chmod 775 "${PATH_LZ}/uninstall.sh" > /dev/null 2>&1
-chmod -R 775 "${PATH_LZ}" > /dev/null 2>&1
+chmod -R 775 "${PATH_LZ}"/* > /dev/null 2>&1
+[ ! -d "/jffs/configs" ] && mkdir -p "/jffs/configs" > /dev/null 2>&1
+chmod -R 775 "/jffs/configs"/* > /dev/null 2>&1
 
 if [ "${PATH_LZ}" != "/jffs/scripts/lz" ]; then
     sed -i "s:/jffs/scripts/lz/:${PATH_LZ}/:g" "${PATH_LZ}/lz_rule.sh" > /dev/null 2>&1
@@ -292,10 +293,12 @@ lz_mount_web_ui() {
             mkdir -p "/jffs/addons" > /dev/null 2>&1
             [ ! -d "/jffs/addons" ] && break
         fi
+        chmod -R 775 "/jffs/addons"/* > /dev/null 2>&1
         if [ ! -d "${PATH_WEB_LZR}" ]; then
             mkdir -p "${PATH_WEB_LZR}" > /dev/null 2>&1
             [ ! -d "${PATH_WEB_LZR}" ] && break
         fi
+        chmod -R 775 "${PATH_WEB_LZR}"/* > /dev/null 2>&1
         rm -f "${PATH_WEB_LZR}/"* > /dev/null 2>&1
         ln -s "${PATH_JS}/lz_policy_routing.js" "${PATH_WEB_LZR}/lz_policy_routing.js" > /dev/null 2>&1
         ln -s "${PATH_IMAGES}/favicon.png" "${PATH_WEB_LZR}/favicon.png" > /dev/null 2>&1
@@ -306,6 +309,7 @@ lz_mount_web_ui() {
         ln -s "/jffs/scripts/service-event" "${PATH_WEB_LZR}/LZRService.html" > /dev/null 2>&1
         ln -s "/jffs/scripts/openvpn-event" "${PATH_WEB_LZR}/LZROpenvpn.html" > /dev/null 2>&1
         ln -s "/jffs/scripts/post-mount" "${PATH_WEB_LZR}/LZRPostMount.html" > /dev/null 2>&1
+        ln -s "/jffs/configs/dnsmasq.conf.add" "${PATH_WEB_LZR}/LZRDNSmasq.html" > /dev/null 2>&1
         ln -s "${PATH_LZ}/lz_rule.sh" "${PATH_WEB_LZR}/LZRVersion.html" > /dev/null 2>&1
         ln -s "${PATH_CONFIGS}/lz_rule_config.sh" "${PATH_WEB_LZR}/LZRConfig.html" > /dev/null 2>&1
         ln -s "${PATH_CONFIGS}/lz_rule_config.box" "${PATH_WEB_LZR}/LZRBKData.html" > /dev/null 2>&1

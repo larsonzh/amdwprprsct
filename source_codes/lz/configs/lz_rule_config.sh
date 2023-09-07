@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_config.sh v4.1.5
+# lz_rule_config.sh v4.1.6
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # 本软件采用CIDR（无类别域间路由，Classless Inter-Domain Routing）技术，是一个在Internet上创建附加地
@@ -612,6 +612,23 @@ fancyss_support=5
 ## 出口参数配置等场景因素进行更高层的应用级封装，对脚本运行时参数进行自动化智能配置，从而最大限度的降低
 ## 用户配置参数的复杂度和难度。
 usage_mode=0
+
+## 自定义域名地址解析
+## 0--启用；非0--禁用；取值范围：0~9
+## 缺省为禁用（5）。
+## 将指定域名解析到特定的IP地址上。
+custom_hosts=5
+
+## 自定义域名地址解析条目列表数据文件
+## 文件中的域名被访问时将跳转到指定的IP地址。
+## 文件路径、名称可自定义和修改，文件路径及名称不得为空。
+## 缺省为"/jffs/scripts/lz/data/custom_hosts.txt"，为空文件。
+## 文本格式：每行由IP地址和域名两个字段组成，字段之间用空格隔开，一个条目一行，可多行多个条目。
+## 例如：
+## 123.123.123.123 xxx123.com
+## 192.168.50.15 yyy.cn
+## 此文件中0.0.0.0为无效IP地址。
+custom_hosts_file="/jffs/scripts/lz/data/custom_hosts.txt"
 
 ## 域名地址预解析
 ## 0--系统DNS快速；1--自定义DNS；2--系统DNS快速+自定义DNS；>2--禁用；取值范围：0~9

@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_initialize_config.sh v4.1.5
+# lz_initialize_config.sh v4.1.6
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 初始化脚本配置
@@ -91,6 +91,8 @@ lz_variable_uninitialize() {
     unset local_ini_vpn_client_polling_time
     unset local_ini_fancyss_support
     unset local_ini_usage_mode
+    unset local_ini_custom_hosts
+    unset local_ini_custom_hosts_file
     unset local_ini_dn_pre_resolved
     unset local_ini_pre_dns
     unset local_ini_dn_cache_time
@@ -181,6 +183,8 @@ lz_variable_uninitialize() {
     unset local_vpn_client_polling_time
     unset local_fancyss_support
     unset local_usage_mode
+    unset local_custom_hosts
+    unset local_custom_hosts_file
     unset local_dn_pre_resolved
     unset local_pre_dns
     unset local_dn_cache_time
@@ -270,6 +274,8 @@ lz_variable_uninitialize() {
     unset local_vpn_client_polling_time_changed
     unset local_fancyss_support_changed
     unset local_usage_mode_changed
+    unset local_custom_hosts_changed
+    unset local_custom_hosts_file_changed
     unset local_dn_pre_resolved_changed
     unset local_pre_dns_changed
     unset local_dn_cache_time_changed
@@ -366,6 +372,8 @@ lz_init_cfg_data() {
     eval "[ \"\${${1}vpn_client_polling_time-undefined}\" = \"undefined\" ]" && eval "${1}vpn_client_polling_time=5"
     eval "[ \"\${${1}fancyss_support-undefined}\" = \"undefined\" ]" && eval "${1}fancyss_support=5"
     eval "[ \"\${${1}usage_mode-undefined}\" = \"undefined\" ]" && eval "${1}usage_mode=0"
+    eval "[ \"\${${1}custom_hosts-undefined}\" = \"undefined\" ]" && eval "${1}custom_hosts=5"
+    eval "[ \"\${${1}custom_hosts_file-undefined}\" = \"undefined\" ]" && eval "${1}custom_hosts_file=\\\"${PATH_DATA}/custom_hosts.txt\\\""
     eval "[ \"\${${1}dn_pre_resolved-undefined}\" = \"undefined\" ]" && eval "${1}dn_pre_resolved=0"
     eval "[ \"\${${1}pre_dns-undefined}\" = \"undefined\" ]" && eval "${1}pre_dns=\\\"8.8.8.8\\\""
     eval "[ \"\${${1}dn_cache_time-undefined}\" = \"undefined\" ]" && eval "${1}dn_cache_time=864000"
@@ -1022,6 +1030,23 @@ fancyss_support=${local_fancyss_support}
 ## 用户配置参数的复杂度和难度。
 usage_mode=${local_usage_mode}
 
+## 自定义域名地址解析
+## 0--启用；非0--禁用；取值范围：0~9
+## 缺省为禁用（5）。
+## 将指定域名解析到特定的IP地址上。
+custom_hosts=${local_custom_hosts}
+
+## 自定义域名地址解析条目列表数据文件
+## 文件中的域名被访问时将跳转到指定的IP地址。
+## 文件路径、名称可自定义和修改，文件路径及名称不得为空。
+## 缺省为"${PATH_DATA}/custom_hosts.txt"，为空文件。
+## 文本格式：每行由IP地址和域名两个字段组成，字段之间用空格隔开，一个条目一行，可多行多个条目。
+## 例如：
+## 123.123.123.123 xxx123.com
+## 192.168.50.15 yyy.cn
+## 此文件中0.0.0.0为无效IP地址。
+custom_hosts_file=${local_custom_hosts_file}
+
 ## 域名地址预解析
 ## 0--系统DNS快速；1--自定义DNS；2--系统DNS快速+自定义DNS；>2--禁用；取值范围：0~9
 ## 缺省为使用系统DNS（0）。
@@ -1283,6 +1308,8 @@ lz_get_config_data() {
             i["vpn_client_polling_time"]=5;
             i["fancyss_support"]=5;
             i["usage_mode"]=0;
+            i["custom_hosts"]=5;
+            i["custom_hosts_file"]=pathd"/custom_hosts.txt";
             i["dn_pre_resolved"]=0;
             i["pre_dns"]="8.8.8.8";
             i["dn_cache_time"]=864000;
@@ -1344,6 +1371,7 @@ lz_get_config_data() {
                 || $1 == "wan_2_src_to_dst_addr_port" \
                 || $1 == "high_wan_1_src_to_dst_addr_port" \
                 || $1 == "fancyss_support" \
+                || $1 == "custom_hosts" \
                 || $1 == "wan1_iptv_mode" \
                 || $1 == "wan2_iptv_mode" \
                 || $1 == "iptv_igmp_switch" \
@@ -1447,6 +1475,7 @@ lz_get_config_data() {
                 || $1 == "wan_2_src_to_dst_addr_port_file" \
                 || $1 == "high_wan_1_src_to_dst_addr_port_file" \
                 || $1 == "local_ipsets_file" \
+                || $1 == "custom_hosts_file" \
                 || $1 == "iptv_box_ip_lst_file" \
                 || $1 == "iptv_isp_ip_lst_file" \
                 || $1 == "custom_clear_scripts_filename" \
@@ -1586,6 +1615,8 @@ lz_config_ovs_client_wan_port=${local_ovs_client_wan_port}
 lz_config_vpn_client_polling_time=${local_vpn_client_polling_time}
 lz_config_fancyss_support=${local_fancyss_support}
 lz_config_usage_mode=${local_usage_mode}
+lz_config_custom_hosts=${local_custom_hosts}
+lz_config_custom_hosts_file=${local_custom_hosts_file}
 lz_config_dn_pre_resolved=${local_dn_pre_resolved}
 lz_config_pre_dns=${local_pre_dns}
 lz_config_dn_cache_time=${local_dn_cache_time}
@@ -1694,6 +1725,8 @@ lz_config_ovs_client_wan_port=${local_ini_ovs_client_wan_port}
 lz_config_vpn_client_polling_time=${local_ini_vpn_client_polling_time}
 lz_config_fancyss_support=${local_ini_fancyss_support}
 lz_config_usage_mode=${local_ini_usage_mode}
+lz_config_custom_hosts=${local_ini_custom_hosts}
+lz_config_custom_hosts_file=${local_ini_custom_hosts_file}
 lz_config_dn_pre_resolved=${local_ini_dn_pre_resolved}
 lz_config_pre_dns=${local_ini_pre_dns}
 lz_config_dn_cache_time=${local_ini_dn_cache_time}
@@ -1799,6 +1832,8 @@ lz_get_box_data() {
             i["vpn_client_polling_time"]=5;
             i["fancyss_support"]=5;
             i["usage_mode"]=0;
+            i["custom_hosts"]=5;
+            i["custom_hosts_file"]=pathd"/custom_hosts.txt";
             i["dn_pre_resolved"]=0;
             i["pre_dns"]="8.8.8.8";
             i["dn_cache_time"]=864000;
@@ -1864,6 +1899,7 @@ lz_get_box_data() {
                 || key == "wan_2_src_to_dst_addr_port" \
                 || key == "high_wan_1_src_to_dst_addr_port" \
                 || key == "fancyss_support" \
+                || key == "custom_hosts" \
                 || key == "wan1_iptv_mode" \
                 || key == "wan2_iptv_mode" \
                 || key == "iptv_igmp_switch" \
@@ -2003,6 +2039,7 @@ lz_get_box_data() {
                 || key == "wan_2_src_to_dst_addr_port_file" \
                 || key == "high_wan_1_src_to_dst_addr_port_file" \
                 || key == "local_ipsets_file" \
+                || key == "custom_hosts_file" \
                 || key == "iptv_box_ip_lst_file" \
                 || key == "iptv_isp_ip_lst_file" \
                 || key == "custom_clear_scripts_filename" \
@@ -2107,6 +2144,8 @@ lz_cfg_is_changed() {
     [ "${local_ini_fancyss_support}" != "${local_fancyss_support}" ] && local_fancyss_support_changed="1" && local_cfg_changed="1"
 
     [ "${local_ini_usage_mode}" != "${local_usage_mode}" ] && local_usage_mode_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_custom_hosts}" != "${local_custom_hosts}" ] && local_custom_hosts_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_custom_hosts_file}" != "${local_custom_hosts_file}" ] && local_custom_hosts_file_changed="1" && local_cfg_changed="1"
     [ "${local_ini_dn_pre_resolved}" != "${local_dn_pre_resolved}" ] && local_dn_pre_resolved_changed="1" && local_cfg_changed="1"
     [ "${local_ini_pre_dns}" != "${local_pre_dns}" ] && local_pre_dns_changed="1" && local_cfg_changed="1"
     [ "${local_ini_dn_cache_time}" != "${local_dn_cache_time}" ] && local_dn_cache_time_changed="1" && local_cfg_changed="1"
@@ -2219,6 +2258,8 @@ lz_restore_config() {
     [ "${local_fancyss_support_changed}" = "1" ] && sed -i "s|^[[:space:]]*fancyss_support=${local_fancyss_support}|fancyss_support=${local_ini_fancyss_support}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
 
     [ "${local_usage_mode_changed}" = "1" ] && sed -i "s|^[[:space:]]*usage_mode=${local_usage_mode}|usage_mode=${local_ini_usage_mode}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_custom_hosts_changed}" = "1" ] && sed -i "s|^[[:space:]]*custom_hosts=${local_custom_hosts}|custom_hosts=${local_ini_custom_hosts}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_custom_hosts_file_changed}" = "1" ] && sed -i "s|^[[:space:]]*custom_hosts_file=${local_custom_hosts_file}|custom_hosts_file=${local_ini_custom_hosts_file}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
     [ "${local_dn_pre_resolved_changed}" = "1" ] && sed -i "s|^[[:space:]]*dn_pre_resolved=${local_dn_pre_resolved}|dn_pre_resolved=${local_ini_dn_pre_resolved}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
     [ "${local_pre_dns_changed}" = "1" ] && sed -i "s|^[[:space:]]*pre_dns=${local_pre_dns}|pre_dns=${local_ini_pre_dns}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
     [ "${local_dn_cache_time_changed}" = "1" ] && sed -i "s|^[[:space:]]*dn_cache_time=${local_dn_cache_time}|dn_cache_time=${local_ini_dn_cache_time}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
@@ -2388,6 +2429,7 @@ lz_get_web_data_to_config() {
             || key == "wan_2_src_to_dst_addr_port_file" \
             || key == "high_wan_1_src_to_dst_addr_port_file" \
             || key == "local_ipsets_file" \
+            || key == "custom_hosts_file" \
             || key == "pre_dns" \
             || key == "iptv_box_ip_lst_file" \
             || key == "iptv_isp_ip_lst_file" \

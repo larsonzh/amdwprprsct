@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v4.1.5
+# lz_rule_func.sh v4.1.6
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 #BEIGIN
@@ -58,7 +58,7 @@ lz_create_project_status_id() {
 ##     总有效条目数
 lz_get_ipv4_data_file_item_total() {
     local retval="0"
-    [ -f "${1}" ] && {
+    [ -s "${1}" ] && {
         retval="$( awk -v count="0" '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
             && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
             && NF >= "1" && !i[$1]++ {count++} END{print count}' "${1}" )"
@@ -73,7 +73,7 @@ lz_get_ipv4_data_file_item_total() {
 ##     总有效条目数
 lz_get_ipv4_data_file_valid_item_total() {
     local retval="0"
-    [ -f "${1}" ] && {
+    [ -s "${1}" ] && {
         retval="$( awk -v count="0" '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
             && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
             && $1 != "0.0.0.0/0" && NF >= "1" && !i[$1]++ {count++} END{print count}' "${1}" )"
@@ -88,12 +88,27 @@ lz_get_ipv4_data_file_valid_item_total() {
 ##     总有效条目数
 lz_get_ipv4_src_to_dst_data_file_item_total() {
     local retval="0"
-    [ -f "${1}" ] && {
+    [ -s "${1}" ] && {
         retval="$( awk -v count="0" '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
             && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
             && $2 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
             && $2 !~ /[3-9][0-9][0-9]/ && $2 !~ /[2][6-9][0-9]/ && $2 !~ /[2][5][6-9]/ && $2 !~ /[\/][4-9][0-9]/ && $2 !~ /[\/][3][3-9]/ \
             && NF >= "2" && !i[$1"_"$2]++ {count++} END{print count}' "${1}" )"
+    }
+    echo "${retval}"
+}
+
+## 获取自定义域名地址解析条目列表数据文件总有效条目数函数
+## 输入项：
+##     $1--全路径网段数据文件名
+## 返回值：
+##     总有效条目数
+lz_get_custom_hosts_file_item_total() {
+    local retval="0"
+    [ -s "${1}" ] && {
+        retval="$( awk -v count="0" '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ \
+            && $2 ~ /^[[:alnum:]_\.\-]+$/ && !i[$2]++ {count++} END{print count}' "${1}" )"
+        
     }
     echo "${retval}"
 }
@@ -116,7 +131,7 @@ lz_get_domain_list() {
 ##     总有效条目数
 lz_get_domain_data_file_item_total() {
     local retval="0"
-    [ -f "${1}" ] && {
+    [ -s "${1}" ] && {
         ## 获取WAN口域名地址条目列表
         ## 输入项：
         ##     $1--WAN口域名地址条目列表数据文件名
@@ -135,7 +150,7 @@ lz_get_domain_data_file_item_total() {
 ##     1--失败
 lz_get_unkonwn_ipv4_src_addr_data_file_item() {
     local retval="1"
-    [ -f "${1}" ] && {
+    [ -s "${1}" ] && {
         retval="$( awk '$1 == "0.0.0.0/0" && NF >= "1" {print "0"; exit}' "${1}" )"
         [ -z "${retval}" ] && retval="1"
     }
@@ -150,7 +165,7 @@ lz_get_unkonwn_ipv4_src_addr_data_file_item() {
 ##     1--失败
 lz_get_unkonwn_ipv4_src_dst_addr_data_file_item() {
     local retval="1"
-    [ -f "${1}" ] && {
+    [ -s "${1}" ] && {
         retval="$( awk '$1 == "0.0.0.0/0" && $2 == "0.0.0.0/0" && NF >= "2" {print "0"; exit}' "${1}" )"
         [ -z "${retval}" ] && retval="1"
     }
@@ -165,7 +180,7 @@ lz_get_unkonwn_ipv4_src_dst_addr_data_file_item() {
 ##     1--失败
 lz_get_unkonwn_ipv4_src_dst_addr_port_data_file_item() {
     local retval="1"
-    [ -f "${1}" ] && {
+    [ -s "${1}" ] && {
         retval="$( awk '$1 == "0.0.0.0/0" && $2 == "0.0.0.0/0" && NF == "2" {print "0"; exit}' "${1}" )"
         [ -z "${retval}" ] && retval="1"
     }
@@ -179,7 +194,7 @@ lz_get_unkonwn_ipv4_src_dst_addr_port_data_file_item() {
 ##     总有效条目数
 lz_get_ipv4_src_dst_addr_port_data_file_item_total() {
     local retval="0"
-    [ -f "${1}" ] && {
+    [ -s "${1}" ] && {
         retval="$( awk '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
             && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
             && $2 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
@@ -1331,33 +1346,33 @@ lz_set_udpxy_used_value() {
 ##     0--成功
 ##     1--失败
 lz_set_hnd_bcmmcast_if() {
-    local reval="1"
-    ! which bcmmcastctl > /dev/null 2>&1 && return "${reval}"
-    [ "${2}" != "0" ] && [ "${2}" != "1" ] && [ "${2}" != "2" ] && return "${reval}"
-    [ "${3}" != "0" ] && [ "${3}" != "1" ] && [ "${3}" != "2" ] && return "${reval}"
+    local retval="1"
+    ! which bcmmcastctl > /dev/null 2>&1 && return "${retval}"
+    [ "${2}" != "0" ] && [ "${2}" != "1" ] && [ "${2}" != "2" ] && return "${retval}"
+    [ "${3}" != "0" ] && [ "${3}" != "1" ] && [ "${3}" != "2" ] && return "${retval}"
     [ -n "${1}" ] && {
         bcmmcastctl show -i "${1}" 2> /dev/null | grep -q MLD && {
             if [ "${2}" = "0" ] || [ "${2}" = "2" ]; then
                 bcmmcastctl rate -i "${1}" -p 2 -r 0  > /dev/null 2>&1
-                bcmmcastctl mode -i "${1}" -p 2 -m "${3}" > /dev/null 2>&1 && reval="$(( reval + 1 ))"
+                bcmmcastctl mode -i "${1}" -p 2 -m "${3}" > /dev/null 2>&1 && retval="$(( retval + 1 ))"
             fi
 
         }
         bcmmcastctl show -i "${1}" 2> /dev/null | grep -q IGMP && {
             if [ "${2}" = "0" ] || [ "${2}" = "1" ]; then
                 bcmmcastctl rate -i "${1}" -p 1 -r 0  > /dev/null 2>&1
-                bcmmcastctl mode -i "${1}" -p 1 -m "${3}" > /dev/null 2>&1 && reval="$(( reval + 1 ))"
+                bcmmcastctl mode -i "${1}" -p 1 -m "${3}" > /dev/null 2>&1 && retval="$(( retval + 1 ))"
             fi
         }
         bcmmcastctl blog -e 1  > /dev/null 2>&1
         [ "${2}" = "0" ] && {
-            if [ "${reval}" = "3" ]; then reval="0"; else reval="1"; fi;
+            if [ "${retval}" = "3" ]; then retval="0"; else retval="1"; fi;
         }
         if [ "${2}" = "1" ] || [ "${2}" = "2" ]; then
-            if [ "${reval}" = "2" ]; then reval="0"; else reval="1"; fi;
+            if [ "${retval}" = "2" ]; then retval="0"; else retval="1"; fi;
         fi
     }
-    return "${reval}"
+    return "${retval}"
 }
 
 ## 删除SS服务启停触发脚本文件函数
@@ -1373,10 +1388,12 @@ lz_clear_ss_start_command() {
 ##     全局常量
 ## 返回值：无
 lz_clear_dnsmasq_relation() {
-    [ -f "${DNSMASQ_CONF_ADD}" ] && sed -i '/^[^#]*conf[\-]dir=[^#]*[\/]lz[\/]tmp/d' "${DNSMASQ_CONF_ADD}" > /dev/null 2>&1
-    [ -f "${PATH_TMP}/${DOMAIN_WAN1_CONF}" ] && rm -f "${PATH_TMP}/${DOMAIN_WAN1_CONF}" > /dev/null 2>&1
-    [ -f "${PATH_TMP}/${DOMAIN_WAN2_CONF}" ] && rm -f "${PATH_TMP}/${DOMAIN_WAN2_CONF}" > /dev/null 2>&1
-    [ -d "${PATH_DNSMASQ_DOMAIN_CONF}" ] && rm -rf "${PATH_DNSMASQ_DOMAIN_CONF}" > /dev/null 2>&1
+    [ -s "${DNSMASQ_CONF_ADD}" ] && grep -q '^[^#]*conf[\-]dir=[^#]\+[\/]lz[\/]tmp[\/]' "${DNSMASQ_CONF_ADD}" \
+        && restart_dnsmasq="0" && sed -i '/^[^#]*conf[\-]dir=[^#]\+[\/]lz[\/]tmp[\/]/d' "${DNSMASQ_CONF_ADD}" > /dev/null 2>&1
+    [ -f "${PATH_DNSMASQ_DOMAIN_CONF}/${CUSTOM_HOSTS_CONF}" ] && restart_dnsmasq="0" && rm -f "${PATH_DNSMASQ_DOMAIN_CONF}/${CUSTOM_HOSTS_CONF}" > /dev/null 2>&1
+    [ -f "${PATH_DNSMASQ_DOMAIN_CONF}/${DOMAIN_WAN1_CONF}" ] && restart_dnsmasq="0" && rm -f "${PATH_DNSMASQ_DOMAIN_CONF}/${DOMAIN_WAN1_CONF}" > /dev/null 2>&1
+    [ -f "${PATH_DNSMASQ_DOMAIN_CONF}/${DOMAIN_WAN2_CONF}" ] && restart_dnsmasq="0" && rm -f "${PATH_DNSMASQ_DOMAIN_CONF}/${DOMAIN_WAN2_CONF}" > /dev/null 2>&1
+    rmdir "${PATH_DNSMASQ_DOMAIN_CONF}" > /dev/null 2>&1
 }
 
 ## 初始化组播路由及udpxy函数
@@ -1523,9 +1540,8 @@ lz_data_cleaning() {
     ## 返回值：无
     lz_delete_iptables_custom_forward_chain "${CUSTOM_FORWARD_CHAIN}"
 
-    local local_restart_dnsmasq="1"
     if [ -n "$( ipset -q -n list "${DOMAIN_SET_0}" )" ] || [ -n "$( ipset -q -n list "${DOMAIN_SET_1}" )" ]; then
-        local_restart_dnsmasq="0"
+        restart_dnsmasq="0"
     fi
 
     ## 清理目标访问服务器IP网段数据集
@@ -1533,9 +1549,6 @@ lz_data_cleaning() {
     ## 输入项：无
     ## 返回值：无
     lz_destroy_ipset
-
-    ## 重启dnsmasq服务
-    [ "${local_restart_dnsmasq}" = "0" ] && service restart_dnsmasq > /dev/null 2>&1
 
     ## 清除虚拟专网客户端路由刷新处理后台守护进程
     rm -f "${PATH_TMP}/${VPN_CLIENT_DAEMON_LOCK}" > /dev/null 2>&1	##（保留，用于兼容v3.7.0及之前版本）
@@ -1680,11 +1693,29 @@ lz_clear_interface_scripts() {
         ! ip route show table "${LZ_IPTV}" | grep -qw 'default' && \
         rm -f "${PATH_TMP}/${IGMP_PROXY_CONF_NAME}" > /dev/null 2>&1
 
-    ## 清除域名地址配置文件
-    [ -f "${PATH_TMP}/${DOMAIN_WAN1_CONF}" ] && rm -f "${PATH_TMP}/${DOMAIN_WAN1_CONF}" > /dev/null 2>&1
-    [ -f "${PATH_TMP}/${DOMAIN_WAN2_CONF}" ] && rm -f "${PATH_TMP}/${DOMAIN_WAN2_CONF}" > /dev/null 2>&1
-
     return
+}
+
+## 加载自定义域名地址解析条目列表数据文件函数
+## 输入项：
+##     全局常量及变量
+## 返回值：无
+lz_load_custom_hosts_file() {
+    if [ "${custom_hosts}" = "0" ] && [ "$( lz_get_custom_hosts_file_item_total "${custom_hosts_file}" )" -gt "0" ]; then
+        if [ ! -d "${PATH_DNSMASQ_DOMAIN_CONF}" ]; then
+            mkdir -p "${PATH_DNSMASQ_DOMAIN_CONF}" > /dev/null 2>&1
+            chmod -R 775 "${PATH_DNSMASQ_DOMAIN_CONF}"/* > /dev/null 2>&1
+        fi
+        awk '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ \
+            && $2 ~ /^[[:alnum:]_\.\-]+$/ && !i[$2]++ {print "address=/"$2"/"$1}' "${custom_hosts_file}" > "${PATH_DNSMASQ_DOMAIN_CONF}/${CUSTOM_HOSTS_CONF}"
+        if [ ! -s "${DNSMASQ_CONF_ADD}" ]; then
+            echo "conf-dir=${PATH_DNSMASQ_DOMAIN_CONF}" >> "${DNSMASQ_CONF_ADD}" 2> /dev/null
+        elif ! grep -q "^conf-dir=${PATH_DNSMASQ_DOMAIN_CONF//"/"/[\/]}$" "${DNSMASQ_CONF_ADD}"; then
+            echo "conf-dir=${PATH_DNSMASQ_DOMAIN_CONF}" >> "${DNSMASQ_CONF_ADD}" 2> /dev/null
+        fi
+        ## 重启dnsmasq服务
+        restart_dnsmasq="0"
+    fi
 }
 
 ## 生成更新ISP网络运营商CIDR网段数据的脚本文件
@@ -2168,7 +2199,7 @@ lz_add_dst_net_address_sets() {
 ##     总有效条目数
 lz_get_ipv4_defined_src_to_dst_data_file_item_total() {
     local retval="0"
-    [ -f "${1}" ] && {
+    [ -s "${1}" ] && {
         retval="$( awk -v count="0" '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
             && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
             && $1 != "0.0.0.0/0" \
@@ -2581,7 +2612,7 @@ DOMAIN_BUF_INPUT
 ##     1--失败
 lz_get_full_client_domain() {
     local retval="1"
-    [ -f "${1}" ] && {
+    [ -s "${1}" ] && {
         retval="$( awk '$1 == "0.0.0.0/0" && NF >= "1" {print "0"; exit}' "${1}" )"
         [ -z "${retval}" ] && retval="1"
     }
@@ -2669,14 +2700,15 @@ lz_setup_domain_policy() {
     fi
     ## 建立dnsmasq关联
     if [ "${local_sucess_1}" = "0" ] || [ "${local_sucess_2}" = "0" ]; then
-        [ ! -d "/jffs/configs" ] && mkdir -p "/jffs/configs" > /dev/null 2>&1
-        chmod -R 775 "/jffs/configs"/* > /dev/null 2>&1
-        [ ! -f "${DNSMASQ_CONF_ADD}" ] && touch "${DNSMASQ_CONF_ADD}" > /dev/null 2>&1
-        echo "conf-dir=${PATH_DNSMASQ_DOMAIN_CONF}" >> "${DNSMASQ_CONF_ADD}" 2> /dev/null
+        if [ ! -s "${DNSMASQ_CONF_ADD}" ]; then
+            echo "conf-dir=${PATH_DNSMASQ_DOMAIN_CONF}" >> "${DNSMASQ_CONF_ADD}" 2> /dev/null
+        elif ! grep -q "^conf-dir=${PATH_DNSMASQ_DOMAIN_CONF//"/"/[\/]}$" "${DNSMASQ_CONF_ADD}"; then
+            echo "conf-dir=${PATH_DNSMASQ_DOMAIN_CONF}" >> "${DNSMASQ_CONF_ADD}" 2> /dev/null
+        fi
         ## 重启dnsmasq服务
-        service restart_dnsmasq > /dev/null 2>&1
+        restart_dnsmasq="0"
     else
-        [ -d "${PATH_DNSMASQ_DOMAIN_CONF}" ] && rm -rf "${PATH_DNSMASQ_DOMAIN_CONF}" > /dev/null 2>&1
+        [ -d "${PATH_DNSMASQ_DOMAIN_CONF}" ] && [ ! -f "${PATH_DNSMASQ_DOMAIN_CONF}/${CUSTOM_HOSTS_CONF}" ] && rm -rf "${PATH_DNSMASQ_DOMAIN_CONF}" > /dev/null 2>&1
     fi
 }
 
@@ -4502,7 +4534,13 @@ lz_output_ispip_info_to_system_records() {
         echo "$(lzdate)" [$$]: --------------------------------------------- | tee -ai "${SYSLOG}" 2> /dev/null
     }
     local_exist="0"
-    local local_item_count="$( lz_get_ipv4_data_file_valid_item_total "${local_ipsets_file}" )"
+    local local_item_count="0"
+    [ "${custom_hosts}" = "0" ] && local_item_count="$( lz_get_custom_hosts_file_item_total "${custom_hosts_file}" )" \
+        && [ "${local_item_count}" -gt "0" ] && {
+        echo "$(lzdate)" [$$]: "   Custom-Hosts    DNSmasq             ${local_item_count}" | tee -ai "${SYSLOG}" 2> /dev/null
+        local_exist="1"
+    }
+    local_item_count="$( lz_get_ipv4_data_file_valid_item_total "${local_ipsets_file}" )"
     [ "${local_item_count}" -gt "0" ] && {
         echo "$(lzdate)" [$$]: "   LocalIPBlcLst   Load Balancing      ${local_item_count}" | tee -ai "${SYSLOG}" 2> /dev/null
         local_exist="1"
@@ -4760,7 +4798,7 @@ lz_add_dual_ip_rules() {
 ##     数据列表
 lz_get_ipv4_list_from_data_file() {
     local retval=""
-    [ -f "${1}" ] && {
+    [ -s "${1}" ] && {
         retval="$( awk '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
             && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
             && $1 != "0.0.0.0/0" \

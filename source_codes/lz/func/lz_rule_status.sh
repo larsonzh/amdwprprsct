@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_status.sh v4.1.5
+# lz_rule_status.sh v4.1.6
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 显示脚本运行状态脚本
@@ -169,6 +169,21 @@ lz_get_ipv4_src_to_dst_data_file_item_total_status() {
             && $2 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
             && $2 !~ /[3-9][0-9][0-9]/ && $2 !~ /[2][6-9][0-9]/ && $2 !~ /[2][5][6-9]/ && $2 !~ /[\/][4-9][0-9]/ && $2 !~ /[\/][3][3-9]/ \
             && NF >= "2" && !i[$1"_"$2]++ {count++} END{print count}' "${1}" )"
+    }
+    echo "${retval}"
+}
+
+## 获取自定义域名地址解析条目列表数据文件总有效条目数状态函数
+## 输入项：
+##     $1--全路径网段数据文件名
+## 返回值：
+##     总有效条目数
+lz_get_custom_hosts_file_item_total_status() {
+    local retval="0"
+    [ -s "${1}" ] && {
+        retval="$( awk -v count="0" '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ \
+            && $2 ~ /^[[:alnum:]_\.\-]+$/ && !i[$2]++ {count++} END{print count}' "${1}" )"
+        
     }
     echo "${retval}"
 }
@@ -374,7 +389,9 @@ lz_unset_parameter_status_variable() {
     unset status_ovs_client_wan_port
     unset status_vpn_client_polling_time
     unset status_fancyss_support
-    unset status_usage_mode_mode
+    unset status_usage_mode
+    unset status_custom_hosts
+    unset status_custom_hosts_file
     unset status_route_cache
     unset status_clear_route_cache_time_interval
     unset status_wan1_iptv_mode
@@ -458,6 +475,8 @@ lz_init_cfg_data_status() {
     [ "${status_vpn_client_polling_time-undefined}" = "undefined" ] && status_vpn_client_polling_time=5
     [ "${status_fancyss_support-undefined}" = "undefined" ] && status_fancyss_support=5
     [ "${status_usage_mode-undefined}" = "undefined" ] && status_usage_mode=0
+    [ "${status_custom_hosts-undefined}" = "undefined" ] && status_custom_hosts=5
+    [ "${status_custom_hosts_file-undefined}" = "undefined" ] && status_custom_hosts_file="${PATH_DATA}/custom_hosts.txt"
     [ "${status_route_cache-undefined}" = "undefined" ] && status_route_cache=0
     [ "${status_clear_route_cache_time_interval-undefined}" = "undefined" ] && status_clear_route_cache_time_interval=4
     [ "${status_wan1_iptv_mode-undefined}" = "undefined" ] && status_wan1_iptv_mode=5
@@ -538,6 +557,8 @@ lz_get_box_data_status() {
             i["status_vpn_client_polling_time"]=5;
             i["status_fancyss_support"]=5;
             i["status_usage_mode"]=0;
+            i["status_custom_hosts"]=5;
+            i["status_custom_hosts_file"]=pathd"/custom_hosts.txt";
             i["status_route_cache"]=0;
             i["status_clear_route_cache_time_interval"]=4;
             i["status_wan1_iptv_mode"]=5;
@@ -619,6 +640,7 @@ lz_get_box_data_status() {
                 || key == "status_wan_2_src_to_dst_addr_port" \
                 || key == "status_high_wan_1_src_to_dst_addr_port" \
                 || key == "status_fancyss_support" \
+                || key == "status_custom_hosts" \
                 || key == "status_wan1_iptv_mode" \
                 || key == "status_wan2_iptv_mode" \
                 || key == "status_iptv_igmp_switch" \
@@ -710,6 +732,7 @@ lz_get_box_data_status() {
                 || key == "status_wan_2_src_to_dst_addr_port_file" \
                 || key == "status_high_wan_1_src_to_dst_addr_port_file" \
                 || key == "status_local_ipsets_file" \
+                || key == "status_custom_hosts_file" \
                 || key == "status_iptv_box_ip_lst_file" \
                 || key == "status_iptv_isp_ip_lst_file" \
                 || key == "status_custom_clear_scripts_filename" \
@@ -1765,7 +1788,13 @@ lz_output_ispip_status_info() {
         echo "$(lzdate)" [$$]: --------------------------------------------- | tee -ai "${STATUS_LOG}" 2> /dev/null
     }
     local_exist="0"
-    local local_item_count="$( lz_get_ipv4_data_file_valid_item_total_status "${status_local_ipsets_file}" )"
+    local local_item_count="0"
+    [ "${status_custom_hosts}" = "0" ] && local_item_count="$( lz_get_custom_hosts_file_item_total_status "${status_custom_hosts_file}" )" \
+        && [ "${local_item_count}" -gt "0" ] && {
+        echo "$(lzdate)" [$$]: "   Custom-Hosts    DNSmasq             ${local_item_count}" | tee -ai "${STATUS_LOG}" 2> /dev/null
+        local_exist="1"
+    }
+    local_item_count="$( lz_get_ipv4_data_file_valid_item_total_status "${status_local_ipsets_file}" )"
     [ "${local_item_count}" -gt "0" ] && {
         echo "$(lzdate)" [$$]: "   LocalIPBlcLst   Load Balancing      ${local_item_count}" | tee -ai "${STATUS_LOG}" 2> /dev/null
         local_exist="1"

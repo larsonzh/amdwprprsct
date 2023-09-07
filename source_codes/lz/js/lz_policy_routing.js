@@ -1,5 +1,5 @@
 /*
-# lz_policy_routing.js v4.1.5
+# lz_policy_routing.js v4.1.6
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ JavaScript for Asuswrt-Merlin Router
@@ -17,9 +17,22 @@ function getVersion() {
         async: false,
         url: '/ext/lzr/LZRVersion.html',
         dataType: 'text',
-        success: function(result) {
-            let buf = result.match(/^[\s]*LZ_VERSION[=][\w\.]*/m);
+        success: function(response) {
+            let buf = response.match(/^[\s]*LZ_VERSION[=][\w\.]*/m);
             if (buf != null) policySettingsArray.version = (buf.length > 0) ? buf[0].replace(/^.*[=]/, "") : "";
+        }
+    });
+}
+
+function getPath() {
+    policySettingsArray["path"] = "/jffs/scripts/lz";
+    $.ajax({
+        async: false,
+        url: '/ext/lzr/LZRService.html',
+        dataType: 'text',
+        success: function(response) {
+            let buf = response.match(/^[\s]*[\w\/]+[\/]interface[\/]lz_rule_service[\.]sh/m);
+            if (buf != null) policySettingsArray.path = (buf.length > 0) ? buf[0].replace(/^[\s]*([\w\/]+)[\/]interface[\/]lz_rule_service[\.]sh$/, "$1") : "/jffs/scripts/lz";
         }
     });
 }
@@ -36,6 +49,7 @@ function showProduct() {
     if (policySettingsArray.hasOwnProperty("version") && policySettingsArray.version != "")
         $("#lzr_producid").html(`LZ RULE ${policySettingsArray.version} ${currentProductId} by 妙妙呜&#8482;`);
     else $("#lzr_producid").html(`LZ RULE ${currentProductId} by 妙妙呜&#8482;`);
+    getPath();
 }
 
 function getPolicyState() {
@@ -44,8 +58,8 @@ function getPolicyState() {
         async: false,
         url: '/ext/lzr/LZRState.html',
         dataType: 'text',
-        success: function(result) {
-            retVal = result.match(/^[\s]*[\w\/]+lz_rule[\.]sh[\s]*([#].*){0,1}$/m) != null;
+        success: function(response) {
+            retVal = response.match(/^[\s]*[\w\/]+lz_rule[\.]sh[\s]*([#].*){0,1}$/m) != null;
         }
     });
     return retVal;
@@ -63,7 +77,7 @@ let customSettings;
 function loadCustomSettings() {
     customSettings = '<% get_custom_settings(); %>';
     if (typeof customSettings == "string" 
-        && /^[\s]*[\{]([\s]*[\"][^\"]+[\"][\s]*[:][\s]*[\"][^\"]*[\"][\s][,])*[\s]*[\"][^\"]+[\"][\s]*[:][\s]*[\"][^\"]*[\"][\s][\}][\s]*$|^[\s]*[\{]([\s]*[\"][^\"]+[\"][\s]*[:][\s]*[\"][^\"]*[\"][\s]){0,1}[\}][\s]*$/.test(customSettings)) {
+        && /^[\s]*[\{]([\s]*[\"][^\"]+[\"][\s]*[\:][\s]*[\"][^\"]*[\"][\s][,])*[\s]*[\"][^\"]+[\"][\s]*[\:][\s]*[\"][^\"]*[\"][\s][\}][\s]*$|^[\s]*[\{]([\s]*[\"][^\"]+[\"][\s]*[\:][\s]*[\"][^\"]*[\"][\s]){0,1}[\}][\s]*$/.test(customSettings)) {
         customSettings = JSON.parse(customSettings);
         for (let prop in customSettings) {
             if (Object.prototype.hasOwnProperty.call(customSettings, prop))
@@ -79,8 +93,8 @@ function isNewVersion() {
         async: false,
         url: '/ext/lzr/LZRGlobal.html',
         dataType: 'text',
-        success: function(result) {
-            retVal = (result.match(/QnkgTFog5aaZ5aaZ5ZGc77yI6Juk6J[\+]G5aKp5YS[\/]77yJ/m) != null) ? true : false;
+        success: function(response) {
+            retVal = (response.match(/QnkgTFog5aaZ5aaZ5ZGc77yI6Juk6J[\+]G5aKp5YS[\/]77yJ/m) != null) ? true : false;
         }
     });
     return retVal;
@@ -96,8 +110,8 @@ function loadPolicySettings() {
         async: false,
         url: fileUrl,
         dataType: 'text',
-        success: function(result) {
-            let buf = result.match(/^[\s]*[\w]+[=].*$/gm);
+        success: function(response) {
+            let buf = response.match(/^[\s]*[\w]+[=].*$/gm);
             if (buf == null) return;
             while (buf.length > 0) {
                 buf[0] = buf[0].replace(/^[\s]+|[# \t].*$|[\'\"]/g, "").split('=');
@@ -219,6 +233,8 @@ function initControls() {
     initListBox("lzr_vpn_client_polling_time", 1, 20, 5);
     initCheckRadio("lzr_fancyss_support", 0, 0, 5);
     initCheckRadio("lzr_usage_mode", 0, 1, 0);
+    initCheckRadio("lzr_custom_hosts", 0, 5, 5);
+    initTextEdit("lzr_custom_hosts_file");
     initListBox("lzr_dn_pre_resolved", 0, 2, 5);
     initTextEdit("lzr_pre_dns");
     initNumberEdit("lzr_dn_cache_time", 0, 2147483, 864000);
@@ -599,7 +615,7 @@ function openOverHint(itemNum) {
         content += "<b>负载均衡</b>：由系统采用链路负载均衡技术自动分配流量出口，但容易导致网络访问不正常。<br />";
         content += "<br /><b>策略执行优先级</b>：详见<b>基本设置&nbsp;-&nbsp;策略路由优先级</b></div>";
     } else if (itemNum == 16) {
-        content = "<div>缺省文件名为 <b>/jffs/scripts/lz/data/custom_data_1.txt</b>，无有效数据条目。<br />";
+        content = `<div>缺省文件名为 <b>${policySettingsArray.path}/data/custom_data_1.txt</b>，无有效数据条目。<br />`;
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
         content += "<br />文本格式：一个网址/网段一行，为一个条目，可多行多个条目。<br />";
         content += "<br />此文件中 <b>0.0.0.0/0</b> 为无效地址。<br />";
@@ -620,27 +636,27 @@ function openOverHint(itemNum) {
         content += "<br /><b>策略执行优先级</b>：详见<b>基本设置&nbsp;-&nbsp;策略路由优先级</b></div>";
     } else if (itemNum == 19) {
         content = "<div>文件中具体定义所有使用<b>首选 WAN 口域名地址动态访问策略</b>的客户端在本地网络中的 IP 地址。<br />";
-        content += "<br />缺省文件名为 <b>/jffs/scripts/lz/data/wan_1_domain_client_src_addr.txt</b>，无有效数据条目。<br />";
+        content += `<br />缺省文件名为 <b>${policySettingsArray.path}/data/wan_1_domain_client_src_addr.txt</b>，无有效数据条目。<br />`;
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
         content += "<br />文本格式：一个网址/网段一行，为一个条目，可多行多个条目。<br />";
         content += "<br />可以用 <b>0.0.0.0/0</b> 表示所有客户端。<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 20) {
         content = "<div>文件中具体定义所有使用<b>首选 WAN</b> 口作为流量出口的预设域名地址。<br />";
-        content += "<br />缺省文件名为 <b>/jffs/scripts/lz/data/wan_1_domain.txt</b>，无有效数据条目。<br />";
+        content += `<br />缺省文件名为 <b>${policySettingsArray.path}/data/wan_1_domain.txt</b>，无有效数据条目。<br />`;
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
         content += "<br />文本格式：一个域名地址一行，为一个条目，可多行多个条目。<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 21) {
         content = "<div>文件中具体定义所有使用<b>第二 WAN 口域名地址动态访问策略</b>的客户端在本地网络中的 IP 地址。<br />";
-        content += "<br />缺省文件名为 <b>/jffs/scripts/lz/data/wan_2_domain_client_src_addr.txt</b>，无有效数据条目。<br />";
+        content += `<br />缺省文件名为 <b>${policySettingsArray.path}/data/wan_2_domain_client_src_addr.txt</b>，无有效数据条目。<br />`;
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
         content += "<br />文本格式：一个网址/网段一行，为一个条目，可多行多个条目。<br />";
         content += "<br />可以用 <b>0.0.0.0/0</b> 表示所有客户端。<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 22) {
         content = "<div>文件中具体定义所有使用<b>第二 WAN</b> 口作为流量出口的预设域名地址。<br />";
-        content += "<br />缺省文件名为 <b>/jffs/scripts/lz/data/wan_2_domain.txt</b>，无有效数据条目。<br />";
+        content += `<br />缺省文件名为 <b>${policySettingsArray.path}/data/wan_2_domain.txt</b>，无有效数据条目。<br />`;
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
         content += "<br />文本格式：一个域名地址一行，为一个条目，可多行多个条目。<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
@@ -649,14 +665,14 @@ function openOverHint(itemNum) {
         content += "<br /><b>策略执行优先级</b>：详见<b>基本设置&nbsp;-&nbsp;策略路由优先级</b></div>";
     } else if (itemNum == 24) {
         content = "<div>文件中具体定义所有使用<b>首选 WAN 口客户端静态直通策略</b>的客户端在本地网络中的 IP 地址。<br />";
-        content += "<br />缺省文件名为 <b>/jffs/scripts/lz/data/wan_1_client_src_addr.txt</b>，无有效数据条目。<br />";
+        content += `<br />缺省文件名为 <b>${policySettingsArray.path}/data/wan_1_client_src_addr.txt</b>，无有效数据条目。<br />`;
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
         content += "<br />文本格式：一个网址/网段一行，为一个条目，可多行多个条目。<br />";
         content += "<br />可以用 <b>0.0.0.0/0</b> 表示所有客户端。<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 25) {
         content = "<div>文件中具体定义所有使用<b>第二 WAN 口客户端静态直通策略</b>的客户端在本地网络中的 IP 地址。<br />";
-        content += "<br />缺省文件名为 <b>/jffs/scripts/lz/data/wan_2_client_src_addr.txt</b>，无有效数据条目。<br />";
+        content += `<br />缺省文件名为 <b>${policySettingsArray.path}/data/wan_2_client_src_addr.txt</b>，无有效数据条目。<br />`;
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
         content += "<br />文本格式：一个网址/网段一行，为一个条目，可多行多个条目。<br />";
         content += "<br />可以用 <b>0.0.0.0/0</b> 表示所有客户端。<br />";
@@ -666,14 +682,14 @@ function openOverHint(itemNum) {
         content += "<br /><b>策略执行优先级</b>：详见<b>基本设置&nbsp;-&nbsp;策略路由优先级</b></div>";
     } else if (itemNum == 27) {
         content = "<div>文件中具体定义所有使用<b>首选 WAN 口高优先级客户端静态直通策略</b>的客户端在本地网络中的 IP 地址。<br />";
-        content += "<br />缺省文件名为 <b>/jffs/scripts/lz/data/high_wan_1_client_src_addr.txt</b>，无有效数据条目。<br />";
+        content += `<br />缺省文件名为 <b>${policySettingsArray.path}/data/high_wan_1_client_src_addr.txt</b>，无有效数据条目。<br />`;
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
         content += "<br />文本格式：一个网址/网段一行，为一个条目，可多行多个条目。<br />";
         content += "<br />可以用 <b>0.0.0.0/0</b> 表示所有客户端。<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 28) {
         content = "<div>文件中具体定义所有使用<b>第二 WAN 口高优先级客户端静态直通策略</b>的客户端在本地网络中的 IP 地址。<br />";
-        content += "<br />缺省文件名为 <b>/jffs/scripts/lz/data/high_wan_2_client_src_addr.txt</b>，无有效数据条目。<br />";
+        content += `<br />缺省文件名为 <b>${policySettingsArray.path}/data/high_wan_2_client_src_addr.txt</b>，无有效数据条目。<br />`;
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
         content += "<br />文本格式：一个网址/网段一行，为一个条目，可多行多个条目。<br />";
         content += "<br />可以用 <b>0.0.0.0/0</b> 表示所有客户端。<br />";
@@ -683,9 +699,9 @@ function openOverHint(itemNum) {
         content += "<br /><b>策略执行优先级</b>：详见<b>基本设置&nbsp;-&nbsp;策略路由优先级</b></div>";
     } else if (itemNum == 30) {
         content = "<div>文件中具体定义使用<b>首选 WAN 口客户端至预设目标 IP 地址静态直通策略</b>的客户端 IP 地址和目标 IP 地址。<br />";
-        content += "<br />缺省文件名为 <b>/jffs/scripts/lz/data/wan_1_src_to_dst_addr.txt</b>，无有效数据条目。<br />";
+        content += `<br />缺省文件名为 <b>${policySettingsArray.path}/data/wan_1_src_to_dst_addr.txt</b>，无有效数据条目。<br />`;
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
-        content += "<br />文本格式：每行的源地址和目标地址之间按顺序用空格隔开，一个条目一行，可多行多个条目。<br />";
+        content += "<br />文本格式：每行的<b>源地址</b>和<b>目标地址</b>之间按顺序用<b>空格</b>隔开，一个条目一行，可多行多个条目。<br />";
         content += "<br />例如：<br />";
         content += "192.168.50.101&nbsp;103.10.4.108<br />";
         content += "0.0.0.0/0&nbsp;202.89.233.100<br />";
@@ -694,9 +710,9 @@ function openOverHint(itemNum) {
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 31) {
         content = "<div>文件中具体定义使用<b>第二 WAN 口客户端至预设目标 IP 地址静态直通策略</b>的客户端 IP 地址和目标 IP 地址。<br />";
-        content += "<br />缺省文件名为 <b>/jffs/scripts/lz/data/wan_2_src_to_dst_addr.txt</b>，无有效数据条目。<br />";
+        content += `<br />缺省文件名为 <b>${policySettingsArray.path}/data/wan_2_src_to_dst_addr.txt</b>，无有效数据条目。<br />`;
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
-        content += "<br />文本格式：每行的源地址和目标地址之间按顺序用空格隔开，一个条目一行，可多行多个条目。<br />";
+        content += "<br />文本格式：每行的<b>源地址</b>和<b>目标地址</b>之间按顺序用<b>空格</b>隔开，一个条目一行，可多行多个条目。<br />";
         content += "<br />例如：<br />";
         content += "192.168.50.102&nbsp;210.74.0.0/16<br />";
         content += "<br />可以用 <b>0.0.0.0/0</b> 表示所有未知IP地址。<br />";
@@ -707,9 +723,9 @@ function openOverHint(itemNum) {
         content += "<br /><b>策略执行优先级</b>：详见<b>基本设置&nbsp;-&nbsp;策略路由优先级</b></div>";
     } else if (itemNum == 33) {
         content = "<div>文件中具体定义使用<b>首选 WAN 口高优先级客户端至预设目标 IP 地址静态直通策略</b>的客户端 IP 地址和目标 IP 地址。<br />";
-        content += "<br />缺省文件名为 <b>/jffs/scripts/lz/data/high_wan_1_src_to_dst_addr.txt</b>，无有效数据条目。<br />";
+        content += `<br />缺省文件名为 <b>${policySettingsArray.path}/data/high_wan_1_src_to_dst_addr.txt</b>，无有效数据条目。<br />`;
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
-        content += "<br />文本格式：每行的源地址和目标地址之间按顺序用空格隔开，一个条目一行，可多行多个条目。<br />";
+        content += "<br />文本格式：每行的<b>源地址</b>和<b>目标地址</b>之间按顺序用<b>空格</b>隔开，一个条目一行，可多行多个条目。<br />";
         content += "<br />例如：<br />";
         content += "192.168.50.0/27&nbsp;0.0.0.0/0<br />";
         content += "<br />可以用 <b>0.0.0.0/0</b> 表示所有未知IP地址。<br />";
@@ -733,9 +749,9 @@ function openOverHint(itemNum) {
         mode = 1;
         caption = " 客户端地址至目标地址协议端口列表";
         content = "<div>文件中具体定义客户端使用<b>首选 WAN</b> 口作为流量出口访问预设地址协议端口的客户端 IP 地址和目标 IP 地址的协议端口。<br />";
-        content += "<br />缺省文件名为 <b>/jffs/scripts/lz/data/wan_1_src_to_dst_addr_port.txt</b>，无有效数据条目。<br />";
+        content += `<br />缺省文件名为 <b>${policySettingsArray.path}/data/wan_1_src_to_dst_addr_port.txt</b>，无有效数据条目。<br />`;
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
-        content += "<br />文本格式：每行各字段之间用空格隔开，一个条目一行，可多行多个条目。<br />";
+        content += "<br />文本格式：每行各字段之间用<b>空格</b>隔开，一个条目一行，可多行多个条目。<br />";
         content += "<br />客户端地址&nbsp;目标地址&nbsp;通讯协议&nbsp;目标端口号<br />";
         content += "<br />例如：<br />";
         content += "192.168.50.101&nbsp;123.123.123.121&nbsp;tcp&nbsp;80,443,6881:6889,25671<br />";
@@ -754,9 +770,9 @@ function openOverHint(itemNum) {
         mode = 1;
         caption = " 客户端地址至目标地址协议端口列表";
         content = "<div>文件中具体定义客户端使用<b>第二 WAN</b> 口作为流量出口访问预设地址协议端口的客户端 IP 地址和目标 IP 地址的协议端口。<br />";
-        content += "<br />缺省文件名为 <b>/jffs/scripts/lz/data/wan_2_src_to_dst_addr_port.txt</b>，无有效数据条目。<br />";
+        content += `<br />缺省文件名为 <b>${policySettingsArray.path}/data/wan_2_src_to_dst_addr_port.txt</b>，无有效数据条目。<br />`;
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
-        content += "<br />文本格式：每行各字段之间用空格隔开，一个条目一行，可多行多个条目。<br />";
+        content += "<br />文本格式：每行各字段之间用<b>空格</b>隔开，一个条目一行，可多行多个条目。<br />";
         content += "<br />客户端地址&nbsp;目标地址&nbsp;通讯协议&nbsp;目标端口号<br />";
         content += "<br />例如：<br />";
         content += "192.168.50.101&nbsp;123.123.123.121&nbsp;tcp&nbsp;80,443,6881:6889,25671<br />";
@@ -780,9 +796,9 @@ function openOverHint(itemNum) {
         mode = 1;
         caption = " 客户端地址至目标地址协议端口列表";
         content = "<div>文件中具体定义客户端使用<b>首选 WAN</b> 口作为流量出口高优先级访问预设地址协议端口的客户端 IP 地址和目标 IP 地址的协议端口。<br />";
-        content += "<br />缺省文件名为 <b>/jffs/scripts/lz/data/high_wan_1_src_to_dst_addr_port.txt</b>，无有效数据条目。<br />";
+        content += `<br />缺省文件名为 <b>${policySettingsArray.path}/data/high_wan_1_src_to_dst_addr_port.txt</b>，无有效数据条目。<br />`;
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
-        content += "<br />文本格式：每行各字段之间用空格隔开，一个条目一行，可多行多个条目。<br />";
+        content += "<br />文本格式：每行各字段之间用<b>空格</b>隔开，一个条目一行，可多行多个条目。<br />";
         content += "<br />客户端地址&nbsp;目标地址&nbsp;通讯协议&nbsp;目标端口号<br />";
         content += "<br />例如：<br />";
         content += "192.168.50.101&nbsp;123.123.123.121&nbsp;tcp&nbsp;80,443,6881:6889,25671<br />";
@@ -801,7 +817,7 @@ function openOverHint(itemNum) {
         content = "<div>列入本策略<b>客户端 IP 地址列表</b>中的设备访问外网时不受其他路由策略影响，仅由路由器系统本身的链路负载均衡功能自动分配流量出口，可实现一些特殊用途的应用 (如带速叠加下载，但外部影响因素较多，不保证能实现)。<br />";
         content += "<br /><b>策略执行优先级</b>：详见<b>基本设置&nbsp;-&nbsp;策略路由优先级</b></div>";
     } else if (itemNum == 41) {
-        content = "<div>缺省文件名为 <b>/jffs/scripts/lz/data/local_ipsets_data.txt</b>，无有效数据条目。<br />";
+        content = `<div>缺省文件名为 <b>${policySettingsArray.path}/data/local_ipsets_data.txt</b>，无有效数据条目。<br />`;
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
         content += "<br />文文本格式：一个网址/网段一行，为一个条目，可多行多个条目。<br />";
         content += "<br />此文件中 <b>0.0.0.0/0</b> 为无效地址。<br />";
@@ -908,7 +924,7 @@ function openOverHint(itemNum) {
         content += "<br /><b>策略执行优先级</b>：详见<b>基本设置&nbsp;-&nbsp;策略路由优先级</b></div>";
     } else if (itemNum == 61) {
         content = "<div>IPTV 机顶盒使用的<b>必选项</b>。<br />";
-        content += "<br />缺省文件名为 <b>/jffs/scripts/lz/data/iptv_box_ip_lst.txt</b>，无有效数据条目。<br />";
+        content += `<br />缺省文件名为 <b>${policySettingsArray.path}/data/iptv_box_ip_lst.txt</b>，无有效数据条目。<br />`;
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
         content += "<br />文本格式，一个机顶盒地址一行，可逐行填入多个机顶盒地址。<br />";
         content += "<br />此文件中 <b>0.0.0.0/0</b> 为无效地址。<br />";
@@ -916,7 +932,7 @@ function openOverHint(itemNum) {
     } else if (itemNum == 62) {
         content = "<div>仅在<b>IPTV 机顶盒访问 IPTV 线路方式</b>为<b>按服务地址访问</b>时使用。<br />";
         content += "<br />这些不是 IPTV 节目播放源地址，而是运营商的 IPTV 后台网络服务地址，需要用户自己获取和填写，如果地址不全或错误，机顶盒将无法通过路由器正确接入 IPTV 线路。若填入的地址覆盖了用户使用的互联网访问地址，会导致机顶盒无法通过该地址访问互联网。<br />";
-        content += "<br />缺省文件名为 <b>/jffs/scripts/lz/data/iptv_isp_ip_lst.txt</b>，无有效数据条目。<br />";
+        content += `<br />缺省文件名为 <b>${policySettingsArray.path}/data/iptv_isp_ip_lst.txt</b>，无有效数据条目。<br />`;
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
         content += "<br />文本格式，一个机顶盒地址一行，可逐行填入多个机顶盒地址。<br />";
         content += "<br />此文件中 <b>0.0.0.0/0</b> 为无效地址。<br />";
@@ -957,14 +973,14 @@ function openOverHint(itemNum) {
     } else if (itemNum == 75) {
         content = "<div><b>Linux Shell 脚本</b>。<br />";
         content += "<br /><b>启用</b>后随软件最开始时执行，用于清理用户之前创建或调用的各种系统资源。<br />";
-        content += "<br />缺省文件名为 <b>/jffs/scripts/lz/custom_dualwan_scripts.sh</b>，实体文件不存在，使用时由用户创建。<br />";
+        content += `<br />缺省文件名为 <b>${policySettingsArray.path}/custom_dualwan_scripts.sh</b>，实体文件不存在，使用时由用户创建。<br />`;
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
         content += "<br />该文件由用户创建，文件编码格式为 UTF-8 (LF)，首行代码顶齐第一个字符开始必须为：<b>#!bin/sh</b><br />";
         content += "<br />该脚本先于<b>外置用户自定义配置脚本</b>执行。</div>";
     } else if (itemNum == 76) {
         content = "<div><b>Linux Shell 脚本</b>。<br />";
         content += "<br /><b>启用</b>后随软件初始化时启动执行。<br />";
-        content += "<br />缺省文件名为 <b>/jffs/scripts/lz/custom_config.sh</b>，实体文件不存在，使用时由用户创建。<br />";
+        content += `<br />缺省文件名为 <b>${policySettingsArray.path}/custom_config.sh</b>，实体文件不存在，使用时由用户创建。<br />`;
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
         content += "<br />该文件由用户创建，文件编码格式为 UTF-8 (LF)，首行代码顶齐第一个字符开始必须为：<b>#!bin/sh</b><br />";
         content += "<br />可在其中加入自定义全局变量并初始化，也可加入随系统启动自动执行的其他自定义脚本代码。<br />";
@@ -972,7 +988,7 @@ function openOverHint(itemNum) {
     } else if (itemNum == 77) {
         content = "<div><b>Linux Shell 脚本</b>。<br />";
         content += "<br /><b>启用</b>后仅在双线路同时接通 WAN 口网络条件下执行。<br />";
-        content += "<br />缺省文件名为 <b>/jffs/scripts/lz/custom_dualwan_scripts.sh</b>，实体文件不存在，使用时由用户创建。<br />";
+        content += `<br />缺省文件名为 <b>${policySettingsArray.path}/custom_dualwan_scripts.sh</b>，实体文件不存在，使用时由用户创建。<br />`;
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
         content += "<br />该文件由用户创建，文件编码格式为 UTF-8 (LF)，首行代码顶齐第一个字符开始必须为：<b>#!bin/sh</b><br />";
         content += "<br />该脚本晚于<b>外置用户自定义配置脚本</b>执行。</div>";
@@ -983,7 +999,7 @@ function openOverHint(itemNum) {
     } else if (itemNum == 80) {
         content = "<div>缺省为 <b>5</b> 次。</div>";
     } else if (itemNum == 81) {
-        content = "<div>缺省文件名为 <b>/jffs/scripts/lz/data/custom_data_2.txt</b>，无有效数据条目。<br />";
+        content = `<div>缺省文件名为 <b>${policySettingsArray.path}/data/custom_data_2.txt</b>，无有效数据条目。<br />`;
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
         content += "<br />文本格式：一个网址/网段一行，为一个条目，可多行多个条目。<br />";
         content += "<br />此文件中 <b>0.0.0.0/0</b> 为无效地址。<br />";
@@ -1016,6 +1032,7 @@ function openOverHint(itemNum) {
         content += "<li>显示 service-event 服务触发项</li>";
         content += "<li>显示 openvpn-event 事件触发项</li>";
         content += "<li>显示 post-mount 挂载启动项</li>";
+        content += "<li>显示 dnsmasq.conf.add 配置项</li>";
         content += "<li>更新运营商 IP 地址数据</li>";
         content += "<li>解除程序运行锁</li>";
         content += "<li>恢复缺省配置参数</li>";
@@ -1025,17 +1042,31 @@ function openOverHint(itemNum) {
         content += "<br /><b>显示系统路由规则</b>：<br />显示当前系统<b>策略路由</b>库中的所有路由规则项。<br />";
         content += "<br /><b>显示系统防火墙规则链</b>：<br />显示当前与<b>策略路由</b>运行有关的系统主要防火墙规则链及其内容。<br />";
         content += "<br /><b>显示系统定时任务</b>：<br />显示路由器系统中当前存在的定时任务。<br />";
-        content += "<br /><b>显示 firewall-start 启动项</b>：<br />显示系统启动、防火墙动作、WAN 口 IP 改变、网络重连或掉线、拨号连接等网络事件发生时，触发启动执行的命令或软件项。<b>策略路由</b>启动后会在此放置自启动命令。<br />";
-        content += "<br /><b>显示 service-event 服务触发项</b>：<br />显示由服务事件触发启动执行的自定义命令或软件项。<b>策略路由</b>通过该服务事件触发项由前台页面向后台服务发送工作指令。<br />";
+        content += "<br /><b>显示 firewall-start 启动项</b>：<br />显示系统启动、防火墙动作、WAN 口 IP 改变、网络重连或掉线、拨号连接等网络事件发生时，触发启动执行的命令或软件项。<b>策略路由</b>启动后会在此放置<b>自启动</b>命令。<br />";
+        content += "<br /><b>显示 service-event 服务触发项</b>：<br />显示由服务事件触发启动执行的自定义命令或软件项。<b>策略路由</b>通过该服务事件触发项由前台页面向后台服务发送<b>工作指令</b>。<br />";
         content += "<br /><b>显示 openvpn-event 事件触发项</b>：<br />显示 OpenVPN 触发启动执行的自定义命令或软件项。该功能用于维护远程 OpenVPN 客户端与服务器端的可靠连接。<br />";
-        content += "<br /><b>显示 post-mount 挂载启动项</b>：<br />显示设备挂载事件触发启动执行的自定义命令或软件项。当<b>策略路由</b>软件安装在 USB 盘的 Entware 分区时，需要在该挂载启动项中放置启动命令，以保证设备重启时可以自动启动。<br />";
+        content += "<br /><b>显示 post-mount 挂载启动项</b>：<br />显示设备挂载事件触发启动执行的自定义命令或软件项。当<b>策略路由</b>软件安装在 <b>USB</b> 盘的 <b>Entware</b> 软件包管理分区内时，需要在该挂载启动项中放置启动命令，以保证设备重启时可以<b>自动启动</b>。<br />";
+        content += "<br /><b>显示 dnsmasq.conf.add 配置项</b>：<br />显示 <b>DNSmasq</b> 的<b>自定义扩展配置项</b>。<b>DNSmasq</b> 是一个小巧且方便地用于配置 <b>DNS</b> 和 <b>DHCP</b> 的工具，适用于小型网络。提供的 <b>DNS</b> 功能和可选择的 <b>DHCP</b> 功能可以取代 dhcpd (DHCPD 服务配置) 和 bind 等服务，配置简单，适用于虚拟化和大数据环境的部署。<br />";
         content += "<br /><b>更新运营商 IP 地址数据</b>：<br />通过互联网手动更新<b>策略路由</b>中的<b>运营商 IP 地址数据</b>库。该数据经常发生变化，为保证业务的精准性，请定期及时更新。亦可在<b>外部网络(WAN) - 策略路由(IPv4) - 基础 - 运营商 IP 地址数据</b>中<b>启用定时更新</b>。<br />";
         content += "<br /><b>解除程序运行锁</b>：<br />软件启动或操作过程中，若操作 ctrl+c 组合键，或其他意外原因造成运行中断，导致程序被内部的同步运行安全机制锁住，在不重启路由器的情况下，无法再次启动或有关命令无法继续执行，可通过此命令强制解锁，然后请再次重新启动<b>策略路由</b>，即可恢复正常。<b>注意</b>，正常运行过程中不要随意执行此命令，以免造成安全机制失效。<br />";
         content += "<br /><b>恢复缺省配置参数</b>：<br />将<b>策略路由</b>工作参数恢复至初始<b>缺省</b>状态。此操作将<b>不可恢复</b>的清除用户所有已配置数据，执行此命令请务必<b>慎重</b>。</div>";
     } else if (itemNum == 87) {
         content = "<div>目标主机的<b>域名地址</b>或 <b>IP 地址</b>，内容不可为空。</div>";
     } else if (itemNum == 88) {
-        content = "<div>目标主机地址为域名地址时，可指定域名解析的 <b>DNS 服务器</b>地址。内容为空时，表示使用路由器内置的 DNS 服务。</div>";
+        content = "<div>目标主机地址为域名地址时，可指定域名解析的 <b>DNS 服务器</b>地址。内容为空时，表示使用路由器内置的 DNS 服务。<br />";
+        content += "<br />若查询的是自定义域名地址，<b>DNS 服务器</b>地址请设置为路由器主机<b>内网 IP 地址</b>或 <b>0.0.0.0</b>。</div>";
+    } else if (itemNum == 89) {
+        content = "<div>此功能用于将指定<b>域名</b>解析到特定的 <b>IP 地址</b>上。<br />";
+        content += "<br />文件中所定义的<b>域名</b>被访问时将跳转到指定的 <b>IP 地址</b>，作用与主机上的 <b>hosts</b> 文件相同。<br />";
+        content += "<br />缺省为<b>停用</b>。<br />";
+        content += `<br />缺省文件名为 <b>${policySettingsArray.path}/data/custom_hosts.txt</b>，无有效数据条目。<br />`;
+        content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
+        content += "<br />文本格式：每行由 <b>IP 地址</b>和<b>域名</b>两个字段组成，字段之间用<b>空格</b>隔开，一个条目一行，可多行多个条目。<br />";
+        content += "<br />例如：<br />";
+        content += "123.123.123.123 xxx123.com<br />";
+        content += "192.168.50.15 yyy.cn<br />";
+        content += "<br />此文件中 <b>0.0.0.0</b> 为无效地址。<br />";
+        content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 100) {
         mode = 1;
         caption = "基本设置 - 策略路由优先级";
@@ -1141,6 +1172,7 @@ function applyRule() {
 }
 
 let height = 0;
+let statusEnable = true;
 function getStatus() {
     let h = 0;
     $.ajax({
@@ -1150,6 +1182,7 @@ function getStatus() {
         error: function(xhr) {
             if (xhr.status == 404) {
                 height = 0;
+                statusEnable = false;
                 $("#loadingStatusIcon").hide();
                 $("#statusButton").fadeIn(500);
                 document.getElementById("statusButton").disabled = false;
@@ -1197,6 +1230,10 @@ function queryStatus() {
     document.scriptActionsForm.action_script.value = 'start_LZStatus';
     document.scriptActionsForm.action_wait.value = "0";
     document.scriptActionsForm.submit();
+    if (!statusEnable) {
+        statusEnable = true;
+        setTimeout(getStatus, 100);
+    }
 }
 
 function disabledToolsButton(_timeVal) {
@@ -1218,6 +1255,7 @@ function enabledToolsButton(_timeVal) {
 }
 
 let addressHeight = 0;
+let addressEnable = true;
 function getAddressInfo() {
     let h = 0;
     $.ajax({
@@ -1225,9 +1263,10 @@ function getAddressInfo() {
         url: '/ext/lzr/LZRAddress.html',
         dataType: 'text',
         error: function(xhr) {
-            if (xhr.status == 404)
-                enabledToolsButton(500);
-            else
+            if (xhr.status == 404) {
+                addressEnable = false;
+                enabledToolsButton();
+            } else
                 setTimeout(getAddressInfo, 1000);
         },
         success: function(response) {
@@ -1256,6 +1295,7 @@ function getAddressInfo() {
 }
 
 let routingHeight = 0;
+let routingEnable = true;
 function getRoutingTableInfo() {
     let h = 0;
     $.ajax({
@@ -1263,9 +1303,10 @@ function getRoutingTableInfo() {
         url: '/ext/lzr/LZRRouting.html',
         dataType: 'text',
         error: function(xhr) {
-            if (xhr.status == 404)
-                enabledToolsButton(500);
-            else
+            if (xhr.status == 404) {
+                routingEnable = false;
+                enabledToolsButton();
+            } else
                 setTimeout(getRoutingTableInfo, 1000);
         },
         success: function(response) {
@@ -1297,6 +1338,7 @@ function getRoutingTableInfo() {
 }
 
 let rulesHeight = 0;
+let rulesEnable = true;
 function getRulesInfo() {
     let h = 0;
     $.ajax({
@@ -1304,9 +1346,10 @@ function getRulesInfo() {
         url: '/ext/lzr/LZRRules.html',
         dataType: 'text',
         error: function(xhr) {
-            if (xhr.status == 404)
-                enabledToolsButton(500);
-            else
+            if (xhr.status == 404) {
+                rulesEnable = false;
+                enabledToolsButton();
+            } else
                 setTimeout(getRulesInfo, 1000);
         },
         success: function(response) {
@@ -1338,6 +1381,7 @@ function getRulesInfo() {
 }
 
 let iptablesHeight = 0;
+let iptablesEnable = true;
 function getIptablesInfo() {
     let h = 0;
     $.ajax({
@@ -1345,9 +1389,10 @@ function getIptablesInfo() {
         url: '/ext/lzr/LZRIptables.html',
         dataType: 'text',
         error: function(xhr) {
-            if (xhr.status == 404)
-                enabledToolsButton(500);
-            else
+            if (xhr.status == 404) {
+                iptablesEnable = false;
+                enabledToolsButton();
+            } else
                 setTimeout(getIptablesInfo, 1000);
         },
         success: function(response) {
@@ -1379,6 +1424,7 @@ function getIptablesInfo() {
 }
 
 let crontabHeight = 0;
+let crontabEnable = true;
 function getCrontabInfo() {
     let h = 0;
     $.ajax({
@@ -1386,9 +1432,10 @@ function getCrontabInfo() {
         url: '/ext/lzr/LZRCrontab.html',
         dataType: 'text',
         error: function(xhr) {
-            if (xhr.status == 404)
-                enabledToolsButton(500);
-            else
+            if (xhr.status == 404) {
+                crontabEnable = false;
+                enabledToolsButton();
+            } else
                 setTimeout(getCrontabInfo, 1000);
         },
         success: function(response) {
@@ -1419,24 +1466,20 @@ function getCrontabInfo() {
     });
 }
 
-let fireHeight = 0;
-function getFirewallStartInfo() {
-    let h = 0;
+function getEventInterfaceInfo(filename, index) {
     $.ajax({
         async: true,
-        url: '/ext/lzr/LZRState.html',
+        url: '/ext/lzr/' + filename,
         dataType: 'text',
         error: function(xhr) {
             if (xhr.status == 404)
-                enabledToolsButton(500);
+                enabledToolsButton();
             else
-                setTimeout(getFirewallStartInfo, 1000);
+                setTimeout(getEventInterfaceInfo, 1000, filename, index);
         },
         success: function(response) {
-            h = $("#toolsTextArea").scrollTop();
             if (divLabelArray["Tools"][2] == "1" 
-                && document.getElementById("cmdMethod").value == "5" 
-                && !(fireHeight > 0 && h < fireHeight)) {
+                && document.getElementById("cmdMethod").value == index) {
                 let _log = '';
                 let infoString = htmlEnDeCode.htmlEncode(response.toString());
                 let _string = infoString.split('\n');
@@ -1447,127 +1490,14 @@ function getFirewallStartInfo() {
                         disabledToolsButton();
                 }
                 document.getElementById("toolsTextArea").innerHTML = _log;
-                $("#toolsTextArea").animate({ scrollTop: 9999999 }, "slow");
                 enabledToolsButton();
-                fireHeight = 9999999;
             }
-            setTimeout(getFirewallStartInfo, 3000);
-        }
-    });
-}
-
-let serviceHeight = 0;
-function getServiceEventInfo() {
-    let h = 0;
-    $.ajax({
-        async: true,
-        url: '/ext/lzr/LZRService.html',
-        dataType: 'text',
-        error: function(xhr) {
-            if (xhr.status == 404)
-                enabledToolsButton(500);
-            else
-                setTimeout(getServiceEventInfo, 1000);
-        },
-        success: function(response) {
-            h = $("#toolsTextArea").scrollTop();
-            if (divLabelArray["Tools"][2] == "1" 
-                && document.getElementById("cmdMethod").value == "6" 
-                && !(serviceHeight > 0 && h < serviceHeight)) {
-                let _log = '';
-                let infoString = htmlEnDeCode.htmlEncode(response.toString());
-                let _string = infoString.split('\n');
-                for (let i = 0; i < _string.length; i++) {
-                    _log += _string[i] + '\n';
-                    if (_string[i] != "" 
-                        && !document.getElementById("toolsButton").disabled)
-                        disabledToolsButton();
-                }
-                document.getElementById("toolsTextArea").innerHTML = _log;
-                $("#toolsTextArea").animate({ scrollTop: 9999999 }, "slow");
-                enabledToolsButton();
-                serviceHeight = 9999999;
-            }
-            setTimeout(getServiceEventInfo, 3000);
-        }
-    });
-}
-
-let openvpnHeight = 0;
-function getOpenVPNEventInfo() {
-    let h = 0;
-    $.ajax({
-        async: true,
-        url: '/ext/lzr/LZROpenvpn.html',
-        dataType: 'text',
-        error: function(xhr) {
-            if (xhr.status == 404)
-                enabledToolsButton(500);
-            else
-                setTimeout(getOpenVPNEventInfo, 1000);
-        },
-        success: function(response) {
-            h = $("#toolsTextArea").scrollTop();
-            if (divLabelArray["Tools"][2] == "1" 
-                && document.getElementById("cmdMethod").value == "7" 
-                && !(openvpnHeight > 0 && h < openvpnHeight)) {
-                let _log = '';
-                let infoString = htmlEnDeCode.htmlEncode(response.toString());
-                let _string = infoString.split('\n');
-                for (let i = 0; i < _string.length; i++) {
-                    _log += _string[i] + '\n';
-                    if (_string[i] != "" 
-                        && !document.getElementById("toolsButton").disabled)
-                        disabledToolsButton();
-                }
-                document.getElementById("toolsTextArea").innerHTML = _log;
-                $("#toolsTextArea").animate({ scrollTop: 9999999 }, "slow");
-                enabledToolsButton();
-                openvpnHeight = 9999999;
-            }
-            setTimeout(getOpenVPNEventInfo, 3000);
-        }
-    });
-}
-
-let mountHeight = 0;
-function getPostMountInfo() {
-    let h = 0;
-    $.ajax({
-        async: true,
-        url: '/ext/lzr/LZRPostMount.html',
-        dataType: 'text',
-        error: function(xhr) {
-            if (xhr.status == 404)
-                enabledToolsButton(500);
-            else
-                setTimeout(getPostMountInfo, 1000);
-        },
-        success: function(response) {
-            h = $("#toolsTextArea").scrollTop();
-            if (divLabelArray["Tools"][2] == "1" 
-                && document.getElementById("cmdMethod").value == "8" 
-                && !(mountHeight > 0 && h < mountHeight)) {
-                let _log = '';
-                let infoString = htmlEnDeCode.htmlEncode(response.toString());
-                let _string = infoString.split('\n');
-                for (let i = 0; i < _string.length; i++) {
-                    _log += _string[i] + '\n';
-                    if (_string[i] != "" 
-                        && !document.getElementById("toolsButton").disabled)
-                        disabledToolsButton();
-                }
-                document.getElementById("toolsTextArea").innerHTML = _log;
-                $("#toolsTextArea").animate({ scrollTop: 9999999 }, "slow");
-                enabledToolsButton();
-                mountHeight = 9999999;
-            }
-            setTimeout(getPostMountInfo, 3000);
         }
     });
 }
 
 let unlockHeight = 0;
+let unlockEnable = true;
 function getUnlockInfo() {
     let h = 0;
     $.ajax({
@@ -1575,15 +1505,16 @@ function getUnlockInfo() {
         url: '/ext/lzr/LZRUnlock.html',
         dataType: 'text',
         error: function(xhr) {
-            if (xhr.status == 404)
-                enabledToolsButton(500);
-            else
+            if (xhr.status == 404) {
+                unlockEnable = false;
+                enabledToolsButton();
+            } else
                 setTimeout(getUnlockInfo, 1000);
         },
         success: function(response) {
             h = $("#toolsTextArea").scrollTop();
             if (divLabelArray["Tools"][2] == "1" 
-                && document.getElementById("cmdMethod").value == "10" 
+                && document.getElementById("cmdMethod").value == "11" 
                 && !(unlockHeight > 0 && h < unlockHeight)) {
                 let _log = '';
                 let infoString = htmlEnDeCode.htmlEncode(response.toString());
@@ -1651,6 +1582,10 @@ function showRouting() {
     document.scriptActionsForm.action_script.value = 'start_LZRouting';
     document.scriptActionsForm.action_wait.value = "0";
     document.scriptActionsForm.submit();
+    if (!routingEnable) {
+        routingEnable = true;
+        setTimeout(getRoutingTableInfo, 100);
+    }
 }
 
 function showRules() {
@@ -1659,6 +1594,10 @@ function showRules() {
     document.scriptActionsForm.action_script.value = 'start_LZRtRules';
     document.scriptActionsForm.action_wait.value = "0";
     document.scriptActionsForm.submit();
+    if (!rulesEnable) {
+        rulesEnable = true;
+        setTimeout(getRulesInfo, 100);
+    }
 }
 
 function showIptables() {
@@ -1667,6 +1606,10 @@ function showIptables() {
     document.scriptActionsForm.action_script.value = 'start_LZIptables';
     document.scriptActionsForm.action_wait.value = "0";
     document.scriptActionsForm.submit();
+    if (!iptablesEnable) {
+        iptablesEnable = true;
+        setTimeout(getIptablesInfo, 100);
+    }
 }
 
 function showCrontab() {
@@ -1675,26 +1618,35 @@ function showCrontab() {
     document.scriptActionsForm.action_script.value = 'start_LZCrontab';
     document.scriptActionsForm.action_wait.value = "0";
     document.scriptActionsForm.submit();
+    if (!crontabEnable) {
+        crontabEnable = true;
+        setTimeout(getCrontabInfo, 100);
+    }
 }
 
 function showFirewallStart() {
     document.getElementById("toolsTextArea").innerHTML = "";
-    fireHeight = 0;
+    setTimeout(getEventInterfaceInfo, 500, "LZRState.html", "5");
 }
 
 function showServiceEvent() {
     document.getElementById("toolsTextArea").innerHTML = "";
-    serviceHeight = 0;
+    setTimeout(getEventInterfaceInfo, 500, "LZRService.html", "6");
 }
 
 function showOpenVPNEvent() {
     document.getElementById("toolsTextArea").innerHTML = "";
-    openvpnHeight = 0;
+    setTimeout(getEventInterfaceInfo, 500, "LZROpenvpn.html", "7");
 }
 
 function showPostMount() {
     document.getElementById("toolsTextArea").innerHTML = "";
-    mountHeight = 0;
+    setTimeout(getEventInterfaceInfo, 500, "LZRPostMount.html", "8");
+}
+
+function showDNSmasq() {
+    document.getElementById("toolsTextArea").innerHTML = "";
+    setTimeout(getEventInterfaceInfo, 500, "LZRDNSmasq.html", "9");
 }
 
 let routingShowed = false;
@@ -1712,18 +1664,22 @@ function hideCNT(_val) {
         if (document.getElementById("toolsButton").disabled)
             enabledToolsButton();
         addressHeight = 0;
-    } else if (val >= 1 && val <= 11) {
+        if (!addressEnable) {
+            addressEnable = true;
+            setTimeout(getAddressInfo, 100);
+        }
+    } else if (val >= 1 && val <= 12) {
         document.getElementById("cmdMethod").value = _val;
         document.getElementById("destIPCNT_tr").style.display = "none";
         document.getElementById("dnsIPAddressCNT_tr").style.display = "none";
         let operable = !isInstance();
-        if (val >= 1 && val <= 8) {
+        if (val >= 1 && val <= 9) {
             $("#toolsButton").val("刷新命令");
             if (!operable && val >= 1 && val < 5) {
                 if (document.getElementById("toolsButton").disabled)
                     enabledToolsButton();
             } else
-                disabledToolsButton(300);
+                disabledToolsButton();
         } else {
             $("#toolsButton").val("执行命令");
             if (document.getElementById("toolsButton").disabled)
@@ -1770,8 +1726,15 @@ function hideCNT(_val) {
             case 8:
                 showPostMount();
                 break;
-            case 10:
+            case 9:
+                showDNSmasq();
+                break;
+            case 11:
                 unlockHeight = 0;
+                if (!unlockEnable) {
+                    unlockEnable = true;
+                    setTimeout(getUnlockInfo, 100);
+                }
                 break;
             default:
                 break;
@@ -1785,8 +1748,8 @@ function toolsCommand() {
         alert("上一个任务正在进行中，请稍后再试。");
         return;
     }
-    if (val >= 1 && val <= 8)
-        disabledToolsButton(300);
+    if (val >= 1 && val <= 9)
+        disabledToolsButton();
     switch (val) {
         case 0:
             let destIPVal = document.getElementById("destIP").value;
@@ -1797,12 +1760,16 @@ function toolsCommand() {
             if (!validator.targetDomainName($("#destIP")))
                 break;
             let dnsIPAddressVal = document.getElementById("dnsIPAddress").value;
-            disabledToolsButton(300);
+            disabledToolsButton();
             document.getElementById("toolsTextArea").innerHTML = "";
             addressHeight = 0;
             document.scriptActionsForm.action_script.value = "start_LZAddress_#" + destIPVal + "#" + dnsIPAddressVal + "#";
             document.scriptActionsForm.action_wait.value = "0";
             document.scriptActionsForm.submit();
+            if (!addressEnable) {
+                addressEnable = true;
+                setTimeout(getAddressInfo, 100);
+            }
             break;
         case 1:
             showRouting();
@@ -1829,7 +1796,10 @@ function toolsCommand() {
             showPostMount();
             break;
         case 9:
-            disabledToolsButton(300);
+            showDNSmasq();
+            break;
+        case 10:
+            disabledToolsButton();
             if (!getPolicyState()) {
                 alert("「策略路由」未开启，启动后才可执行此操作。");
                 enabledToolsButton();
@@ -1841,17 +1811,21 @@ function toolsCommand() {
             showLoading();
             document.form.submit();
             break;
-        case 10:
+        case 11:
             if (!confirm("「解除程序运行锁」后会造成同步运行安全机制失效，需重新启动「策略路由」才可恢复。\n\n  确定要执行此操作吗？"))
                 break;
-            disabledToolsButton(300);
+            disabledToolsButton();
             document.getElementById("toolsTextArea").innerHTML = "";
             unlockHeight = 0;
             document.scriptActionsForm.action_script.value = 'start_LZUnlock';
             document.scriptActionsForm.action_wait.value = "0";
             document.scriptActionsForm.submit();
+            if (!unlockEnable) {
+                unlockEnable = true;
+                setTimeout(getUnlockInfo, 100);
+            }
             break;
-        case 11:
+        case 12:
             if (!confirm("「恢复缺省配置」将不可恢复的清除用户所有已配置数据。\n\n  确定要执行此操作吗？"))
                 break;
             $("#amng_custom").val("");
@@ -1874,10 +1848,6 @@ function initAjaxTextArea() {
     setTimeout(getRulesInfo, 100);
     setTimeout(getIptablesInfo, 100);
     setTimeout(getCrontabInfo, 100);
-    setTimeout(getFirewallStartInfo, 100);
-    setTimeout(getServiceEventInfo, 100);
-    setTimeout(getOpenVPNEventInfo, 100);
-    setTimeout(getPostMountInfo, 100);
     setTimeout(getUnlockInfo, 100);
 }
 
@@ -1917,6 +1887,7 @@ $(document).ready(function() {
             $("#lzr_infomation").html('华硕梅林路由器双线路策略路由服务配置工具&#169;<br />项目地址:&nbsp;<a href="https://github.com/larsonzh/amdwprprsct.git" target="_blank" style="font-family:Lucida Console;text-decoration:underline;">https://github.com/larsonzh/amdwprprsct</a> &nbsp; 国内镜像:&nbsp;<a href="https://gitee.com/larsonzh/amdwprprsct.git" target="_blank" style="font-family:Lucida Console;text-decoration:underline;">https://gitee.com/larsonzh/amdwprprsct</a>').show();
         else
             $("#lzr_infomation").html("").hide();
+        getLastVersion();
     });
     $("#lzr_infomation").click(function() {$("#lzr_infomation").html("").hide();});
 });
