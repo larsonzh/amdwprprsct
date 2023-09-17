@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v4.1.6
+# lz_rule_func.sh v4.1.7
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 #BEIGIN
@@ -4457,36 +4457,6 @@ lz_output_ispip_info_to_system_records() {
     local local_redivision_hd="      HD"
     local local_load_balancing_hd="  HD"
     local local_exist="0"
-    [ "${isp_data_0_item_total}" -gt "0" ] && {
-        if [ "${usage_mode}" != "0" ]; then
-            if [ "${isp_wan_port_0}" != "0" ] && [ "${isp_wan_port_0}" != "1" ] && [ "${policy_mode}" = "0" ]; then
-                ## 获取网段出口信息
-                ## 输入项：
-                ##     $1--网段出口参数
-                ## 返回值：
-                ##     Primary WAN--首选WAN口
-                ##     Secondary WAN--第二WAN口
-                ##     Equal Division--均分出口
-                ##     Load Balancing--系统负载均衡分配出口
-                echo "$(lzdate)" [$$]: "   FOREIGN       * $( lz_get_ispip_info "1" )${local_secondary_wan_hd}  -${isp_data_0_item_total}" | tee -ai "${SYSLOG}" 2> /dev/null
-                local_exist="1"
-            elif [ "${isp_wan_port_0}" != "0" ] && [ "${isp_wan_port_0}" != "1" ] && [ "${policy_mode}" = "1" ]; then
-                echo "$(lzdate)" [$$]: "   FOREIGN       * $( lz_get_ispip_info "0" )${local_primary_wan_hd}  -${isp_data_0_item_total}" | tee -ai "${SYSLOG}" 2> /dev/null
-                local_exist="1"
-            else
-                local_hd="${local_primary_wan_hd}  -${isp_data_0_item_total}"
-                [ "${isp_wan_port_0}" = "1" ] && local_hd="${local_secondary_wan_hd}  -${isp_data_0_item_total}"
-                echo "$(lzdate)" [$$]: "   FOREIGN         $( lz_get_ispip_info "${isp_wan_port_0}" )${local_hd}" | tee -ai "${SYSLOG}" 2> /dev/null
-                local_exist="1"
-            fi
-        else
-            local_hd="      -${isp_data_0_item_total}"
-            [ "${isp_wan_port_0}" = "0" ] && local_hd="         -${isp_data_0_item_total}"
-            [ "${isp_wan_port_0}" = "1" ] && local_hd="       -${isp_data_0_item_total}"
-            echo "$(lzdate)" [$$]: "   FOREIGN         $( lz_get_ispip_info "${isp_wan_port_0}" )${local_hd}" | tee -ai "${SYSLOG}" 2> /dev/null
-            local_exist="1"
-        fi
-    }
     local local_index="1"
     local local_isp_name=""
     until [ "${local_index}" -gt "${ISP_TOTAL}" ]
@@ -4530,6 +4500,36 @@ lz_output_ispip_info_to_system_records() {
         }
         local_index="$(( local_index + 1 ))"
     done
+    [ "${isp_data_0_item_total}" -gt "0" ] && {
+        if [ "${usage_mode}" != "0" ]; then
+            if [ "${isp_wan_port_0}" != "0" ] && [ "${isp_wan_port_0}" != "1" ] && [ "${policy_mode}" = "0" ]; then
+                ## 获取网段出口信息
+                ## 输入项：
+                ##     $1--网段出口参数
+                ## 返回值：
+                ##     Primary WAN--首选WAN口
+                ##     Secondary WAN--第二WAN口
+                ##     Equal Division--均分出口
+                ##     Load Balancing--系统负载均衡分配出口
+                echo "$(lzdate)" [$$]: "   FOREIGN       * $( lz_get_ispip_info "1" )${local_secondary_wan_hd}  -${isp_data_0_item_total}" | tee -ai "${SYSLOG}" 2> /dev/null
+                local_exist="1"
+            elif [ "${isp_wan_port_0}" != "0" ] && [ "${isp_wan_port_0}" != "1" ] && [ "${policy_mode}" = "1" ]; then
+                echo "$(lzdate)" [$$]: "   FOREIGN       * $( lz_get_ispip_info "0" )${local_primary_wan_hd}  -${isp_data_0_item_total}" | tee -ai "${SYSLOG}" 2> /dev/null
+                local_exist="1"
+            else
+                local_hd="${local_primary_wan_hd}  -${isp_data_0_item_total}"
+                [ "${isp_wan_port_0}" = "1" ] && local_hd="${local_secondary_wan_hd}  -${isp_data_0_item_total}"
+                echo "$(lzdate)" [$$]: "   FOREIGN         $( lz_get_ispip_info "${isp_wan_port_0}" )${local_hd}" | tee -ai "${SYSLOG}" 2> /dev/null
+                local_exist="1"
+            fi
+        else
+            local_hd="      -${isp_data_0_item_total}"
+            [ "${isp_wan_port_0}" = "0" ] && local_hd="         -${isp_data_0_item_total}"
+            [ "${isp_wan_port_0}" = "1" ] && local_hd="       -${isp_data_0_item_total}"
+            echo "$(lzdate)" [$$]: "   FOREIGN         $( lz_get_ispip_info "${isp_wan_port_0}" )${local_hd}" | tee -ai "${SYSLOG}" 2> /dev/null
+            local_exist="1"
+        fi
+    }
     [ "${local_exist}" = "1" ] && {
         echo "$(lzdate)" [$$]: --------------------------------------------- | tee -ai "${SYSLOG}" 2> /dev/null
     }

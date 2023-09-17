@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_service.sh v4.1.6
+# lz_rule_service.sh v4.1.7
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 服务接口脚本
@@ -15,6 +15,16 @@ PATH_LZ="${PATH_LZ%/*}"
 [ ! -f "${PATH_LZ}/lz_rule.sh" ] && return
 [ "${1}" = "stop" ] && [ "${2}" = "LZRule" ] && "${PATH_LZ}/lz_rule.sh" "STOP"
 [ "${1}" != "start" ] && [ "${1}" != "restart" ] && return
+
+get_last_version() {
+    local CN_REPO="https://gitee.com/"
+    local VER_SRC="larsonzh/amdwprprsct/blob/master/source_codes/lz/lz_rule.sh"
+    /usr/sbin/curl -fsLC "-" --retry 3 \
+        -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.5304.88 Safari/537.36 Edg/108.0.1462.46" \
+        -e "${CN_REPO}" "${CN_REPO}${VER_SRC}" \
+        | grep -oE 'LZ_VERSION=v[0-9]+([\.][0-9]+){2}' | sed 's/LZ_VERSION=//g' | sed -n 1p
+}
+
 case "${2}" in
     LZRule)
         "${PATH_LZ}/lz_rule.sh"
@@ -119,6 +129,42 @@ case "${2}" in
     ;;
     LZDefault)
         "${PATH_LZ}/lz_rule.sh" "default"
+    ;;
+    LZDetectVersion)
+        PATH_WEB_LZR="$( readlink "/www/user" )/lzr"
+        echo 'var versionStatus = "InProgress";' > "${PATH_WEB_LZR}/detect_version.js"
+        remoteVer="$( get_last_version )"
+        if [ -n "${remoteVer}" ]; then
+            echo 'var versionStatus = "'"${remoteVer}"'";' > "${PATH_WEB_LZR}/detect_version.js"
+        else
+            echo 'var versionStatus = "None";' > "${PATH_WEB_LZR}/detect_version.js"
+        fi
+    ;;
+    LZDoUpdate)
+        [ -d "${PATH_LZ}/tmp/doupdate" ] && rm -rf "${PATH_LZ}/tmp/doupdate" 2> /dev/null
+        remoteVer="$( get_last_version )"
+        if [ -n "${remoteVer}" ]; then
+            mkdir -p "${PATH_LZ}/tmp/doupdate" 2> /dev/null
+            CN_REPO="https://gitee.com/"
+            PACKAGE_SRC="larsonzh/amdwprprsct/raw/master/installation_package/lz_rule-${remoteVer}.tgz"
+            /usr/sbin/curl -fsLC "-" --retry 3 \
+                -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.5304.88 Safari/537.36 Edg/108.0.1462.46" \
+                -e "${CN_REPO}" "${CN_REPO}${PACKAGE_SRC}" -o "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}.tgz"
+            if [ -f "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}.tgz" ]; then
+                tar -xzf "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}.tgz" -C "${PATH_LZ}/tmp/doupdate"
+                rm -f "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}.tgz" 2> /dev/null
+                if [ -s "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}/install.sh" ]; then
+                    chmod 775 "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}/install.sh"
+                    sed -i "s/elif \[ \"\${USER}\" = \"root\" \]; then/elif \[ \"\${USER}\" = \"\" \]; then/g" "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}/install.sh" 2> /dev/null
+                    if [ "${PATH_LZ}" = "/jffs/scripts/lz" ]; then
+                        "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}/install.sh" && "${PATH_LZ}/lz_rule.sh"
+                    else
+                        "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}/install.sh" "entware" && "${PATH_LZ}/lz_rule.sh"
+                    fi
+                fi
+            fi
+            rm -rf "${PATH_LZ}/tmp/doupdate" 2> /dev/null
+        fi
     ;;
     *)
         [ "${2%%_*}" = "LZAddress" ] \

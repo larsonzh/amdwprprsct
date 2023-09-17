@@ -1,5 +1,5 @@
 /*
-# lz_policy_routing.js v4.1.6
+# lz_policy_routing.js v4.1.7
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ JavaScript for Asuswrt-Merlin Router
@@ -20,6 +20,27 @@ function getVersion() {
         success: function(response) {
             let buf = response.match(/^[\s]*LZ_VERSION[=][\w\.]*/m);
             if (buf != null) policySettingsArray.version = (buf.length > 0) ? buf[0].replace(/^.*[=]/, "") : "";
+        }
+    });
+}
+
+function getLastVersion() {
+    policySettingsArray["lastVersion"] = policySettingsArray.version;
+    $.ajax({
+        url: '/ext/lzr/detect_version.js',
+        dataType: 'script',
+        error: function(xhr) {
+            setTimeout(getLastVersion, 1000);
+        },
+        success: function() {
+            if (versionStatus == 'InProgress')
+                setTimeout(getLastVersion, 1000);
+            else {
+                if (versionStatus != 'None') {
+                    policySettingsArray.lastVersion = versionStatus;
+                    $("#lzr_last_version_block").html(policySettingsArray.lastVersion).show();
+                }
+            }
         }
     });
 }
@@ -47,8 +68,9 @@ function showProduct() {
         currentProductId = " for " + currentProductId;
     }
     if (policySettingsArray.hasOwnProperty("version") && policySettingsArray.version != "")
-        $("#lzr_producid").html(`LZ RULE ${policySettingsArray.version} ${currentProductId} by 妙妙呜&#8482;`);
-    else $("#lzr_producid").html(`LZ RULE ${currentProductId} by 妙妙呜&#8482;`);
+        $("#lzr_producid_block").html(`LZ RULE ${policySettingsArray.version} ${currentProductId} by 妙妙呜&#8482;`);
+    else
+        $("#lzr_producid_block").html(`LZ RULE ${currentProductId} by 妙妙呜&#8482;`);
     getPath();
 }
 
@@ -1851,6 +1873,13 @@ function initAjaxTextArea() {
     setTimeout(getUnlockInfo, 100);
 }
 
+function detectVersion() {
+    document.scriptActionsForm.action_script.value = 'start_LZDetectVersion';
+    document.scriptActionsForm.action_wait.value = "0";
+    document.scriptActionsForm.submit();
+    setTimeout(getLastVersion, 3000);
+}
+
 function initial() {
     let restart = false;
     setPolicyRoutingPage();
@@ -1878,7 +1907,10 @@ function initial() {
     showLANIPList();
     document.body.addEventListener("click", function(_evt) {control_dropdown_client_block("ClientList_Block_PC", "pull_arrow", _evt);});
     initAjaxTextArea();
-    if (restart) saveSettings();
+    if (restart)
+        saveSettings();
+    else
+        detectVersion();
 }
 
 $(document).ready(function() {
@@ -1887,7 +1919,21 @@ $(document).ready(function() {
             $("#lzr_infomation").html('华硕梅林路由器双线路策略路由服务配置工具&#169;<br />项目地址:&nbsp;<a href="https://github.com/larsonzh/amdwprprsct.git" target="_blank" style="font-family:Lucida Console;text-decoration:underline;">https://github.com/larsonzh/amdwprprsct</a> &nbsp; 国内镜像:&nbsp;<a href="https://gitee.com/larsonzh/amdwprprsct.git" target="_blank" style="font-family:Lucida Console;text-decoration:underline;">https://gitee.com/larsonzh/amdwprprsct</a>').show();
         else
             $("#lzr_infomation").html("").hide();
-        getLastVersion();
     });
-    $("#lzr_infomation").click(function() {$("#lzr_infomation").html("").hide();});
+    $("#lzr_infomation").click(function() {
+        $("#lzr_infomation").html("").hide();
+    });
+    $("#lzr_last_version_block").click(function() {
+        if (isInstance()) {
+            alert("上一个任务正在进行中，请稍后再试。");
+            return;
+        }
+        if (!confirm("  当前版本：" + policySettingsArray.version + "      最新版本：" + policySettingsArray.lastVersion + "\n\n  软件版本更新时，与外部互联网络之间须保持持续畅通。\n\n  确定要执行此操作吗？"))
+            return;
+        $("#amng_custom").val("");
+        document.form.action_script.value = "start_LZDoUpdate";
+        document.form.action_wait.value = "20";
+        showLoading();
+        document.form.submit();
+    });
 });

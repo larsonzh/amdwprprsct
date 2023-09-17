@@ -112,7 +112,10 @@
                                                         <div class="formfonttitle">外部网络(WAN) - 策略路由(IPv4)</div>
                                                         <div style="margin:10px 0 10px 5px;" class="splitLine"></div>
                                                         <div class="formfontdesc">
-                                                            <p id="lzr_producid" style="cursor:help;"></p>
+                                                            <p id="lzr_producid" style="cursor:help;">
+                                                                <span id="lzr_producid_block"></span>
+                                                                <span id="lzr_last_version_block" style="margin-left:36px;text-decoration:underline;cursor:pointer;color:#FC0;display:none;" title="当前最新版本。" onmouseover="over_var=1;" onmouseout="over_var=0;"></span>
+                                                            </P>
                                                             <p id="lzr_infomation" style="cursor:help;"></p>
                                                         </div>
                                                         <table width="100%" border="1" align="center" cellpadding="4" cellspacing="0" bordercolor="#6b8fa3" class="FormTable">
@@ -1151,7 +1154,7 @@
                                                                         <img id="pull_arrow" height="14px;" src="/ext/lzr/arrow-down.gif" style="position:absolute;*margin-left:-3px;*margin-top:1px;" onclick="pullLANIPList(this);" title="选择互联网服务地址。" onmouseover="over_var=1;" onmouseout="over_var=0;">
                                                                         <div id="ClientList_Block_PC" class="ClientList_Block_PC"></div>
                                                                         <br />
-                                                                        <span id="alert_block" style="color:#FC0;display:none"></span>
+                                                                        <span id="alert_block" style="color:#FC0;display:none;"></span>
                                                                     </td>
                                                                 </tr>
                                                                 <tr id="dnsIPAddressCNT_tr">
