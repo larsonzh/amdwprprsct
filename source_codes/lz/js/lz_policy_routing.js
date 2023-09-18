@@ -1,5 +1,5 @@
 /*
-# lz_policy_routing.js v4.1.7
+# lz_policy_routing.js v4.1.8
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ JavaScript for Asuswrt-Merlin Router
@@ -255,7 +255,7 @@ function initControls() {
     initListBox("lzr_vpn_client_polling_time", 1, 20, 5);
     initCheckRadio("lzr_fancyss_support", 0, 0, 5);
     initCheckRadio("lzr_usage_mode", 0, 1, 0);
-    initCheckRadio("lzr_custom_hosts", 0, 5, 5);
+    initCheckRadio("lzr_custom_hosts", 0, 0, 5);
     initTextEdit("lzr_custom_hosts_file");
     initListBox("lzr_dn_pre_resolved", 0, 2, 5);
     initTextEdit("lzr_pre_dns");
@@ -286,16 +286,21 @@ function initControls() {
     initTextEdit("lzr_custom_dualwan_scripts_filename");
 }
 
-function checkNumberField(ptr) {
-    if (ptr.value == "" && policySettingsArray.hasOwnProperty(ptr.id))
-        ptr.value = policySettingsArray[ptr.id];
-    else {
-        if (ptr.max != "" && ptr.value > ptr.max)
-            ptr.value = ptr.max;
-        else if (ptr.min != "" && ptr.value < ptr.min)
-            ptr.value = ptr.min;
-        else if (policySettingsArray.hasOwnProperty(ptr.id))
+function checkNumberField(ptr, defaultVal) {
+    if (isNaN(parseInt(ptr.value))) {
+        if (policySettingsArray.hasOwnProperty(ptr.id))
             ptr.value = policySettingsArray[ptr.id];
+        else {
+            if (defaultVal == undefined || isNaN(parseInt(defaultVal)))
+                defaultVal = 0;
+            ptr.value = defaultVal;
+            policySettingsArray[ptr.id] = defaultVal;
+        }
+    } else {
+        if (!isNaN(parseInt(ptr.max)) && parseInt(ptr.value) > parseInt(ptr.max))
+            ptr.value = ptr.max;
+        else if (!isNaN(parseInt(ptr.min)) && parseInt(ptr.value) < parseInt(ptr.min))
+            ptr.value = ptr.min;
     }
 }
 

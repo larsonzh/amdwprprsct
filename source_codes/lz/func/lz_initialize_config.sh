@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_initialize_config.sh v4.1.7
+# lz_initialize_config.sh v4.1.8
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 初始化脚本配置
@@ -1417,7 +1417,7 @@ lz_get_config_data() {
                     invalid=1;
             } else if ($1 == "dn_cache_time") {
                 flag=1;
-                if (value !~ /^[0-9]+$/ || value < 0 || value > 2147483)
+                if (value !~ /^[0-9]+$/ || (value + 0) < 0 || (value + 0) > 2147483)
                     invalid=1;
             } else if ($1 == "clear_route_cache_time_interval") {
                 flag=1;
@@ -1433,19 +1433,19 @@ lz_get_config_data() {
                     invalid=1;
             } else if ($1 == "wan1_udpxy_port") {
                 flag=1;
-                if (value !~ /^[1-9]$|^[1-9][0-9]+$/ || value < 1 || value > 65535)
+                if (value !~ /^[1-9]$|^[1-9][0-9]+$/ || (value + 0) < 1 || (value + 0) > 65535)
                     invalid=1;
             } else if ($1 == "wan1_udpxy_buffer" || $1 == "wan2_udpxy_buffer") {
                 flag=1;
-                if (value !~ /^[1-9]$|^[1-9][0-9]+$/ || value < 4096 || value > 2097152)
+                if (value !~ /^[1-9]$|^[1-9][0-9]+$/ || (value + 0) < 4096 || (value + 0) > 2097152)
                     invalid=1;
             } else if ($1 == "wan1_udpxy_client_num" || $1 == "wan2_udpxy_client_num") {
                 flag=1;
-                if (value !~ /^[1-9]$|^[1-9][0-9]+$/ || value < 1 || value > 5000)
+                if (value !~ /^[1-9]$|^[1-9][0-9]+$/ || (value + 0) < 1 || (value + 0) > 5000)
                     invalid=1;
             } else if ($1 == "wan2_udpxy_port") {
                 flag=1;
-                if (value !~ /^[1-9]$|^[1-9][0-9]+$/ || value < 1 || value > 65535)
+                if (value !~ /^[1-9]$|^[1-9][0-9]+$/ || (value + 0) < 1 || (value + 0) > 65535)
                     invalid=1;
             } else if ($1 == "wan0_dest_tcp_port" \
                 || $1 == "wan0_dest_udp_port" \
@@ -1981,7 +1981,7 @@ lz_get_box_data() {
                     invalid=1;
             } else if (key == "dn_cache_time") {
                 flag=1;
-                if (value !~ /^[0-9]+$/ || value < 0 || value > 2147483)
+                if (value !~ /^[0-9]+$/ || (value + 0) < 0 || (value + 0) > 2147483)
                     invalid=1;
             } else if (key == "clear_route_cache_time_interval") {
                 flag=1;
@@ -1997,19 +1997,19 @@ lz_get_box_data() {
                     invalid=1;
             } else if (key == "wan1_udpxy_port") {
                 flag=1;
-                if (value !~ /^[1-9]$|^[1-9][0-9]+$/ || value < 1 || value > 65535)
+                if (value !~ /^[1-9]$|^[1-9][0-9]+$/ || (value + 0) < 1 || (value + 0) > 65535)
                     invalid=1;
             } else if (key == "wan1_udpxy_buffer" || key == "wan2_udpxy_buffer") {
                 flag=1;
-                if (value !~ /^[1-9]$|^[1-9][0-9]+$/ || value < 4096 || value > 2097152)
+                if (value !~ /^[1-9]$|^[1-9][0-9]+$/ || (value + 0) < 4096 || (value + 0) > 2097152)
                     invalid=1;
             } else if (key == "wan1_udpxy_client_num" || key == "wan2_udpxy_client_num") {
                 flag=1;
-                if (value !~ /^[1-9]$|^[1-9][0-9]+$/ || value < 1 || value > 5000)
+                if (value !~ /^[1-9]$|^[1-9][0-9]+$/ || (value + 0) < 1 || (value + 0) > 5000)
                     invalid=1;
             } else if (key == "wan2_udpxy_port") {
                 flag=1;
-                if (value !~ /^[1-9]$|^[1-9][0-9]+$/ || value < 1 || value > 65535)
+                if (value !~ /^[1-9]$|^[1-9][0-9]+$/ || (value + 0) < 1 || (value + 0) > 65535)
                     invalid=1;
             } else if (key == "wan0_dest_tcp_port" \
                 || key == "wan0_dest_udp_port" \

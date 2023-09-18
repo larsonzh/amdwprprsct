@@ -426,7 +426,7 @@
                                                                 <tr>
                                                                     <th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(80);">重试次数 (0~99)</a></th>
                                                                     <td>
-                                                                        <input id="lzr_ruid_retry_num" type="text" maxlength="2" class="input_6_table" name="lzr_ruid_retry_num" value="5" onkeypress="return validator.isNumber(this,event);" onchange="checkNumberField(this)" autocorrect="off" autocapitalize="off">
+                                                                        <input id="lzr_ruid_retry_num" type="text" maxlength="2" class="input_6_table" name="lzr_ruid_retry_num" value="5" onkeypress="return validator.isNumber(this,event);" onchange="checkNumberField(this, 5)" autocorrect="off" autocapitalize="off">
                                                                     </td>
                                                                 </tr>
                                                             </table>
@@ -878,7 +878,7 @@
                                                                 <tr>
                                                                     <th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(51);">域名解析后 IP 地址缓存时间<br />(0--永久; 1~2147483秒)</a></th>
                                                                     <td>
-                                                                        <input type="number" min="0" max="2147483" maxlength="7" class="input_15_table" id="lzr_dn_cache_time" name="lzr_dn_cache_time" value="864000" onkeypress="return validator.isNumber(this, event);" onchange="checkNumberField(this)" autocorrect="off" autocapitalize="off">
+                                                                        <input type="number" min="0" max="2147483" maxlength="7" class="input_15_table" id="lzr_dn_cache_time" name="lzr_dn_cache_time" value="864000" onkeypress="return validator.isNumber(this, event);" onchange="checkNumberField(this, 864000)" autocorrect="off" autocapitalize="off">
                                                                     </td>
                                                                 </tr>
                                                                 <tr>
@@ -1026,19 +1026,19 @@
                                                                 <tr>
                                                                     <th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(66);">UDPXY 端口号 (1~65535)</a></th>
                                                                     <td>
-                                                                        <input type="number" min="1" max="65535" maxlength="5" class="input_6_table" id="lzr_wan1_udpxy_port" name="lzr_wan1_udpxy_port" value="8686" onkeypress="return validator.isNumber(this, event);" onchange="checkNumberField(this)" autocorrect="off" autocapitalize="off">
+                                                                        <input type="number" min="1" max="65535" maxlength="5" class="input_6_table" id="lzr_wan1_udpxy_port" name="lzr_wan1_udpxy_port" value="8686" onkeypress="return validator.isNumber(this, event);" onchange="checkNumberField(this, 8686)" autocorrect="off" autocapitalize="off">
                                                                     </td>
                                                                 </tr>
                                                                 <tr>
                                                                     <th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(67);">UDPXY 缓冲区 (4096~2097152 bytes)</a></th>
                                                                     <td>
-                                                                        <input type="number" min="4096" max="2097152" maxlength="7" class="input_12_table" id="lzr_wan1_udpxy_buffer" name="lzr_wan1_udpxy_buffer" value="65536" onkeypress="return validator.isNumber(this, event);" onchange="checkNumberField(this)" autocorrect="off" autocapitalize="off">
+                                                                        <input type="number" min="4096" max="2097152" maxlength="7" class="input_12_table" id="lzr_wan1_udpxy_buffer" name="lzr_wan1_udpxy_buffer" value="65536" onkeypress="return validator.isNumber(this, event);" onchange="checkNumberField(this, 65536)" autocorrect="off" autocapitalize="off">
                                                                     </td>
                                                                 </tr>
                                                                 <tr>
                                                                     <th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(68);">UDPXY 客户端数量 (1~5000)</a></th>
                                                                     <td>
-                                                                        <input type="number" min="1" max="5000" maxlength="4" class="input_6_table" id="lzr_wan1_udpxy_client_num" name="lzr_wan1_udpxy_client_num" value="10" onkeypress="return validator.isNumber(this, event);" onchange="checkNumberField(this)" autocorrect="off" autocapitalize="off">
+                                                                        <input type="number" min="1" max="5000" maxlength="4" class="input_6_table" id="lzr_wan1_udpxy_client_num" name="lzr_wan1_udpxy_client_num" value="10" onkeypress="return validator.isNumber(this, event);" onchange="checkNumberField(this, 10)" autocorrect="off" autocapitalize="off">
                                                                     </td>
                                                                 </tr>
                                                             </table>
@@ -1058,19 +1058,19 @@
                                                                 <tr>
                                                                     <th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(71);">UDPXY 端口号 (1~65535)</a></th>
                                                                     <td>
-                                                                        <input type="number" min="1" max="65535" maxlength="5" class="input_6_table" id="lzr_wan2_udpxy_port" name="lzr_wan2_udpxy_port" value="8888" onkeypress="return validator.isNumber(this, event);" onchange="checkNumberField(this)" autocorrect="off" autocapitalize="off">
+                                                                        <input type="number" min="1" max="65535" maxlength="5" class="input_6_table" id="lzr_wan2_udpxy_port" name="lzr_wan2_udpxy_port" value="8888" onkeypress="return validator.isNumber(this, event);" onchange="checkNumberField(this, 8888)" autocorrect="off" autocapitalize="off">
                                                                     </td>
                                                                 </tr>
                                                                 <tr>
                                                                     <th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(72);">UDPXY 缓冲区 (4096~2097152 bytes)</a></th>
                                                                     <td>
-                                                                        <input type="number" min="4096" max="2097152" maxlength="7" class="input_12_table" id="lzr_wan2_udpxy_buffer" name="lzr_wan2_udpxy_buffer" value="65536" onkeypress="return validator.isNumber(this, event);" onchange="checkNumberField(this)" autocorrect="off" autocapitalize="off">
+                                                                        <input type="number" min="4096" max="2097152" maxlength="7" class="input_12_table" id="lzr_wan2_udpxy_buffer" name="lzr_wan2_udpxy_buffer" value="65536" onkeypress="return validator.isNumber(this, event);" onchange="checkNumberField(this, 65536)" autocorrect="off" autocapitalize="off">
                                                                     </td>
                                                                 </tr>
                                                                 <tr>
                                                                     <th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(73);">UDPXY 客户端数量 (1~5000)</a></th>
                                                                     <td>
-                                                                        <input type="number" min="1" max="5000" maxlength="4" class="input_6_table" id="lzr_wan2_udpxy_client_num" name="lzr_wan2_udpxy_client_num" value="10" onkeypress="return validator.isNumber(this, event);" onchange="checkNumberField(this)" autocorrect="on" autocapitalize="on">
+                                                                        <input type="number" min="1" max="5000" maxlength="4" class="input_6_table" id="lzr_wan2_udpxy_client_num" name="lzr_wan2_udpxy_client_num" value="10" onkeypress="return validator.isNumber(this, event);" onchange="checkNumberField(this, 10)" autocorrect="on" autocapitalize="on">
                                                                     </td>
                                                                 </tr>
                                                             </table>

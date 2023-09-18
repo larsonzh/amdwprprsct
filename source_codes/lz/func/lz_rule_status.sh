@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_status.sh v4.1.7
+# lz_rule_status.sh v4.1.8
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 显示脚本运行状态脚本
@@ -709,11 +709,11 @@ lz_get_box_data_status() {
                     invalid=1;
             } else if (key == "status_wan1_udpxy_port") {
                 flag=1;
-                if (value !~ /^[1-9]$|^[1-9][0-9]+$/ || value < 1 || value > 65535)
+                if (value !~ /^[1-9]$|^[1-9][0-9]+$/ || (value + 0) < 1 || (value + 0) > 65535)
                     invalid=1;
             } else if (key == "status_wan2_udpxy_port") {
                 flag=1;
-                if (value !~ /^[1-9]$|^[1-9][0-9]+$/ || value < 1 || value > 65535)
+                if (value !~ /^[1-9]$|^[1-9][0-9]+$/ || (value + 0) < 1 || (value + 0) > 65535)
                     invalid=1;
             } else if (key == "status_custom_data_file_1" \
                 || key == "status_custom_data_file_2" \
