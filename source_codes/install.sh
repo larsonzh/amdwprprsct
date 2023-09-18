@@ -1,5 +1,5 @@
 #!/bin/sh
-# install.sh v4.1.8
+# install.sh v4.1.9
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ RULE script for Asuswrt-Merlin Router
@@ -11,7 +11,7 @@
 
 #BEIGIN
 
-LZ_VERSION=v4.1.8
+LZ_VERSION=v4.1.9
 TIMEOUT=10
 CURRENT_PATH="${0%/*}"
 [ "${CURRENT_PATH:0:1}" != '/' ] && CURRENT_PATH="$( pwd )${CURRENT_PATH#*.}"
@@ -259,8 +259,13 @@ lz_get_webui_page() {
     until [ "${i}" -gt "20" ]; do
         if [ -f "${PATH_WEBPAGE}/user${i}.asp" ]; then
             if grep -q 'match(/QnkgTFog5aaZ5aaZ5ZGc77yI6Juk6J\[\\[\+]\]G5aKp5YS\[\\/\]77yJ/m)' "${PATH_WEBPAGE}/user${i}.asp" 2> /dev/null; then
-                page_name="user${i}.asp"
-                break
+                if [ -z "${page_name}" ] || [ ! -f "${PATH_WEBPAGE}/${page_name}" ]; then
+                    page_name="user${i}.asp"
+                else
+                    [ -f "/tmp/menuTree.js" ] && sed -i "/$( lz_format_filename_regular_expression_string "user${i}.asp" )/d" "/tmp/menuTree.js" 2> /dev/null
+                    rm -f "${PATH_WEBPAGE}/user${i}.asp" > /dev/null 2>&1
+                    rm -f "${PATH_WEBPAGE}/user${i}.title" > /dev/null 2>&1
+                fi
             fi
         elif [ -z "${page_name}" ] && [ ! -f "${PATH_WEBPAGE}/user${i}.asp" ]; then
             page_name="user${i}.asp"
@@ -323,6 +328,8 @@ lz_mount_web_ui() {
         ln -s "${PATH_TMP}/unlock.log" "${PATH_WEB_LZR}/LZRUnlock.html" > /dev/null 2>&1
         ln -s "/var/lock/lz_rule_instance.lock" "${PATH_WEB_LZR}/LZRInstance.html" > /dev/null 2>&1
         ! which md5sum > /dev/null 2>&1 && break
+        [ ! -f "/www/require/modules/menuTree.js" ] && break
+        umount "/www/require/modules/menuTree.js" > /dev/null 2>&1
         local page_name="$( lz_get_webui_page )"
         [ -z "${page_name}" ] && break
         if [ ! -f "${PATH_WEBPAGE}/${page_name}" ]; then
@@ -330,10 +337,8 @@ lz_mount_web_ui() {
         elif [ "$( md5sum < "${PATH_WEBS}/LZ_Policy_Routing_Content.asp" )" != "$( md5sum < "${PATH_WEBPAGE}/${page_name}" )" ]; then
             cp -f "${PATH_WEBS}/LZ_Policy_Routing_Content.asp" "${PATH_WEBPAGE}/${page_name}" > /dev/null 2>&1
         fi
-        echo "lz_rule" > "${PATH_WEBPAGE}/${page_name%.*}.title"
         [ ! -f "${PATH_WEBPAGE}/${page_name}" ] && break
-        [ ! -f "/www/require/modules/menuTree.js" ] && break
-        umount "/www/require/modules/menuTree.js" > /dev/null 2>&1
+        echo "lz_rule" > "${PATH_WEBPAGE}/${page_name%.*}.title"
         if [ ! -f "/tmp/menuTree.js" ]; then
             cp -f "/www/require/modules/menuTree.js" "/tmp/" > /dev/null 2>&1
             [ ! -f "/tmp/menuTree.js" ] && break

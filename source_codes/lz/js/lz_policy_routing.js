@@ -1,5 +1,5 @@
 /*
-# lz_policy_routing.js v4.1.8
+# lz_policy_routing.js v4.1.9
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ JavaScript for Asuswrt-Merlin Router
@@ -35,10 +35,14 @@ function getLastVersion() {
         success: function() {
             if (versionStatus == 'InProgress')
                 setTimeout(getLastVersion, 1000);
-            else {
-                if (versionStatus != 'None') {
-                    policySettingsArray.lastVersion = versionStatus;
-                    $("#lzr_last_version_block").html(policySettingsArray.lastVersion).show();
+            else if (versionStatus != 'None') {
+                policySettingsArray.lastVersion = versionStatus;
+                $("#lzr_last_version_block").html(policySettingsArray.lastVersion).show();
+                if (policySettingsArray.lastVersion != policySettingsArray.version) {
+                    setInterval(function () {
+                        $("#lzr_last_version_block").fadeOut(200);
+                        $("#lzr_last_version_block").fadeIn(100);
+                    }, 5000);
                 }
             }
         }
@@ -1933,7 +1937,7 @@ $(document).ready(function() {
             alert("上一个任务正在进行中，请稍后再试。");
             return;
         }
-        if (!confirm("  当前版本：" + policySettingsArray.version + "      最新版本：" + policySettingsArray.lastVersion + "\n\n  软件版本更新时，与外部互联网络之间须保持持续畅通。\n\n  确定要执行此操作吗？"))
+        if (!confirm("  当前版本：" + policySettingsArray.version + "      最新版本：" + policySettingsArray.lastVersion + "\n\n  软件版本在线更新时，须保持内外部网络畅通。\n\n  请确保路由器上有 1 MB 以上的剩余存储空间。\n\n  确定要执行此操作吗？"))
             return;
         $("#amng_custom").val("");
         document.form.action_script.value = "start_LZDoUpdate";

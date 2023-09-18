@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule.sh v4.1.8
+# lz_rule.sh v4.1.9
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # 本软件采用CIDR（无类别域间路由，Classless Inter-Domain Routing）技术，是一个在Internet上创建附加地
@@ -80,7 +80,7 @@
 ## -------------全局数据定义及初始化-------------------
 
 ## 版本号
-LZ_VERSION=v4.1.8
+LZ_VERSION=v4.1.9
 
 ## 运行状态查询命令
 SHOW_STATUS="status"
@@ -722,8 +722,13 @@ lz_get_webui_page() {
     until [ "${i}" -gt "20" ]; do
         if [ -f "${PATH_WEBPAGE}/user${i}.asp" ]; then
             if grep -q 'match(/QnkgTFog5aaZ5aaZ5ZGc77yI6Juk6J\[\\[\+]\]G5aKp5YS\[\\/\]77yJ/m)' "${PATH_WEBPAGE}/user${i}.asp" 2> /dev/null; then
-                page_name="user${i}.asp"
-                break
+                if [ -z "${page_name}" ] || [ ! -f "${PATH_WEBPAGE}/${page_name}" ]; then
+                    page_name="user${i}.asp"
+                else
+                    [ -f "/tmp/menuTree.js" ] && sed -i "/$( lz_format_filename_regular_expression_string "user${i}.asp" )/d" "/tmp/menuTree.js" 2> /dev/null
+                    rm -f "${PATH_WEBPAGE}/user${i}.asp" > /dev/null 2>&1
+                    rm -f "${PATH_WEBPAGE}/user${i}.title" > /dev/null 2>&1
+                fi
             fi
         elif [ -z "${page_name}" ] && [ ! -f "${PATH_WEBPAGE}/user${i}.asp" ]; then
             page_name="user${i}.asp"
@@ -742,7 +747,7 @@ lz_unmount_web_ui() {
         umount "/www/require/modules/menuTree.js" > /dev/null 2>&1
         local page_name="$( lz_get_webui_page )"
         if [ -n "${page_name}" ]; then
-            [ -f "/tmp/menuTree.js" ] && sed -i "/$( echo "${page_name}" | sed -e 's/\//[\\\/]/g' -e 's/\./[\\.]/g' )/d" "/tmp/menuTree.js" 2> /dev/null
+            [ -f "/tmp/menuTree.js" ] && sed -i "/$( lz_format_filename_regular_expression_string "${page_name}" )/d" "/tmp/menuTree.js" 2> /dev/null
             rm -f "${PATH_WEBPAGE}/${page_name}" > /dev/null 2>&1
             rm -f "${PATH_WEBPAGE}/${page_name%.*}.title" > /dev/null 2>&1
         fi
@@ -797,8 +802,9 @@ lz_mount_web_ui() {
         ln -s "${CRONTAB_LOG}" "${PATH_WEB_LZR}/LZRCrontab.html" > /dev/null 2>&1
         ln -s "${UNLOCK_LOG}" "${PATH_WEB_LZR}/LZRUnlock.html" > /dev/null 2>&1
         ln -s "${INSTANCE_LIST}" "${PATH_WEB_LZR}/LZRInstance.html" > /dev/null 2>&1
-
         ! which md5sum > /dev/null 2>&1 && break
+        [ ! -f "/www/require/modules/menuTree.js" ] && break
+		umount "/www/require/modules/menuTree.js" > /dev/null 2>&1
         local page_name="$( lz_get_webui_page )"
         [ -z "${page_name}" ] && break
         if [ ! -f "${PATH_WEBPAGE}/${page_name}" ]; then
@@ -806,18 +812,16 @@ lz_mount_web_ui() {
         elif [ "$( md5sum < "${PATH_WEBS}/LZ_Policy_Routing_Content.asp" )" != "$( md5sum < "${PATH_WEBPAGE}/${page_name}" )" ]; then
             cp -f "${PATH_WEBS}/LZ_Policy_Routing_Content.asp" "${PATH_WEBPAGE}/${page_name}" > /dev/null 2>&1
         fi
-        echo "${PROJECT_ID}" > "${PATH_WEBPAGE}/${page_name%.*}.title"
         [ ! -f "${PATH_WEBPAGE}/${page_name}" ] && break
-        [ ! -f "/www/require/modules/menuTree.js" ] && break
-		umount "/www/require/modules/menuTree.js" > /dev/null 2>&1
+        echo "${PROJECT_ID}" > "${PATH_WEBPAGE}/${page_name%.*}.title"
 		if [ ! -f "/tmp/menuTree.js" ]; then
 			cp -f "/www/require/modules/menuTree.js" "/tmp/" > /dev/null 2>&1
             [ ! -f "/tmp/menuTree.js" ] && break
 		fi
-		sed -i "/$( echo "${page_name}" | sed -e 's/\//[\\\/]/g' -e 's/\./[\\.]/g' )/d" "/tmp/menuTree.js" 2> /dev/null
+        sed -i "/$( lz_format_filename_regular_expression_string "${page_name}" )/d" "/tmp/menuTree.js" 2> /dev/null
 		sed -i "/{url: \"Advanced_WANPort_Content.asp\", tabName:.*},/a {url: \"${page_name}\", tabName: \"策略路由\"}," "/tmp/menuTree.js" 2> /dev/null
 		mount -o bind "/tmp/menuTree.js" "/www/require/modules/menuTree.js" > /dev/null 2>&1
-        ! grep -q "{url: \"$( echo "${page_name}" | sed -e 's/\//[\\\/]/g' -e 's/\./[\\.]/g' )\", tabName:.*}," "/www/require/modules/menuTree.js" 2> /dev/null && break
+        ! grep -q "{url: \"$( lz_format_filename_regular_expression_string "${page_name}" )\", tabName:.*}," "/www/require/modules/menuTree.js" 2> /dev/null && break
         retval="0"
         break
     done
