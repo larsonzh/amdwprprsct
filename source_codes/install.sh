@@ -209,7 +209,7 @@ fi
 sed -i -e 's/^[[:space:]]*//g' -e 's/[[:space:]]*$//g' -e '/^$/d' "${PATH_JS}/lz_policy_routing.js" > /dev/null 2>&1
 sed -i -e 's/^[[:space:]]*//g' -e 's/[[:space:]]*$//g' -e '/^$/d' "${PATH_WEBS}/LZ_Policy_Routing_Content.asp" > /dev/null 2>&1
 
-PATH_WEBPAGE="$( readlink "/www/user" )"
+PATH_WEBPAGE="$( readlink -f "/www/user" )"
 PATH_WEB_LZR="${PATH_WEBPAGE}/lzr"
 
 lz_format_filename_regular_expression_string() { echo "${1}" | sed -e 's/\//[\\\/]/g' -e 's/\./[\\.]/g'; }
@@ -219,7 +219,7 @@ lz_get_delete_row_regular_expression_string() {
 }
 
 lz_clear_service_event_command() {
-    if [ -f "/jffs/scripts/service-event" ]; then
+    if [ -s "/jffs/scripts/service-event" ]; then
         sed -i -e "/$( lz_get_delete_row_regular_expression_string "lz_rule.sh" )/d" \
             -e "/$( lz_get_delete_row_regular_expression_string "lz_update_ispip_data.sh" )/d" \
             -e "/$( lz_get_delete_row_regular_expression_string "lz_rule_service.sh" )/d" \
@@ -285,15 +285,16 @@ lz_unmount_web_ui() {
             rm -f "${PATH_WEBPAGE}/${page_name%.*}.title" > /dev/null 2>&1
         fi
         [ -d "${PATH_WEB_LZR}" ] && rm -rf "${PATH_WEB_LZR}" > /dev/null 2>&1
-        lz_clear_service_event_command
     fi
+    lz_clear_service_event_command
 }
 
 lz_mount_web_ui() {
     local retval="1"
     while true
     do
-        ! nvram get rc_support | grep -q "am_addons" && break
+        ! nvram get rc_support | grep -qw "am_addons" && break
+        [ -z "${PATH_WEBPAGE}" ] && break
         if [ ! -d "/jffs/addons" ]; then
             mkdir -p "/jffs/addons" > /dev/null 2>&1
             [ ! -d "/jffs/addons" ] && break

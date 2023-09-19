@@ -1937,7 +1937,7 @@ $(document).ready(function() {
             alert("上一个任务正在进行中，请稍后再试。");
             return;
         }
-        if (!confirm("  当前版本：" + policySettingsArray.version + "      最新版本：" + policySettingsArray.lastVersion + "\n\n  软件版本在线更新时，须保持内外部网络畅通。\n\n  请确保路由器上有 1 MB 以上的剩余存储空间。\n\n  确定要执行此操作吗？"))
+        if (!confirm("  当前版本：" + policySettingsArray.version + "      最新版本：" + policySettingsArray.lastVersion + "\n\n  软件版本在线更新时，须保持内外部网络畅通。\n\n  请确保路由器上有 2 MB 以上的剩余存储空间。\n\n  确定要执行此操作吗？"))
             return;
         $("#amng_custom").val("");
         document.form.action_script.value = "start_LZDoUpdate";

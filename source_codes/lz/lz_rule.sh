@@ -117,7 +117,7 @@ PATH_INTERFACE="${PATH_LZ}/interface"
 PATH_TMP="${PATH_LZ}/tmp"
 PATH_ADDONS="/jffs/addons"
 SETTINGSFILE="${PATH_ADDONS}/custom_settings.txt"
-PATH_WEBPAGE="$( readlink "/www/user" )"
+PATH_WEBPAGE="$( readlink -f "/www/user" )"
 PATH_WEB_LZR="${PATH_WEBPAGE}/lzr"
 
 ## 项目标识及项目文件名
@@ -752,8 +752,8 @@ lz_unmount_web_ui() {
             rm -f "${PATH_WEBPAGE}/${page_name%.*}.title" > /dev/null 2>&1
         fi
         [ -d "${PATH_WEB_LZR}" ] && rm -rf "${PATH_WEB_LZR}" > /dev/null 2>&1
-        lz_clear_service_event_command
     fi
+    lz_clear_service_event_command
 }
 
 ## 挂载WEB界面函数
@@ -766,7 +766,8 @@ lz_mount_web_ui() {
     local retval="1"
     while true
     do
-        ! nvram get rc_support | grep -q "am_addons" && break
+        ! nvram get rc_support | grep -qw "am_addons" && break
+        [ -z "${PATH_WEBPAGE}" ] && break
         if [ ! -d "${PATH_ADDONS}" ]; then
             mkdir -p "${PATH_ADDONS}" > /dev/null 2>&1
             [ ! -d "${PATH_ADDONS}" ] && break
