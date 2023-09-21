@@ -1143,7 +1143,8 @@
                                                                             <option value="9">显示 dnsmasq.conf.add 配置项</option>
                                                                             <option value="10">更新运营商 IP 地址数据</option>
                                                                             <option value="11">解除程序运行锁</option>
-                                                                            <option value="12">恢复缺省配置参数 (慎重)</option>
+                                                                            <option value="12">恢复缺省配置参数</option>
+                                                                            <option value="13">卸载策略路由</option>
                                                                         </select>
                                                                     </td>
                                                                 </tr>

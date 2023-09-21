@@ -1,5 +1,5 @@
 /*
-# lz_policy_routing.js v4.1.9
+# lz_policy_routing.js v4.2.0
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ JavaScript for Asuswrt-Merlin Router
@@ -42,7 +42,7 @@ function getLastVersion() {
                     setInterval(function () {
                         $("#lzr_last_version_block").fadeOut(200);
                         $("#lzr_last_version_block").fadeIn(100);
-                    }, 5000);
+                    }, 3000);
                 }
             }
         }
@@ -1067,6 +1067,7 @@ function openOverHint(itemNum) {
         content += "<li>更新运营商 IP 地址数据</li>";
         content += "<li>解除程序运行锁</li>";
         content += "<li>恢复缺省配置参数</li>";
+        content += "<li>卸载策略路由</li>";
         content += "</ul>";
         content += "<b>查询路由器出口</b>：<br />根据目标主机域名或 IP 地址，查询访问该地址流量使用的路由器出口，以及该主机地址的运营商归属。域名解析后可能会得到多个 IP 地址，由此会出现多条信息。<br />";
         content += "<br /><b>显示系统路由表</b>：<br />显示当前系统中，<b>策略路由</b>所依赖的路由表，以及路由表内容。<br />";
@@ -1080,7 +1081,8 @@ function openOverHint(itemNum) {
         content += "<br /><b>显示 dnsmasq.conf.add 配置项</b>：<br />显示 <b>DNSmasq</b> 的<b>自定义扩展配置项</b>。<b>DNSmasq</b> 是一个小巧且方便地用于配置 <b>DNS</b> 和 <b>DHCP</b> 的工具，适用于小型网络。提供的 <b>DNS</b> 功能和可选择的 <b>DHCP</b> 功能可以取代 dhcpd (DHCPD 服务配置) 和 bind 等服务，配置简单，适用于虚拟化和大数据环境的部署。<br />";
         content += "<br /><b>更新运营商 IP 地址数据</b>：<br />通过互联网手动更新<b>策略路由</b>中的<b>运营商 IP 地址数据</b>库。该数据经常发生变化，为保证业务的精准性，请定期及时更新。亦可在<b>外部网络(WAN) - 策略路由(IPv4) - 基础 - 运营商 IP 地址数据</b>中<b>启用定时更新</b>。<br />";
         content += "<br /><b>解除程序运行锁</b>：<br />软件启动或操作过程中，若操作 ctrl+c 组合键，或其他意外原因造成运行中断，导致程序被内部的同步运行安全机制锁住，在不重启路由器的情况下，无法再次启动或有关命令无法继续执行，可通过此命令强制解锁，然后请再次重新启动<b>策略路由</b>，即可恢复正常。<b>注意</b>，正常运行过程中不要随意执行此命令，以免造成安全机制失效。<br />";
-        content += "<br /><b>恢复缺省配置参数</b>：<br />将<b>策略路由</b>工作参数恢复至初始<b>缺省</b>状态。此操作将<b>不可恢复</b>的清除用户所有已配置数据，执行此命令请务必<b>慎重</b>。</div>";
+        content += "<br /><b>恢复缺省配置参数</b>：<br />将<b>策略路由</b>工作参数恢复至初始<b>缺省</b>状态。此操作将<b>不可恢复</b>的清除用户所有已配置数据，执行此命令请务必<b>慎重</b>。<br />";
+        content += "<br /><b>卸载策略路由</b>：<br />卸载<b>策略路由</b>软件。此操作将<b>不可恢复</b>的卸载并清除<b>策略路由</b>软件。卸载命令执行后，路由器<b>策略路由</b>项目目录内仅遗留与用户配置有关的数据文件，若不需要，可手工删除。执行此命令请务必<b>慎重</b>。</div>";
     } else if (itemNum == 87) {
         content = "<div>目标主机的<b>域名地址</b>或 <b>IP 地址</b>，内容不可为空。</div>";
     } else if (itemNum == 88) {
@@ -1088,9 +1090,9 @@ function openOverHint(itemNum) {
         content += "<br />若查询的是自定义域名地址，<b>DNS 服务器</b>地址请设置为路由器主机<b>内网 IP 地址</b>或 <b>0.0.0.0</b>。</div>";
     } else if (itemNum == 89) {
         content = "<div>此功能用于将指定<b>域名</b>解析到特定的 <b>IP 地址</b>上。<br />";
-        content += "<br />文件中所定义的<b>域名</b>被访问时将跳转到指定的 <b>IP 地址</b>，作用与主机上的 <b>hosts</b> 文件相同。<br />";
+        content += "<br /><b>自定义域名地址解析文件</b>中所定义的<b>域名</b>被访问时将跳转到指定的 <b>IP 地址</b>，作用与主机上的 <b>hosts</b> 文件相同。<br />";
         content += "<br />缺省为<b>停用</b>。<br />";
-        content += `<br />缺省文件名为 <b>${policySettingsArray.path}/data/custom_hosts.txt</b>，无有效数据条目。<br />`;
+        content += `<br />缺省<b>自定义域名地址解析文件</b>名为 <b>${policySettingsArray.path}/data/custom_hosts.txt</b>，无有效数据条目。<br />`;
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
         content += "<br />文本格式：每行由 <b>IP 地址</b>和<b>域名</b>两个字段组成，字段之间用<b>空格</b>隔开，一个条目一行，可多行多个条目。<br />";
         content += "<br />例如：<br />";
@@ -1699,7 +1701,7 @@ function hideCNT(_val) {
             addressEnable = true;
             setTimeout(getAddressInfo, 100);
         }
-    } else if (val >= 1 && val <= 12) {
+    } else if (val >= 1 && val <= 13) {
         document.getElementById("cmdMethod").value = _val;
         document.getElementById("destIPCNT_tr").style.display = "none";
         document.getElementById("dnsIPAddressCNT_tr").style.display = "none";
@@ -1865,6 +1867,16 @@ function toolsCommand() {
             showLoading();
             document.form.submit();
             break;
+        case 13:
+            if (!confirm("「卸载策略路由」将不可恢复的卸载并清除「策略路由」软件。\n\n  卸载命令执行后，该软件的路由器项目目录内仅遗留与用户配置有关的数据文件，若不需要，可手工删除。\n\n  确定要执行此操作吗？"))
+                break;
+            $("#amng_custom").val("");
+            document.form.current_page.value = "Advanced_WANPort_Content.asp";
+            document.form.action_script.value = "start_LZUnintall";
+            document.form.action_wait.value = "15";
+            showLoading();
+            document.form.submit();
+            break;
         default:
             break;
     }
@@ -1937,7 +1949,7 @@ $(document).ready(function() {
             alert("上一个任务正在进行中，请稍后再试。");
             return;
         }
-        if (!confirm("  当前版本：" + policySettingsArray.version + "      最新版本：" + policySettingsArray.lastVersion + "\n\n  软件版本在线更新时，须保持内外部网络畅通。\n\n  请确保路由器上有 2 MB 以上的剩余存储空间。\n\n  确定要执行此操作吗？"))
+        if (!confirm("  当前版本：" + policySettingsArray.version + "      最新版本：" + policySettingsArray.lastVersion + "\n\n  软件「在线更新」或「在线重装」时，须保持内外部网络畅通。\n\n  请确保路由器软件安装目录里有 2 MB 以上的剩余存储空间。\n\n  确定要执行此操作吗？"))
             return;
         $("#amng_custom").val("");
         document.form.action_script.value = "start_LZDoUpdate";

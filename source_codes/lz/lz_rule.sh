@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule.sh v4.1.9
+# lz_rule.sh v4.2.0
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # 本软件采用CIDR（无类别域间路由，Classless Inter-Domain Routing）技术，是一个在Internet上创建附加地
@@ -80,7 +80,7 @@
 ## -------------全局数据定义及初始化-------------------
 
 ## 版本号
-LZ_VERSION=v4.1.9
+LZ_VERSION=v4.2.0
 
 ## 运行状态查询命令
 SHOW_STATUS="status"
@@ -319,12 +319,28 @@ lz_project_file_management() {
         echo "$(lzdate)" [$$]: The file "${PATH_WEBS}/LZ_Policy_Routing_Content.asp" does not exist. | tee -ai "${SYSLOG}" 2> /dev/null
         local_scripts_file_exist=0
     }
+    [ ! -f "${PATH_IMAGES}/arrow-down.gif" ] && {
+        echo "$(lzdate)" [$$]: The file "${PATH_IMAGES}/arrow-down.gif" does not exist. | tee -ai "${SYSLOG}" 2> /dev/null
+        local_scripts_file_exist=0
+    }
+    [ ! -f "${PATH_IMAGES}/arrow-top.gif" ] && {
+        echo "$(lzdate)" [$$]: The file "${PATH_IMAGES}/arrow-top.gif" does not exist. | tee -ai "${SYSLOG}" 2> /dev/null
+        local_scripts_file_exist=0
+    }
+    [ ! -f "${PATH_IMAGES}/favicon.png" ] && {
+        echo "$(lzdate)" [$$]: The file "${PATH_IMAGES}/favicon.png" does not exist. | tee -ai "${SYSLOG}" 2> /dev/null
+        local_scripts_file_exist=0
+    }
     [ ! -f "${PATH_IMAGES}/InternetScan.gif" ] && {
         echo "$(lzdate)" [$$]: The file "${PATH_IMAGES}/InternetScan.gif" does not exist. | tee -ai "${SYSLOG}" 2> /dev/null
         local_scripts_file_exist=0
     }
     [ ! -f "${PATH_INTERFACE}/lz_rule_service.sh" ] && {
         echo "$(lzdate)" [$$]: The file "${PATH_INTERFACE}/lz_rule_service.sh" does not exist. | tee -ai "${SYSLOG}" 2> /dev/null
+        local_scripts_file_exist=0
+    }
+    [ ! -f "${PATH_LZ}/uninstall.sh" ] && {
+        echo "$(lzdate)" [$$]: The file "${PATH_LZ}/uninstall.sh" does not exist. | tee -ai "${SYSLOG}" 2> /dev/null
         local_scripts_file_exist=0
     }
     if [ "${local_scripts_file_exist}" = "0" ]; then
@@ -335,11 +351,11 @@ lz_project_file_management() {
 
     ## 清除已作废的脚本代码及资源文件
     if [ -f "${PATH_CONFIGS}/lz_rule_func_config.sh" ]; then
-        ! grep -q "${LZ_VERSION}" "${PATH_CONFIGS}/lz_rule_func_config.sh" && \
+        ! grep -q "${LZ_VERSION}" "${PATH_CONFIGS}/lz_rule_func_config.sh" 2> /dev/null && \
             rm -f "${PATH_CONFIGS}/lz_rule_func_config.sh" > /dev/null 2>&1
     fi
     if [ -f "${PATH_CONFIGS}/lz_protocols.txt" ]; then
-        grep -qEo '[l][z][\_]' "${PATH_CONFIGS}/lz_protocols.txt" && \
+        grep -qEo '[l][z][\_]' "${PATH_CONFIGS}/lz_protocols.txt" 2> /dev/null && \
         rm -f "${PATH_CONFIGS}/lz_protocols.txt" > /dev/null 2>&1
     fi
 

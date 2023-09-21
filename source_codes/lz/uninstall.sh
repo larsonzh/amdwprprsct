@@ -1,5 +1,5 @@
 #!/bin/sh
-# uninstall.sh v4.1.9
+# uninstall.sh v4.2.0
 # By LZ (larsonzhang@gmail.com)
 
 # LZ RULE script for Asuswrt-Merlin Router
@@ -8,7 +8,7 @@
 
 # BEIGIN
 
-LZ_VERSION=v4.1.9
+LZ_VERSION=v4.2.0
 TIMEOUT=10
 CURRENT_PATH="${0%/*}"
 [ "${CURRENT_PATH:0:1}" != '/' ] && CURRENT_PATH="$( pwd )${CURRENT_PATH#*.}"
@@ -23,25 +23,27 @@ lzdate() {  date +"%F %T"; }
     echo
 } | tee -ai "${SYSLOG}" 2> /dev/null
 
-! read -r -n1 -t ${TIMEOUT} -p "  Automatically terminate after ${TIMEOUT}s, continue uninstallation? [Y/N] " ANSWER \
-    || [ -n "${ANSWER}" ] && echo -e "\r"
-case ${ANSWER} in
-    Y | y)
-    {
-        echo | tee -ai "${SYSLOG}" 2> /dev/null
-    }
-    ;;
-    *)
-    {
+if [ "${1}" != 'y' ] && [ "${1}" != 'Y' ]; then
+    ! read -r -n1 -t ${TIMEOUT} -p "  Automatically terminate after ${TIMEOUT}s, continue uninstallation? [Y/N] " ANSWER \
+        || [ -n "${ANSWER}" ] && echo -e "\r"
+    case ${ANSWER} in
+        Y | y)
         {
-            echo
-            echo "  LZ script uninstallation failed."
-            echo -e "  $(lzdate)\n\n"
-        } | tee -ai "${SYSLOG}" 2> /dev/null
-        exit "1"
-    }
-    ;;
-esac
+            echo | tee -ai "${SYSLOG}" 2> /dev/null
+        }
+        ;;
+        *)
+        {
+            {
+                echo
+                echo "  LZ script uninstallation failed."
+                echo -e "  $(lzdate)\n\n"
+            } | tee -ai "${SYSLOG}" 2> /dev/null
+            exit "1"
+        }
+        ;;
+    esac
+fi
 
 if [ ! -f "${CURRENT_PATH}/lz_rule.sh" ]; then
     {
@@ -121,7 +123,7 @@ rmdir "${CURRENT_PATH}" > /dev/null 2>&1
     echo -e "  $(lzdate)\n\n"
 } | tee -ai "${SYSLOG}" 2> /dev/null
 
-[ ! -d "${CURRENT_PATH}" ] && { cd "${HOME}/" || exit "0"; }
+[ ! -d "${CURRENT_PATH}" ] && { cd "${CURRENT_PATH%/*}/" || { cd "${HOME}/" || exit "0"; }; }
 
 exit "0"
 

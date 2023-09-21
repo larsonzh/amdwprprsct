@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_service.sh v4.1.9
+# lz_rule_service.sh v4.2.0
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 服务接口脚本
@@ -165,6 +165,9 @@ case "${2}" in
             fi
             rm -rf "${PATH_LZ}/tmp/doupdate" 2> /dev/null
         fi
+    ;;
+    LZUnintall)
+        "${PATH_LZ}/uninstall.sh" "y"
     ;;
     *)
         [ "${2%%_*}" = "LZAddress" ] \
