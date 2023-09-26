@@ -1,5 +1,5 @@
 /*
-# lz_policy_routing.js v4.2.0
+# lz_policy_routing.js v4.2.1
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ JavaScript for Asuswrt-Merlin Router
@@ -649,7 +649,7 @@ function openOverHint(itemNum) {
         content = `<div>缺省文件名为 <b>${policySettingsArray.path}/data/custom_data_1.txt</b>，无有效数据条目。<br />`;
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
         content += "<br />文本格式：一个网址/网段一行，为一个条目，可多行多个条目。<br />";
-        content += "<br />此文件中 <b>0.0.0.0/0</b> 为无效地址。<br />";
+        content += "<br />此文件中 <b>0.0.0.0/0</b> 和 <b>0.0.0.0</b> 为无效地址。<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 17) {
         content = "<div><b>自定义策略 - 2</b> 流量出口选项："
@@ -851,7 +851,7 @@ function openOverHint(itemNum) {
         content = `<div>缺省文件名为 <b>${policySettingsArray.path}/data/local_ipsets_data.txt</b>，无有效数据条目。<br />`;
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
         content += "<br />文文本格式：一个网址/网段一行，为一个条目，可多行多个条目。<br />";
-        content += "<br />此文件中 <b>0.0.0.0/0</b> 为无效地址。<br />";
+        content += "<br />此文件中 <b>0.0.0.0/0</b> 和 <b>0.0.0.0</b> 为无效地址。<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 42) {
         content = "<div>本策略用于从外部网络远程连接访问路由器及其内部的网络设备。<br />";
@@ -958,7 +958,7 @@ function openOverHint(itemNum) {
         content += `<br />缺省文件名为 <b>${policySettingsArray.path}/data/iptv_box_ip_lst.txt</b>，无有效数据条目。<br />`;
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
         content += "<br />文本格式，一个机顶盒地址一行，可逐行填入多个机顶盒地址。<br />";
-        content += "<br />此文件中 <b>0.0.0.0/0</b> 为无效地址。<br />";
+        content += "<br />此文件中 <b>0.0.0.0/0</b> 和 <b>0.0.0.0</b> 为无效地址。<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 62) {
         content = "<div>仅在<b>IPTV 机顶盒访问 IPTV 线路方式</b>为<b>按服务地址访问</b>时使用。<br />";
@@ -966,7 +966,7 @@ function openOverHint(itemNum) {
         content += `<br />缺省文件名为 <b>${policySettingsArray.path}/data/iptv_isp_ip_lst.txt</b>，无有效数据条目。<br />`;
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
         content += "<br />文本格式，一个机顶盒地址一行，可逐行填入多个机顶盒地址。<br />";
-        content += "<br />此文件中 <b>0.0.0.0/0</b> 为无效地址。<br />";
+        content += "<br />此文件中 <b>0.0.0.0/0</b> 和 <b>0.0.0.0</b> 为无效地址。<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 63) {
         content = "<div><b>核心网桥组播数据侦测方式</b>选项：<br />";
@@ -1033,7 +1033,7 @@ function openOverHint(itemNum) {
         content = `<div>缺省文件名为 <b>${policySettingsArray.path}/data/custom_data_2.txt</b>，无有效数据条目。<br />`;
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
         content += "<br />文本格式：一个网址/网段一行，为一个条目，可多行多个条目。<br />";
-        content += "<br />此文件中 <b>0.0.0.0/0</b> 为无效地址。<br />";
+        content += "<br />此文件中 <b>0.0.0.0/0</b> 和 <b>0.0.0.0</b> 为无效地址。<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 82) {
         content = "<div>缺省为<b>停用</b>。<br />";
@@ -1777,7 +1777,7 @@ function hideCNT(_val) {
 
 function toolsCommand() {
     let val = parseInt(document.getElementById("cmdMethod").value);
-    if ((val < 5 || (val > 8 && val != 10)) && isInstance()) {
+    if ((val < 5 || (val > 9 && val != 11)) && isInstance()) {
         alert("上一个任务正在进行中，请稍后再试。");
         return;
     }

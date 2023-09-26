@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule.sh v4.2.0
+# lz_rule.sh v4.2.1
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # 本软件采用CIDR（无类别域间路由，Classless Inter-Domain Routing）技术，是一个在Internet上创建附加地
@@ -80,7 +80,7 @@
 ## -------------全局数据定义及初始化-------------------
 
 ## 版本号
-LZ_VERSION=v4.2.0
+LZ_VERSION=v4.2.1
 
 ## 运行状态查询命令
 SHOW_STATUS="status"
@@ -1099,7 +1099,7 @@ __lz_main() {
     lz_check_instance "${1}" && return
 
     ## 双线路
-    if ip route show | grep -q nexthop && [ "${ip_rule_exist}" = "0" ]; then
+    if ip route show | grep -qw nexthop && [ "${ip_rule_exist}" = "0" ]; then
         [ "$( nvram get "wan0_enable" )" = "1" ] && [ "$( nvram get "wan1_enable" )" = "1" ] \
             && [ -n "$( nvram get "wan0_proto_t" )" ] && [ -n "$( nvram get "wan1_proto_t" )" ] \
             && echo "$(lzdate)" [$$]: Dual WAN \( "$( nvram get "wan0_proto" )" -- "$( nvram get "wan1_proto" )" \) has been started. | tee -ai "${SYSLOG}" 2> /dev/null

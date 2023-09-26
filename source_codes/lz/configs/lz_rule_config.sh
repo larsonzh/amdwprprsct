@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_config.sh v4.2.0
+# lz_rule_config.sh v4.2.1
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # 本软件采用CIDR（无类别域间路由，Classless Inter-Domain Routing）技术，是一个在Internet上创建附加地
@@ -243,7 +243,7 @@ custom_data_wan_port_1=5
 ## 文件路径、名称可自定义和修改，文件路径及名称不得为空。
 ## 缺省为"/jffs/scripts/lz/data/custom_data_1.txt"，为空文件。
 ## 文本格式：一个网址/网段一行，为一个条目，可多行多个条目。
-## 此文件中0.0.0.0/0为无效地址。
+## 此文件中0.0.0.0/0和0.0.0.0为无效地址。
 ## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
 custom_data_file_1="/jffs/scripts/lz/data/custom_data_1.txt"
 
@@ -258,7 +258,7 @@ custom_data_wan_port_2=5
 ## 文件路径、名称可自定义和修改，文件路径及名称不得为空。
 ## 缺省为"/jffs/scripts/lz/data/custom_data_2.txt"，为空文件。
 ## 文本格式：一个网址/网段一行，为一个条目，可多行多个条目。
-## 此文件中0.0.0.0/0为无效地址。
+## 此文件中0.0.0.0/0和0.0.0.0为无效地址。
 ## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
 custom_data_file_2="/jffs/scripts/lz/data/custom_data_2.txt"
 
@@ -549,7 +549,7 @@ high_wan_1_src_to_dst_addr_port_file="/jffs/scripts/lz/data/high_wan_1_src_to_ds
 ## 文件路径、名称可自定义和修改，文件路径及名称不得为空。
 ## 缺省为"/jffs/scripts/lz/data/local_ipsets_data.txt"，为空文件。
 ## 文本格式：一个网址/网段一行，为一个条目，可多行多个条目。
-## 此文件中0.0.0.0/0为无效地址。
+## 此文件中0.0.0.0/0和0.0.0.0为无效地址。
 ## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
 local_ipsets_file="/jffs/scripts/lz/data/local_ipsets_data.txt"
 
@@ -705,7 +705,7 @@ iptv_access_mode=1
 ## 文件路径、名称可自定义和修改，文件路径及名称不得为空。
 ## 缺省为"/jffs/scripts/lz/data/iptv_box_ip_lst.txt"，为空文件。
 ## 文本格式，一个机顶盒地址一行，可逐行填入多个机顶盒地址。
-## 此文件中0.0.0.0/0为无效地址。
+## 此文件中0.0.0.0/0和0.0.0.0为无效地址。
 ## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
 iptv_box_ip_lst_file="/jffs/scripts/lz/data/iptv_box_ip_lst.txt"
 
@@ -716,7 +716,7 @@ iptv_box_ip_lst_file="/jffs/scripts/lz/data/iptv_box_ip_lst.txt"
 ## 网络服务地址，需要用户自己获取和填写，如果地址不全或错误，机顶盒将无法通过路由器正确接入IPTV线路。若
 ## 填入的地址覆盖了用户使用的互联网访问地址，会导致机顶盒无法通过该地址访问互联网。
 ## 文本格式，一个网址/网段一行，可逐行填入多个网址/网段。
-## 此文件中0.0.0.0/0为无效地址。
+## 此文件中0.0.0.0/0和0.0.0.0为无效地址。
 ## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
 iptv_isp_ip_lst_file="/jffs/scripts/lz/data/iptv_isp_ip_lst.txt"
 

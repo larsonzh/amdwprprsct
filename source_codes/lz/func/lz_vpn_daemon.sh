@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_vpn_daemon.sh v4.2.0
+# lz_vpn_daemon.sh v4.2.1
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 虚拟专网客户端路由刷新处理后台守护进程脚本
@@ -8,6 +8,8 @@
 ## 返回值：0
 
 #BEIGIN
+## 版本号
+LZ_VERSION=v4.2.1
 
 ## 项目接口文件部署路径
 PATH_INTERFACE="${0%/*}"
@@ -50,6 +52,12 @@ ipset -q create "${VPN_CLIENT_DAEMON_IP_SET_LOCK}" list:set
 ## 轮询时间
 if [ "${1}" -gt "0" ] && [ "${1}" -le "60" ]; then POLLING_TIME="${1}"; else POLLING_TIME="5"; fi;
 POLLING_TIME="${POLLING_TIME}s"
+
+## 系统记录文件名
+SYSLOG="/tmp/syslog.log"
+
+## 日期时间自定义格式显示
+lzdate() { date +"%F %T"; }
 
 ## 调用Open虚拟专网事件触发接口文件函数
 ## 输入项：
@@ -159,6 +167,15 @@ update_vpn_client() {
 while [ -n "$( ipset -q -n list ${VPN_CLIENT_DAEMON_IP_SET_LOCK} )" ]
 do
     [ ! -f "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}" ] && break
+    if ! ip route show | grep -qw nexthop; then
+        {
+            echo "$(lzdate)" [$$]:
+            echo "$(lzdate)" [$$]: Running LZ VPN Event Handling Process "${LZ_VERSION}"
+            echo "$(lzdate)" [$$]: Non dual network operation mode.
+            echo "$(lzdate)" [$$]:
+        } >> "${SYSLOG}"
+        break
+    fi
     while true
     do
         if [ "${WGS_ENABLE}" = "1" ]; then

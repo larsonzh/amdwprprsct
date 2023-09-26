@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v4.2.0
+# lz_rule_func.sh v4.2.1
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 #BEIGIN
@@ -76,7 +76,7 @@ lz_get_ipv4_data_file_valid_item_total() {
     [ -s "${1}" ] && {
         retval="$( awk -v count="0" '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
             && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
-            && $1 != "0.0.0.0/0" && NF >= "1" && !i[$1]++ {count++} END{print count}' "${1}" )"
+            && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" && NF >= "1" && !i[$1]++ {count++} END{print count}' "${1}" )"
     }
     echo "${retval}"
 }
@@ -151,7 +151,7 @@ lz_get_domain_data_file_item_total() {
 lz_get_unkonwn_ipv4_src_addr_data_file_item() {
     local retval="1"
     [ -s "${1}" ] && {
-        retval="$( awk '$1 == "0.0.0.0/0" && NF >= "1" {print "0"; exit}' "${1}" )"
+        retval="$( awk '($1 == "0.0.0.0/0" || $1 == "0.0.0.0") && NF >= "1" {print "0"; exit}' "${1}" )"
         [ -z "${retval}" ] && retval="1"
     }
     return "${retval}"
@@ -166,7 +166,7 @@ lz_get_unkonwn_ipv4_src_addr_data_file_item() {
 lz_get_unkonwn_ipv4_src_dst_addr_data_file_item() {
     local retval="1"
     [ -s "${1}" ] && {
-        retval="$( awk '$1 == "0.0.0.0/0" && $2 == "0.0.0.0/0" && NF >= "2" {print "0"; exit}' "${1}" )"
+        retval="$( awk '($1 == "0.0.0.0/0" || $1 == "0.0.0.0") && ($2 == "0.0.0.0/0" || $2 == "0.0.0.0") && NF >= "2" {print "0"; exit}' "${1}" )"
         [ -z "${retval}" ] && retval="1"
     }
     return "${retval}"
@@ -181,7 +181,7 @@ lz_get_unkonwn_ipv4_src_dst_addr_data_file_item() {
 lz_get_unkonwn_ipv4_src_dst_addr_port_data_file_item() {
     local retval="1"
     [ -s "${1}" ] && {
-        retval="$( awk '$1 == "0.0.0.0/0" && $2 == "0.0.0.0/0" && NF == "2" {print "0"; exit}' "${1}" )"
+        retval="$( awk '($1 == "0.0.0.0/0" || $1 == "0.0.0.0") && ($2 == "0.0.0.0/0" || $2 == "0.0.0.0") && NF == "2" {print "0"; exit}' "${1}" )"
         [ -z "${retval}" ] && retval="1"
     }
     return "${retval}"
@@ -485,10 +485,96 @@ lz_get_policy_mode() {
     ##     0--成功
     ##     1--失败
     lz_adjust_traffic_policy && adjust_traffic_policy="0"
-    ! ip route show | grep -q nexthop && policy_mode="5" && return "1" ## 单线路模式
-    [ "${usage_mode}" = "0" ] && policy_mode="5" && return "1" ## 模式3（动态分流模式）
-    [ "${isp_wan_port_0}" = "0" ] && policy_mode="1" ## 模式2（静态分流模式）
-    [ "${isp_wan_port_0}" = "1" ] && policy_mode="0" ## 模式1（静态分流模式）
+    ! ip route show | grep -qw nexthop && policy_mode="5" && return "1" ## 单线路模式
+    [ "${usage_mode}" = "0" ] && policy_mode="5" && return "0" ## 模式3（动态分流模式）
+    [ "${isp_wan_port_0}" = "0" ] && policy_mode="1" && return "0" ## 模式2（静态分流模式）
+    [ "${isp_wan_port_0}" = "1" ] && policy_mode="0" && return "0" ## 模式1（静态分流模式）
+
+    local_wan1_isp_addr_total="0"
+    local_wan2_isp_addr_total="0"
+
+    ## 计算均分出口时两WAN口网段条目累计值函数
+    ## 输入项：
+    ##     $1--ISP网络运营商索引号（0~10）
+    ##     $2--是否反向（1：反向；非1：正向）
+    ##     全局变量及常量
+    ##         local_wan1_isp_addr_total--第一WAN口网段条目累计值
+    ##         local_wan2_isp_addr_total--第二WAN口网段条目累计值
+    ## 返回值：
+    ##     local_wan1_isp_addr_total--第一WAN口网段条目累计值
+    ##     local_wan2_isp_addr_total--第二WAN口网段条目累计值
+    llz_cal_equal_division() {
+        local local_equal_division_total="$( lz_get_isp_data_item_total_variable "${1}" )"
+        if [ "${2}" != "1" ]; then
+            local_wan1_isp_addr_total="$(( local_wan1_isp_addr_total + local_equal_division_total/2 + local_equal_division_total%2 ))"
+            local_wan2_isp_addr_total="$(( local_wan2_isp_addr_total + local_equal_division_total/2 ))"
+        else
+            local_wan1_isp_addr_total="$(( local_wan1_isp_addr_total + local_equal_division_total/2 ))"
+            local_wan2_isp_addr_total="$(( local_wan2_isp_addr_total +local_equal_division_total/2 + local_equal_division_total%2 ))"
+        fi
+    }
+
+    ## 计算运营商目标网段均分出口时两WAN口网段条目累计值函数
+    ## 输入项：
+    ##     $1--ISP网络运营商索引号（0~10）
+    ##     全局变量及常量
+    ##         local_wan1_isp_addr_total--第一WAN口网段条目累计值
+    ##         local_wan2_isp_addr_total--第二WAN口网段条目累计值
+    ## 返回值：
+    ##     local_wan1_isp_addr_total--第一WAN口网段条目累计值
+    ##     local_wan2_isp_addr_total--第二WAN口网段条目累计值
+    llz_cal_isp_equal_division() {
+        local local_isp_wan_port="$( lz_get_isp_wan_port "${1}" )"
+        local isp_total="0"
+        { [ "${local_isp_wan_port}" = "0" ] || [ "${local_isp_wan_port}" = "1" ]; } \
+            && isp_total="$( lz_get_isp_data_item_total_variable "${1}" )"
+        [ "${local_isp_wan_port}" = "0" ] && local_wan1_isp_addr_total="$(( local_wan1_isp_addr_total + isp_total ))"
+        [ "${local_isp_wan_port}" = "1" ] && local_wan2_isp_addr_total="$(( local_wan2_isp_addr_total + isp_total ))"
+        ## 计算均分出口时两WAN口网段条目累计值
+        ## 输入项：
+        ##     $1--ISP网络运营商索引号（0~10）
+        ##     $2--是否反向（1：反向；非1：正向）
+        ##     全局变量及常量
+        ##         local_wan1_isp_addr_total--第一WAN口网段条目累计值
+        ##         local_wan2_isp_addr_total--第二WAN口网段条目累计值
+        ## 返回值：
+        ##     local_wan1_isp_addr_total--第一WAN口网段条目累计值
+        ##     local_wan2_isp_addr_total--第二WAN口网段条目累计值
+        [ "${local_isp_wan_port}" = "2" ] && llz_cal_equal_division "${1}"
+        [ "${local_isp_wan_port}" = "3" ] && llz_cal_equal_division "${1}" "1"
+    }
+
+    local local_index="1"
+    until [ "${local_index}" -gt "${ISP_TOTAL}" ]
+    do
+        ## 计算运营商目标网段均分出口时两WAN口网段条目累计值
+        ## 输入项：
+        ##     $1--ISP网络运营商索引号（0~10）
+        ##     全局变量及常量
+        ##         local_wan1_isp_addr_total--第一WAN口网段条目累计值
+        ##         local_wan2_isp_addr_total--第二WAN口网段条目累计值
+        ## 返回值：
+        ##     local_wan1_isp_addr_total--第一WAN口网段条目累计值
+        ##     local_wan2_isp_addr_total--第二WAN口网段条目累计值
+        llz_cal_isp_equal_division "${local_index}"
+        local_index="$(( local_index + 1 ))"
+    done
+
+    local custom_total="0"
+    { [ "${custom_data_wan_port_1}" = "0" ] || [ "${custom_data_wan_port_1}" = "1" ]; } \
+        && custom_total="$( lz_get_ipv4_data_file_valid_item_total "${custom_data_file_1}" )"
+    [ "${custom_data_wan_port_1}" = "0" ] && local_wan1_isp_addr_total="$(( local_wan1_isp_addr_total + custom_total ))"
+    [ "${custom_data_wan_port_1}" = "1" ] && local_wan2_isp_addr_total="$(( local_wan2_isp_addr_total + custom_total ))"
+
+    { [ "${custom_data_wan_port_2}" = "0" ] || [ "${custom_data_wan_port_2}" = "1" ]; } \
+        && custom_total="$( lz_get_ipv4_data_file_valid_item_total "${custom_data_file_2}" )"
+    [ "${custom_data_wan_port_2}" = "0" ] && local_wan1_isp_addr_total="$(( local_wan1_isp_addr_total + custom_total ))"
+    [ "${custom_data_wan_port_2}" = "1" ] && local_wan2_isp_addr_total="$(( local_wan2_isp_addr_total + custom_total ))"
+
+    if [ "${local_wan1_isp_addr_total}" -lt "${local_wan2_isp_addr_total}" ]; then policy_mode="0"; else policy_mode="1"; fi;
+
+    unset local_wan1_isp_addr_total
+    unset local_wan2_isp_addr_total
 
     return "0"
 }
@@ -857,7 +943,7 @@ lz_get_route_info() {
         echo "$(lzdate)" [$$]: "   Route Local Mask: ${local_route_local_ip_mask}"
     } | tee -ai "${SYSLOG}" 2> /dev/null
 
-    if ip route show | grep -q nexthop; then
+    if ip route show | grep -qw nexthop; then
         if [ "${usage_mode}" = "0" ]; then
             echo "$(lzdate)" [$$]: "   Route Usage Mode: Dynamic Policy" | tee -ai "${SYSLOG}" 2> /dev/null
         else
@@ -946,14 +1032,14 @@ lz_sys_load_balance_control() {
     ## 仅对位于IP_RULE_PRIO_TOPEST--IP_RULE_PRIO范围之外的负载均衡策略规则条目进行优先级调整
     ## a.对固件系统中第一WAN口的负载均衡分流策略
     local local_sys_load_balance_wan0_exist="$( ip rule show | grep -i "from all fwmark 0x80000000/0xf0000000" \
-        | awk -v count="0" -F: '$1 < "'"${IP_RULE_PRIO_TOPEST}"'" || $1 > "'"${IP_RULE_PRIO}"'" {count++} END{print count}' )"
+        | awk -v count="0" -F: '($1 + 0) < "'"${IP_RULE_PRIO_TOPEST}"'" || ($1 + 0) > "'"${IP_RULE_PRIO}"'" {count++} END{print count}' )"
     if [ "${local_sys_load_balance_wan0_exist}" -gt "0" ]; then
         until [ "${local_sys_load_balance_wan0_exist}" = "0" ]
         do
             ip rule show | grep -i "from all fwmark 0x80000000/0xf0000000" | \
-                awk -F: '$1 < "'"${IP_RULE_PRIO_TOPEST}"'" || $1 > "'"${IP_RULE_PRIO}"'" {system("ip rule del prio "$1" > /dev/null 2>&1")}'
+                awk -F: '($1 + 0) < "'"${IP_RULE_PRIO_TOPEST}"'" || ($1 + 0) > "'"${IP_RULE_PRIO}"'" {system("ip rule del prio "$1" > /dev/null 2>&1")}'
             local_sys_load_balance_wan0_exist="$( ip rule show | grep -i "from all fwmark 0x80000000/0xf0000000" \
-                | awk -v count="0" -F: '$1 < "'"${IP_RULE_PRIO_TOPEST}"'" || $1 > "'"${IP_RULE_PRIO}"'" {count++} END{print count}' )"
+                | awk -v count="0" -F: '($1 + 0) < "'"${IP_RULE_PRIO_TOPEST}"'" || ($1 + 0) > "'"${IP_RULE_PRIO}"'" {count++} END{print count}' )"
         done
         ## 不清除系统负载均衡策略中的分流功能，但降低其执行优先级，防止先于自定义分流规则执行
         ip rule add from all fwmark "0x80000000/0xf0000000" table "${WAN0}" prio "${1}" > /dev/null 2>&1
@@ -962,14 +1048,14 @@ lz_sys_load_balance_control() {
 
     ## b.对固件系统中第二WAN口的负载均衡分流策略
     local local_sys_load_balance_wan1_exist="$( ip rule show | grep -i "from all fwmark 0x90000000/0xf0000000" \
-        | awk -v count="0" -F: '$1 < "'"${IP_RULE_PRIO_TOPEST}"'" || $1 > "'"${IP_RULE_PRIO}"'" {count++} END{print count}' )"
+        | awk -v count="0" -F: '($1 + 0) < "'"${IP_RULE_PRIO_TOPEST}"'" || ($1 + 0) > "'"${IP_RULE_PRIO}"'" {count++} END{print count}' )"
     if [ "${local_sys_load_balance_wan1_exist}" -gt "0" ]; then
         until [ "${local_sys_load_balance_wan1_exist}" = "0" ]
         do
             ip rule show | grep -i "from all fwmark 0x90000000/0xf0000000" | \
-                awk -F: '$1 < "'"${IP_RULE_PRIO_TOPEST}"'" || $1 > "'"${IP_RULE_PRIO}"'" {system("ip rule del prio "$1" > /dev/null 2>&1")}'
+                awk -F: '($1 + 0) < "'"${IP_RULE_PRIO_TOPEST}"'" || ($1 + 0) > "'"${IP_RULE_PRIO}"'" {system("ip rule del prio "$1" > /dev/null 2>&1")}'
             local_sys_load_balance_wan1_exist="$( ip rule show | grep -i "from all fwmark 0x90000000/0xf0000000" \
-                | awk -v count="0" -F: '$1 < "'"${IP_RULE_PRIO_TOPEST}"'" || $1 > "'"${IP_RULE_PRIO}"'" {count++} END{print count}' )"
+                | awk -v count="0" -F: '($1 + 0) < "'"${IP_RULE_PRIO_TOPEST}"'" || ($1 + 0) > "'"${IP_RULE_PRIO}"'" {count++} END{print count}' )"
         done
         ## 不清除系统负载均衡策略中的分流功能，但降低其执行优先级，防止先于自定义分流规则执行
         ip rule add from all fwmark "0x90000000/0xf0000000" table "${WAN1}" prio "${1}" > /dev/null 2>&1
@@ -2004,7 +2090,7 @@ lz_add_net_address_sets() {
     ipset -q create "${2}" nethash maxelem 4294967295 #--hashsize 1024 mexleme 65536
     awk '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
         && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
-        && $1 != "0.0.0.0/0" \
+        && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" \
         && NF >= "1" && !i[$1]++ {print "'"-! del ${2} "'"$1"'"\n-! add ${2} "'"$1"'"${NOMATCH}"'"} END{print "COMMIT"}' "${1}" \
         | ipset restore > /dev/null 2>&1
 }
@@ -2034,10 +2120,10 @@ lz_add_ed_net_address_sets() {
         && NF >= "1" && !i[$1]++ {
             count++
             if (criterion == "0") {
-                if ($1 != "0.0.0.0/0") print "'"-! del ${2} "'"$1"'"\n-! add ${2} "'"$1"'"${NOMATCH}"'"
+                if ($1 != "0.0.0.0/0" && $1 != "0.0.0.0") print "'"-! del ${2} "'"$1"'"\n-! add ${2} "'"$1"'"${NOMATCH}"'"
                 if (count >= ed_num) exit
             }
-            else if (count >= ed_num && $1 != "0.0.0.0/0") print "'"-! del ${2} "'"$1"'"\n-! add ${2} "'"$1"'"${NOMATCH}"'"
+            else if (count >= ed_num && $1 != "0.0.0.0/0" && $1 != "0.0.0.0") print "'"-! del ${2} "'"$1"'"\n-! add ${2} "'"$1"'"${NOMATCH}"'"
         } END{print "COMMIT"}' "${1}" \
         | ipset restore > /dev/null 2>&1
 }
@@ -2064,17 +2150,13 @@ lz_add_ipv4_src_addr_list_binding_wan() {
                 && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
                 && NF >= "1" && !i[$1]++ {system("ip rule add from "$1"'" table ${2} prio ${3} > /dev/null 2>&1"'")}' "${1}"
         else
-            if [ -n "${route_local_subnet}" ]; then
-                ip rule add from "${route_local_subnet}" table "${2}" prio "${3}" > /dev/null 2>&1
-            else
-                ip rule add from all table "${2}" prio "${3}" > /dev/null 2>&1
-            fi
+            ip rule add from all table "${2}" prio "${3}" > /dev/null 2>&1
             command_from_all_executed="1"
         fi
     else
         awk '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
             && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
-            && $1 != "0.0.0.0/0" \
+            && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" \
             && NF >= "1" && !i[$1]++ {system("ip rule add from "$1"'" table ${2} prio ${3} > /dev/null 2>&1"'")}' "${1}"
     fi
 }
@@ -2089,7 +2171,7 @@ lz_add_ipv4_dst_addr_list_binding_wan() {
     if [ ! -f "${1}" ] || [ -z "${2}" ]; then return; fi;
     awk '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
         && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
-        && $1 != "0.0.0.0/0" \
+        && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" \
         && NF >= "1" && !i[$1]++ {system("ip rule add from all to "$1"'" table ${2} prio ${3} > /dev/null 2>&1"'")}' "${1}"
 }
 
@@ -2114,10 +2196,10 @@ lz_add_ed_ipv4_dst_addr_list_binding_wan() {
         && NF >= "1" && !i[$1]++ {
             count++
             if (criterion == "0") {
-                if ($1 != "0.0.0.0/0") system("ip rule add from all to "$1"'" table ${2} prio ${3} > /dev/null 2>&1"'")
+                if ($1 != "0.0.0.0/0" && $1 != "0.0.0.0") system("ip rule add from all to "$1"'" table ${2} prio ${3} > /dev/null 2>&1"'")
                 if (count >= ed_num) exit
             }
-            else if (count >= ed_num && $1 != "0.0.0.0/0") system("ip rule add from all to "$1"'" table ${2} prio ${3} > /dev/null 2>&1"'")
+            else if (count >= ed_num && $1 != "0.0.0.0/0" && $1 != "0.0.0.0") system("ip rule add from all to "$1"'" table ${2} prio ${3} > /dev/null 2>&1"'")
         }' "${1}"
 }
 
@@ -2143,11 +2225,7 @@ lz_add_ipv4_src_to_dst_addr_list_binding_wan() {
             && $2 !~ /[3-9][0-9][0-9]/ && $2 !~ /[2][6-9][0-9]/ && $2 !~ /[2][5][6-9]/ && $2 !~ /[\/][4-9][0-9]/ && $2 !~ /[\/][3][3-9]/ \
             && NF >= "2" && !i[$1"_"$2]++ {system("ip rule add from "$1" to "$2"'" table ${2} prio ${3} > /dev/null 2>&1"'")}' "${1}"
     else
-        if [ -n "${route_local_subnet}" ]; then
-            ip rule add from "${route_local_subnet}" table "${2}" prio "${3}" > /dev/null 2>&1
-        else
-            ip rule add from all table "${2}" prio "${3}" > /dev/null 2>&1
-        fi
+        ip rule add from all table "${2}" prio "${3}" > /dev/null 2>&1
         command_from_all_executed="1"
     fi
 }
@@ -2166,8 +2244,8 @@ lz_add_src_net_address_sets() {
     ipset -q create "${2}" nethash maxelem 4294967295 #--hashsize 1024 mexleme 65536
     awk '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
         && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
-        && $1 != "0.0.0.0/0" \
-        && $2 == "0.0.0.0/0" \
+        && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" \
+        && ($2 == "0.0.0.0/0" || $2 == "0.0.0.0") \
         && NF >= "2" && !i[$1"_"$2]++ {print "'"-! del ${2} "'"$1"'"\n-! add ${2} "'"$1"'"${NOMATCH}"'"} END{print "COMMIT"}' "${1}" \
         | ipset restore > /dev/null 2>&1
 }
@@ -2184,10 +2262,10 @@ lz_add_dst_net_address_sets() {
     local NOMATCH=""
     [ "${3}" != "0" ] && NOMATCH=" nomatch"
     ipset -q create "${2}" nethash maxelem 4294967295 #--hashsize 1024 mexleme 65536
-    awk '$1 == "0.0.0.0/0" \
+    awk '($1 == "0.0.0.0/0" || $1 == "0.0.0.0") \
         && $2 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
         && $2 !~ /[3-9][0-9][0-9]/ && $2 !~ /[2][6-9][0-9]/ && $2 !~ /[2][5][6-9]/ && $2 !~ /[\/][4-9][0-9]/ && $2 !~ /[\/][3][3-9]/ \
-        && $2 != "0.0.0.0/0" \
+        && $2 != "0.0.0.0/0" && $2 != "0.0.0.0" \
         && NF >= "2" && !i[$1"_"$2]++ {print "'"-! del ${2} "'"$2"'"\n-! add ${2} "'"$2"'"${NOMATCH}"'"} END{print "COMMIT"}' "${1}" \
         | ipset restore > /dev/null 2>&1
 }
@@ -2202,11 +2280,11 @@ lz_get_ipv4_defined_src_to_dst_data_file_item_total() {
     [ -s "${1}" ] && {
         retval="$( awk -v count="0" '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
             && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
-            && $1 != "0.0.0.0/0" \
+            && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" \
             && $2 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
             && $2 !~ /[3-9][0-9][0-9]/ && $2 !~ /[2][6-9][0-9]/ && $2 !~ /[2][5][6-9]/ && $2 !~ /[\/][4-9][0-9]/ && $2 !~ /[\/][3][3-9]/ \
-            && $2 != "0.0.0.0/0" \
-            && NF >= "2" && !i[$1"_"$2]++ {count++; next;} $1 == "0.0.0.0/0" && $2 == "0.0.0.0/0" {count++; next;} END{print count}' "${1}" )"
+            && $2 != "0.0.0.0/0" && $2 != "0.0.0.0" \
+            && NF >= "2" && !i[$1"_"$2]++ {count++; next;} ($1 == "0.0.0.0/0" || $1 == "0.0.0.0") && ($2 == "0.0.0.0/0" && $2 == "0.0.0.0") {count++; next;} END{print count}' "${1}" )"
     }
     echo "${retval}"
 }
@@ -2230,10 +2308,10 @@ lz_add_src_to_dst_prerouting_mark() {
     if ! lz_get_unkonwn_ipv4_src_dst_addr_data_file_item "${1}"; then
         awk '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
             && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
-            && $1 != "0.0.0.0/0" \
+            && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" \
             && $2 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
             && $2 !~ /[3-9][0-9][0-9]/ && $2 !~ /[2][6-9][0-9]/ && $2 !~ /[2][5][6-9]/ && $2 !~ /[\/][4-9][0-9]/ && $2 !~ /[\/][3][3-9]/ \
-            && $2 != "0.0.0.0/0" \
+            && $2 != "0.0.0.0/0" && $2 != "0.0.0.0" \
             && NF >= "2" && !i[$1"_"$2]++ \
             {system("'"iptables -t mangle -I ${2} -m state --state NEW -s "'"$1" -d "$2"'" -j CONNMARK --set-xmark ${3}/${FWMARK_MASK} > /dev/null 2>&1"'")}' "${1}"
     else
@@ -2387,7 +2465,7 @@ lz_add_client_dest_port_src_address_sets() {
     ipset -q create "${2}" nethash maxelem 4294967295 #--hashsize 1024 mexleme 65536
     awk '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
         && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
-        && $1 != "0.0.0.0/0" \
+        && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" \
         && $2 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
         && $2 !~ /[3-9][0-9][0-9]/ && $2 !~ /[2][6-9][0-9]/ && $2 !~ /[2][5][6-9]/ && $2 !~ /[\/][4-9][0-9]/ && $2 !~ /[\/][3][3-9]/ \
         && NF >= "2" && !i[$1"_"$2"_"$3"_"$4]++ {print $1,$2,$3,$4}' "${1}" \
@@ -2613,7 +2691,7 @@ DOMAIN_BUF_INPUT
 lz_get_full_client_domain() {
     local retval="1"
     [ -s "${1}" ] && {
-        retval="$( awk '$1 == "0.0.0.0/0" && NF >= "1" {print "0"; exit}' "${1}" )"
+        retval="$( awk '($1 == "0.0.0.0/0" || $1 == "0.0.0.0") && NF >= "1" {print "0"; exit}' "${1}" )"
         [ -z "${retval}" ] && retval="1"
     }
     return "${retval}"
@@ -3604,8 +3682,8 @@ if [ "\$( nvram get "ipsec_server_enable" )" = "1" ]; then
     lz_nvram_ipsec_subnet_list="\$( nvram get "ipsec_profile_1" | sed 's/>/\n/g' | sed -n 15p | grep -Eo '([0-9]{1,3}[\.]){2}[0-9]{1,3}' | sed 's/^.*\$/&\.0\/24/' )"
     [ -z "\${lz_nvram_ipsec_subnet_list}" ] && lz_nvram_ipsec_subnet_list="\$( nvram get "ipsec_profile_2" | sed 's/>/\n/g' | sed -n 15p | grep -Eo '([0-9]{1,3}[\.]){2}[0-9]{1,3}' | sed 's/^.*\$/&\.0\/24/' )"
 fi
-ip rule show | awk -F: '\$1 == "${IP_RULE_PRIO_VPN}" || \$1 == "${IP_RULE_PRIO_STATIC_SYS_VPN}" {system("ip rule del prio "\$1" > /dev/null 2>&1")}'
-if ! ip route show | grep -q nexthop; then
+ip rule show | awk -F: '\$1 == "${IP_RULE_PRIO_VPN}" {system("ip rule del prio "\$1" > /dev/null 2>&1")}'
+if ! ip route show | grep -qw nexthop; then
     echo "\$(lzdate)" [\$\$]: Non dual network operation mode. >> "${SYSLOG}"
 else
     lz_route_list="\$( ip route show | grep -Ev 'default|nexthop' )"
@@ -3633,10 +3711,7 @@ EOF_OVPN_A
         fi
 EOF_OVPN_B
     elif [ "${usage_mode}" != "0"  ]; then
-        [ "${policy_mode}" = "0" ] && local_ovs_client_wan="${WAN1}"
         cat >> "${1}/${2}" <<EOF_OVPN_C
-        echo "\${lz_route_vpn_list}" | awk 'NF != "0" {system("ip rule add from "\$1" table ${local_ovs_client_wan} prio ${IP_RULE_PRIO_STATIC_SYS_VPN} > /dev/null 2>&1")}'
-        echo "\${lz_nvram_ipsec_subnet_list}" | awk 'NF != "0" {system("ip rule add from "\$1" table ${local_ovs_client_wan} prio ${IP_RULE_PRIO_STATIC_SYS_VPN} > /dev/null 2>&1")}'
         if [ -n "\$( ipset -q -n list "${BALANCE_IP_SET}" )" ]; then
             [ -n "\${lz_ovpn_subnet_list}" ] && echo "\${lz_ovpn_subnet_list}" | awk '{print "-! del ${BALANCE_IP_SET} "\$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
             [ -n "\${lz_pptp_client_list}" ] && echo "\${lz_pptp_client_list}" | awk '{print "-! del ${BALANCE_IP_SET} "\$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
@@ -3702,9 +3777,9 @@ EOF_OVPN_I
     lz_index="0"
     for lz_vpn_item in \$( echo "\${lz_route_list}" | awk '/tap|tun/ {print \$1":"\$3}' )
     do
-        lz_index=\"\$(( lz_index + 1 ))\"
+        lz_index="\$(( lz_index + 1 ))"
         lz_vpn_item="\$( echo "\${lz_vpn_item}" | sed 's/:/ /g' )"
-        echo "\$(lzdate)" [\$\$]: LZ OpenVPN Subnet "\${lz_index}: \${lz_vpn_item}" >> "${SYSLOG}"
+        echo "\$(lzdate)" [\$\$]: LZ OpenVPN Subnet-"\${lz_index}: \${lz_vpn_item}" >> "${SYSLOG}"
     done
     [ "\${lz_index}" = "0" ] && echo "\$(lzdate)" [\$\$]: LZ OpenVPN Server: Stop >> "${SYSLOG}"
 EOF_OVPN_J
@@ -3713,9 +3788,9 @@ EOF_OVPN_J
     lz_index="0"
     for lz_vpn_item in \$( echo "\${lz_route_list}" | awk '/pptp/ {print \$1":"\$3}' )
     do
-        lz_index=\"\$(( lz_index + 1 ))\"
+        lz_index="\$(( lz_index + 1 ))"
         lz_vpn_item="\$( echo "\${lz_vpn_item}" | sed 's/:/ /g' )"
-        echo "\$(lzdate)" [\$\$]: LZ VPN Client "\${lz_index}: \${lz_vpn_item}" >> "${SYSLOG}"
+        echo "\$(lzdate)" [\$\$]: LZ VPN Client-"\${lz_index}: \${lz_vpn_item}" >> "${SYSLOG}"
     done
     if [ "\${lz_index}" = "0" ]; then
         lz_vpn_enable="\$( nvram get "pptpd_enable" )"
@@ -3730,9 +3805,9 @@ EOF_OVPN_K
         lz_index="0"
         for lz_vpn_item in \$( echo "\${lz_nvram_ipsec_subnet_list}" | awk '{print \$1":ipsec"}' )
         do
-            lz_index=\"\$(( lz_index + 1 ))\"
+            lz_index="\$(( lz_index + 1 ))"
             lz_vpn_item="\$( echo "\${lz_vpn_item}" | sed 's/:/ /g' )"
-            echo "\$(lzdate)" [\$\$]: LZ IPSec VPN Subnet "\${lz_index}: \${lz_vpn_item}" >> "${SYSLOG}"
+            echo "\$(lzdate)" [\$\$]: LZ IPSec VPN Subnet-"\${lz_index}: \${lz_vpn_item}" >> "${SYSLOG}"
         done
     elif [ "\$( nvram get "ipsec_server_enable" )" = "0" ]; then
         echo "\$(lzdate)" [\$\$]: LZ IPSec VPN Server: Stop >> "${SYSLOG}"
@@ -3744,9 +3819,9 @@ EOF_OVPN_L
     lz_index="0"
     for lz_vpn_item in \$( echo "\${lz_route_list}" | awk '/wgs/ {print \$1":"\$3}' )
     do
-        lz_index=\"\$(( lz_index + 1 ))\"
+        lz_index="\$(( lz_index + 1 ))"
         lz_vpn_item="\$( echo "\${lz_vpn_item}" | sed 's/:/ /g' )"
-        echo "\$(lzdate)" [\$\$]: LZ WireGuard Client "\${lz_index}: \${lz_vpn_item}" >> "${SYSLOG}"
+        echo "\$(lzdate)" [\$\$]: LZ WireGuard Client-"\${lz_index}: \${lz_vpn_item}" >> "${SYSLOG}"
     done
     if [ "\${lz_index}" = "0" ]; then
         lz_vpn_enable="\$( nvram get "wgs_enable" )"
@@ -3836,7 +3911,7 @@ EOF_OVPN_SCRIPTS_A
         fi
 
         ## 优先级发生改变
-        if ! echo "${local_openvpn_event_interface_scripts}" | grep -q "== [\"]${IP_RULE_PRIO_VPN}[\"] [\|][\|] [\$]1 == [\"]${IP_RULE_PRIO_STATIC_SYS_VPN}[\"] [\{]system[\(][\"]ip rule del prio"; then
+        if ! echo "${local_openvpn_event_interface_scripts}" | grep -q "== [\"]${IP_RULE_PRIO_VPN}[\"] [\{]system[\(][\"]ip rule del prio"; then
             llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
             break
         fi
@@ -3862,29 +3937,9 @@ EOF_OVPN_SCRIPTS_A
                     llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
                     break
                 fi
-
-                ## 模式1时，需要整体推送第二WAN口；模式2时，需要整体推送第一WAN口
-                local local_ovs_client_wan="${WAN1}"
-                [ "${policy_mode}" = "1" ] && local_ovs_client_wan="${WAN0}"
-                if ! echo "${local_openvpn_event_interface_scripts}" | grep -q "ip rule add from [\"][\$]1[\"] table ${local_ovs_client_wan} prio ${IP_RULE_PRIO_STATIC_SYS_VPN}"; then
-                    llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
-                    break
-                fi
             else
                 ## 动态模式时，虚拟专网客户端按网段分配访问外网出口
                 if echo "${local_openvpn_event_interface_scripts}" | grep -q "ipset -q -n list [\"]${BALANCE_IP_SET}[\"]"; then
-                    llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
-                    break
-                fi
-
-                ## 动态模式时，无整体推送第一WAN口
-                if echo "${local_openvpn_event_interface_scripts}" | grep -q "ip rule add from [\"][\$]1[\"] table ${WAN0} prio ${IP_RULE_PRIO_STATIC_SYS_VPN}"; then
-                    llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
-                    break
-                fi
-
-                ## 动态模式时，无整体推送第二WAN口
-                if echo "${local_openvpn_event_interface_scripts}" | grep -q "ip rule add from [\"][\$]1[\"] table ${WAN1} prio ${IP_RULE_PRIO_STATIC_SYS_VPN}"; then
                     llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
                     break
                 fi
@@ -3901,18 +3956,6 @@ EOF_OVPN_SCRIPTS_A
 
             ## 阻止系统负载均衡为虚拟专网客户端分配访问外网的出口
             if ! echo "${local_openvpn_event_interface_scripts}" | grep -q "ipset -q -n list [\"]${BALANCE_IP_SET}[\"]"; then
-                llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
-                break
-            fi
-
-            ## 无整体推送第一WAN口
-            if echo "${local_openvpn_event_interface_scripts}" | grep -q "ip rule add from [\"][\$]1[\"] table ${WAN0} prio ${IP_RULE_PRIO_STATIC_SYS_VPN}"; then
-                llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
-                break
-            fi
-
-            ## 无整体推送第二WAN口
-            if echo "${local_openvpn_event_interface_scripts}" | grep -q "ip rule add from [\"][\$]1[\"] table ${WAN1} prio ${IP_RULE_PRIO_STATIC_SYS_VPN}"; then
                 llz_update_openvpn_event_scripts "${PATH_INTERFACE}" "${OPENVPN_EVENT_INTERFACE_NAME}"
                 break
             fi
@@ -4056,8 +4099,6 @@ lz_vpn_support() {
                 echo "${1}" | awk '{print "'"-! del ${BALANCE_IP_SET} "'"$1"'"\n-! add ${BALANCE_IP_SET} "'"$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
             }
         elif [ "${usage_mode}" != "0"  ]; then
-            [ "${policy_mode}" = "0" ] && local_ovs_client_wan="${WAN1}"
-            echo "${1}" | awk '{system("ip rule add from "$1"'" table ${local_ovs_client_wan} prio ${IP_RULE_PRIO_STATIC_SYS_VPN} > /dev/null 2>&1"'")}'
             [ -n "$( ipset -q -n list "${BALANCE_IP_SET}" )" ] && {
                 echo "${1}" | awk '{print "'"-! del ${BALANCE_IP_SET} "'"$1"'"\n-! add ${BALANCE_IP_SET} "'"$1} END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
             }
@@ -4785,7 +4826,7 @@ lz_add_dual_ip_rules() {
     if [ ! -f "${1}" ] || [ -z "${2}" ]; then return; fi;
     awk '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
         && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
-        && $1 != "0.0.0.0/0" \
+        && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" \
         && NF >= "1" && !i[$1]++ {
             system("ip rule add from "$1"'" table ${2} prio ${3} > /dev/null 2>&1; ip rule add from all to "'"$1"'" table ${2} prio ${3} > /dev/null 2>&1;"'")
         }' "${1}"
@@ -4801,7 +4842,7 @@ lz_get_ipv4_list_from_data_file() {
     [ -s "${1}" ] && {
         retval="$( awk '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
             && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
-            && $1 != "0.0.0.0/0" \
+            && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" \
             && NF >= "1" && !i[$1]++ {print $1}' )" "${1}"
     }
     echo "${retval}"
@@ -4816,10 +4857,10 @@ lz_get_ipv4_list_from_data_file() {
 ## 返回值：无
 lz_add_src_to_dst_sets_ip_rules() {
     if [ -z "${1}" ] || [ ! -f "${2}" ]; then return; fi;
-    [ "${1}" = "0.0.0.0/0" ] && return
+    { [ "${1}" = "0.0.0.0/0" ] || [ "${1}" = "0.0.0.0" ]; } && return
     awk '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
         && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
-        && $1 != "0.0.0.0/0" \
+        && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" \
         && NF >= "1" && !i[$1]++ {system("'"ip rule add from ${1} to "'"$1"'" table ${3} prio ${4} > /dev/null 2>&1"'")}' "${1}"
 }
 
@@ -4832,10 +4873,10 @@ lz_add_src_to_dst_sets_ip_rules() {
 ## 返回值：无
 lz_add_src_sets_to_dst_ip_rules() {
     if [ ! -f "${1}" ] || [ -z "${2}" ]; then return; fi;
-    [ "${2}" = "0.0.0.0/0" ] && return
+    { [ "${2}" = "0.0.0.0/0" ] || [ "${2}" = "0.0.0.0" ]; } && return
     awk '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
         && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
-        && $1 != "0.0.0.0/0" \
+        && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" \
         && NF >= "1" && !i[$1]++ {system("ip rule add from "$1"'" to ${2} table ${3} prio ${4} > /dev/null 2>&1"'")}' "${1}"
 }
 
@@ -5151,20 +5192,8 @@ lz_deployment_routing_policy() {
 
     if [ "${usage_mode}" != "0" ] && [ "${command_from_all_executed}" = "0" ]; then
         ## 静态分流模式
-        [ "${policy_mode}" = "0" ] && {
-            if [ -n "${route_local_subnet}" ]; then
-                ip rule add from "${route_local_subnet}" table "${WAN1}" prio "${IP_RULE_PRIO}" > /dev/null 2>&1
-            else
-                ip rule add from all table "${WAN1}" prio "${IP_RULE_PRIO}" > /dev/null 2>&1
-            fi
-        }
-        [ "${policy_mode}" = "1" ] && {
-            if [ -n "${route_local_subnet}" ]; then
-                ip rule add from "${route_local_subnet}" table "${WAN0}" prio "${IP_RULE_PRIO}" > /dev/null 2>&1
-            else
-                ip rule add from all table "${WAN0}" prio "${IP_RULE_PRIO}" > /dev/null 2>&1
-            fi
-        }
+        [ "${policy_mode}" = "0" ] && ip rule add from all table "${WAN1}" prio "${IP_RULE_PRIO}" > /dev/null 2>&1
+        [ "${policy_mode}" = "1" ] && ip rule add from all table "${WAN0}" prio "${IP_RULE_PRIO}" > /dev/null 2>&1
     fi
 
     ## 禁用路由缓存

@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_address_query.sh v4.2.0
+# lz_rule_address_query.sh v4.2.1
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 网址信息查询脚本
@@ -105,7 +105,7 @@ lz_aq_get_ipv4_data_file_item_total() {
 lz_aq_get_unkonwn_ipv4_src_addr_data_file_item() {
     local retval="1"
     [ -f "${1}" ] && {
-        retval="$( awk '$1 == "0.0.0.0/0" && NF >= "1" {print "0"; exit}' "${1}" )"
+        retval="$( awk '($1 == "0.0.0.0/0" || $1 == "0.0.0.0") && NF >= "1" {print "0"; exit}' "${1}" )"
         [ -z "${retval}" ] && retval="1"
     }
     return "${retval}"
@@ -120,7 +120,7 @@ lz_aq_get_unkonwn_ipv4_src_addr_data_file_item() {
 lz_aq_get_unkonwn_ipv4_src_dst_addr_data_file_item() {
     local retval="1"
     [ -f "${1}" ] && {
-        retval="$( awk '$1 == "0.0.0.0/0" && $2 == "0.0.0.0/0" && NF >= "2" {print "0"; exit}' "${1}" )"
+        retval="$( awk '($1 == "0.0.0.0/0" || $1 == "0.0.0.0") && ($2 == "0.0.0.0/0" || $2 == "0.0.0.0") && NF >= "2" {print "0"; exit}' "${1}" )"
         [ -z "${retval}" ] && retval="1"
     }
     return "${retval}"
@@ -135,7 +135,7 @@ lz_aq_get_unkonwn_ipv4_src_dst_addr_data_file_item() {
 lz_aq_get_unkonwn_ipv4_src_dst_addr_port_data_file_item() {
     local retval="1"
     [ -f "${1}" ] && {
-        retval="$( awk '$1 == "0.0.0.0/0" && $2 == "0.0.0.0/0" && NF == "2" {print "0"; exit}' "${1}" )"
+        retval="$( awk '($1 == "0.0.0.0/0" || $1 == "0.0.0.0") && ($2 == "0.0.0.0/0" || $2 == "0.0.0.0") && NF == "2" {print "0"; exit}' "${1}" )"
         [ -z "${retval}" ] && retval="1"
     }
     return "${retval}"
@@ -155,7 +155,7 @@ lz_aq_add_net_address_sets() {
     ipset -q create "${2}" nethash maxelem 4294967295 #--hashsize 1024 mexleme 65536
     awk '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
         && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
-        && $1 != "0.0.0.0/0" \
+        && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" \
         && NF >= "1" && !i[$1]++ {print "'"-! del ${2} "'"$1"'"\n-! add ${2} "'"$1"'"${NOMATCH}"'"} END{print "COMMIT"}' "${1}" \
         | ipset restore > /dev/null 2>&1
 }
@@ -185,10 +185,10 @@ lz_aq_add_ed_net_address_sets() {
         && NF >= "1" && !i[$1]++ {
             count++
             if (criterion == "0") {
-                if ($1 != "0.0.0.0/0") print "'"-! del ${2} "'"$1"'"\n-! add ${2} "'"$1"'"${NOMATCH}"'"
+                if ($1 != "0.0.0.0/0" && $1 != "0.0.0.0") print "'"-! del ${2} "'"$1"'"\n-! add ${2} "'"$1"'"${NOMATCH}"'"
                 if (count >= ed_num) exit
             }
-            else if (count >= ed_num && $1 != "0.0.0.0/0") print "'"-! del ${2} "'"$1"'"\n-! add ${2} "'"$1"'"${NOMATCH}"'"
+            else if (count >= ed_num && $1 != "0.0.0.0/0" && $1 != "0.0.0.0") print "'"-! del ${2} "'"$1"'"\n-! add ${2} "'"$1"'"${NOMATCH}"'"
         } END{print "COMMIT"}' "${1}" \
         | ipset restore > /dev/null 2>&1
 }
@@ -205,10 +205,10 @@ lz_aq_add_dst_net_address_sets() {
     local NOMATCH=""
     [ "${3}" != "0" ] && NOMATCH=" nomatch"
     ipset -q create "${2}" nethash maxelem 4294967295 #--hashsize 1024 mexleme 65536
-    awk '$1 == "0.0.0.0/0" \
+    awk '($1 == "0.0.0.0/0" || $1 == "0.0.0.0") \
         && $2 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
         && $2 !~ /[3-9][0-9][0-9]/ && $2 !~ /[2][6-9][0-9]/ && $2 !~ /[2][5][6-9]/ && $2 !~ /[\/][4-9][0-9]/ && $2 !~ /[\/][3][3-9]/ \
-        && $2 != "0.0.0.0/0" \
+        && $2 != "0.0.0.0/0" && $2 != "0.0.0.0" \
         && NF >= "2" && !i[$1"_"$2]++ {print "'"-! del ${2} "'"$2"'"\n-! add ${2} "'"$2"'"${NOMATCH}"'"} END{print "COMMIT"}' "${1}" \
         | ipset restore > /dev/null 2>&1
 }
@@ -226,10 +226,10 @@ lz_aq_add_client_dest_port_net_address_sets() {
     [ "${3}" != "0" ] && NOMATCH=" nomatch"
     ipset -q create "${2}" nethash maxelem 4294967295 #--hashsize 1024 mexleme 65536
     awk '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
-        && $1 == "0.0.0.0/0" \
+        && ($1 == "0.0.0.0/0" || $1 == "0.0.0.0") \
         && $2 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
         && $2 !~ /[3-9][0-9][0-9]/ && $2 !~ /[2][6-9][0-9]/ && $2 !~ /[2][5][6-9]/ && $2 !~ /[\/][4-9][0-9]/ && $2 !~ /[\/][3][3-9]/ \
-        && $2 != "0.0.0.0/0" \
+        && $2 != "0.0.0.0/0" && $2 != "0.0.0.0" \
         && NF == "2" && !i[$1"_"$2]++ {print "'"-! del ${2} "'"$1"'"\n-! add ${2} "'"$1"'"${NOMATCH}"'"} END{print "COMMIT"}' "${1}" \
         | ipset restore > /dev/null 2>&1
 }

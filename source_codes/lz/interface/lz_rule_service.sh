@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_service.sh v4.2.0
+# lz_rule_service.sh v4.2.1
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 服务接口脚本
@@ -38,7 +38,7 @@ case "${2}" in
             ip route show table main
         } > "${PATH_LZ}/tmp/routing.log"
         count="1"
-        if ip route show | grep -q nexthop; then
+        if ip route show | grep -qw nexthop; then
             {
                 printf "\n--- Subrouting Table wan0 ----\n"
                 ip route show table wan0
