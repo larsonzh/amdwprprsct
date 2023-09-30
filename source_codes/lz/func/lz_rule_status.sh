@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_status.sh v4.2.1
+# lz_rule_status.sh v4.2.2
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 显示脚本运行状态脚本
@@ -212,7 +212,7 @@ lz_get_domain_data_file_item_total_status() {
 lz_get_unkonwn_ipv4_src_addr_data_file_item_status() {
     local retval="1"
     [ -f "${1}" ] && {
-        retval="$( awk '($1 == "0.0.0.0/0" || $1 == "0.0.0.0") && NF >= "1" {print "0"; exit}' "${1}" )"
+        retval="$( awk '($1 == "0.0.0.0/0" || $1 == "0.0.0.0" || $1 == "'"${status_route_local_subnet}"'") && NF >= "1" {print "0"; exit}' "${1}" )"
         [ -z "${retval}" ] && retval="1"
     }
     return "${retval}"
@@ -227,7 +227,7 @@ lz_get_unkonwn_ipv4_src_addr_data_file_item_status() {
 lz_get_unkonwn_ipv4_src_dst_addr_data_file_item_status() {
     local retval="1"
     [ -f "${1}" ] && {
-        retval="$( awk '($1 == "0.0.0.0/0" || $1 == "0.0.0.0") && ($2 == "0.0.0.0/0" || $2 == "0.0.0.0") && NF >= "2" {print "0"; exit}' "${1}" )"
+        retval="$( awk '($1 == "0.0.0.0/0" || $1 == "0.0.0.0" || $1 == "'"${status_route_local_subnet}"'") && ($2 == "0.0.0.0/0" || $2 == "0.0.0.0") && NF >= "2" {print "0"; exit}' "${1}" )"
         [ -z "${retval}" ] && retval="1"
     }
     return "${retval}"
@@ -242,7 +242,7 @@ lz_get_unkonwn_ipv4_src_dst_addr_data_file_item_status() {
 lz_get_unkonwn_ipv4_src_dst_addr_port_data_file_item_status() {
     local retval="1"
     [ -f "${1}" ] && {
-        retval="$( awk '($1 == "0.0.0.0/0" || $1 == "0.0.0.0") && ($2 == "0.0.0.0/0" || $2 == "0.0.0.0") && NF == "2" {print "0"; exit}' "${1}" )"
+        retval="$( awk '($1 == "0.0.0.0/0" || $1 == "0.0.0.0" || $1 == "'"${status_route_local_subnet}"'") && ($2 == "0.0.0.0/0" || $2 == "0.0.0.0") && NF == "2" {print "0"; exit}' "${1}" )"
         [ -z "${retval}" ] && retval="1"
     }
     return "${retval}"
@@ -341,7 +341,11 @@ lz_set_parameter_status_variable() {
     status_policy_mode=
     status_route_hardware_type=
     status_route_os_name=
-    status_route_local_ip=
+    status_route_static_subnet="$( ip -o -4 address list | awk '$2 == "br0" {print $4}' | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,3}){0,1}' )"
+    status_route_local_ip="${status_route_static_subnet%/*}"
+    status_route_local_subnet=""
+    [ -n "${status_route_static_subnet}" ] && status_route_local_subnet="${status_route_static_subnet%.*}.0"
+    [ "${status_route_static_subnet}" != "${status_route_static_subnet##*/}" ] && status_route_local_subnet="${status_route_local_subnet}/${status_route_static_subnet##*/}"
     status_ip_rule_exist=0
     status_adjust_traffic_policy="5"
 }
@@ -417,7 +421,9 @@ lz_unset_parameter_status_variable() {
     unset status_policy_mode
     unset status_route_hardware_type
     unset status_route_os_name
+    unset status_route_static_subnet
     unset status_route_local_ip
+    unset status_route_local_subnet
     unset status_ip_rule_exist
     unset status_adjust_traffic_policy
 }
@@ -1083,7 +1089,6 @@ lz_get_policy_mode_status() {
 ## 返回值：
 ##     status_route_hardware_type--路由器硬件类型，全局常量
 ##     status_route_os_name--路由器操作系统名称，全局常量
-##     status_route_local_ip--路由器本地IP地址，全局变量
 lz_get_route_status_info() {
     echo "$(lzdate)" [$$]: --------------------------------------------- | tee -ai "${STATUS_LOG}" 2> /dev/null
     ## 路由器硬件类型
@@ -1277,7 +1282,6 @@ lz_get_route_status_info() {
     local local_route_local_link_status="Unknown"
     local local_route_local_encap="Unknown"
     local local_route_local_mac="Unknown"
-    status_route_local_ip="Unknown"
     local local_route_local_bcast_ip="Unknown"
     local local_route_local_ip_mask="Unknown"
 
@@ -1295,7 +1299,6 @@ lz_get_route_status_info() {
         [ -z "${local_route_local_mac}" ] && local_route_local_mac="Unknown"
 
         ## 获取路由器本地网络地址
-        status_route_local_ip="$( echo "${local_route_local_info}" | awk 'NR==2 {print $2}' | awk -F: '{print $2}' )"
         [ -z "${status_route_local_ip}" ] && status_route_local_ip="Unknown"
 
         ## 获取路由器本地广播地址
@@ -1415,7 +1418,7 @@ lz_ss_support_status() {
 ##     1--未注册
 lz_get_service_event_interface_status() {
     if [ ! -f "${1}" ] || [ ! -f "${2}" ]; then return "1"; fi;
-    ! grep -q "^[[:space:]]*$( lz_format_filename_regular_expression_string "${2}" )[[:space:]]\+\$[\{]@[\}][[:space:]]\+[\&]" "${1}" && return "1"
+    ! grep -q "^[[:space:]]*$( lz_format_filename_regular_expression_string "${2}" )[[:space:]]\+\$[\{]@[\}][[:space:]]\+" "${1}" && return "1"
     return "0"
 }
 

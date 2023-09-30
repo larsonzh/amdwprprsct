@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_define_global_variables.sh v4.2.1
+# lz_define_global_variables.sh v4.2.2
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 # QnkgTFog5aaZ5aaZ5ZGc77yI6Juk6J+G5aKp5YS/77yJ（首次运行标识，切勿修改）
 
@@ -420,11 +420,16 @@ route_hardware_type="$( uname -m )"
 ## 路由器操作系统名称
 route_os_name="$( uname -o )"
 
+## 路由器本地静态子网
+route_static_subnet="$( ip -o -4 address list | awk '$2 == "br0" {print $4}' | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,3}){0,1}' )"
+
 ## 路由器本地IP地址
-route_local_ip=
+route_local_ip="${route_static_subnet%/*}"
 
 ## 路由器本地子网
-route_local_subnet=
+route_local_subnet=""
+[ -n "${route_static_subnet}" ] && route_local_subnet="${route_static_subnet%.*}.0"
+[ "${route_static_subnet}" != "${route_static_subnet##*/}" ] && route_local_subnet="${route_local_subnet}/${route_static_subnet##*/}"
 
 ## 静态分流模式整体通道推送命令是否执行（0--未执行；1--已执行）
 command_from_all_executed="0"

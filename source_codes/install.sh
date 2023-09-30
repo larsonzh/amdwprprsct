@@ -1,5 +1,5 @@
 #!/bin/sh
-# install.sh v4.2.1
+# install.sh v4.2.2
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ RULE script for Asuswrt-Merlin Router
@@ -11,7 +11,7 @@
 
 #BEIGIN
 
-LZ_VERSION=v4.2.1
+LZ_VERSION=v4.2.2
 TIMEOUT=10
 CURRENT_PATH="${0%/*}"
 [ "${CURRENT_PATH:0:1}" != '/' ] && CURRENT_PATH="$( pwd )${CURRENT_PATH#*.}"
@@ -248,9 +248,9 @@ lz_create_service_event_interface() {
             /$( lz_get_delete_row_regular_expression_string "lz_rule_service.sh" )/d;
             /^[[:space:]]*$/d;
         }" "/jffs/scripts/service-event"
-    sed -i "1a ${PATH_INTERFACE}/lz_rule_service.sh \$\{@\} \& # Added by LZRule" "/jffs/scripts/service-event"
+    sed -i "1a ${PATH_INTERFACE}/lz_rule_service.sh \$\{@\} # Added by LZRule" "/jffs/scripts/service-event"
     chmod +x "/jffs/scripts/service-event"
-    ! grep -q "^${PATH_INTERFACE}/lz_rule_service[\.]sh \$[\{]@[\}] [\&]" "/jffs/scripts/service-event" && return "1"
+    ! grep -q "^${PATH_INTERFACE}/lz_rule_service[\.]sh \$[\{]@[\}] # Added by LZRule" "/jffs/scripts/service-event" && return "1"
     return "0"
 }
 

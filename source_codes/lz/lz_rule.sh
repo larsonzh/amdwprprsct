@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule.sh v4.2.1
+# lz_rule.sh v4.2.2
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # 本软件采用CIDR（无类别域间路由，Classless Inter-Domain Routing）技术，是一个在Internet上创建附加地
@@ -80,7 +80,7 @@
 ## -------------全局数据定义及初始化-------------------
 
 ## 版本号
-LZ_VERSION=v4.2.1
+LZ_VERSION=v4.2.2
 
 ## 运行状态查询命令
 SHOW_STATUS="status"
@@ -682,13 +682,13 @@ lz_create_service_event_interface() {
     ##     1--失败
     ! lz_create_event_interface_file_header "${1}" && return "1"
     local regExpFilename="$( lz_format_filename_regular_expression_string "${2}/${3}" )"
-    if ! sed -n 2p "${PATH_BOOTLOADER}/${1}" | grep -q "^${regExpFilename} \$[\{]@[\}] [\&]"; then
+    if ! sed -n 2p "${PATH_BOOTLOADER}/${1}" | grep -q "^${regExpFilename} \$[\{]@[\}] # Added by LZRule"; then
         sed -i "/$( lz_get_delete_row_regular_expression_string "${3}" )/d" "${PATH_BOOTLOADER}/${1}"
-        sed -i "1a ${2}/${3} \$\{@\} \& # Added by LZRule" "${PATH_BOOTLOADER}/${1}"
+        sed -i "1a ${2}/${3} \$\{@\} # Added by LZRule" "${PATH_BOOTLOADER}/${1}"
     fi
     sed -i "3,\${/$( lz_get_delete_row_regular_expression_string "${3}" )/d;}" "${PATH_BOOTLOADER}/${1}"
     chmod +x "${PATH_BOOTLOADER}/${1}"
-    ! grep -q "^${regExpFilename} \$[\{]@[\}] [\&]" "${PATH_BOOTLOADER}/${1}" && return "1"
+    ! grep -q "^${regExpFilename} \$[\{]@[\}] # Added by LZRule" "${PATH_BOOTLOADER}/${1}" && return "1"
     return "0"
 }
 
@@ -989,7 +989,6 @@ __lz_main() {
     ##         policy_mode--分流模式
     ## 返回值：
     ##     MATCH_SET--iptables设置操作符宏变量，全局常量
-    ##     route_local_ip--路由器本地IP地址，全局变量
     lz_get_route_info "${1}"
 
     lz_check_instance "${1}" && return
