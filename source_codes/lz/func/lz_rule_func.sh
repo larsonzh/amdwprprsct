@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v4.2.2
+# lz_rule_func.sh v4.2.3
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 #BEIGIN
@@ -76,7 +76,7 @@ lz_get_ipv4_data_file_valid_item_total() {
     [ -s "${1}" ] && {
         retval="$( awk -v count="0" '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
             && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
-            && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" && NF >= "1" && !i[$1]++ {count++} END{print count}' "${1}" )"
+            && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" && $1 != "'"${route_local_ip}"'" && NF >= "1" && !i[$1]++ {count++} END{print count}' "${1}" )"
     }
     echo "${retval}"
 }
@@ -151,7 +151,7 @@ lz_get_domain_data_file_item_total() {
 lz_get_unkonwn_ipv4_src_addr_data_file_item() {
     local retval="1"
     [ -s "${1}" ] && {
-        retval="$( awk '($1 == "0.0.0.0/0" || $1 == "0.0.0.0" || $1 == "'"${route_local_subnet}"'") && NF >= "1" {print "0"; exit}' "${1}" )"
+        retval="$( awk '$1 == "0.0.0.0/0" && NF >= "1" {print "0"; exit}' "${1}" )"
         [ -z "${retval}" ] && retval="1"
     }
     return "${retval}"
@@ -166,7 +166,7 @@ lz_get_unkonwn_ipv4_src_addr_data_file_item() {
 lz_get_unkonwn_ipv4_src_dst_addr_data_file_item() {
     local retval="1"
     [ -s "${1}" ] && {
-        retval="$( awk '($1 == "0.0.0.0/0" || $1 == "0.0.0.0" || $1 == "'"${route_local_subnet}"'") && ($2 == "0.0.0.0/0" || $2 == "0.0.0.0") && NF >= "2" {print "0"; exit}' "${1}" )"
+        retval="$( awk '$1 == "0.0.0.0/0" && $2 == "0.0.0.0/0" && NF >= "2" {print "0"; exit}' "${1}" )"
         [ -z "${retval}" ] && retval="1"
     }
     return "${retval}"
@@ -181,7 +181,7 @@ lz_get_unkonwn_ipv4_src_dst_addr_data_file_item() {
 lz_get_unkonwn_ipv4_src_dst_addr_port_data_file_item() {
     local retval="1"
     [ -s "${1}" ] && {
-        retval="$( awk '($1 == "0.0.0.0/0" || $1 == "0.0.0.0" || $1 == "'"${route_local_subnet}"'") && ($2 == "0.0.0.0/0" || $2 == "0.0.0.0") && NF == "2" {print "0"; exit}' "${1}" )"
+        retval="$( awk '$1 == "0.0.0.0/0" && $2 == "0.0.0.0/0" && NF == "2" {print "0"; exit}' "${1}" )"
         [ -z "${retval}" ] && retval="1"
     }
     return "${retval}"
@@ -2134,10 +2134,16 @@ lz_add_ipv4_src_addr_list_binding_wan() {
         if ! lz_get_unkonwn_ipv4_src_addr_data_file_item "${1}"; then
             awk '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
                 && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
-                && NF >= "1" && !i[$1]++ {system("ip rule add from "$1"'" table ${2} prio ${3} > /dev/null 2>&1"'")}' "${1}"
+                && NF >= "1" && !i[$1]++ {
+                    src=$1;
+                    if (src == "'"${route_local_subnet}"'")
+                        src="'"${route_static_subnet}"'";
+                    if (src != "0.0.0.0" && src != "'"${route_local_ip}"'")
+                        system("ip rule add from "src"'" table ${2} prio ${3} > /dev/null 2>&1"'");
+                }' "${1}"
         else
             if [ -n "${route_static_subnet}" ]; then
-                ip rule add from "${route_static_subnet}" table "${2}" prio "${3}" > /dev/null 2>&1
+                ! ip rule add not from "0.0.0.0" table "${2}" prio "${3}" > /dev/null 2>&1 && ip rule add from "${route_static_subnet}" table "${2}" prio "${3}" > /dev/null 2>&1
             else
                 ip rule add from all table "${2}" prio "${3}" > /dev/null 2>&1
             fi
@@ -2146,7 +2152,7 @@ lz_add_ipv4_src_addr_list_binding_wan() {
     else
         awk '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
             && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
-            && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" \
+            && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" && $1 != "'"${route_local_ip}"'" \
             && NF >= "1" && !i[$1]++ {system("ip rule add from "$1"'" table ${2} prio ${3} > /dev/null 2>&1"'")}' "${1}"
     fi
 }
@@ -2213,10 +2219,23 @@ lz_add_ipv4_src_to_dst_addr_list_binding_wan() {
             && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
             && $2 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
             && $2 !~ /[3-9][0-9][0-9]/ && $2 !~ /[2][6-9][0-9]/ && $2 !~ /[2][5][6-9]/ && $2 !~ /[\/][4-9][0-9]/ && $2 !~ /[\/][3][3-9]/ \
-            && NF >= "2" && !i[$1"_"$2]++ {system("ip rule add from "$1" to "$2"'" table ${2} prio ${3} > /dev/null 2>&1"'")}' "${1}"
+            && NF >= "2" && !i[$1"_"$2]++ {
+                src=$1;
+                dst=$2;
+                if (src == "'"${route_local_subnet}"'")
+                    src="'"${route_static_subnet}"'";
+                else if (src == "0.0.0.0")
+                    src="'"${route_local_ip}"'";
+                if (dst == "'"${route_local_subnet}"'")
+                    dst="'"${route_static_subnet}"'";
+                else if (dst == "0.0.0.0")
+                    dst="'"${route_local_ip}"'";
+                if (src != dst && (src != "'"${route_local_ip}"'" && dst != "0.0.0.0/0"))
+                    system("ip rule add from "src" to "dst"'" table ${2} prio ${3} > /dev/null 2>&1"'");
+            }' "${1}"
     else
         if [ -n "${route_static_subnet}" ]; then
-            ip rule add from "${route_static_subnet}" table "${2}" prio "${3}" > /dev/null 2>&1
+            ! ip rule add not from "0.0.0.0" table "${2}" prio "${3}" > /dev/null 2>&1 && ip rule add from "${route_static_subnet}" table "${2}" prio "${3}" > /dev/null 2>&1
         else
             ip rule add from all table "${2}" prio "${3}" > /dev/null 2>&1
         fi
@@ -2238,8 +2257,8 @@ lz_add_src_net_address_sets() {
     ipset -q create "${2}" nethash maxelem 4294967295 #--hashsize 1024 mexleme 65536
     awk '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
         && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
-        && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" \
-        && ($2 == "0.0.0.0/0" || $2 == "0.0.0.0") \
+        && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" && $1 != "'"${route_local_ip}"'" \
+        && $2 == "0.0.0.0/0" \
         && NF >= "2" && !i[$1"_"$2]++ {print "'"-! del ${2} "'"$1"'"\n-! add ${2} "'"$1"'"${NOMATCH}"'"} END{print "COMMIT"}' "${1}" \
         | ipset restore > /dev/null 2>&1
 }
@@ -2256,10 +2275,10 @@ lz_add_dst_net_address_sets() {
     local NOMATCH=""
     [ "${3}" != "0" ] && NOMATCH=" nomatch"
     ipset -q create "${2}" nethash maxelem 4294967295 #--hashsize 1024 mexleme 65536
-    awk '($1 == "0.0.0.0/0" || $1 == "0.0.0.0") \
+    awk '$1 == "0.0.0.0/0" \
         && $2 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
         && $2 !~ /[3-9][0-9][0-9]/ && $2 !~ /[2][6-9][0-9]/ && $2 !~ /[2][5][6-9]/ && $2 !~ /[\/][4-9][0-9]/ && $2 !~ /[\/][3][3-9]/ \
-        && $2 != "0.0.0.0/0" && $2 != "0.0.0.0" \
+        && $2 != "0.0.0.0/0" \
         && NF >= "2" && !i[$1"_"$2]++ {print "'"-! del ${2} "'"$2"'"\n-! add ${2} "'"$2"'"${NOMATCH}"'"} END{print "COMMIT"}' "${1}" \
         | ipset restore > /dev/null 2>&1
 }
@@ -2274,11 +2293,11 @@ lz_get_ipv4_defined_src_to_dst_data_file_item_total() {
     [ -s "${1}" ] && {
         retval="$( awk -v count="0" '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
             && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
-            && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" \
+            && $1 != "0.0.0.0/0" \
             && $2 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
             && $2 !~ /[3-9][0-9][0-9]/ && $2 !~ /[2][6-9][0-9]/ && $2 !~ /[2][5][6-9]/ && $2 !~ /[\/][4-9][0-9]/ && $2 !~ /[\/][3][3-9]/ \
-            && $2 != "0.0.0.0/0" && $2 != "0.0.0.0" \
-            && NF >= "2" && !i[$1"_"$2]++ {count++; next;} ($1 == "0.0.0.0/0" || $1 == "0.0.0.0") && ($2 == "0.0.0.0/0" && $2 == "0.0.0.0") {count++; next;} END{print count}' "${1}" )"
+            && $2 != "0.0.0.0/0" \
+            && NF >= "2" && !i[$1"_"$2]++ {count++; next;} $1 == "0.0.0.0/0" && $2 == "0.0.0.0/0" {count++; next;} END{print count}' "${1}" )"
     }
     echo "${retval}"
 }
@@ -2302,12 +2321,25 @@ lz_add_src_to_dst_prerouting_mark() {
     if ! lz_get_unkonwn_ipv4_src_dst_addr_data_file_item "${1}"; then
         awk '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
             && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
-            && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" \
+            && $1 != "0.0.0.0/0" \
             && $2 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
             && $2 !~ /[3-9][0-9][0-9]/ && $2 !~ /[2][6-9][0-9]/ && $2 !~ /[2][5][6-9]/ && $2 !~ /[\/][4-9][0-9]/ && $2 !~ /[\/][3][3-9]/ \
-            && $2 != "0.0.0.0/0" && $2 != "0.0.0.0" \
+            && $2 != "0.0.0.0/0" \
             && NF >= "2" && !i[$1"_"$2]++ \
-            {system("'"iptables -t mangle -I ${2} -m state --state NEW -s "'"$1" -d "$2"'" -j CONNMARK --set-xmark ${3}/${FWMARK_MASK} > /dev/null 2>&1"'")}' "${1}"
+            {
+                src=$1;
+                dst=$2;
+                if (src == "'"${route_local_subnet}"'")
+                    src="'"${route_static_subnet}"'";
+                else if (src == "0.0.0.0")
+                    src="'"${route_local_ip}"'";
+                if (dst == "'"${route_local_subnet}"'")
+                    dst="'"${route_static_subnet}"'";
+                else if (dst == "0.0.0.0")
+                    dst="'"${route_local_ip}"'";
+                if (src != dst)
+                    system("'"iptables -t mangle -I ${2} -m state --state NEW -s "'"src" -d "dst"'" -j CONNMARK --set-xmark ${3}/${FWMARK_MASK} > /dev/null 2>&1"'");
+            }' "${1}"
     else
         iptables -t mangle -I "${2}" -m state --state NEW -j CONNMARK --set-xmark "${3}/${FWMARK_MASK}" > /dev/null 2>&1
     fi
@@ -2459,7 +2491,7 @@ lz_add_client_dest_port_src_address_sets() {
     ipset -q create "${2}" nethash maxelem 4294967295 #--hashsize 1024 mexleme 65536
     awk '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
         && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
-        && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" \
+        && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" && $1 != "'"${route_local_ip}"'" \
         && $2 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
         && $2 !~ /[3-9][0-9][0-9]/ && $2 !~ /[2][6-9][0-9]/ && $2 !~ /[2][5][6-9]/ && $2 !~ /[\/][4-9][0-9]/ && $2 !~ /[\/][3][3-9]/ \
         && NF >= "2" && !i[$1"_"$2"_"$3"_"$4]++ {print $1,$2,$3,$4}' "${1}" \
@@ -2662,7 +2694,7 @@ lz_create_domain_wan_set() {
         [ "${dn_pre_resolved}" = "0" ] && break
         ! echo "${pre_dns}" | awk -v count="0" '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ \
             && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
-            && $1 != "0.0.0.0" && NF == "1" {count++} END{if (count == "1") exit(0); else exit(1)}' && break
+            && NF == "1" {count++} END{if (count == "1") exit(0); else exit(1)}' && break
         DOMAIN_BUF="$( lz_get_domain_list "${2}" | awk 'NF >= "1" && !i[$1]++ {print $1}' )"
         while IFS= read -r line
         do
@@ -2685,7 +2717,7 @@ DOMAIN_BUF_INPUT
 lz_get_full_client_domain() {
     local retval="1"
     [ -s "${1}" ] && {
-        retval="$( awk '($1 == "0.0.0.0/0" || $1 == "0.0.0.0") && NF >= "1" {print "0"; exit}' "${1}" )"
+        retval="$( awk '$1 == "0.0.0.0/0" && NF >= "1" {print "0"; exit}' "${1}" )"
         [ -z "${retval}" ] && retval="1"
     }
     return "${retval}"
@@ -4857,7 +4889,7 @@ lz_add_dual_ip_rules() {
     if [ ! -f "${1}" ] || [ -z "${2}" ]; then return; fi;
     awk '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
         && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
-        && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" \
+        && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" && $1 != "'"${route_local_ip}"'" \
         && NF >= "1" && !i[$1]++ {
             box=$1;
             if (box == "'"${route_local_subnet}"'")
@@ -4876,7 +4908,7 @@ lz_get_ipv4_list_from_data_file() {
     [ -s "${1}" ] && {
         retval="$( awk '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
             && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
-            && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" \
+            && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" && $1 != "'"${route_local_ip}"'" \
             && NF >= "1" && !i[$1]++ {print $1}' "${1}" )"
     }
     echo "${retval}"
@@ -4896,7 +4928,7 @@ lz_add_src_to_dst_sets_ip_rules() {
     [ "${box_addr}" = "${route_local_subnet}" ] && box_addr="${route_static_subnet}"
     awk '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
         && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
-        && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" \
+        && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" && $1 != "'"${route_local_ip}"'" \
         && NF >= "1" && !i[$1]++ {system("'"ip rule add from ${box_addr} to "'"$1"'" table ${3} prio ${4} > /dev/null 2>&1"'")}' "${2}"
 }
 
@@ -4914,7 +4946,7 @@ lz_add_src_sets_to_dst_ip_rules() {
     [ "${box_addr}" = "${route_local_subnet}" ] && box_addr="${route_static_subnet}"
     awk '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
         && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
-        && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" \
+        && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" && $1 != "'"${route_local_ip}"'" \
         && NF >= "1" && !i[$1]++ {system("ip rule add from "$1"'" to ${box_addr} table ${3} prio ${4} > /dev/null 2>&1"'")}' "${1}"
 }
 
@@ -5231,8 +5263,8 @@ lz_deployment_routing_policy() {
     ## 静态分流模式
     if [ "${usage_mode}" != "0" ] && [ "${command_from_all_executed}" = "0" ]; then
         if [ -n "${route_static_subnet}" ]; then
-            [ "${policy_mode}" = "0" ] && ip rule add from "${route_static_subnet}" table "${WAN1}" prio "${IP_RULE_PRIO}" > /dev/null 2>&1
-            [ "${policy_mode}" = "1" ] && ip rule add from "${route_static_subnet}" table "${WAN0}" prio "${IP_RULE_PRIO}" > /dev/null 2>&1
+            [ "${policy_mode}" = "0" ] && ! ip rule add not from "0.0.0.0" table "${WAN1}" prio "${IP_RULE_PRIO}" > /dev/null 2>&1 && ip rule add from "${route_static_subnet}" table "${WAN1}" prio "${IP_RULE_PRIO}" > /dev/null 2>&1
+            [ "${policy_mode}" = "1" ] && ! ip rule add not from "0.0.0.0" table "${WAN0}" prio "${IP_RULE_PRIO}" > /dev/null 2>&1 && ip rule add from "${route_static_subnet}" table "${WAN0}" prio "${IP_RULE_PRIO}" > /dev/null 2>&1
         else
             [ "${policy_mode}" = "0" ] && ip rule add from all table "${WAN1}" prio "${IP_RULE_PRIO}" > /dev/null 2>&1
             [ "${policy_mode}" = "1" ] && ip rule add from all table "${WAN0}" prio "${IP_RULE_PRIO}" > /dev/null 2>&1

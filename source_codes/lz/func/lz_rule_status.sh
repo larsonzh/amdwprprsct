@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_status.sh v4.2.2
+# lz_rule_status.sh v4.2.3
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 显示脚本运行状态脚本
@@ -150,7 +150,7 @@ lz_get_ipv4_data_file_valid_item_total_status() {
     [ -f "${1}" ] && {
         retval="$( awk -v count="0" '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
             && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
-            && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" \
+            && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" && $1 != "'"${status_route_local_ip}"'" \
             && NF >= "1" && !i[$1]++ {count++} END{print count}' "${1}" )"
     }
     echo "${retval}"
@@ -212,7 +212,7 @@ lz_get_domain_data_file_item_total_status() {
 lz_get_unkonwn_ipv4_src_addr_data_file_item_status() {
     local retval="1"
     [ -f "${1}" ] && {
-        retval="$( awk '($1 == "0.0.0.0/0" || $1 == "0.0.0.0" || $1 == "'"${status_route_local_subnet}"'") && NF >= "1" {print "0"; exit}' "${1}" )"
+        retval="$( awk '$1 == "0.0.0.0/0" && NF >= "1" {print "0"; exit}' "${1}" )"
         [ -z "${retval}" ] && retval="1"
     }
     return "${retval}"
@@ -227,7 +227,7 @@ lz_get_unkonwn_ipv4_src_addr_data_file_item_status() {
 lz_get_unkonwn_ipv4_src_dst_addr_data_file_item_status() {
     local retval="1"
     [ -f "${1}" ] && {
-        retval="$( awk '($1 == "0.0.0.0/0" || $1 == "0.0.0.0" || $1 == "'"${status_route_local_subnet}"'") && ($2 == "0.0.0.0/0" || $2 == "0.0.0.0") && NF >= "2" {print "0"; exit}' "${1}" )"
+        retval="$( awk '$1 == "0.0.0.0/0" && $2 == "0.0.0.0/0" && NF >= "2" {print "0"; exit}' "${1}" )"
         [ -z "${retval}" ] && retval="1"
     }
     return "${retval}"
@@ -242,7 +242,7 @@ lz_get_unkonwn_ipv4_src_dst_addr_data_file_item_status() {
 lz_get_unkonwn_ipv4_src_dst_addr_port_data_file_item_status() {
     local retval="1"
     [ -f "${1}" ] && {
-        retval="$( awk '($1 == "0.0.0.0/0" || $1 == "0.0.0.0" || $1 == "'"${status_route_local_subnet}"'") && ($2 == "0.0.0.0/0" || $2 == "0.0.0.0") && NF == "2" {print "0"; exit}' "${1}" )"
+        retval="$( awk '$1 == "0.0.0.0/0" && $2 == "0.0.0.0/0" && NF == "2" {print "0"; exit}' "${1}" )"
         [ -z "${retval}" ] && retval="1"
     }
     return "${retval}"
@@ -341,11 +341,7 @@ lz_set_parameter_status_variable() {
     status_policy_mode=
     status_route_hardware_type=
     status_route_os_name=
-    status_route_static_subnet="$( ip -o -4 address list | awk '$2 == "br0" {print $4}' | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,3}){0,1}' )"
-    status_route_local_ip="${status_route_static_subnet%/*}"
-    status_route_local_subnet=""
-    [ -n "${status_route_static_subnet}" ] && status_route_local_subnet="${status_route_static_subnet%.*}.0"
-    [ "${status_route_static_subnet}" != "${status_route_static_subnet##*/}" ] && status_route_local_subnet="${status_route_local_subnet}/${status_route_static_subnet##*/}"
+    status_route_local_ip="$( ip -o -4 address list | awk '$2 == "br0" {print $4}' | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,3}){0,1}' | cut -d "/" -f1 )"
     status_ip_rule_exist=0
     status_adjust_traffic_policy="5"
 }
@@ -421,9 +417,7 @@ lz_unset_parameter_status_variable() {
     unset status_policy_mode
     unset status_route_hardware_type
     unset status_route_os_name
-    unset status_route_static_subnet
     unset status_route_local_ip
-    unset status_route_local_subnet
     unset status_ip_rule_exist
     unset status_adjust_traffic_policy
 }
