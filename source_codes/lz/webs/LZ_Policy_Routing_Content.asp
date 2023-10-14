@@ -132,7 +132,7 @@
                                                             </tr>
                                                         </table>
                                                         <div id="divSwitchMenu" style="margin-top:12px;margin-bottom:8px;float:right;"></div>
-                                                        <div id="basicConfig">
+                                                        <div id="basicConfig" style="display:none;">
                                                             <table width="100%" border="1" align="center" cellpadding="4" cellspacing="0" bordercolor="#6b8fa3" class="FormTable">
                                                                 <thead>
                                                                     <tr>
@@ -431,7 +431,7 @@
                                                                 </tr>
                                                             </table>
                                                         </div>
-                                                        <div id="advancedConfig">
+                                                        <div id="advancedConfig" style="display:none;">
                                                             <table width="100%" border="1" align="center" cellpadding="4" cellspacing="0" bordercolor="#6b8fa3" class="FormTable">
                                                                 <thead>
                                                                     <tr>
@@ -832,7 +832,7 @@
                                                                 </tr>
                                                             </table>
                                                         </div>
-                                                        <div id="runtimeConfig">
+                                                        <div id="runtimeConfig" style="display:none;">
                                                             <table width="100%" border="1" align="center" cellpadding="4" cellspacing="0" bordercolor="#6b8fa3" class="FormTable">
                                                                 <thead>
                                                                     <tr>
@@ -936,7 +936,7 @@
                                                                 <textarea cols="63" rows="27" wrap="off" readonly="readonly" id="statusArea" class="textarea_ssh_table" style="width:99%; font-family:'Courier New', Courier, mono; font-size:11px;background-color:black;"></textarea>
                                                             </div>
                                                         </div>
-                                                        <div id="iPTVConfig">
+                                                        <div id="iPTVConfig" style="display:none;">
                                                             <table width="100%" border="1" align="center" cellpadding="4" cellspacing="0" bordercolor="#6b8fa3" class="FormTable">
                                                                 <thead>
                                                                     <tr>
@@ -1075,7 +1075,7 @@
                                                                 </tr>
                                                             </table>
                                                         </div>
-                                                        <div id="insertScriptConfig">
+                                                        <div id="insertScriptConfig" style="display:none;">
                                                             <table width="100%" border="1" align="center" cellpadding="4" cellspacing="0" bordercolor="#6b8fa3" class="FormTable">
                                                                 <thead>
                                                                     <tr>
@@ -1120,7 +1120,7 @@
                                                                 </tr>
                                                             </table>
                                                         </div>
-                                                        <div id="scriptTools">
+                                                        <div id="scriptTools" style="display:none;">
                                                             <table width="100%" border="1" align="center" cellpadding="4" cellspacing="0" bordercolor="#6b8fa3" class="FormTable">
                                                                 <thead>
                                                                     <tr>

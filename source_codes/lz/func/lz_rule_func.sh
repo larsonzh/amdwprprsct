@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v4.2.3
+# lz_rule_func.sh v4.2.4
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 #BEIGIN
@@ -4138,7 +4138,7 @@ lz_vpn_support() {
     [ -z "${local_route_list}" ] && return
     local local_vpn_item=
     local local_index="0"
-    local local_vpn_client_wan_port="by System"
+    local local_vpn_client_wan_port="by Dst Policy"
     [ "${ovs_client_wan_port}" = "0" ] && local_vpn_client_wan_port="Primary WAN"
     [ "${ovs_client_wan_port}" = "1" ] && local_vpn_client_wan_port="Secondary WAN"
 

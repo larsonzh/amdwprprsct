@@ -1,5 +1,5 @@
 /*
-# lz_policy_routing.js v4.2.3
+# lz_policy_routing.js v4.2.4
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ JavaScript for Asuswrt-Merlin Router
@@ -1949,7 +1949,7 @@ $(document).ready(function() {
             alert("上一个任务正在进行中，请稍后再试。");
             return;
         }
-        if (!confirm("  当前版本：" + policySettingsArray.version + "      最新版本：" + policySettingsArray.lastVersion + "\n\n  软件「在线更新」或「在线重新安装」时，须保持内外部网络畅通。\n\n  请确保路由器软件安装目录里有 2 MB 以上的剩余存储空间。\n\n  此操作不会覆盖软件原有参数设置。\n\n  确定要执行此操作吗？"))
+        if (!confirm("  当前版本：" + policySettingsArray.version + "      最新版本：" + policySettingsArray.lastVersion + "\n\n  软件「在线更新」或「在线重新安装」时，须保持内外部网络畅通。\n\n  请确保路由器软件安装目录里有 2 MB 以上的剩余存储空间。\n\n  此操作不会改变软件原有参数设置。\n\n  确定要执行此操作吗？"))
             return;
         $("#amng_custom").val("");
         document.form.action_script.value = "start_LZDoUpdate";
