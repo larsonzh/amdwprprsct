@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v4.2.4
+# lz_rule_func.sh v4.2.5
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 #BEIGIN
@@ -4138,7 +4138,7 @@ lz_vpn_support() {
     [ -z "${local_route_list}" ] && return
     local local_vpn_item=
     local local_index="0"
-    local local_vpn_client_wan_port="by Dst Policy"
+    local local_vpn_client_wan_port="by Policy"
     [ "${ovs_client_wan_port}" = "0" ] && local_vpn_client_wan_port="Primary WAN"
     [ "${ovs_client_wan_port}" = "1" ] && local_vpn_client_wan_port="Secondary WAN"
 
@@ -4287,6 +4287,7 @@ lz_vpn_support() {
             local_index="$(( local_index + 1 ))"
             echo "$(lzdate)" [$$]: "   WireGuard Client-${local_index}: ${local_vpn_item}" | tee -ai "${SYSLOG}" 2> /dev/null
         done
+        [ "${usage_mode}" = "0" ] && local_vpn_client_wan_port="by System"
         echo "$(lzdate)" [$$]: "   WireGuard Client Export: ${local_vpn_client_wan_port}" | tee -ai "${SYSLOG}" 2> /dev/null
     fi
 }

@@ -1,5 +1,5 @@
 /*
-# lz_policy_routing.js v4.2.4
+# lz_policy_routing.js v4.2.5
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ JavaScript for Asuswrt-Merlin Router
@@ -155,6 +155,47 @@ function loadPolicySettings() {
         }
     });
     return retVal;
+}
+
+let policyBkSettingsArray = {};
+function loadBkPolicyBkSettings() {
+    let retVal = false;
+    let fileUrl = '/ext/lzr/LZRBKData.html';
+    $.ajax({
+        async: false,
+        url: fileUrl,
+        dataType: 'text',
+        success: function(response) {
+            let buf = response.match(/^[\s]*[\w]+[=].*$/gm);
+            if (buf == null) return;
+            while (buf.length > 0) {
+                buf[0] = buf[0].replace(/^[\s]+|[# \t].*$|[\'\"]/g, "").split('=');
+                buf[0][0] = "lzr_" + buf[0][0].replace(/^lz_config_/, "");
+                (buf[0][1] == null) && (buf[0][1] = "");
+                if (buf[0][1] == "true" || buf[0][1] == "false")
+                    policyBkSettingsArray[buf[0][0]] = JSON.parse(buf[0][1]);
+                else if ((!isNaN(parseFloat(buf[0][1])) && isFinite(buf[0][1])))
+                    policyBkSettingsArray[buf[0][0]] = Number(buf[0][1]);
+                else
+                    policyBkSettingsArray[buf[0][0]] = String(buf[0][1]);
+                buf.splice(0, 1);
+            }
+            retVal = true;
+        }
+    });
+    return retVal;
+}
+
+function checkPolicySettings() {
+    for (let key in policySettingsArray) {
+        if (key.indexOf("lzr_") == 0 && policySettingsArray.hasOwnProperty(key)) {
+            if (!policyBkSettingsArray.hasOwnProperty(key))
+                return false;
+            if (policySettingsArray[key] != policyBkSettingsArray[key])
+                return false;
+        }
+    }
+    return true;
 }
 
 function initParseInt(value, min, max, defaultVal) {
@@ -869,8 +910,8 @@ function openOverHint(itemNum) {
         content += "<li>第二 WAN</li>";
         content += "<li>现有策略</li>";
         content += "</ul>";
-        content += "<b>现有策略</b>：已在路由器上运行的其他策略。<br />";
-        content += "<br />对于 OpenVPN Server，仅支持网络层的 TUN 虚拟设备接口类型，可收发第三层数据报文包，无法对采用链路层 TAP 接口类型的第二层数据报文包进行路由控制。<br />";
+        content += "<b>现有策略</b>：已在路由器上运行的其他策略。选择此选项时，唯有 WireGuard 虚拟专用网络服务器在<b>动态分流模式</b>下由路由器<b>系统</b>自动分配流量出口，不受路由器上运行的其他策略影响。<br />";
+        content += "<br />对于 OpenVPN Server，本路由器系统仅支持网络层的 TUN 虚拟设备接口类型，可收发第三层数据报文包，无法对采用链路层 TAP 接口类型的第二层数据报文包进行路由控制。<br />";
         content += "<br /><b>策略执行优先级</b>：详见<b>基本设置&nbsp;-&nbsp;策略路由优先级</b></div>";
     } else if (itemNum == 45) {
         content = "<div>缺省为 <b>5</b> 秒。<br />";
@@ -1916,10 +1957,15 @@ function initial() {
         restart = true;
     } else {
         loadPolicyFlag = 0;
-        if(!loadPolicySettings()) {
+        if (!loadPolicySettings()) {
             loadPolicyFlag = 1;
             loadPolicySettings();
-        }
+            restart = true;
+        } else if (!loadBkPolicyBkSettings())
+            restart = true;
+        else if (!checkPolicySettings())
+            restart = true;
+        policyBkSettingsArray = null;
     }
     show_menu();
     initControls();

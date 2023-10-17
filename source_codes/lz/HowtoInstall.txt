@@ -95,7 +95,7 @@
 
                 ./lzinstall.sh entware
 
-                需提前在路由器内提前用固件内置的 amtm 终端菜单命令安装 Entware 软件仓库集成环境。
+                需提前在路由器内用固件内置的 amtm 终端菜单命令安装 Entware 软件仓库集成环境。
 
     d)软件参数配置
 

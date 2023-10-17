@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_status.sh v4.2.4
+# lz_rule_status.sh v4.2.5
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 显示脚本运行状态脚本
@@ -1434,7 +1434,7 @@ lz_get_event_interface_status() {
 ##     全局常量及变量
 ## 返回值：无
 lz_show_vpn_support_status() {
-    local local_vpn_client_wan_port="by Dst Policy"
+    local local_vpn_client_wan_port="by Policy"
     [ "${status_ovs_client_wan_port}" = "0" ] && local_vpn_client_wan_port="Primary WAN"
     [ "${status_ovs_client_wan_port}" = "1" ] && local_vpn_client_wan_port="Secondary WAN"
     local local_route_list="$( ip route show | awk '/tap|tun|pptp|wgs/ {print $0}' )"
@@ -1487,6 +1487,7 @@ lz_show_vpn_support_status() {
             local_index="$(( local_index + 1 ))"
             echo "$(lzdate)" [$$]: "   WireGuard Client-${local_index}: ${local_vpn_item}" | tee -ai "${STATUS_LOG}" 2> /dev/null
         done
+        [ "${status_usage_mode}" = "0" ] && local_vpn_client_wan_port="by System"
         echo "$(lzdate)" [$$]: "   WireGuard Client Export: ${local_vpn_client_wan_port}" | tee -ai "${STATUS_LOG}" 2> /dev/null
     fi
 
