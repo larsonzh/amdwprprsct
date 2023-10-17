@@ -1487,7 +1487,8 @@ lz_show_vpn_support_status() {
             local_index="$(( local_index + 1 ))"
             echo "$(lzdate)" [$$]: "   WireGuard Client-${local_index}: ${local_vpn_item}" | tee -ai "${STATUS_LOG}" 2> /dev/null
         done
-        [ "${status_usage_mode}" = "0" ] && local_vpn_client_wan_port="by System"
+        [ "${status_usage_mode}" = "0" ] && [ "${status_ovs_client_wan_port}" != "0" ] && [ "${status_ovs_client_wan_port}" != "1" ] \
+            && local_vpn_client_wan_port="by System"
         echo "$(lzdate)" [$$]: "   WireGuard Client Export: ${local_vpn_client_wan_port}" | tee -ai "${STATUS_LOG}" 2> /dev/null
     fi
 
