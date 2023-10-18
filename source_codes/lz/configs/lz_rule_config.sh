@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_config.sh v4.2.5
+# lz_rule_config.sh v4.2.6
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # 本软件采用CIDR（无类别域间路由，Classless Inter-Domain Routing）技术，是一个在Internet上创建附加地
@@ -561,11 +561,13 @@ local_ipsets_file="/jffs/scripts/lz/data/local_ipsets_data.txt"
 wan_access_port=0
 
 ## 虚拟专网客户端访问外网IPv4流量路由器出口
-## 0--第一WAN口；1--第二WAN口；>1--由系统分配出口；取值范围：0~9
+## 0--第一WAN口；1--第二WAN口；>1--由现有策略分配出口；取值范围：0~9
 ## 缺省为第一WAN口（0）。
 ## 用于双线路负载均衡模式下使用路由器主机内置的Open、PPTP、IPSec和WireGuard虚拟专网服务器。
-## 对于Open虚拟专网服务器，仅支持网络层的TUN虚拟设备接口类型，可收发第三层数据报文包，无法对采用链路层
-## TAP接口类型的第二层数据报文包进行路由控制。
+## 现有策略：已在路由器上运行的其他策略规则。选择此选项时，唯有WireGuard虚拟专用网络服务器在动态分流模
+## 式下由路由器系统自动分配流量出口，不受路由器上运行的其他策略规则影响。
+## 对于Open虚拟专网服务器，本路由器系统仅支持网络层的TUN虚拟设备接口类型，可收发第三层数据报文包，无法
+## 对采用链路层TAP接口类型的第二层数据报文包进行路由控制。
 ovs_client_wan_port=0
 
 ## 虚拟专网客户端路由检测时间

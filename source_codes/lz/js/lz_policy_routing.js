@@ -1,5 +1,5 @@
 /*
-# lz_policy_routing.js v4.2.5
+# lz_policy_routing.js v4.2.6
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ JavaScript for Asuswrt-Merlin Router
@@ -39,7 +39,7 @@ function getLastVersion() {
                 policySettingsArray.lastVersion = versionStatus;
                 $("#lzr_last_version_block").html(policySettingsArray.lastVersion).show();
                 if (policySettingsArray.lastVersion != policySettingsArray.version) {
-                    setInterval(function () {
+                    setInterval(function() {
                         $("#lzr_last_version_block").fadeOut(200);
                         $("#lzr_last_version_block").fadeIn(100);
                     }, 3000);
@@ -126,22 +126,18 @@ function isNewVersion() {
     return retVal;
 }*/
 
-let loadPolicyFlag = 0;
 function loadPolicySettings() {
     let retVal = false;
-    let fileUrl = '/ext/lzr/LZRConfig.html';
-    if (loadPolicyFlag != 0)
-        fileUrl = '/ext/lzr/LZRBKData.html';
     $.ajax({
         async: false,
-        url: fileUrl,
+        url: '/ext/lzr/LZRConfig.html',
         dataType: 'text',
         success: function(response) {
             let buf = response.match(/^[\s]*[\w]+[=].*$/gm);
             if (buf == null) return;
             while (buf.length > 0) {
                 buf[0] = buf[0].replace(/^[\s]+|[# \t].*$|[\'\"]/g, "").split('=');
-                buf[0][0] = "lzr_" + buf[0][0].replace(/^lz_config_/, "");
+                buf[0][0] = "lzr_" + buf[0][0];
                 (buf[0][1] == null) && (buf[0][1] = "");
                 if (buf[0][1] == "true" || buf[0][1] == "false")
                     policySettingsArray[buf[0][0]] = JSON.parse(buf[0][1]);
@@ -160,10 +156,9 @@ function loadPolicySettings() {
 let policyBkSettingsArray = {};
 function loadBkPolicyBkSettings() {
     let retVal = false;
-    let fileUrl = '/ext/lzr/LZRBKData.html';
     $.ajax({
         async: false,
-        url: fileUrl,
+        url: '/ext/lzr/LZRBKData.html',
         dataType: 'text',
         success: function(response) {
             let buf = response.match(/^[\s]*[\w]+[=].*$/gm);
@@ -196,6 +191,27 @@ function checkPolicySettings() {
         }
     }
     return true;
+}
+
+function clonePolicyBkSettings() {
+    for (let key in policyBkSettingsArray) {
+        if (policyBkSettingsArray.hasOwnProperty(key))
+            policySettingsArray[key] = policyBkSettingsArray[key];
+    }
+}
+
+function initPolicySetting() {
+    let retVal = false;
+    if (!loadBkPolicyBkSettings())
+        loadPolicySettings();
+    else if (isNewVersion())
+        clonePolicyBkSettings();
+    else if (!loadPolicySettings())
+        clonePolicyBkSettings();
+    else if (checkPolicySettings())
+        retVal = true;
+    policyBkSettingsArray = null;
+    return retVal;
 }
 
 function initParseInt(value, min, max, defaultVal) {
@@ -1212,11 +1228,16 @@ function getPolicyChangedItem(_dataArray) {
     return _dataArray;
 }
 
-function saveSettings() {
+function saveSettings(saveData) {
     if (!policySettingsArray.hasOwnProperty("policyEnable"))
         return;
-    $("[name*=lzr_]").prop("disabled", false);
-    $("#amng_custom").val(JSON.stringify(getPolicyChangedItem($("#ruleForm").serializeObject())).replace(/\"lzr_/g, "\"lz_rule_"));
+    if (saveData != false) {
+        $("[name*=lzr_]").prop("disabled", false);
+        $("#amng_custom").val(JSON.stringify(getPolicyChangedItem($("#ruleForm").serializeObject())).replace(/\"lzr_/g, "\"lz_rule_"));
+    } else {
+        $("[name*=lzr_]").prop("disabled", true);
+        $("#amng_custom").val("");
+    }
     document.form.action_script.value = policySettingsArray.policyEnable ? "start_LZRule" : "stop_LZRule";
     document.form.action_wait.value = "10";
     showLoading();
@@ -1242,7 +1263,7 @@ function applyRule() {
     if (isInstance())
         alert("上一个任务正在进行中，请稍后再试。");
     else
-        saveSettings();
+        saveSettings(true);
 }
 
 let height = 0;
@@ -1943,30 +1964,11 @@ function detectVersion() {
 }
 
 function initial() {
-    let restart = false;
     setPolicyRoutingPage();
     showProduct();
     initPolicyEnableCtrl();
     loadCustomSettings();
-    if (isNewVersion()) {
-        loadPolicyFlag = 1;
-        if (!loadPolicySettings()) {
-            loadPolicyFlag = 0;
-            loadPolicySettings();
-        }
-        restart = true;
-    } else {
-        loadPolicyFlag = 0;
-        if (!loadPolicySettings()) {
-            loadPolicyFlag = 1;
-            loadPolicySettings();
-            restart = true;
-        } else if (!loadBkPolicyBkSettings())
-            restart = true;
-        else if (!checkPolicySettings())
-            restart = true;
-        policyBkSettingsArray = null;
-    }
+    let restart = !initPolicySetting();
     show_menu();
     initControls();
     inithideDivPage();
@@ -1975,7 +1977,7 @@ function initial() {
     document.body.addEventListener("click", function(_evt) {control_dropdown_client_block("ClientList_Block_PC", "pull_arrow", _evt);});
     initAjaxTextArea();
     if (restart)
-        saveSettings();
+        saveSettings(false);
     else
         detectVersion();
 }
