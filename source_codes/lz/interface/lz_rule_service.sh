@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_service.sh v4.2.6
+# lz_rule_service.sh v4.2.7
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 服务接口脚本

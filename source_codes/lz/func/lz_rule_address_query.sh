@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_address_query.sh v4.2.6
+# lz_rule_address_query.sh v4.2.7
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 网址信息查询脚本
@@ -91,6 +91,7 @@ lz_aq_get_ipv4_data_file_item_total() {
     [ -f "${1}" ] && {
         retval="$( awk -v count="0" '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
             && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
+            && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" \
             && NF >= "1" && !i[$1]++ {count++} END{print count}' "${1}" )"
     }
     echo "${retval}"
@@ -591,6 +592,7 @@ lz_set_aq_parameter_variable() {
     aq_route_local_ip=
     aq_route_local_ip_cidr_mask=
     aq_client_full_traffic_wan="0"
+    aq_static_wan_port=
 
     ## 获取路由器本机本地地址信息
     ## 输入项：
@@ -609,7 +611,7 @@ lz_unset_aq_parameter_variable() {
     ## 卸载ISP网络运营商出口参数变量
     lz_aq_unset_isp_wan_port_variable
 
-    unset aq_usage_mode_mode
+    unset aq_usage_mode
     unset aq_custom_data_wan_port_1
     unset aq_custom_data_file_1
     unset aq_custom_data_wan_port_2
@@ -643,6 +645,7 @@ lz_unset_aq_parameter_variable() {
     unset aq_route_local_ip
     unset aq_route_local_ip_cidr_mask
     unset aq_client_full_traffic_wan
+    unset aq_static_wan_port
 }
 
 ## 初始化配置参数函数
@@ -888,6 +891,80 @@ lz_aq_get_isp_data_item_total_variable() {
     eval "echo \${aq_isp_data_${1}_item_total}"
 }
 
+## 计算均分出口时两WAN口网段条目累计值函数
+## 输入项：
+##     $1--ISP网络运营商索引号（0~10）
+##     $2--是否反向（1：反向；非1：正向）
+##     全局变量及常量
+##         local_wan1_isp_addr_total--第一WAN口网段条目累计值
+##         local_wan2_isp_addr_total--第二WAN口网段条目累计值
+## 返回值：
+##     local_wan1_isp_addr_total--第一WAN口网段条目累计值
+##     local_wan2_isp_addr_total--第二WAN口网段条目累计值
+lz_aq_cal_equal_division() {
+    local local_equal_division_total="$( lz_aq_get_isp_data_item_total_variable "${1}" )"
+    if [ "${2}" != "1" ]; then
+        local_wan1_isp_addr_total="$(( local_wan1_isp_addr_total + local_equal_division_total/2 + local_equal_division_total%2 ))"
+        local_wan2_isp_addr_total="$(( local_wan2_isp_addr_total + local_equal_division_total/2 ))"
+    else
+        local_wan1_isp_addr_total="$(( local_wan1_isp_addr_total + local_equal_division_total/2 ))"
+        local_wan2_isp_addr_total="$(( local_wan2_isp_addr_total + local_equal_division_total/2 + local_equal_division_total%2 ))"
+    fi
+}
+
+## 计算运营商目标网段均分出口时两WAN口网段条目累计值函数
+## 输入项：
+##     $1--ISP网络运营商索引号（0~10）
+##     全局变量及常量
+##         local_wan1_isp_addr_total--第一WAN口网段条目累计值
+##         local_wan2_isp_addr_total--第二WAN口网段条目累计值
+## 返回值：
+##     local_wan1_isp_addr_total--第一WAN口网段条目累计值
+##     local_wan2_isp_addr_total--第二WAN口网段条目累计值
+lz_aq_cal_isp_equal_division() {
+    local local_isp_wan_port="$( lz_aq_get_isp_wan_port "${1}" )"
+    local isp_total="0"
+    { [ "${local_isp_wan_port}" = "0" ] || [ "${local_isp_wan_port}" = "1" ]; } \
+        && isp_total="$( lz_aq_get_isp_data_item_total_variable "${1}" )"
+    [ "${local_isp_wan_port}" = "0" ] && local_wan1_isp_addr_total="$(( local_wan1_isp_addr_total + isp_total ))"
+    [ "${local_isp_wan_port}" = "1" ] && local_wan2_isp_addr_total="$(( local_wan2_isp_addr_total + isp_total ))"
+    [ "${local_isp_wan_port}" = "2" ] && lz_aq_cal_equal_division "${1}"
+    [ "${local_isp_wan_port}" = "3" ] && lz_aq_cal_equal_division "${1}" "1"
+}
+
+## 获取静态分流模式负载均衡出口函数
+## 输入项：
+##     全局变量及常量
+## 返回值：
+##     0--第一WAN口
+##     1--第二WAN口
+lz_aq_get_static_policy_wan_port() {
+    local static_wan_port="$( lz_aq_get_isp_wan_port "0" )"
+    if [ "${static_wan_port}" != "0" ] && [ "${static_wan_port}" != "1" ]; then
+        local_wan1_isp_addr_total="0"
+        local_wan2_isp_addr_total="0"
+        local local_index="1"
+        until [ "${local_index}" -gt "${AQ_ISP_TOTAL}" ]
+        do
+            lz_aq_cal_isp_equal_division "${local_index}"
+            local_index="$(( local_index + 1 ))"
+        done
+        local custom_total="0"
+        { [ "${aq_custom_data_wan_port_1}" = "0" ] || [ "${aq_custom_data_wan_port_1}" = "1" ]; } \
+            && custom_total="$( lz_aq_get_ipv4_data_file_item_total "${aq_custom_data_file_1}" )"
+        [ "${aq_custom_data_wan_port_1}" = "0" ] && local_wan1_isp_addr_total="$(( local_wan1_isp_addr_total + custom_total ))"
+        [ "${aq_custom_data_wan_port_1}" = "1" ] && local_wan2_isp_addr_total="$(( local_wan2_isp_addr_total + custom_total ))"
+        { [ "${aq_custom_data_wan_port_2}" = "0" ] || [ "${aq_custom_data_wan_port_2}" = "1" ]; } \
+            && custom_total="$( lz_aq_get_ipv4_data_file_item_total "${aq_custom_data_file_2}" )"
+        [ "${aq_custom_data_wan_port_2}" = "0" ] && local_wan1_isp_addr_total="$(( local_wan1_isp_addr_total + custom_total ))"
+        [ "${aq_custom_data_wan_port_2}" = "1" ] && local_wan2_isp_addr_total="$(( local_wan2_isp_addr_total + custom_total ))"
+        [ "${local_wan1_isp_addr_total}" -lt "${local_wan2_isp_addr_total}" ] && static_wan_port="1" || static_wan_port="0"
+        unset local_wan1_isp_addr_total
+        unset local_wan2_isp_addr_total
+    fi
+    echo "${static_wan_port}"
+}
+
 ## 解析IP地址函数
 ## 输入项：
 ##     $1--网络地址
@@ -1006,7 +1083,16 @@ lz_show_address_info() {
                 elif [ "${local_isp_wan_port}" = "1" ]; then
                     echo "$(lzdate)" [$$]: "  Secondary WAN        ${5}" | tee -ai "${ADDRESS_LOG}" 2> /dev/null
                 else
-                    echo "$(lzdate)" [$$]: "  Load Balancing       ${5}" | tee -ai "${ADDRESS_LOG}" 2> /dev/null
+                    if [ "${aq_usage_mode}" = "0" ]; then
+                        echo "$(lzdate)" [$$]: "  Load Balancing       ${5}" | tee -ai "${ADDRESS_LOG}" 2> /dev/null
+                    else
+                        [ -z "${aq_static_wan_port}" ] && aq_static_wan_port="$( lz_aq_get_static_policy_wan_port )"
+                        if [ "${aq_static_wan_port}" = "0" ]; then
+                            echo "$(lzdate)" [$$]: "  * Primary WAN        ${5}" | tee -ai "${ADDRESS_LOG}" 2> /dev/null
+                        else
+                            echo "$(lzdate)" [$$]: "  * Secondary WAN      ${5}" | tee -ai "${ADDRESS_LOG}" 2> /dev/null
+                        fi
+                    fi
                 fi
             elif [ "${4}" = "1" ]; then
                 echo "$(lzdate)" [$$]: "  Primary WAN          ${5}" | tee -ai "${ADDRESS_LOG}" 2> /dev/null
