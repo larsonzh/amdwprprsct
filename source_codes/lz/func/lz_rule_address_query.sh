@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_address_query.sh v4.2.7
+# lz_rule_address_query.sh v4.2.8
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 网址信息查询脚本
@@ -1015,12 +1015,12 @@ lz_aq_resolve_ip() {
                                     | sed 's/[\.]$//g' | tr '[:A-Z:]' '[:a-z:]' )"
             [ -z "${local_ip}" ] && {
                 local_ip="$( echo "${1}" | sed -e 's/^[[:space:]]*\([^[:space:]].*$\)/\1/g' -e 's/[[:space:]]\+/ /g' -e 's/\(^.*[^ ]\)[ ]*$/\1/g' \
-                            | sed -n 1p| tr '[:A-Z:]' '[:a-z:]' )"
+                            | sed -n 1p | tr '[:A-Z:]' '[:a-z:]' )"
                 local_domain_name=""
             }
         else
             local_ip="$( echo "${1}" | sed -e 's/^[[:space:]]*\([^[:space:]].*$\)/\1/g' -e 's/[[:space:]]\+/ /g' -e 's/\(^.*[^ ]\)[ ]*$/\1/g' \
-                        | sed -n 1p| tr '[:A-Z:]' '[:a-z:]' )"
+                        | sed -n 1p | tr '[:A-Z:]' '[:a-z:]' )"
             local_domain_name=""
         fi
     fi

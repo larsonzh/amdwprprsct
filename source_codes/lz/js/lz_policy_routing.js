@@ -1,5 +1,5 @@
 /*
-# lz_policy_routing.js v4.2.7
+# lz_policy_routing.js v4.2.8
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ JavaScript for Asuswrt-Merlin Router
@@ -794,6 +794,12 @@ function openOverHint(itemNum) {
         content += "192.168.50.101&nbsp;103.10.4.108<br />";
         content += "0.0.0.0/0&nbsp;202.89.233.100<br />";
         content += "<br />可以用 <b>0.0.0.0/0</b> 表示所有未知IP地址。<br />";
+        content += "<br /><b>NAS 设备</b>远程访问接入示例：<br />";
+        content += "假设 NAS 设备本地地址为 192.168.50.123，通过本 WAN 口远程访问，需填写如下两个条目：<br />";
+        content += "192.168.50.123&nbsp;0.0.0.0/0<br />";
+        content += "0.0.0.0/0&nbsp;192.168.50.123<br />";
+        content += "若有多个 NAS 设备通过本 WAN 口远程访问，可按地址依次填写条目对。<br />";
+        content += "同时要求<b>外部网络(WAN) - 策略路由(IPv4) - 高级 - 远程连接策略 - 远程接入口</b>和路由器系统的 <b>DDNS</b> 出口必须也设置为本 WAN 口。<br />";
         content += "<br />建议列表条目数量不要多于512条，否则易导致软件启动时系统<b>策略路由</b>库加载数据时间过长。<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 31) {
@@ -804,6 +810,12 @@ function openOverHint(itemNum) {
         content += "<br />例如：<br />";
         content += "192.168.50.102&nbsp;210.74.0.0/16<br />";
         content += "<br />可以用 <b>0.0.0.0/0</b> 表示所有未知IP地址。<br />";
+        content += "<br /><b>NAS 设备</b>远程访问接入示例：<br />";
+        content += "假设 NAS 设备本地地址为 192.168.50.123，通过本 WAN 口远程访问，需填写如下两个条目：<br />";
+        content += "192.168.50.123&nbsp;0.0.0.0/0<br />";
+        content += "0.0.0.0/0&nbsp;192.168.50.123<br />";
+        content += "若有多个 NAS 设备通过本 WAN 口远程访问，可按地址依次填写条目对。<br />";
+        content += "同时要求<b>外部网络(WAN) - 策略路由(IPv4) - 高级 - 远程连接策略 - 远程接入口</b>和路由器系统的 <b>DDNS</b> 出口必须也设置为本 WAN 口。<br />";
         content += "<br />建议列表条目数量不要多于512条，否则易导致软件启动时系统<b>策略路由</b>库加载数据时间过长。<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 32) {
@@ -817,6 +829,12 @@ function openOverHint(itemNum) {
         content += "<br />例如：<br />";
         content += "192.168.50.0/27&nbsp;0.0.0.0/0<br />";
         content += "<br />可以用 <b>0.0.0.0/0</b> 表示所有未知IP地址。<br />";
+        content += "<br /><b>NAS 设备</b>远程访问接入示例：<br />";
+        content += "假设 NAS 设备本地地址为 192.168.50.123，通过本 WAN 口远程访问，需填写如下两个条目：<br />";
+        content += "192.168.50.123&nbsp;0.0.0.0/0<br />";
+        content += "0.0.0.0/0&nbsp;192.168.50.123<br />";
+        content += "若有多个 NAS 设备通过本 WAN 口远程访问，可按地址依次填写条目对。<br />";
+        content += "同时要求<b>外部网络(WAN) - 策略路由(IPv4) - 高级 - 远程连接策略 - 远程接入口</b>和路由器系统的 <b>DDNS</b> 出口必须也设置为本 WAN 口。<br />";
         content += "<br />建议列表条目数量不要多于512条，否则易导致软件启动时系统<b>策略路由</b>库加载数据时间过长。<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 34) {
