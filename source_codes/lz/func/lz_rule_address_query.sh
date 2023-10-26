@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_address_query.sh v4.2.8
+# lz_rule_address_query.sh v4.2.9
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 网址信息查询脚本
@@ -501,8 +501,8 @@ lz_aq_adjust_traffic_policy() {
         [ "${aq_custom_data_wan_port_1}" = "0" ] && lz_aq_add_net_address_sets "${aq_custom_data_file_1}" "${AQ_CUSTOM_SET_15}" "0"
         [ "$( lz_aq_get_ipset_total_number "${AQ_CUSTOM_SET_14}" )" = "0" ] && ipset -q destroy "${AQ_CUSTOM_SET_14}"
         [ "$( lz_aq_get_ipset_total_number "${AQ_CUSTOM_SET_15}" )" = "0" ] && ipset -q destroy "${AQ_CUSTOM_SET_15}"
-        [ "${aq_custom_data_wan_port_2}" = "2" ] && [ "${aq_usage_mode}" = "0" ] && lz_aq_add_net_address_sets "${aq_custom_data_file_2}" "${AQ_CUSTOM_SET_16}" "0"
-        [ "${aq_custom_data_wan_port_1}" = "2" ] && [ "${aq_usage_mode}" = "0" ] && lz_aq_add_net_address_sets "${aq_custom_data_file_1}" "${AQ_CUSTOM_SET_16}" "0"
+        [ "${aq_custom_data_wan_port_2}" = "2" ] && lz_aq_add_net_address_sets "${aq_custom_data_file_2}" "${AQ_CUSTOM_SET_16}" "0"
+        [ "${aq_custom_data_wan_port_1}" = "2" ] && lz_aq_add_net_address_sets "${aq_custom_data_file_1}" "${AQ_CUSTOM_SET_16}" "0"
         [ "$( lz_aq_get_ipset_total_number "${AQ_CUSTOM_SET_16}" )" = "0" ] && ipset -q destroy "${AQ_CUSTOM_SET_16}"
         break
     done
