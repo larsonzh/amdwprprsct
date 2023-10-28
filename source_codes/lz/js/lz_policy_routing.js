@@ -1,5 +1,5 @@
 /*
-# lz_policy_routing.js v4.2.9
+# lz_policy_routing.js v4.3.0
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ JavaScript for Asuswrt-Merlin Router
@@ -139,7 +139,9 @@ function loadPolicySettings() {
                 buf[0] = buf[0].replace(/^[\s]+|[# \t].*$|[\'\"]/g, "").split('=');
                 buf[0][0] = "lzr_" + buf[0][0];
                 (buf[0][1] == null) && (buf[0][1] = "");
-                if (buf[0][1] == "true" || buf[0][1] == "false")
+                if (buf[0][1] == "*" && (buf[0][0] == "lzr_ruid_timer_hour" || buf[0][0] == "lzr_ruid_timer_min"))
+                    policyBkSettingsArray[buf[0][0]] = 404;
+                else if (buf[0][1] == "true" || buf[0][1] == "false")
                     policySettingsArray[buf[0][0]] = JSON.parse(buf[0][1]);
                 else if ((!isNaN(parseFloat(buf[0][1])) && isFinite(buf[0][1])))
                     policySettingsArray[buf[0][0]] = Number(buf[0][1]);
@@ -167,7 +169,9 @@ function loadBkPolicyBkSettings() {
                 buf[0] = buf[0].replace(/^[\s]+|[# \t].*$|[\'\"]/g, "").split('=');
                 buf[0][0] = "lzr_" + buf[0][0].replace(/^lz_config_/, "");
                 (buf[0][1] == null) && (buf[0][1] = "");
-                if (buf[0][1] == "true" || buf[0][1] == "false")
+                if (buf[0][1] == "*" && (buf[0][0] == "lzr_ruid_timer_hour" || buf[0][0] == "lzr_ruid_timer_min"))
+                    policyBkSettingsArray[buf[0][0]] = 404;
+                else if (buf[0][1] == "true" || buf[0][1] == "false")
                     policyBkSettingsArray[buf[0][0]] = JSON.parse(buf[0][1]);
                 else if ((!isNaN(parseFloat(buf[0][1])) && isFinite(buf[0][1])))
                     policyBkSettingsArray[buf[0][0]] = Number(buf[0][1]);
