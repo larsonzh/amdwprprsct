@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v4.3.0
+# lz_rule_func.sh v4.3.1
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 #BEIGIN
@@ -1931,9 +1931,9 @@ lz_establish_regularly_update_ispip_data_task() {
         local_regularly_update_ispip_data_info="$( cru l | grep "#${UPDATE_ISPIP_DATA_TIMEER_ID}#" )"
         if [ -z "${local_regularly_update_ispip_data_info}" ]; then
             ## 创建定时任务
-            [ "${local_min}" = "*" ] && local_min="$( date +"%M" | sed 's/^[0]\([0-9]\)$/\1/g' )"
-            [ "${local_hour}" = "*" ] && local_hour="$( date +"%H" | sed 's/^[0]\([0-9]\)$/\1/g' )"
-            [ "${local_hour}" = "0" ] && [ "${local_min}" = "0" ] && local_min="$( awk 'BEGIN{srand(); print int(rand() * 60)}' )"
+        #    [ "${local_min}" = "*" ] && local_min="$( date +"%M" | sed 's/^[0]\([0-9]\)$/\1/g' )"
+        #    [ "${local_hour}" = "*" ] && local_hour="$( date +"%H" | sed 's/^[0]\([0-9]\)$/\1/g' )"
+            eval "$( awk 'BEGIN{srand(); print "local_hour="int(rand() * 5) + 1"\nlocal_min="int(rand() * 60)}' )"
             cru a "${UPDATE_ISPIP_DATA_TIMEER_ID}" "${local_min} ${local_hour} ${local_day} ${local_month} ${local_week} /bin/sh ${PATH_LZ}/${UPDATE_FILENAME}" > /dev/null 2>&1
         else
             local_ruid_min="$( echo "${local_regularly_update_ispip_data_info}" | awk '{print $1}' )"
@@ -1941,29 +1941,33 @@ lz_establish_regularly_update_ispip_data_task() {
             local_ruid_day="$( echo "${local_regularly_update_ispip_data_info}" | awk '{print $3}' )"
             local_ruid_month="$( echo "${local_regularly_update_ispip_data_info}" | awk '{print $4}' )"
             local_ruid_week="$( echo "${local_regularly_update_ispip_data_info}" | awk '{print $5}' )"
-            if [ "${local_min}" = "*" ] && [ "${local_hour}" = "*" ]; then
+            if { [ "${local_min}" = "*" ] && [ "${local_hour}" = "*" ]; } \
+                || { [ "${local_min}" = "0" ] && [ "${local_hour}" = "0" ]; }; then
                 if [ "${local_day}" != "${local_ruid_day}" ] || [ "${local_month}" != "${local_ruid_month}" ] \
-                    || [ "${local_week}" != "${local_ruid_week}" ] || [ "${local_ruid_min}" = "*" ] || [ "${local_ruid_hour}" = "*" ]; then
-                    local_min="$( date +"%M" | sed 's/^[0]\([0-9]\)$/\1/g' )"
-                    local_hour="$( date +"%H" | sed 's/^[0]\([0-9]\)$/\1/g' )"
-                    [ "${local_hour}" = "0" ] && [ "${local_min}" = "0" ] && local_min="$( awk 'BEGIN{srand(); print int(rand() * 60)}' )"
+                    || [ "${local_week}" != "${local_ruid_week}" ] \
+                    || [ "${local_ruid_min}" = "*" ] || [ "${local_ruid_hour}" = "*" ] \
+                    || [ "${local_ruid_hour}" = "0" ] || [ "${local_ruid_hour}" -ge "6" ]; then
+                    eval "$( awk 'BEGIN{srand(); print "local_hour="int(rand() * 5) + 1"\nlocal_min="int(rand() * 60)}' )"
                     ## 计划发生变化，修改既有定时任务
                     cru a "${UPDATE_ISPIP_DATA_TIMEER_ID}" "${local_min} ${local_hour} ${local_day} ${local_month} ${local_week} /bin/sh ${PATH_LZ}/${UPDATE_FILENAME}" > /dev/null 2>&1
                 fi
             elif [ "${local_min}" = "*" ] && [ "${local_hour}" != "*" ]; then
-                if [ "${local_hour}" != "${local_ruid_hour}" ] || [ "${local_day}" != "${local_ruid_day}" ] \
-                    || [ "${local_month}" != "${local_ruid_month}" ] || [ "${local_week}" != "${local_ruid_week}" ] \
+                if [ "${local_hour}" != "${local_ruid_hour}" ] \
+                    || [ "${local_day}" != "${local_ruid_day}" ] || [ "${local_month}" != "${local_ruid_month}" ] \
+                    || [ "${local_week}" != "${local_ruid_week}" ] \
                     || [ "${local_ruid_min}" = "*" ] || [ "${local_ruid_hour}" = "*" ]; then
-                    local_min="$( date +"%M" | sed 's/^[0]\([0-9]\)$/\1/g' )"
-                    [ "${local_min}" = "0" ] && local_min="$( awk 'BEGIN{srand(); print int(rand() * 60)}' )"
+                    local_min="$( awk 'BEGIN{srand(); print int(rand() * 60)}' )"
+                    [ "${local_hour}" = "0" ] && [ "${local_min}" = "0" ] && local_min="1"
                     ## 计划发生变化，修改既有定时任务
                     cru a "${UPDATE_ISPIP_DATA_TIMEER_ID}" "${local_min} ${local_hour} ${local_day} ${local_month} ${local_week} /bin/sh ${PATH_LZ}/${UPDATE_FILENAME}" > /dev/null 2>&1
                 fi
             elif [ "${local_min}" != "*" ] && [ "${local_hour}" = "*" ]; then
-                if [ "${local_min}" != "${local_ruid_min}" ] || [ "${local_day}" != "${local_ruid_day}" ] \
-                    || [ "${local_month}" != "${local_ruid_month}" ] || [ "${local_week}" != "${local_ruid_week}" ] \
-                    || [ "${local_ruid_min}" = "*" ] || [ "${local_ruid_hour}" = "*" ]; then
-                    local_hour="$( date +"%H" | sed 's/^[0]\([0-9]\)$/\1/g' )"
+                if [ "${local_min}" != "${local_ruid_min}" ] \
+                    || [ "${local_day}" != "${local_ruid_day}" ] || [ "${local_month}" != "${local_ruid_month}" ] \
+                    || [ "${local_week}" != "${local_ruid_week}" ] \
+                    || [ "${local_ruid_min}" = "*" ] || [ "${local_ruid_hour}" = "*" ] \
+                    || [ "${local_ruid_hour}" = "0" ] || [ "${local_ruid_hour}" -ge "6" ]; then
+                    local_hour="$( awk 'BEGIN{srand(); print int(rand() * 5) + 1}' )"
                     ## 计划发生变化，修改既有定时任务
                     cru a "${UPDATE_ISPIP_DATA_TIMEER_ID}" "${local_min} ${local_hour} ${local_day} ${local_month} ${local_week} /bin/sh ${PATH_LZ}/${UPDATE_FILENAME}" > /dev/null 2>&1
                 fi
@@ -1972,18 +1976,6 @@ lz_establish_regularly_update_ispip_data_task() {
                 || [ "${local_week}" != "${local_ruid_week}" ]; then
                 ## 计划发生变化，修改既有定时任务
                 cru a "${UPDATE_ISPIP_DATA_TIMEER_ID}" "${local_min} ${local_hour} ${local_day} ${local_month} ${local_week} /bin/sh ${PATH_LZ}/${UPDATE_FILENAME}" > /dev/null 2>&1
-            fi
-        fi
-        local_regularly_update_ispip_data_info="$( cru l | grep "#${UPDATE_ISPIP_DATA_TIMEER_ID}#" )"
-        if [ -n "${local_regularly_update_ispip_data_info}" ]; then
-            local_ruid_min="$( echo "${local_regularly_update_ispip_data_info}" | awk '{print $1}' )"
-            local_ruid_hour="$( echo "${local_regularly_update_ispip_data_info}" | awk '{print $2}' )"
-            local_ruid_day="$( echo "${local_regularly_update_ispip_data_info}" | awk '{print $3}' )"
-            local_ruid_month="$( echo "${local_regularly_update_ispip_data_info}" | awk '{print $4}' )"
-            local_ruid_week="$( echo "${local_regularly_update_ispip_data_info}" | awk '{print $5}' )"
-            if [ "${local_ruid_hour}" = "0" ] && [ "${local_ruid_min}" = "0" ]; then
-                local_ruid_min="$( awk 'BEGIN{srand(); print int(rand() * 60)}' )"
-                cru a "${UPDATE_ISPIP_DATA_TIMEER_ID}" "${local_ruid_min} ${local_ruid_hour} ${local_ruid_day} ${local_ruid_month} ${local_ruid_week} /bin/sh ${PATH_LZ}/${UPDATE_FILENAME}" > /dev/null 2>&1
             fi
         fi
     else

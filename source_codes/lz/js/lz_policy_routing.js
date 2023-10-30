@@ -1,5 +1,5 @@
 /*
-# lz_policy_routing.js v4.3.0
+# lz_policy_routing.js v4.3.1
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ JavaScript for Asuswrt-Merlin Router
@@ -1105,7 +1105,8 @@ function openOverHint(itemNum) {
     } else if (itemNum == 78) {
         content = "<div>缺省为 <b>5</b> 天。</div>";
     } else if (itemNum == 79) {
-        content = "<div>缺省为<b>自动</b>安排启动时间。</div>";
+        content = "<div>缺省为<b>自动</b>安排启动时间 (1:00 ~ 5:59)。<br />";
+        content += "<br />数据更新过程中，软件会重新启动，为避免影响路由器正常使用，减轻网络拥塞和数据下载服务器压力，建议将更新<b>启动时间</b>安排在当日的 <b>1:00</b> 之后的空闲时段，并且尽量不要设置<b>整点</b>时刻。</div>";
     } else if (itemNum == 80) {
         content = "<div>缺省为 <b>5</b> 次。</div>";
     } else if (itemNum == 81) {
