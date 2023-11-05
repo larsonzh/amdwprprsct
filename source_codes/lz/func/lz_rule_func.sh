@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v4.3.1
+# lz_rule_func.sh v4.3.2
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 #BEIGIN
@@ -5208,8 +5208,10 @@ lz_deployment_routing_policy() {
         [ "${wan_access_port}" = "1" ] && local_access_wan="${WAN1}"
     #	ip rule add to 103.10.4.108 table "${local_access_wan}" prio "${IP_RULE_PRIO_INNER_ACCESS}" > /dev/null 2>&1
         [ -n "${route_local_ip}" ] && {
-            ip rule add from all to "${route_local_ip}" table "${local_access_wan}" prio "${IP_RULE_PRIO_INNER_ACCESS}" > /dev/null 2>&1
-            ip rule add from "${route_local_ip}" table "${local_access_wan}" prio "${IP_RULE_PRIO_INNER_ACCESS}" > /dev/null 2>&1
+            ! ip rule add from all to "0.0.0.0" table "${local_access_wan}" prio "${IP_RULE_PRIO_INNER_ACCESS}" > /dev/null 2>&1 \
+                && ip rule add from all to "${route_local_ip}" table "${local_access_wan}" prio "${IP_RULE_PRIO_INNER_ACCESS}" > /dev/null 2>&1
+            ! ip rule add from "0.0.0.0" table "${local_access_wan}" prio "${IP_RULE_PRIO_INNER_ACCESS}" > /dev/null 2>&1 \
+                && ip rule add from "${route_local_ip}" table "${local_access_wan}" prio "${IP_RULE_PRIO_INNER_ACCESS}" > /dev/null 2>&1
         }
     fi
 
@@ -5272,8 +5274,10 @@ lz_deployment_routing_policy() {
     ## 静态分流模式
     if [ "${usage_mode}" != "0" ] && [ "${command_from_all_executed}" = "0" ]; then
         if [ -n "${route_static_subnet}" ]; then
-            [ "${policy_mode}" = "0" ] && ! ip rule add not from "0.0.0.0" table "${WAN1}" prio "${IP_RULE_PRIO}" > /dev/null 2>&1 && ip rule add from "${route_static_subnet}" table "${WAN1}" prio "${IP_RULE_PRIO}" > /dev/null 2>&1
-            [ "${policy_mode}" = "1" ] && ! ip rule add not from "0.0.0.0" table "${WAN0}" prio "${IP_RULE_PRIO}" > /dev/null 2>&1 && ip rule add from "${route_static_subnet}" table "${WAN0}" prio "${IP_RULE_PRIO}" > /dev/null 2>&1
+            [ "${policy_mode}" = "0" ] && ! ip rule add not from "0.0.0.0" table "${WAN1}" prio "${IP_RULE_PRIO}" > /dev/null 2>&1 \
+                && ip rule add from "${route_static_subnet}" table "${WAN1}" prio "${IP_RULE_PRIO}" > /dev/null 2>&1
+            [ "${policy_mode}" = "1" ] && ! ip rule add not from "0.0.0.0" table "${WAN0}" prio "${IP_RULE_PRIO}" > /dev/null 2>&1 \
+                && ip rule add from "${route_static_subnet}" table "${WAN0}" prio "${IP_RULE_PRIO}" > /dev/null 2>&1
         else
             [ "${policy_mode}" = "0" ] && ip rule add from all table "${WAN1}" prio "${IP_RULE_PRIO}" > /dev/null 2>&1
             [ "${policy_mode}" = "1" ] && ip rule add from all table "${WAN0}" prio "${IP_RULE_PRIO}" > /dev/null 2>&1
