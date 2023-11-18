@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_status.sh v4.3.2
+# lz_rule_status.sh v4.3.3
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 显示脚本运行状态脚本
@@ -136,6 +136,21 @@ lz_get_ipv4_data_file_item_total_status() {
         retval="$( awk -v count="0" '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
             && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
             && NF >= "1" && !i[$1]++ {count++} END{print count}' "${1}" )"
+    }
+    echo "${retval}"
+}
+
+## 获取代理转发远程节点服务器IPv4地址列表数据文件总有效条目数状态函数
+## 输入项：
+##     $1--全路径网段数据文件名
+## 返回值：
+##     总有效条目数
+lz_get_proxy_remote_node_addr_file_item_total_status() {
+    local retval="0"
+    [ -s "${1}" ] && {
+        retval="$( sed -e 's/^[[:space:]]\+//g' -e '/^[#]/d' -e 's/[[:space:]]*[#].*$//g' -e '/^[[:space:]]*$/d' "${1}" \
+        | tr '[:A-Z:]' '[:a-z:]' \
+        | awk -v count="0" 'NF >= "1" && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" && !i[$1]++ {count++} END{print count}' )"
     }
     echo "${retval}"
 }
@@ -388,7 +403,8 @@ lz_unset_parameter_status_variable() {
     unset status_wan_access_port
     unset status_ovs_client_wan_port
     unset status_vpn_client_polling_time
-    unset status_fancyss_support
+    unset status_proxy_route
+    unset status_proxy_remote_node_addr_file
     unset status_usage_mode
     unset status_custom_hosts
     unset status_custom_hosts_file
@@ -473,7 +489,8 @@ lz_init_cfg_data_status() {
     [ "${status_wan_access_port-undefined}" = "undefined" ] && status_wan_access_port=0
     [ "${status_ovs_client_wan_port-undefined}" = "undefined" ] && status_ovs_client_wan_port=0
     [ "${status_vpn_client_polling_time-undefined}" = "undefined" ] && status_vpn_client_polling_time=5
-    [ "${status_fancyss_support-undefined}" = "undefined" ] && status_fancyss_support=5
+    [ "${status_proxy_route-undefined}" = "undefined" ] && status_proxy_route=5
+    [ "${status_proxy_remote_node_addr_file-undefined}" = "undefined" ] && status_proxy_remote_node_addr_file="${PATH_DATA}/proxy_remote_node_addr.txt"
     [ "${status_usage_mode-undefined}" = "undefined" ] && status_usage_mode=0
     [ "${status_custom_hosts-undefined}" = "undefined" ] && status_custom_hosts=5
     [ "${status_custom_hosts_file-undefined}" = "undefined" ] && status_custom_hosts_file="${PATH_DATA}/custom_hosts.txt"
@@ -555,7 +572,8 @@ lz_get_box_data_status() {
             i["status_wan_access_port"]=0;
             i["status_ovs_client_wan_port"]=0;
             i["status_vpn_client_polling_time"]=5;
-            i["status_fancyss_support"]=5;
+            i["status_proxy_route"]=5;
+            i["status_proxy_remote_node_addr_file"]=pathd"/proxy_remote_node_addr.txt";
             i["status_usage_mode"]=0;
             i["status_custom_hosts"]=5;
             i["status_custom_hosts_file"]=pathd"/custom_hosts.txt";
@@ -639,7 +657,7 @@ lz_get_box_data_status() {
                 || key == "status_wan_1_src_to_dst_addr_port" \
                 || key == "status_wan_2_src_to_dst_addr_port" \
                 || key == "status_high_wan_1_src_to_dst_addr_port" \
-                || key == "status_fancyss_support" \
+                || key == "status_proxy_route" \
                 || key == "status_custom_hosts" \
                 || key == "status_wan1_iptv_mode" \
                 || key == "status_wan2_iptv_mode" \
@@ -732,6 +750,7 @@ lz_get_box_data_status() {
                 || key == "status_wan_2_src_to_dst_addr_port_file" \
                 || key == "status_high_wan_1_src_to_dst_addr_port_file" \
                 || key == "status_local_ipsets_file" \
+                || key == "status_proxy_remote_node_addr_file" \
                 || key == "status_custom_hosts_file" \
                 || key == "status_iptv_box_ip_lst_file" \
                 || key == "status_iptv_isp_ip_lst_file" \
@@ -1340,10 +1359,14 @@ lz_get_route_status_info() {
         else
             echo "$(lzdate)" [$$]: "   Route Host Access Port: Primary WAN" | tee -ai "${STATUS_LOG}" 2> /dev/null
         fi
-        if [ "${status_fancyss_support}" = "0" ]; then
-            echo "$(lzdate)" [$$]: "   Route Fancyss Support: Enable" | tee -ai "${STATUS_LOG}" 2> /dev/null
+        if [ "${status_proxy_route}" = "0" ]; then
+            echo "$(lzdate)" [$$]: "   Proxy Route: Primary WAN" | tee -ai "${STATUS_LOG}" 2> /dev/null
+        elif [ "${status_proxy_route}" = "1" ]; then
+            echo "$(lzdate)" [$$]: "   Proxy Route: Secondary WAN" | tee -ai "${STATUS_LOG}" 2> /dev/null
+        elif [ "${status_wan_access_port}" = "1" ]; then
+            echo "$(lzdate)" [$$]: "   Proxy Route: Secondary WAN" | tee -ai "${STATUS_LOG}" 2> /dev/null
         else
-            echo "$(lzdate)" [$$]: "   Route Fancyss Support: Disable" | tee -ai "${STATUS_LOG}" 2> /dev/null
+            echo "$(lzdate)" [$$]: "   Proxy Route: Primary WAN" | tee -ai "${STATUS_LOG}" 2> /dev/null
         fi
         if [ "${status_route_cache}" = "0" ]; then
             echo "$(lzdate)" [$$]: "   Route Cache: Enable" | tee -ai "${STATUS_LOG}" 2> /dev/null
@@ -1386,21 +1409,6 @@ lz_show_regularly_update_ispip_data_task() {
             echo "$(lzdate)" [$$]: ---------------------------------------------
         } | tee -ai "${STATUS_LOG}" 2> /dev/null
     }
-}
-
-## 显示SS服务支持状态函数
-## 输入项：
-##     全局变量及常量
-## 返回值：无
-lz_ss_support_status() {
-    [ ! -f "${PATH_SS}/${SS_FILENAME}" ] && return
-    ## 获取SS服务运行参数
-    local local_ss_enable="$( dbus get "ss_basic_enable" 2> /dev/null )"
-    if [ -z "${local_ss_enable}" ] || [ "${local_ss_enable}" != "1" ]; then return; fi;
-    {
-        echo "$(lzdate)" [$$]: ---------------------------------------------
-        echo "$(lzdate)" [$$]: Fancyss is running.
-    } | tee -ai "${STATUS_LOG}" 2> /dev/null
 }
 
 ## 获取服务事件接口注册状态函数
@@ -1902,6 +1910,16 @@ lz_output_ispip_status_info() {
                 local_exist="1"
             }
         fi
+    }
+    [ "${status_proxy_route}" = "0" ] && local_item_count="$( lz_get_proxy_remote_node_addr_file_item_total_status "${status_proxy_remote_node_addr_file}" )" \
+        && [ "${local_item_count}" -gt "0" ] && {
+        echo "$(lzdate)" [$$]: "   ProxyNodeLst    Primary WAN${local_primary_wan_hd}  ${local_item_count}" | tee -ai "${STATUS_LOG}" 2> /dev/null
+        local_exist="1"
+    }
+    [ "${status_proxy_route}" = "1" ] && local_item_count="$( lz_get_proxy_remote_node_addr_file_item_total_status "${status_proxy_remote_node_addr_file}" )" \
+        && [ "${local_item_count}" -gt "0" ] && {
+        echo "$(lzdate)" [$$]: "   ProxyNodeLst    Secondary WAN${local_secondary_wan_hd}  ${local_item_count}" | tee -ai "${STATUS_LOG}" 2> /dev/null
+        local_exist="1"
     }
     [ "${status_high_wan_1_src_to_dst_addr}" = "0" ] && local_item_count="$( lz_get_ipv4_src_to_dst_data_file_item_total_status "${status_high_wan_1_src_to_dst_addr_file}" )" \
         && [ "${local_item_count}" -gt "0" ] && {
@@ -3127,12 +3145,6 @@ __status_main() {
 
         echo "$(lzdate)" [$$]: Policy routing service has "${local_stop_id}"ped. | tee -ai "${STATUS_LOG}" 2> /dev/null
 
-        ## 显示SS服务支持状态
-        ## 输入项：
-        ##     全局变量及常量
-        ## 返回值：无
-        lz_ss_support_status
-
         return
     fi
 
@@ -3199,13 +3211,6 @@ __status_main() {
                 echo "$(lzdate)" [$$]: "${status_custom_dualwan_scripts_filename}" has been called.
             } | tee -ai "${STATUS_LOG}" 2> /dev/null
         fi
-
-        ## 显示SS服务支持状态
-        ## 输入项：
-        ##     全局变量及常量
-        ## 返回值：无
-        lz_ss_support_status
-
     ## 单线路
     elif ip route show | grep -q default; then
         {
@@ -3240,13 +3245,6 @@ __status_main() {
         else
             echo "$(lzdate)" [$$]: The policy routing service isn\'t running. | tee -ai "${STATUS_LOG}" 2> /dev/null
         fi
-
-        ## 显示SS服务支持状态
-        ## 输入项：
-        ##     全局变量及常量
-        ## 返回值：无
-        lz_ss_support_status
-
     ## 无外网连接
     else
         {

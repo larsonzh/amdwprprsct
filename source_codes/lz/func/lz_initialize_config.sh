@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_initialize_config.sh v4.3.2
+# lz_initialize_config.sh v4.3.3
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 初始化脚本配置
@@ -89,7 +89,8 @@ lz_variable_uninitialize() {
     unset local_ini_wan_access_port
     unset local_ini_ovs_client_wan_port
     unset local_ini_vpn_client_polling_time
-    unset local_ini_fancyss_support
+    unset local_ini_proxy_route
+    unset local_ini_proxy_remote_node_addr_file
     unset local_ini_usage_mode
     unset local_ini_custom_hosts
     unset local_ini_custom_hosts_file
@@ -181,7 +182,8 @@ lz_variable_uninitialize() {
     unset local_wan_access_port
     unset local_ovs_client_wan_port
     unset local_vpn_client_polling_time
-    unset local_fancyss_support
+    unset local_proxy_route
+    unset local_proxy_remote_node_addr_file
     unset local_usage_mode
     unset local_custom_hosts
     unset local_custom_hosts_file
@@ -272,7 +274,8 @@ lz_variable_uninitialize() {
     unset local_wan_access_port_changed
     unset local_ovs_client_wan_port_changed
     unset local_vpn_client_polling_time_changed
-    unset local_fancyss_support_changed
+    unset local_proxy_route_changed
+    unset local_proxy_remote_node_addr_file_changed
     unset local_usage_mode_changed
     unset local_custom_hosts_changed
     unset local_custom_hosts_file_changed
@@ -370,7 +373,8 @@ lz_init_cfg_data() {
     eval "[ \"\${${1}wan_access_port-undefined}\" = \"undefined\" ]" && eval "${1}wan_access_port=0"
     eval "[ \"\${${1}ovs_client_wan_port-undefined}\" = \"undefined\" ]" && eval "${1}ovs_client_wan_port=0"
     eval "[ \"\${${1}vpn_client_polling_time-undefined}\" = \"undefined\" ]" && eval "${1}vpn_client_polling_time=5"
-    eval "[ \"\${${1}fancyss_support-undefined}\" = \"undefined\" ]" && eval "${1}fancyss_support=5"
+    eval "[ \"\${${1}proxy_route-undefined}\" = \"undefined\" ]" && eval "${1}proxy_route=5"
+    eval "[ \"\${${1}proxy_remote_node_addr_file-undefined}\" = \"undefined\" ]" && eval "${1}proxy_remote_node_addr_file=\\\"${PATH_DATA}/proxy_remote_node_addr.txt\\\""
     eval "[ \"\${${1}usage_mode-undefined}\" = \"undefined\" ]" && eval "${1}usage_mode=0"
     eval "[ \"\${${1}custom_hosts-undefined}\" = \"undefined\" ]" && eval "${1}custom_hosts=5"
     eval "[ \"\${${1}custom_hosts_file-undefined}\" = \"undefined\" ]" && eval "${1}custom_hosts_file=\\\"${PATH_DATA}/custom_hosts.txt\\\""
@@ -508,33 +512,34 @@ lz_restore_cfg_file() {
 ##     如有不同需求，请在自定义区修改下面的参数配置。
 
 ## 策略规则优先级执行顺序：由高到低排列，系统抢先执行高优先级策略。
-##     系统负载均衡自动分配IPv4流量动态路由出口出口规则--动、静态分流模式下均可使用
-##     IPTV机顶盒线路IPv4流量出口静态直通路由出口规则（iptv_box_ip_lst_file）--动、静态分流模式下均可使用
-##     外网访问路由器静态直通路由方式出入口规则--动、静态分流模式下均可使用
-##     虚拟专网客户端访问互联网IPv4流量出口静态直通路由出口规则--动、静态分流模式下均可使用
-##     第一WAN口高优先级客户端至预设IPv4目标网址/网段流量静态直通路由出口规则（high_wan_1_src_to_dst_addr_file）--动、静态分流模式下均可使用
-##     第二WAN口客户端至预设IPv4目标网址/网段流量静态直通路由出口规则（wan_2_src_to_dst_addr_file）--动、静态分流模式下均可使用
-##     第一WAN口客户端至预设IPv4目标网址/网段流量静态直通路由出口规则（wan_1_src_to_dst_addr_file）--动、静态分流模式下均可使用
-##     第二WAN口高优先级客户端IPv4流量静态直通路由出口规则（high_wan_2_client_src_addr_file）--动、静态分流模式下均可使用
-##     第一WAN口高优先级客户端IPv4流量静态直通路由出口规则（high_wan_1_client_src_addr_file）--动、静态分流模式下均可使用
-##     第一WAN口高优先级客户端至预设IPv4目标网址/网段流量协议端口动态路由出口规则（high_wan_1_src_to_dst_addr_port_file）--动、静态分流模式下均可使用
-##     第二WAN口客户端至预设IPv4目标网址/网段流量协议端口动态路由出口规则（wan_2_src_to_dst_addr_port_file）--动、静态分流模式下均可使用
-##     第一WAN口客户端至预设IPv4目标网址/网段流量协议端口动态路由出口规则（wan_1_src_to_dst_addr_port_file）--动、静态分流模式下均可使用
-##     第二WAN口域名地址IPv4流量动态路由出口规则（wan_2_domain_client_src_addr_file及wan_2_domain_file）--动、静态分流模式下均可使用
-##     第一WAN口域名地址IPv4流量动态路由出口规则（wan_1_domain_client_src_addr_file及wan_1_domain_file）--动、静态分流模式下均可使用
-##     第二WAN口客户端IPv4流量静态直通路由出口规则（wan_2_client_src_addr_file）--动、静态分流模式下均可使用
-##     第一WAN口客户端IPv4流量静态直通路由出口规则（wan_1_client_src_addr_file）--动、静态分流模式下均可使用
-##     第二WAN口IPv4流量协议端口动态路由出口规则--动、静态分流模式下均可使用
-##     第一WAN口IPv4流量协议端口动态路由出口规则--动、静态分流模式下均可使用
-##     用户自定义IPv4目标网址/网段(2)流量静态直通路由出口规则（custom_data_file_2）--仅用于静态分流模式
-##     用户自定义IPv4目标网址/网段(1)流量静态直通路由出口规则（custom_data_file_1）--仅用于静态分流模式
-##     国内及国外运营商IPv4目标网址/网段第二WAN口流量静态直通路由出口规则--仅用于静态分流模式
-##     国内及国外运营商IPv4目标网址/网段第一WAN口流量静态直通路由出口规则--仅用于静态分流模式
-##     国内运营商IPv4目标网段和用户自定义IPv4目标网址/网段第二WAN口流量动态路由出口规则--仅用于动态分流模式
-##     国内运营商IPv4目标网段和用户自定义IPv4目标网址/网段第一WAN口流量动态路由出口规则--仅用于动态分流模式
-##     国外运营商IPv4目标网段流量动态路由出口规则--仅用于动态分流模式
+##     1.负载均衡
+##     2.IPTV 机顶盒
+##     3.代理转发静态直通策略
+##     4.远程访问及本机应用访问外网静态直通策略
+##     5.VPN 客户端通过路由器访问外网策略
+##     6.首选 WAN 高优先级客户端至预设目标 IP 地址静态直通策略
+##     7.第二 WAN 客户端至预设目标 IP 地址静态直通策略
+##     8.首选 WAN 客户端至预设目标 IP 地址静态直通策略
+##     9.第二 WAN 高优先级客户端静态直通策略
+##    10.首选 WAN 高优先级客户端静态直通策略
+##    11.首选 WAN 高优先级客户端至预设目标 IP 地址协议端口动态访问策略
+##    12.第二 WAN 客户端至预设目标 IP 地址协议端口动态访问策略
+##    13.首选 WAN 客户端至预设目标 IP 地址协议端口动态访问策略
+##    14.第二 WAN 域名地址动态访问策略
+##    15.首选 WAN 域名地址动态访问策略
+##    16.第二 WAN 客户端静态直通策略
+##    17.首选 WAN 客户端静态直通策略
+##    18.第二 WAN 协议端口动态访问策略
+##    19.首选 WAN 协议端口动态访问策略
+##    20.自定义目标 IP 地址访问策略 - 2 (静态分流模式时)
+##    21.自定义目标 IP 地址访问策略 - 1 (静态分流模式时)
+##    22.第二 WAN 运营商 IP 地址访问策略 (静态分流模式时)
+##    23.首选 WAN 运营商 IP 地址访问策略 (静态分流模式时)
+##    24.第二 WAN 国内运营商 IP 地址访问策略和自定义目标 IP 地址访问策略 (动态分流模式时)
+##    25.首选 WAN 国内运营商 IP 地址访问策略和自定义目标 IP 地址访问策略 (动态分流模式时)
+##    26.国外运营商 IP 地址访问策略 (动态分流模式时)
 
-## 本软件将全宇宙所有互联网IPv4地址网段划分为如下11个国内外网络运营商目标网段数据集合，使用中首先将所接
+## 本软件将全世界所有互联网IPv4地址网段划分为如下11个国内外网络运营商目标网段数据集合，使用中首先将所接
 ## 入网络运营商网段对应至相应的路由器出口，其他运营商网段可根据使用需求、所属运营商网络跨网段访问品质、
 ## 本地网络环境等因素适当配置出口参数即可，以后可根据使用情况随时调整。
 
@@ -1000,11 +1005,12 @@ high_wan_1_src_to_dst_addr_port_file=${local_high_wan_1_src_to_dst_addr_port_fil
 ## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
 local_ipsets_file=${local_local_ipsets_file}
 
-## 外网访问路由器主机入口
+## 外网访问路由器主机IPv4流量入口及路由器本机应用访问外网IPv4流量出口
 ## 0--第一WAN口；1--第二WAN口；取值范围：0~1
 ## 缺省为第一WAN口（0）。
-## 该端口用于外网访问路由器Asuswrt管理界面及内网设备，正常应与DDNS出口保持一致，一般不建议更改缺省值。
-## 部分版本的固件系统，已内部将DDNS绑定至第一WAN口，更改或可导致访问失败。
+## 该网口用于从外网访问路由器及本地网络（应与DDNS出口保持一致），以及路由器本机内部应用访问外部网络，
+## 上述网络流量以静态直通方式共用同一个路由器外网网口。
+## 部分版本的固件系统，已在系统底层将路由器内置的DDNS绑定至第一WAN口，更改或可导致远程访问失败。
 wan_access_port=${local_wan_access_port}
 
 ## 虚拟专网客户端访问外网IPv4流量路由器出口
@@ -1028,11 +1034,33 @@ ovs_client_wan_port=${local_ovs_client_wan_port}
 ## 用户可根据路由器CPU资源占用的实际测试结果合理调整该时间间隔。
 vpn_client_polling_time=${local_vpn_client_polling_time}
 
-## Fancyss服务支持
-## 0--启用；非0--禁用；取值范围：0~9
+## 代理转发远程连接IPv4流量静态直通路由
+## 0--第一WAN口；1--第二WAN口；>1--禁用；取值范围：0~9
 ## 缺省为禁用（5）。
-fancyss_support=${local_fancyss_support}
+## 本功能以静态直通方式为路由器内的第三方传输代理软件与外网节点服务器之间的双向网络链路流量设置路由，且只
+## 针对下面“代理转发远程节点服务器IPv4地址列表数据文件”中的有效地址条目。
+## 禁用时，路由器内的所有传输代理软件与外网节点服务器之间的双向网络链路流量将按照“外网访问路由器主机IPv4
+## 流量入口及路由器本机应用访问外网IPv4流量出口”中的设置进行路由，无需在“代理转发远程节点服务器IPv4地址
+## 列表数据文件”中设置任何远程节点服务器的地址条目。
+proxy_route=${local_proxy_route}
 
+## 代理转发远程节点服务器IPv4地址列表数据文件
+## 文件中具体定义路由器内第三方传输代理软件中远程节点服务器的IPv4地址或拥有IPv4地址的域名地址，可设置多个。
+## 文件路径、名称可自定义和修改，文件路径及名称不得为空。
+## 缺省为"${PATH_DATA}/proxy_remote_node_addr.txt"，为空文件。
+## 文本格式：一个网址/网段/域名地址一行，为一个条目，可多行多个条目。
+## 例如：
+## 123.234.123.111
+## 133.234.123.0/24
+## www.abc.def
+## 此文件中0.0.0.0/0和0.0.0.0为无效地址；条目中不能有协议前缀（如 http://、https:// 或 ftp://等）、
+## 端口号（如:23456）等影响地址解析的内容。
+## 由于该地址列表仅用于静态直通路由，所有远程节点服务器地址应为静态地址。当使用域名地址时，运行过程中
+## IPv4地址一旦改变，原有线路链接将失效，需重启软件做域名地址解析以重新构建路由。
+## 当列表数据文件中包含域名地址时，需在“三、运行设置”中启用“域名地址预解析”功能。为避免DNS污染，可同时启
+## 用“自定义域名地址预解析DNS服务器”功能。
+## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
+proxy_remote_node_addr_file=${local_proxy_remote_node_addr_file}
 
 ## 三、运行设置
 
@@ -1082,12 +1110,12 @@ custom_hosts_file=${local_custom_hosts_file}
 ## 域名地址预解析
 ## 0--系统DNS快速；1--自定义DNS；2--系统DNS快速+自定义DNS；>2--禁用；取值范围：0~9
 ## 缺省为使用系统DNS（0）。
-## 在域名地址IPv4流量动态分流策略规则第一次启动时，提前对域名地址条目列表中的域名地址进行IPv4地址解析，能
-## 提高系统后续的分流工作效率，降低DNS污染对网络访问的影响。
+## 在域名地址IPv4流量动态分流策略规则或包含有域名地址的代理转发静态直通策略规则第一次启动时，提前对域名
+## 地址进行IPv4地址解析，能提高系统后续的分流工作效率，降低DNS污染对网络访问的影响。
 ## 系统DNS快速：使用路由器的DNS设置，一个域名解析一个地址，效率高，但不能同时获取域名的多个地址。
 ## 自定义DNS：能一次获取域名的多个地址，速度慢，但可提高后续的分流工作效率。
 ## 系统DNS快速+自定义DNS：建议在DNS污染时采用。当域名地址条目较多，或网络不好时，会降低脚本的启动速度。
-## 域名地址预解析仅在脚本启动时进行，之后的网络访问的域名地址解析按照路由器系统或用户终端的DNS设置进行。
+## 域名地址预解析仅在软件启动时进行，之后的网络访问的域名地址解析按照路由器系统或用户终端的DNS设置进行。
 dn_pre_resolved=${local_dn_pre_resolved}
 
 ## 自定义域名地址预解析DNS服务器
@@ -1338,7 +1366,8 @@ lz_get_config_data() {
             i["wan_access_port"]=0;
             i["ovs_client_wan_port"]=0;
             i["vpn_client_polling_time"]=5;
-            i["fancyss_support"]=5;
+            i["proxy_route"]=5;
+            i["proxy_remote_node_addr_file"]=pathd"/proxy_remote_node_addr.txt";
             i["usage_mode"]=0;
             i["custom_hosts"]=5;
             i["custom_hosts_file"]=pathd"/custom_hosts.txt";
@@ -1402,7 +1431,7 @@ lz_get_config_data() {
                 || $1 == "wan_1_src_to_dst_addr_port" \
                 || $1 == "wan_2_src_to_dst_addr_port" \
                 || $1 == "high_wan_1_src_to_dst_addr_port" \
-                || $1 == "fancyss_support" \
+                || $1 == "proxy_route" \
                 || $1 == "custom_hosts" \
                 || $1 == "wan1_iptv_mode" \
                 || $1 == "wan2_iptv_mode" \
@@ -1507,6 +1536,7 @@ lz_get_config_data() {
                 || $1 == "wan_2_src_to_dst_addr_port_file" \
                 || $1 == "high_wan_1_src_to_dst_addr_port_file" \
                 || $1 == "local_ipsets_file" \
+                || $1 == "proxy_remote_node_addr_file" \
                 || $1 == "custom_hosts_file" \
                 || $1 == "iptv_box_ip_lst_file" \
                 || $1 == "iptv_isp_ip_lst_file" \
@@ -1645,7 +1675,8 @@ lz_config_local_ipsets_file=${local_local_ipsets_file}
 lz_config_wan_access_port=${local_wan_access_port}
 lz_config_ovs_client_wan_port=${local_ovs_client_wan_port}
 lz_config_vpn_client_polling_time=${local_vpn_client_polling_time}
-lz_config_fancyss_support=${local_fancyss_support}
+lz_config_proxy_route=${local_proxy_route}
+lz_config_proxy_remote_node_addr_file=${local_proxy_remote_node_addr_file}
 lz_config_usage_mode=${local_usage_mode}
 lz_config_custom_hosts=${local_custom_hosts}
 lz_config_custom_hosts_file=${local_custom_hosts_file}
@@ -1694,7 +1725,7 @@ lz_restore_box_data() {
     ##     $1--变量前缀
     ##     全局常量及变量
     ## 返回值：无
-    lz_init_cfg_data "local_ini"
+    lz_init_cfg_data "local_ini_"
     cat > "${PATH_CONFIGS}/lz_rule_config.box" <<EOF
 lz_config_version=${local_ini_version}
 lz_config_all_foreign_wan_port=${local_ini_all_foreign_wan_port}
@@ -1755,7 +1786,8 @@ lz_config_local_ipsets_file=${local_ini_local_ipsets_file}
 lz_config_wan_access_port=${local_ini_wan_access_port}
 lz_config_ovs_client_wan_port=${local_ini_ovs_client_wan_port}
 lz_config_vpn_client_polling_time=${local_ini_vpn_client_polling_time}
-lz_config_fancyss_support=${local_ini_fancyss_support}
+lz_config_proxy_route=${local_ini_proxy_route}
+lz_config_proxy_remote_node_addr_file=${local_ini_proxy_remote_node_addr_file}
 lz_config_usage_mode=${local_ini_usage_mode}
 lz_config_custom_hosts=${local_ini_custom_hosts}
 lz_config_custom_hosts_file=${local_ini_custom_hosts_file}
@@ -1862,7 +1894,8 @@ lz_get_box_data() {
             i["wan_access_port"]=0;
             i["ovs_client_wan_port"]=0;
             i["vpn_client_polling_time"]=5;
-            i["fancyss_support"]=5;
+            i["proxy_route"]=5;
+            i["proxy_remote_node_addr_file"]=pathd"/proxy_remote_node_addr.txt";
             i["usage_mode"]=0;
             i["custom_hosts"]=5;
             i["custom_hosts_file"]=pathd"/custom_hosts.txt";
@@ -1930,7 +1963,7 @@ lz_get_box_data() {
                 || key == "wan_1_src_to_dst_addr_port" \
                 || key == "wan_2_src_to_dst_addr_port" \
                 || key == "high_wan_1_src_to_dst_addr_port" \
-                || key == "fancyss_support" \
+                || key == "proxy_route" \
                 || key == "custom_hosts" \
                 || key == "wan1_iptv_mode" \
                 || key == "wan2_iptv_mode" \
@@ -2071,6 +2104,7 @@ lz_get_box_data() {
                 || key == "wan_2_src_to_dst_addr_port_file" \
                 || key == "high_wan_1_src_to_dst_addr_port_file" \
                 || key == "local_ipsets_file" \
+                || key == "proxy_remote_node_addr_file" \
                 || key == "custom_hosts_file" \
                 || key == "iptv_box_ip_lst_file" \
                 || key == "iptv_isp_ip_lst_file" \
@@ -2173,7 +2207,8 @@ lz_cfg_is_changed() {
     [ "${local_ini_wan_access_port}" != "${local_wan_access_port}" ] && local_wan_access_port_changed="1" && local_cfg_changed="1"
     [ "${local_ini_ovs_client_wan_port}" != "${local_ovs_client_wan_port}" ] && local_ovs_client_wan_port_changed="1" && local_cfg_changed="1"
     [ "${local_ini_vpn_client_polling_time}" != "${local_vpn_client_polling_time}" ] && local_vpn_client_polling_time_changed="1" && local_cfg_changed="1"
-    [ "${local_ini_fancyss_support}" != "${local_fancyss_support}" ] && local_fancyss_support_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_proxy_route}" != "${local_proxy_route}" ] && local_proxy_route_changed="1" && local_cfg_changed="1"
+    [ "${local_ini_proxy_remote_node_addr_file}" != "${local_proxy_remote_node_addr_file}" ] && local_proxy_remote_node_addr_file_changed="1" && local_cfg_changed="1"
 
     [ "${local_ini_usage_mode}" != "${local_usage_mode}" ] && local_usage_mode_changed="1" && local_cfg_changed="1"
     [ "${local_ini_custom_hosts}" != "${local_custom_hosts}" ] && local_custom_hosts_changed="1" && local_cfg_changed="1"
@@ -2287,7 +2322,8 @@ lz_restore_config() {
     [ "${local_wan_access_port_changed}" = "1" ] && sed -i "s|^[[:space:]]*wan_access_port=${local_wan_access_port}|wan_access_port=${local_ini_wan_access_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
     [ "${local_ovs_client_wan_port_changed}" = "1" ] && sed -i "s|^[[:space:]]*ovs_client_wan_port=${local_ovs_client_wan_port}|ovs_client_wan_port=${local_ini_ovs_client_wan_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
     [ "${local_vpn_client_polling_time_changed}" = "1" ] && sed -i "s|^[[:space:]]*vpn_client_polling_time=${local_vpn_client_polling_time}|vpn_client_polling_time=${local_ini_vpn_client_polling_time}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_fancyss_support_changed}" = "1" ] && sed -i "s|^[[:space:]]*fancyss_support=${local_fancyss_support}|fancyss_support=${local_ini_fancyss_support}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_proxy_route_changed}" = "1" ] && sed -i "s|^[[:space:]]*proxy_route=${local_proxy_route}|proxy_route=${local_ini_proxy_route}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_proxy_remote_node_addr_file_changed}" = "1" ] && sed -i "s|^[[:space:]]*proxy_remote_node_addr_file=${local_proxy_remote_node_addr_file}|proxy_remote_node_addr_file=${local_ini_proxy_remote_node_addr_file}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
 
     [ "${local_usage_mode_changed}" = "1" ] && sed -i "s|^[[:space:]]*usage_mode=${local_usage_mode}|usage_mode=${local_ini_usage_mode}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
     [ "${local_custom_hosts_changed}" = "1" ] && sed -i "s|^[[:space:]]*custom_hosts=${local_custom_hosts}|custom_hosts=${local_ini_custom_hosts}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1

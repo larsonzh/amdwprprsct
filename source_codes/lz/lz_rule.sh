@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule.sh v4.3.2
+# lz_rule.sh v4.3.3
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # 本软件采用CIDR（无类别域间路由，Classless Inter-Domain Routing）技术，是一个在Internet上创建附加地
@@ -80,7 +80,7 @@
 ## -------------全局数据定义及初始化-------------------
 
 ## 版本号
-LZ_VERSION=v4.3.2
+LZ_VERSION=v4.3.3
 
 ## 运行状态查询命令
 SHOW_STATUS="status"
@@ -1061,12 +1061,6 @@ __lz_main() {
 
         echo "$(lzdate)" [$$]: Policy routing service has "${local_stop_id}"ped. | tee -ai "${SYSLOG}" 2> /dev/null
 
-        ## SS服务支持
-        ## 输入项：
-        ##     全局变量及常量
-        ## 返回值：无
-        lz_ss_support
-
         return
     fi
 
@@ -1144,12 +1138,6 @@ __lz_main() {
             echo "$(lzdate)" [$$]: "${custom_dualwan_scripts_filename}" has been called. | tee -ai "${SYSLOG}" 2> /dev/null
         fi
 
-        ## SS服务支持
-        ## 输入项：
-        ##     全局变量及常量
-        ## 返回值：无
-        lz_ss_support
-
         UPDATE_DDNS_ENABLE="0"
 
     ## 单线路
@@ -1204,12 +1192,6 @@ __lz_main() {
         else
             echo "$(lzdate)" [$$]: The policy routing service isn\'t running. | tee -ai "${SYSLOG}" 2> /dev/null
         fi
-
-        ## SS服务支持
-        ## 输入项：
-        ##     全局变量及常量
-        ## 返回值：无
-        lz_ss_support
 
         UPDATE_DDNS_ENABLE="0"
 

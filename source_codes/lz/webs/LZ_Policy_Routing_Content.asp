@@ -769,11 +769,11 @@
                                                             <table width="100%" border="1" align="center" cellpadding="4" cellspacing="0" bordercolor="#6b8fa3" class="FormTable">
                                                                 <thead>
                                                                     <tr>
-                                                                        <td colspan="2"><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(42);">远程连接策略</a></td>
+                                                                        <td colspan="2"><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(42);">远程访问及本机应用访问外网静态直通策略</a></td>
                                                                     </tr>
                                                                 </thead>
                                                                 <tr>
-                                                                    <th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(43);">远程接入口</a></th>
+                                                                    <th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(43);">远程访问入口及本机应用访问外网出口</a></th>
                                                                     <td colspan="4">
                                                                         <input type="radio" value="0" name="lzr_wan_access_port" class="content_input_fd">首选 WAN
                                                                         <input type="radio" value="1" name="lzr_wan_access_port" class="content_input_fd">第二 WAN
@@ -820,14 +820,20 @@
                                                             <table width="100%" border="1" align="center" cellpadding="4" cellspacing="0" bordercolor="#6b8fa3" class="FormTable">
                                                                 <thead>
                                                                     <tr>
-                                                                        <td colspan="2"><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(46);">Fancyss 服务支持</a></td>
+                                                                        <td colspan="2"><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(46);">代理转发静态直通策略</a></td>
                                                                     </tr>
                                                                 </thead>
                                                                 <tr>
-                                                                    <th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(84);">启用服务支持</a></th>
+                                                                    <th rowspan="2">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(84);">远程节点服务器地址列表</a></th>
                                                                     <td colspan="4">
-                                                                        <input type="radio" value="0" name="lzr_fancyss_support" class="content_input_fd">是
-                                                                        <input type="radio" value="5" name="lzr_fancyss_support" class="content_input_fd">否
+                                                                        <input type="radio" value="0" name="lzr_proxy_route" class="content_input_fd">首选 WAN
+                                                                        <input type="radio" value="1" name="lzr_proxy_route" class="content_input_fd">第二 WAN
+                                                                        <input type="radio" value="5" name="lzr_proxy_route" class="content_input_fd">停用
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <input id="lzr_proxy_remote_node_addr_file" type="text" maxlength="255" class="input_32_table" name="lzr_proxy_remote_node_addr_file" value="/jffs/scripts/lz/proxy_remote_node_addr.txt" onchange="checkTextField(this)" autocorrect="off" autocapitalize="off">
                                                                     </td>
                                                                 </tr>
                                                             </table>

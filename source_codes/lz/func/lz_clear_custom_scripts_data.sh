@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_clear_custom_scripts_data.sh v4.3.2
+# lz_clear_custom_scripts_data.sh v4.3.3
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 清除用户自定义脚本数据

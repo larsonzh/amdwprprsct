@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v4.3.2
+# lz_rule_func.sh v4.3.3
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 #BEIGIN
@@ -962,10 +962,14 @@ lz_get_route_info() {
         else
             echo "$(lzdate)" [$$]: "   Route Host Access Port: Primary WAN" | tee -ai "${SYSLOG}" 2> /dev/null
         fi
-        if [ "${fancyss_support}" = "0" ]; then
-            echo "$(lzdate)" [$$]: "   Route Fancyss Support: Enable" | tee -ai "${SYSLOG}" 2> /dev/null
+        if [ "${proxy_route}" = "0" ]; then
+            echo "$(lzdate)" [$$]: "   Proxy Route: Primary WAN" | tee -ai "${SYSLOG}" 2> /dev/null
+        elif [ "${proxy_route}" = "1" ]; then
+            echo "$(lzdate)" [$$]: "   Proxy Route: Secondary WAN" | tee -ai "${SYSLOG}" 2> /dev/null
+        elif [ "${wan_access_port}" = "1" ]; then
+            echo "$(lzdate)" [$$]: "   Proxy Route: Secondary WAN" | tee -ai "${SYSLOG}" 2> /dev/null
         else
-            echo "$(lzdate)" [$$]: "   Route Fancyss Support: Disable" | tee -ai "${SYSLOG}" 2> /dev/null
+            echo "$(lzdate)" [$$]: "   Proxy Route: Primary WAN" | tee -ai "${SYSLOG}" 2> /dev/null
         fi
         if [ "${route_cache}" = "0" ]; then
             echo "$(lzdate)" [$$]: "   Route Cache: Enable" | tee -ai "${SYSLOG}" 2> /dev/null
@@ -3643,38 +3647,58 @@ lz_initialize_ip_data_policy() {
     fi
 }
 
-## SS服务支持函数
+## 获取代理转发远程节点服务器IPv4地址列表数据文件总有效条目数函数
+## 输入项：
+##     $1--全路径网段数据文件名
+## 返回值：
+##     总有效条目数
+lz_get_proxy_remote_node_addr_file_item_total() {
+    local retval="0"
+    [ -s "${1}" ] && {
+        retval="$( sed -e 's/^[[:space:]]\+//g' -e '/^[#]/d' -e 's/[[:space:]]*[#].*$//g' -e '/^[[:space:]]*$/d' "${1}" \
+        | tr '[:A-Z:]' '[:a-z:]' \
+        | awk -v count="0" 'NF >= 1 && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" && !i[$1]++ {count++} END{print count}' )"
+    }
+    echo "${retval}"
+}
+
+## 代理转发远程连接支持函数
 ## 输入项：
 ##     全局变量及常量
 ## 返回值：无
-lz_ss_support() {
-    if [ "${fancyss_support}" != "0" ] || [ ! -f "${PATH_SS}/${SS_FILENAME}" ]; then return; fi;
-    ## 获取SS服务运行参数
-    local local_ss_enable="$( dbus get "ss_basic_enable" 2> /dev/null )"
-    if [ -z "${local_ss_enable}" ] || [ "${local_ss_enable}" != "1" ]; then return; fi;
-    {
-        echo "$(lzdate)" [$$]: ---------------------------------------------
-        echo "$(lzdate)" [$$]: Closing Fancyss......
-    } | tee -ai "${SYSLOG}" 2> /dev/null
-    if [ -f "/koolshare/ss/stop.sh" ]; then
-        sh "/koolshare/ss/stop.sh" "stop_all" > /dev/null 2>&1
-    else
-        sh "${PATH_SS}/${SS_FILENAME}" "stop" > /dev/null 2>&1
-    fi
-    {
-        echo "$(lzdate)" [$$]: Fancyss has been successfully shut down.
-        echo "$(lzdate)" [$$]: Restarting Fancyss......
-    } | tee -ai "${SYSLOG}" 2> /dev/null
-    if [ "${route_hardware_type}" = "armv7l" ]; then
-        if dbus get "softcenter_module_shadowsocks_description" 2> /dev/null | grep -qwo 380 \
-            || grep -m 10 '.*' "${PATH_SS}/${SS_FILENAME}" 2> /dev/null | grep -qiwo AM380; then
-            dbus set ss_basic_action="1" 2> /dev/null
+lz_proxy_route_support() {
+    { { [ "${proxy_route}" != "0" ] && [ "${proxy_route}" != "1" ]; } \
+        || [ "${proxy_route}" = "${wan_access_port}" ] \
+        || [ ! -s "${proxy_remote_node_addr_file}" ]; } && return
+    local PROXY_NODE_BUF="" line="" wan_no="${WAN0}" node_list=""
+    [ "${proxy_route}" != "0" ] && wan_no="${WAN1}"
+    PROXY_NODE_BUF="$( sed -e 's/^[[:space:]]\+//g' -e '/^[#]/d' -e 's/[[:space:]]*[#].*$//g' -e '/^[[:space:]]*$/d' "${proxy_remote_node_addr_file}" \
+        | tr '[:A-Z:]' '[:a-z:]' \
+        | awk 'NF >= 1 && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" && !i[$1]++ {print $1}' )"
+    while IFS= read -r line
+    do
+        if awk -v x="${line}" 'BEGIN{if (x ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ && x !~ /[3-9][0-9][0-9]/ \
+            && x !~ /[2][6-9][0-9]/ && x !~ /[2][5][6-9]/ && x !~ /[\/][4-9][0-9]/ && x !~ /[\/][3][3-9]/) exit(0); else exit(1)}'; then
+            ip rule add from "0.0.0.0" to "${line}" table "${wan_no}" prio "${IP_RULE_PRIO_TOPEST}" > /dev/null 2>&1
+            ip rule add from "${line}" to "0.0.0.0" table "${wan_no}" prio "${IP_RULE_PRIO_TOPEST}" > /dev/null 2>&1
+        else
+            if [ "${dn_pre_resolved}" = "0" ]; then
+                nslookup "${line}" 2> /dev/null | awk 'NR > 4 && $3 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ \
+                        {system("ip rule add from 0.0.0.0 to "$3"'" table ${wan_no} prio ${IP_RULE_PRIO_TOPEST} > /dev/null 2>&1; ip rule add from "'"$3"'" to 0.0.0.0 table ${wan_no} prio ${IP_RULE_PRIO_TOPEST} > /dev/null 2>&1"'")}'
+            elif [ "${dn_pre_resolved}" = "1" ]; then
+                nslookup "${line}" "${pre_dns}" 2> /dev/null | awk 'NR > 4 && $3 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ \
+                        {system("ip rule add from 0.0.0.0 to "$3"'" table ${wan_no} prio ${IP_RULE_PRIO_TOPEST} > /dev/null 2>&1; ip rule add from "'"$3"'" to 0.0.0.0 table ${wan_no} prio ${IP_RULE_PRIO_TOPEST} > /dev/null 2>&1"'")}'
+            elif [ "${dn_pre_resolved}" = "2" ]; then
+                node_list="$( nslookup "${line}" 2> /dev/null | awk 'NR > 4 && $3 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ {print $3}' )"
+                eval "$( nslookup "${line}" "${pre_dns}" 2> /dev/null | awk 'NR > 4 && $3 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ \
+                        {printf "node_list=\"\$\( echo \"\${node_list}\" \| sed -e \"\\\$a %s\" -e \"\/\^[[:space:]]\*\$\/d\" \)\"\n", $3}' )"
+                echo "${node_list}" | awk '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ && !i[$1]++ \
+                        {system("ip rule add from 0.0.0.0 to "$1"'" table ${wan_no} prio ${IP_RULE_PRIO_TOPEST} > /dev/null 2>&1; ip rule add from "'"$1"'" to 0.0.0.0 table ${wan_no} prio ${IP_RULE_PRIO_TOPEST} > /dev/null 2>&1"'")}'
+            fi
         fi
-    elif [ "${route_hardware_type}" = "mips" ]; then
-        dbus set ss_basic_action="1" 2> /dev/null
-    fi
-    sh "${PATH_SS}/${SS_FILENAME}" restart > /dev/null 2>&1
-    echo "$(lzdate)" [$$]: Fancyss started successfully. | tee -ai "${SYSLOG}" 2> /dev/null
+    done <<PROXY_NODE_BUF_INPUT
+${PROXY_NODE_BUF}
+PROXY_NODE_BUF_INPUT
 }
 
 ## 填写openvpn-event事件触发文件内容并添加路由规则项脚本函数
@@ -4677,6 +4701,16 @@ lz_output_ispip_info_to_system_records() {
             }
         fi
     }
+    [ "${proxy_route}" = "0" ] && local_item_count="$( lz_get_proxy_remote_node_addr_file_item_total "${proxy_remote_node_addr_file}" )" \
+        && [ "${local_item_count}" -gt "0" ] && {
+        echo "$(lzdate)" [$$]: "   ProxyNodeLst    Primary WAN${local_primary_wan_hd}  ${local_item_count}" | tee -ai "${SYSLOG}" 2> /dev/null
+        local_exist="1"
+    }
+    [ "${proxy_route}" = "1" ] && local_item_count="$( lz_get_proxy_remote_node_addr_file_item_total "${proxy_remote_node_addr_file}" )" \
+        && [ "${local_item_count}" -gt "0" ] && {
+        echo "$(lzdate)" [$$]: "   ProxyNodeLst    Secondary WAN${local_secondary_wan_hd}  ${local_item_count}" | tee -ai "${SYSLOG}" 2> /dev/null
+        local_exist="1"
+    }
     [ "${high_wan_1_src_to_dst_addr}" = "0" ] && local_item_count="$( lz_get_ipv4_src_to_dst_data_file_item_total "${high_wan_1_src_to_dst_addr_file}" )" \
         && [ "${local_item_count}" -gt "0" ] && {
         echo "$(lzdate)" [$$]: "   HiSrcToDstLst   Primary WAN${local_primary_wan_hd}  ${local_item_count}" | tee -ai "${SYSLOG}" 2> /dev/null
@@ -5214,6 +5248,12 @@ lz_deployment_routing_policy() {
                 && ip rule add from "${route_local_ip}" table "${local_access_wan}" prio "${IP_RULE_PRIO_INNER_ACCESS}" > /dev/null 2>&1
         }
     fi
+
+    ## 代理转发远程连接支持
+    ## 输入项：
+    ##     全局变量及常量
+    ## 返回值：无
+    lz_proxy_route_support
 
     ## 用户自定义源网址/网段至目标网址/网段列表绑定WAN出口
     ## 输入项：

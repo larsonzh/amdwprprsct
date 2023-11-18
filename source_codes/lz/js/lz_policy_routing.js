@@ -1,5 +1,5 @@
 /*
-# lz_policy_routing.js v4.3.2
+# lz_policy_routing.js v4.3.3
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ JavaScript for Asuswrt-Merlin Router
@@ -318,7 +318,8 @@ function initControls() {
     initCheckRadio("lzr_wan_access_port", 0, 1, 0);
     initListBox("lzr_ovs_client_wan_port", 0, 1, 5);
     initListBox("lzr_vpn_client_polling_time", 1, 20, 5);
-    initCheckRadio("lzr_fancyss_support", 0, 0, 5);
+    initCheckRadio("lzr_proxy_route", 0, 1, 5);
+    initTextEdit("lzr_proxy_remote_node_addr_file");
     initCheckRadio("lzr_usage_mode", 0, 1, 0);
     initCheckRadio("lzr_custom_hosts", 0, 0, 5);
     initTextEdit("lzr_custom_hosts_file");
@@ -803,7 +804,7 @@ function openOverHint(itemNum) {
         content += "192.168.50.123&nbsp;0.0.0.0/0<br />";
         content += "0.0.0.0/0&nbsp;192.168.50.123<br />";
         content += "若有多个 NAS 设备通过本 WAN 口远程访问，可按地址依次填写条目对。<br />";
-        content += "同时要求<b>外部网络(WAN) - 策略路由(IPv4) - 高级 - 远程连接策略 - 远程接入口</b>和路由器系统的 <b>DDNS</b> 出口必须也设置为本 WAN 口。<br />";
+        content += "同时要求<b>外部网络(WAN) - 策略路由(IPv4) - 高级 - 远程访问及本机应用访问外网静态直通策略 - 远程访问入口及本机应用访问外网出口</b>和路由器系统的 <b>DDNS</b> 出口必须也设置为本 WAN 口。<br />";
         content += "<br />建议列表条目数量不要多于512条，否则易导致软件启动时系统<b>策略路由</b>库加载数据时间过长。<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 31) {
@@ -819,7 +820,7 @@ function openOverHint(itemNum) {
         content += "192.168.50.123&nbsp;0.0.0.0/0<br />";
         content += "0.0.0.0/0&nbsp;192.168.50.123<br />";
         content += "若有多个 NAS 设备通过本 WAN 口远程访问，可按地址依次填写条目对。<br />";
-        content += "同时要求<b>外部网络(WAN) - 策略路由(IPv4) - 高级 - 远程连接策略 - 远程接入口</b>和路由器系统的 <b>DDNS</b> 出口必须也设置为本 WAN 口。<br />";
+        content += "同时要求<b>外部网络(WAN) - 策略路由(IPv4) - 高级 - 远程访问及本机应用访问外网静态直通策略 - 远程访问入口及本机应用访问外网出口</b>和路由器系统的 <b>DDNS</b> 出口必须也设置为本 WAN 口。<br />";
         content += "<br />建议列表条目数量不要多于512条，否则易导致软件启动时系统<b>策略路由</b>库加载数据时间过长。<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 32) {
@@ -838,7 +839,7 @@ function openOverHint(itemNum) {
         content += "192.168.50.123&nbsp;0.0.0.0/0<br />";
         content += "0.0.0.0/0&nbsp;192.168.50.123<br />";
         content += "若有多个 NAS 设备通过本 WAN 口远程访问，可按地址依次填写条目对。<br />";
-        content += "同时要求<b>外部网络(WAN) - 策略路由(IPv4) - 高级 - 远程连接策略 - 远程接入口</b>和路由器系统的 <b>DDNS</b> 出口必须也设置为本 WAN 口。<br />";
+        content += "同时要求<b>外部网络(WAN) - 策略路由(IPv4) - 高级 - 远程访问及本机应用访问外网静态直通策略 - 远程访问入口及本机应用访问外网出口</b>和路由器系统的 <b>DDNS</b> 出口必须也设置为本 WAN 口。<br />";
         content += "<br />建议列表条目数量不要多于512条，否则易导致软件启动时系统<b>策略路由</b>库加载数据时间过长。<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 34) {
@@ -933,11 +934,11 @@ function openOverHint(itemNum) {
         content += "<br />此文件中 <b>0.0.0.0/0</b> 和 <b>0.0.0.0</b> 为无效地址。<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 42) {
-        content = "<div>本策略用于从外部网络远程连接访问路由器及其内部的网络设备。<br />";
+        content = "<div>本策略用于从外部网络远程连接路由器访问本地网络，以及路由器本机内部应用访问外部网络。<br />";
         content += "<br /><b>策略执行优先级</b>：详见<b>基本设置&nbsp;-&nbsp;策略路由优先级</b></div>";
     } else if (itemNum == 43) {
-        content = "<div>该端口用于外网访问路由器 Asuswrt 管理界面及内网设备，正常应与 DDNS 出口保持一致，一般为<b>首选 WAN</b>。<br />";
-        content += "<br />部分版本的固件系统，已内部将 DDNS 绑定至<b>首选 WAN</b>，更改或可导致访问失败。<br />";
+        content = "<div>该网口用于从外网访问路由器及本地网络 (应与 DDNS 出口保持一致)，以及路由器本机内部应用访问外部网络，上述网络流量共用同一个路由器外网网口，缺省为<b>首选 WAN</b>。<br />";
+        content += "<br />部分版本的固件系统，已在系统底层将路由器内置的 DDNS 绑定至<b>首选 WAN</b>，更改或可导致远程访问失败。<br />";
         content += "<br /><b>策略执行优先级</b>：详见<b>基本设置&nbsp;-&nbsp;策略路由优先级</b></div>";
     } else if (itemNum == 44) {
         content = "<div>用于双线路负载均衡模式下使用路由器主机内置的 OpenVPN、PPTP、IPSec 和 WireGuard 虚拟专用网络服务器。<br />"
@@ -957,7 +958,9 @@ function openOverHint(itemNum) {
         content += "<br />能够在设定的时间间隔内通过后台守护进程，轮询检测和监控 PPTP、IPSec  和WireGuard 服务器和客户端的启停及远程接入状态，适时调整和更新路由器内相关的路由规则和工作方式。<br />";
         content += "<br />时间间隔越短，客户端路由连接可尽早建立，接入越快。但过短的时间间隔有可能早造成路由器资源争抢。对于 GT-AX6000 类硬件平台的路由器，可设置为1~3秒。对于性能较弱，或版本老旧的路由器，可根据路由器 CPU 资源占用的实测结果和应用体验合理调整该参数。</div>";
     } else if (itemNum == 46) {
-        content = "<div>不可描述。</div>";
+        content = "<div>本策略以<b>静态直通</b>方式为路由器内的第三方<b>传输转发代理</b>软件与外网<b>节点服务器</b>之间的双向网络链路流量设置路由，且只针对<b>远程节点服务器地址列表</b>中的有效地址条目。<br />";
+        content += "<br /><b>停用</b>时，路由器内的所有<b>传输转发代理</b>软件与外网<b>节点服务器</b>之间的双向网络链路流量将按照<b>远程访问及本机应用访问外网静态直通策略</b>中的设置，作为路由器本机内部应用访问外部网络和从外网访问路由器的方式进行路由，无需在<b>远程节点服务器地址列表</b>中设置任何远程节点服务器的地址条目。<br />";
+        content += "<br /><b>策略执行优先级</b>：详见<b>基本设置&nbsp;-&nbsp;策略路由优先级</b></div>";
     } else if (itemNum == 47) {
         content = "<div>路由策略运行时参数配置。</div>";
     } else if (itemNum == 48) {
@@ -977,7 +980,7 @@ function openOverHint(itemNum) {
         content += "<br />本工具提供两种应用模式 (<b>动态分流模式</b>、<b>静态路由</b>)，将<b>动态路由</b>、<b>静态路由</b>两种作用于路由器 WAN 口通道的基础网络数据路由传输技术，组合形成<b>策略路由</b>服务的多种运行模式，并在此基础上结合运营商 IP 地址数据及出口参数配置等场景因素进行更高层的应用级封装，对软件运行时参数进行自动化配置，从而最大限度的降低用户配置参数的复杂度和难度。</div>";
     } else if (itemNum == 49) {
         content = "<div>缺省使用<b>系统 DNS </b>。<br />";
-        content += "<br />在<b>域名地址动态访问策略</b>第一次启动时，提前对域名地址列表中的域名地址进行 IPv4 地址解析，能提高系统后续的路由策略执行效率，降低 DNS 污染对网络访问的影响。<br />";
+        content += "<br />在<b>域名地址动态访问策略</b>或包含有域名地址的<b>代理转发静态直通策略</b>第一次启动时，提前对域名地址进行 IPv4 地址解析，能提高系统后续的路由策略执行效率，降低 DNS 污染对网络访问的影响。<br />";
         content += "<br /><b>系统 DNS</b>：使用路由器的 DNS 设置，一个域名解析一个地址，效率高，但不能同时获取域名的多个地址。<br />";
         content += "<br /><b>自定义 DNS</b>：能一次获取域名的多个地址，速度慢，但可提高后续的路由策略执行效率。<br />";
         content += "<br /><b>系统 DNS + 自定义 DNS</b>：建议在 DNS 污染严重时采用。当域名地址条目较多，或网络不好时，会降低软件启动速度。<br />";
@@ -986,7 +989,7 @@ function openOverHint(itemNum) {
         content = "<div>缺省为 <b>8.8.8.8</b>。<br />";
         content += "<br />建议采用高效、可靠和权威的 DNS 服务器。若经常访问国外站点，最好选用国外的 DNS 服务器。</div>";
     } else if (itemNum == 51) {
-        content = "<div>缺省为 <b>864000</b> 秒 (<b>10</b> 天)。</div>";
+        content = "<div>缺省为 <b>864000</b> 秒 (<b>10</b> 天)。<br /><br />该参数对<b>代理转发静态直通策略</b>中的静态域名地址解析无效。</div>";
     } else if (itemNum == 52) {
         content = "<div>缺省为<b>启用</b>。</div>";
     } else if (itemNum == 53) {
@@ -1126,7 +1129,19 @@ function openOverHint(itemNum) {
         content += "<br />其中：6881:6889 表示 6881~6889 的连续端口号，不连续的端口号埠之间用英文半角 <b>,</b> 逗号相隔，不要有多余空格。<br />";
         content += "<br /><b>策略执行优先级</b>：详见<b>基本设置&nbsp;-&nbsp;策略路由优先级</b></div>";
     } else if (itemNum == 84) {
-        content = "<div>缺省为<b>否</b>。</div>";
+        content = "<div>文件中具体定义路由器内第三方<b>传输转发代理</b>软件中的远程<b>节点服务器</b>的 IP 地址或拥有 IP 地址的域名地址，可设置多个。<br />";
+        content += "<br />缺省为<b>停用</b>。<br />";
+        content += `<br />缺省的<b>远程节点服务器地址列表</b>文件名为 <b>${policySettingsArray.path}/data/proxy_remote_node_addr.txt</b>，无有效数据条目。<br />`;
+        content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
+        content += "<br />文本格式：一个网址/网段/域名地址一行，为一个条目，可多行多个条目。<br />";
+        content += "<br />例如：<br />";
+        content += "123.234.123.111<br />";
+        content += "133.234.123.0/24<br />";
+        content += "www.abc.def<br />";
+        content += "<br />此文件中 <b>0.0.0.0/0</b> 和 <b>0.0.0.0</b> 为无效地址。文件地址条目中不能有协议前缀 (如 http://、https:// 或 ftp:// 等)、端口号 (如 :23456) 等影响地址解析的内容。<br />";
+        content += "<br />由于该地址列表仅用于<b>静态直通路由</b>，所有远程节点服务器地址应为<b>静态地址</b>。当使用<b>域名地址</b>时，运行过程中 IP 地址一旦改变，原有线路链接将失效，需<b>重启</b>策略软件做域名地址解析以<b>重新</b>构建路由。<br />";
+        content += "<br />当列表数据文件中包含<b>域名地址</b>时，需启用<b>外部网络(WAN) - 策略路由(IPv4) - 运行 - 域名地址预解析</b>功能。为避免 DNS 污染，可同时启用<b>自定义预解析 DNS 服务器</b>功能。<br />";
+        content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 85) {
         content = "<div>实用命令工具集。</div>";
     } else if (itemNum == 86) {
@@ -1187,7 +1202,8 @@ function openOverHint(itemNum) {
         content += "<ol>";
         content += "<li>负载均衡</li>";
         content += "<li>IPTV 机顶盒</li>";
-        content += "<li>远程连接策略</li>";
+        content += "<li>代理转发静态直通策略</li>";
+        content += "<li>远程访问及本机应用访问外网静态直通策略</li>";
         content += "<li>VPN 客户端通过路由器访问外网策略</li>";
         content += "<li>首选 WAN 高优先级客户端至预设目标 IP 地址静态直通策略</li>";
         content += "<li>第二 WAN 客户端至预设目标 IP 地址静态直通策略</li>";
