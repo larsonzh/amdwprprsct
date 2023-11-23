@@ -1,5 +1,5 @@
 /*
-# lz_policy_routing.js v4.3.3
+# lz_policy_routing.js v4.3.4
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ JavaScript for Asuswrt-Merlin Router
@@ -1139,7 +1139,7 @@ function openOverHint(itemNum) {
         content += "133.234.123.0/24<br />";
         content += "www.abc.def<br />";
         content += "<br />此文件中 <b>0.0.0.0/0</b> 和 <b>0.0.0.0</b> 为无效地址。文件地址条目中不能有协议前缀 (如 http://、https:// 或 ftp:// 等)、端口号 (如 :23456) 等影响地址解析的内容。<br />";
-        content += "<br />由于该地址列表仅用于<b>静态直通路由</b>，所有远程节点服务器地址应为<b>静态地址</b>。当使用<b>域名地址</b>时，运行过程中 IP 地址一旦改变，原有线路链接将失效，需<b>重启</b>策略软件做域名地址解析以<b>重新</b>构建路由。<br />";
+        content += "<br />由于该地址列表仅用于<b>静态直通路由</b>，所有远程节点服务器地址应为<b>静态地址</b>。当使用<b>域名地址</b>时，运行过程中 IP 地址一旦改变，原有线路链接将失效，需<b>重启策略路由</b>软件进行域名地址解析以<b>重新</b>构建路由。<br />";
         content += "<br />当列表数据文件中包含<b>域名地址</b>时，需启用<b>外部网络(WAN) - 策略路由(IPv4) - 运行 - 域名地址预解析</b>功能。为避免 DNS 污染，可同时启用<b>自定义预解析 DNS 服务器</b>功能。<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 85) {
