@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_define_global_variables.sh v4.3.4
+# lz_define_global_variables.sh v4.3.5
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 # QnkgTFog5aaZ5aaZ5ZGc77yI6Juk6J+G5aKp5YS/77yJ（首次运行标识，切勿修改）
 

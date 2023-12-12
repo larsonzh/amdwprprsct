@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v4.3.4
+# lz_rule_func.sh v4.3.5
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 #BEIGIN
@@ -1790,6 +1790,7 @@ lz_load_custom_hosts_file() {
             echo "conf-dir=${PATH_DNSMASQ_DOMAIN_CONF}" >> "${DNSMASQ_CONF_ADD}" 2> /dev/null
         fi
         ## 重启dnsmasq服务
+        service restart_dnsmasq > /dev/null 2>&1
         restart_dnsmasq="0"
     fi
 }
