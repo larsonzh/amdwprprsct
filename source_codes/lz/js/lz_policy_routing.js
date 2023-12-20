@@ -1,5 +1,5 @@
 /*
-# lz_policy_routing.js v4.3.5
+# lz_policy_routing.js v4.3.6
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ JavaScript for Asuswrt-Merlin Router
@@ -548,7 +548,8 @@ function openOverHint(itemNum) {
         content += "<li>反向均分</li>";
         content += "<li>负载均衡</li>";
         content += "</ul>";
-        content += "<b>出口均分</b>：将所选<b>运营商 IP 地址</b>条目数据平均划分为两部分，前一部分匹配<b>首选 WAN</b>，后一部分匹配<b>第二 WAN</b>。<br />";
+        content += "本策略仅对路由器下属<b>客户端</b>设备访问外部网络的数据流量有效。<br />";
+        content += "<br /><b>出口均分</b>：将所选<b>运营商 IP 地址</b>条目数据平均划分为两部分，前一部分匹配<b>首选 WAN</b>，后一部分匹配<b>第二 WAN</b>。<br />";
         content += "<br /><b>反向均分</b>：将<b>出口均分</b>的流量出口匹配方式倒置。<br />";
         content += "<br /><b>负载均衡</b>：<b>动态分流模式</b>时，由系统采用<b>链路负载均衡</b>技术在<b>首选 WAN</b> 与<b>第二 WAN</b> 二者之中按流量比例随机分配<b>链路</b>流量出口，缺点是易导致网络访问不稳定和不正常；<b>静态分流模式</b>时，软件将根据路由器中所有已设置策略的流量出口分布情况，以系统策略路由库资源占用最小化为原则，自动为策略流量指定一个固定出口，运行中的实际出口可在<b>外部网络(WAN) - 策略路由(IPv4) - 运行</b>中点击<b>「获取运行状态」</b>按钮查看。<br />";
         content += "<br /><b>策略执行优先级</b>：详见<b>基本设置&nbsp;-&nbsp;策略路由优先级</b></div>";
@@ -694,7 +695,8 @@ function openOverHint(itemNum) {
     } else if (itemNum == 13) {
         content = "<div><b>运营商 IP 地址数据</b>经常发生变化，建议<b>启用定时更新</b>。<br /><br />亦可前往<b>外部网络(WAN) - 策略路由(IPv4) - 工具 - 快捷命令 - 命令 - 运营商 IP 地址数据</b>手动更新数据。</div>";
     } else if (itemNum == 14) {
-        content = "<div><b>动态分流模式</b>时自动与同一出口的运营商 IP 地址数据合集，采用同一条限定优先级的动态路由策略。<br />";
+        content = "<div>本策略仅对路由器下属<b>客户端</b>设备访问外部网络的数据流量有效。<br />";
+        content += "<br /><b>动态分流模式</b>时自动与同一出口的运营商 IP 地址数据合集，采用同一条限定优先级的动态路由策略。<br />";
         content += "<br /><b>静态分流模式</b>时采用专属的自定义目标 IP 地址静态路由策略。<br />";
         content += "<br /><b>策略执行优先级</b>：详见<b>基本设置&nbsp;-&nbsp;策略路由优先级</b></div>";
     } else if (itemNum == 15) {
@@ -711,6 +713,9 @@ function openOverHint(itemNum) {
         content = `<div>缺省文件名为 <b>${policySettingsArray.path}/data/custom_data_1.txt</b>，无有效数据条目。<br />`;
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
         content += "<br />文本格式：一个网址/网段一行，为一个条目，可多行多个条目。<br />";
+        content += "<br />例如：<br />";
+        content += "123.234.123.111<br />";
+        content += "133.234.123.0/24<br />";
         content += "<br />此文件中 <b>0.0.0.0/0</b> 和 <b>0.0.0.0</b> 为无效地址。<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 17) {
@@ -725,6 +730,7 @@ function openOverHint(itemNum) {
         content += "<br /><b>策略执行优先级</b>：详见<b>基本设置&nbsp;-&nbsp;策略路由优先级</b></div>";
     } else if (itemNum == 18) {
         content = "<div>为<b>客户端 IP 地址列表</b>中所有访问预设域名地址的设备设定流量出口。<br />";
+        content += "<br />仅对以 DHCP 方式自动连接路由器，或 DNS 指向路由器主机本地地址的<b>客户端</b>内的网络流量有效。若客户端内软件使用其他 DNS 服务器解析网络访问地址，则本功能无效。<br />";
         content += "<br />功能优先级高于<b>客户端静态直通策略</b>，低于<b>客户端至预设目标 IP 地址静态直通策略</b>、<b>高优先级客户端静态直通策略</b>和<b>客户端至预设目标 IP 地址静态直通策略</b>。<br />";
         content += "<br /><b>策略执行优先级</b>：详见<b>基本设置&nbsp;-&nbsp;策略路由优先级</b></div>";
     } else if (itemNum == 19) {
@@ -732,6 +738,9 @@ function openOverHint(itemNum) {
         content += `<br />缺省文件名为 <b>${policySettingsArray.path}/data/wan_1_domain_client_src_addr.txt</b>，无有效数据条目。<br />`;
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
         content += "<br />文本格式：一个网址/网段一行，为一个条目，可多行多个条目。<br />";
+        content += "<br />例如：<br />";
+        content += "192.168.50.11<br />";
+        content += "10.0.0.0/31<br />";
         content += "<br />可以用 <b>0.0.0.0/0</b> 表示所有客户端。<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 20) {
@@ -739,12 +748,19 @@ function openOverHint(itemNum) {
         content += `<br />缺省文件名为 <b>${policySettingsArray.path}/data/wan_1_domain.txt</b>，无有效数据条目。<br />`;
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
         content += "<br />文本格式：一个域名地址一行，为一个条目，可多行多个条目。<br />";
+        content += "<br />例如：<br />";
+        content += "abc.def.com.cn<br />";
+        content += "xxx.yyy.zzz<br />";
+        content += "<br />域名地址条目中不能有网络协议前缀 (如 http://、https:// 或 ftp:// 等)、端口号 (如 :23456) 、路径及文件名、特殊符号等影响地址解析的内容。<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 21) {
         content = "<div>文件中具体定义所有使用<b>第二 WAN 口域名地址动态访问策略</b>的客户端在本地网络中的 IP 地址。<br />";
         content += `<br />缺省文件名为 <b>${policySettingsArray.path}/data/wan_2_domain_client_src_addr.txt</b>，无有效数据条目。<br />`;
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
         content += "<br />文本格式：一个网址/网段一行，为一个条目，可多行多个条目。<br />";
+        content += "<br />例如：<br />";
+        content += "192.168.50.102<br />";
+        content += "10.0.0.0/30<br />";
         content += "<br />可以用 <b>0.0.0.0/0</b> 表示所有客户端。<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 22) {
@@ -752,6 +768,10 @@ function openOverHint(itemNum) {
         content += `<br />缺省文件名为 <b>${policySettingsArray.path}/data/wan_2_domain.txt</b>，无有效数据条目。<br />`;
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
         content += "<br />文本格式：一个域名地址一行，为一个条目，可多行多个条目。<br />";
+        content += "<br />例如：<br />";
+        content += "abc.def.com<br />";
+        content += "xxx.yyy.org<br />";
+        content += "<br />域名地址条目中不能有网络协议前缀 (如 http://、https:// 或 ftp:// 等)、端口号 (如 :23456) 、路径及文件名、特殊符号等影响地址解析的内容。<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 23) {
         content = "<div>为<b>客户端 IP 地址列表</b>中所有使用固定出口的设备绑定流量出口。<br />";
@@ -761,6 +781,9 @@ function openOverHint(itemNum) {
         content += `<br />缺省文件名为 <b>${policySettingsArray.path}/data/wan_1_client_src_addr.txt</b>，无有效数据条目。<br />`;
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
         content += "<br />文本格式：一个网址/网段一行，为一个条目，可多行多个条目。<br />";
+        content += "<br />例如：<br />";
+        content += "192.168.50.101<br />";
+        content += "10.6.0.0/24<br />";
         content += "<br />可以用 <b>0.0.0.0/0</b> 表示所有客户端。<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 25) {
@@ -768,6 +791,9 @@ function openOverHint(itemNum) {
         content += `<br />缺省文件名为 <b>${policySettingsArray.path}/data/wan_2_client_src_addr.txt</b>，无有效数据条目。<br />`;
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
         content += "<br />文本格式：一个网址/网段一行，为一个条目，可多行多个条目。<br />";
+        content += "<br />例如：<br />";
+        content += "192.168.50.17<br />";
+        content += "10.10.10.0/31<br />";
         content += "<br />可以用 <b>0.0.0.0/0</b> 表示所有客户端。<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 26) {
@@ -778,6 +804,9 @@ function openOverHint(itemNum) {
         content += `<br />缺省文件名为 <b>${policySettingsArray.path}/data/high_wan_1_client_src_addr.txt</b>，无有效数据条目。<br />`;
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
         content += "<br />文本格式：一个网址/网段一行，为一个条目，可多行多个条目。<br />";
+        content += "<br />例如：<br />";
+        content += "192.168.50.9<br />";
+        content += "10.0.0.0/25<br />";
         content += "<br />可以用 <b>0.0.0.0/0</b> 表示所有客户端。<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 28) {
@@ -785,6 +814,9 @@ function openOverHint(itemNum) {
         content += `<br />缺省文件名为 <b>${policySettingsArray.path}/data/high_wan_2_client_src_addr.txt</b>，无有效数据条目。<br />`;
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
         content += "<br />文本格式：一个网址/网段一行，为一个条目，可多行多个条目。<br />";
+        content += "<br />例如：<br />";
+        content += "192.168.50.12<br />";
+        content += "10.10.10.0/31<br />";
         content += "<br />可以用 <b>0.0.0.0/0</b> 表示所有客户端。<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 29) {
@@ -844,6 +876,7 @@ function openOverHint(itemNum) {
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 34) {
         content = "<div>按照目标地址的协议端口设定流量出口。<br />";
+        content += "<br />本策略仅对路由器下属<b>客户端</b>设备访问外部网络的数据流量有效。<br />";
         content += "<br />每个协议端口最多可设置 15 个不连续的目标访问端口号埠，仅针对 TCP、UDP、UDPLITE、SCTP 四类协议端口。<br />";
         content += "<br />输入框内容为空时表示对应的协议端口<b>停用</b>。<br />";
         content += "<br />例如：<br />";
@@ -858,7 +891,7 @@ function openOverHint(itemNum) {
         content += "<br /><b>策略执行优先级</b>：详见<b>基本设置&nbsp;-&nbsp;策略路由优先级</b></div>";
     } else if (itemNum == 36) {
         mode = 1;
-        caption = " 客户端地址至目标地址协议端口列表";
+        caption = "客户端地址至目标地址协议端口列表";
         content = "<div>文件中具体定义客户端使用<b>首选 WAN</b> 口作为流量出口访问预设地址协议端口的客户端 IP 地址和目标 IP 地址的协议端口。<br />";
         content += `<br />缺省文件名为 <b>${policySettingsArray.path}/data/wan_1_src_to_dst_addr_port.txt</b>，无有效数据条目。<br />`;
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
@@ -879,7 +912,7 @@ function openOverHint(itemNum) {
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 37) {
         mode = 1;
-        caption = " 客户端地址至目标地址协议端口列表";
+        caption = "客户端地址至目标地址协议端口列表";
         content = "<div>文件中具体定义客户端使用<b>第二 WAN</b> 口作为流量出口访问预设地址协议端口的客户端 IP 地址和目标 IP 地址的协议端口。<br />";
         content += `<br />缺省文件名为 <b>${policySettingsArray.path}/data/wan_2_src_to_dst_addr_port.txt</b>，无有效数据条目。<br />`;
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
@@ -905,7 +938,7 @@ function openOverHint(itemNum) {
         content += "<br /><b>策略执行优先级</b>：详见<b>基本设置&nbsp;-&nbsp;策略路由优先级</b></div>";
 } else if (itemNum == 39) {
         mode = 1;
-        caption = " 客户端地址至目标地址协议端口列表";
+        caption = "客户端地址至目标地址协议端口列表";
         content = "<div>文件中具体定义客户端使用<b>首选 WAN</b> 口作为流量出口高优先级访问预设地址协议端口的客户端 IP 地址和目标 IP 地址的协议端口。<br />";
         content += `<br />缺省文件名为 <b>${policySettingsArray.path}/data/high_wan_1_src_to_dst_addr_port.txt</b>，无有效数据条目。<br />`;
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
@@ -931,6 +964,9 @@ function openOverHint(itemNum) {
         content = `<div>缺省文件名为 <b>${policySettingsArray.path}/data/local_ipsets_data.txt</b>，无有效数据条目。<br />`;
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
         content += "<br />文文本格式：一个网址/网段一行，为一个条目，可多行多个条目。<br />";
+        content += "<br />例如：<br />";
+        content += "192.168.50.0/31<br />";
+        content += "192.168.50.207<br />";
         content += "<br />此文件中 <b>0.0.0.0/0</b> 和 <b>0.0.0.0</b> 为无效地址。<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 42) {
@@ -959,7 +995,7 @@ function openOverHint(itemNum) {
         content += "<br />时间间隔越短，客户端路由连接可尽早建立，接入越快。但过短的时间间隔有可能早造成路由器资源争抢。对于 GT-AX6000 类硬件平台的路由器，可设置为1~3秒。对于性能较弱，或版本老旧的路由器，可根据路由器 CPU 资源占用的实测结果和应用体验合理调整该参数。</div>";
     } else if (itemNum == 46) {
         content = "<div>本策略以<b>静态直通</b>方式为路由器内的第三方<b>传输转发代理</b>软件与外网<b>节点服务器</b>之间的双向网络链路流量设置路由，且只针对<b>远程节点服务器地址列表</b>中的有效地址条目。<br />";
-        content += "<br /><b>停用</b>时，路由器内的所有<b>传输转发代理</b>软件与外网<b>节点服务器</b>之间的双向网络链路流量将按照<b>远程访问及本机应用访问外网静态直通策略</b>中的设置，作为路由器本机内部应用访问外部网络和从外网访问路由器的方式进行路由，无需在<b>远程节点服务器地址列表</b>中设置任何远程节点服务器的地址条目。<br />";
+        content += "<br /><b>停用</b>时，路由器内的所有<b>传输转发代理</b>软件与外网<b>节点服务器</b>之间的双向网络链路流量将按照<b>远程访问及本机应用访问外网静态直通策略</b>中的设置，作为路由器本机内部应用访问外部网络和从外网访问路由器的方式进行路由，不用在<b>远程节点服务器地址列表</b>中设置任何远程节点服务器的地址条目。<br />";
         content += "<br /><b>策略执行优先级</b>：详见<b>基本设置&nbsp;-&nbsp;策略路由优先级</b></div>";
     } else if (itemNum == 47) {
         content = "<div>路由策略运行时参数配置。</div>";
@@ -979,17 +1015,17 @@ function openOverHint(itemNum) {
         content += "路由器主机内部应用的流量出口按用户所定义的流量策略分配。<br />";
         content += "<br />本工具提供两种应用模式 (<b>动态分流模式</b>、<b>静态路由</b>)，将<b>动态路由</b>、<b>静态路由</b>两种作用于路由器 WAN 口通道的基础网络数据路由传输技术，组合形成<b>策略路由</b>服务的多种运行模式，并在此基础上结合运营商 IP 地址数据及出口参数配置等场景因素进行更高层的应用级封装，对软件运行时参数进行自动化配置，从而最大限度的降低用户配置参数的复杂度和难度。</div>";
     } else if (itemNum == 49) {
-        content = "<div>缺省使用<b>系统 DNS </b>。<br />";
-        content += "<br />在<b>域名地址动态访问策略</b>或包含有域名地址的<b>代理转发静态直通策略</b>第一次启动时，提前对域名地址进行 IPv4 地址解析，能提高系统后续的路由策略执行效率，降低 DNS 污染对网络访问的影响。<br />";
-        content += "<br /><b>系统 DNS</b>：使用路由器的 DNS 设置，一个域名解析一个地址，效率高，但不能同时获取域名的多个地址。<br />";
-        content += "<br /><b>自定义 DNS</b>：能一次获取域名的多个地址，速度慢，但可提高后续的路由策略执行效率。<br />";
-        content += "<br /><b>系统 DNS + 自定义 DNS</b>：建议在 DNS 污染严重时采用。当域名地址条目较多，或网络不好时，会降低软件启动速度。<br />";
-        content += "<br />域名地址预解析仅在软件启动时进行，之后的网络访问的域名地址解析按照路由器系统或用户终端的 DNS 设置进行。</div>";
+        content = "<div>缺省使用<b>系统 DNS</b>。<br />";
+        content += "<br />启用<b>代理转发静态直通策略</b>功能时，若<b>远程节点服务器地址列表</b>中包含有域名地址，可使用本功能在<b>策略路由</b>软件启动过程中提前对该列表内的域名条目进行 IPv4 地址解析，以获取远程节点的静态 IP 地址。<br />";
+        content += "<br /><b>系统 DNS</b>：使用路由器的 DNS 设置进行网络地址解析；可同时获取域名的多个 IPv4 地址。<br />";
+        content += "<br /><b>自定义 DNS</b>：用于与第三方传输代理软件中使用的特定 DNS 服务器保持一致，可避免 DNS 劫持和污染；能同时获取域名的多个 IPv4 地址。若第三方传输代理软件中未使用特定的 DNS 服务器，使用系统 DNS 即可。<br />";
+        content += "<br /><b>系统 DNS + 自定义 DNS</b>：同时使用<b>系统 DNS</b> 和<b>自定义 DNS</b> 对代理转发远程节点服务器域名条目进行预解析。<br />";
+        content += "<br /><b>域名地址预解析</b>仅在<b>策略路由</b>软件启动时执行，若路由器运行过程中远程节点服务器域名的 IPv4 地址发生改变，由于路由器系统对第三方传输代理软件的<b>代理转发静态直通策略</b>只支持<b>静态直通路由</b>方式，需手动重启<b>策略路由</b>软件更新该域名的流量路由。</div>";
     } else if (itemNum == 50) {
         content = "<div>缺省为 <b>8.8.8.8</b>。<br />";
-        content += "<br />建议采用高效、可靠和权威的 DNS 服务器。若经常访问国外站点，最好选用国外的 DNS 服务器。</div>";
+        content += "<br />用于设置路由器内第三方传输代理软件中使用的特定 DNS 服务器 IPv4 地址，可避免 DNS 劫持和污染。</div>";
     } else if (itemNum == 51) {
-        content = "<div>缺省为 <b>864000</b> 秒 (<b>10</b> 天)。<br /><br />该参数对<b>代理转发静态直通策略</b>中的静态域名地址解析无效。</div>";
+        content = "<div>缺省为 <b>864000</b> 秒 (<b>10</b> 天)。<br /><br />若设置缓存时间，软件重启后，时间会重新计数。<br /><br />该参数对<b>代理转发静态直通策略</b>中的静态域名地址解析无效。</div>";
     } else if (itemNum == 52) {
         content = "<div>缺省为<b>启用</b>。</div>";
     } else if (itemNum == 53) {
@@ -1039,7 +1075,11 @@ function openOverHint(itemNum) {
         content = "<div>IPTV 机顶盒使用的<b>必选项</b>。<br />";
         content += `<br />缺省文件名为 <b>${policySettingsArray.path}/data/iptv_box_ip_lst.txt</b>，无有效数据条目。<br />`;
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
-        content += "<br />文本格式，一个机顶盒地址一行，可逐行填入多个机顶盒地址。<br />";
+        content += "<br />文本格式，一个机顶盒IPv4格式地址一行，可逐行填入多个机顶盒地址。<br />";
+        content += "<br />例如：<br />";
+        content += "192.168.50.46<br />";
+        content += "192.168.50.86<br />";
+        content += "192.168.50.101<br />";
         content += "<br />此文件中 <b>0.0.0.0/0</b> 和 <b>0.0.0.0</b> 为无效地址。<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 62) {
@@ -1047,7 +1087,7 @@ function openOverHint(itemNum) {
         content += "<br />这些不是 IPTV 节目播放源地址，而是运营商的 IPTV 后台网络服务地址，需要用户自己获取和填写，如果地址不全或错误，机顶盒将无法通过路由器正确接入 IPTV 线路。若填入的地址覆盖了用户使用的互联网访问地址，会导致机顶盒无法通过该地址访问互联网。<br />";
         content += `<br />缺省文件名为 <b>${policySettingsArray.path}/data/iptv_isp_ip_lst.txt</b>，无有效数据条目。<br />`;
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
-        content += "<br />文本格式，一个机顶盒地址一行，可逐行填入多个机顶盒地址。<br />";
+        content += "<br />文本格式，一个IPv4格式网址/网段一行，可逐行填入多个网址/网段。<br />";
         content += "<br />此文件中 <b>0.0.0.0/0</b> 和 <b>0.0.0.0</b> 为无效地址。<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 63) {
@@ -1089,6 +1129,9 @@ function openOverHint(itemNum) {
         content += `<br />缺省文件名为 <b>${policySettingsArray.path}/custom_dualwan_scripts.sh</b>，实体文件不存在，使用时由用户创建。<br />`;
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
         content += "<br />该文件由用户创建，文件编码格式为 UTF-8 (LF)，首行代码顶齐第一个字符开始必须为：<b>#!bin/sh</b><br />";
+        content += "<br />例如：<br />";
+        content += "#!/bin/sh<br />";
+        content += "cru d LZISPRO<br />";
         content += "<br />该脚本先于<b>外置用户自定义配置脚本</b>执行。</div>";
     } else if (itemNum == 76) {
         content = "<div><b>Linux Shell 脚本</b>。<br />";
@@ -1104,6 +1147,9 @@ function openOverHint(itemNum) {
         content += `<br />缺省文件名为 <b>${policySettingsArray.path}/custom_dualwan_scripts.sh</b>，实体文件不存在，使用时由用户创建。<br />`;
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
         content += "<br />该文件由用户创建，文件编码格式为 UTF-8 (LF)，首行代码顶齐第一个字符开始必须为：<b>#!bin/sh</b><br />";
+        content += "<br />例如：<br />";
+        content += "#!/bin/sh<br />";
+        content += "cru&nbsp;a&nbsp;LZISPRO&nbsp;\"13&nbsp;4&nbsp;*/3&nbsp;*&nbsp;*&nbsp;sh&nbsp;/jffs/scripts/lzispro/lzstart.sh\"<br />";
         content += "<br />该脚本晚于<b>外置用户自定义配置脚本</b>执行。</div>";
     } else if (itemNum == 78) {
         content = "<div>缺省为 <b>5</b> 天。</div>";
@@ -1116,6 +1162,9 @@ function openOverHint(itemNum) {
         content = `<div>缺省文件名为 <b>${policySettingsArray.path}/data/custom_data_2.txt</b>，无有效数据条目。<br />`;
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
         content += "<br />文本格式：一个网址/网段一行，为一个条目，可多行多个条目。<br />";
+        content += "<br />例如：<br />";
+        content += "123.234.123.112<br />";
+        content += "133.234.0.0/16<br />";
         content += "<br />此文件中 <b>0.0.0.0/0</b> 和 <b>0.0.0.0</b> 为无效地址。<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 82) {
@@ -1129,7 +1178,7 @@ function openOverHint(itemNum) {
         content += "<br />其中：6881:6889 表示 6881~6889 的连续端口号，不连续的端口号埠之间用英文半角 <b>,</b> 逗号相隔，不要有多余空格。<br />";
         content += "<br /><b>策略执行优先级</b>：详见<b>基本设置&nbsp;-&nbsp;策略路由优先级</b></div>";
     } else if (itemNum == 84) {
-        content = "<div>文件中具体定义路由器内第三方<b>传输转发代理</b>软件中的远程<b>节点服务器</b>的 IP 地址或拥有 IP 地址的域名地址，可设置多个。<br />";
+        content = "<div>文件中具体定义路由器内第三方<b>传输转发代理</b>软件中的远程<b>节点服务器</b>的 IPv4 地址或拥有 IPv4 地址的域名地址，可设置多个。<br />";
         content += "<br />缺省为<b>停用</b>。<br />";
         content += `<br />缺省的<b>远程节点服务器地址列表</b>文件名为 <b>${policySettingsArray.path}/data/proxy_remote_node_addr.txt</b>，无有效数据条目。<br />`;
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
@@ -1137,10 +1186,10 @@ function openOverHint(itemNum) {
         content += "<br />例如：<br />";
         content += "123.234.123.111<br />";
         content += "133.234.123.0/24<br />";
-        content += "www.abc.def<br />";
-        content += "<br />此文件中 <b>0.0.0.0/0</b> 和 <b>0.0.0.0</b> 为无效地址。文件地址条目中不能有协议前缀 (如 http://、https:// 或 ftp:// 等)、端口号 (如 :23456) 等影响地址解析的内容。<br />";
-        content += "<br />由于该地址列表仅用于<b>静态直通路由</b>，所有远程节点服务器地址应为<b>静态地址</b>。当使用<b>域名地址</b>时，运行过程中 IP 地址一旦改变，原有线路链接将失效，需<b>重启策略路由</b>软件进行域名地址解析以<b>重新</b>构建路由。<br />";
-        content += "<br />当列表数据文件中包含<b>域名地址</b>时，需启用<b>外部网络(WAN) - 策略路由(IPv4) - 运行 - 域名地址预解析</b>功能。为避免 DNS 污染，可同时启用<b>自定义预解析 DNS 服务器</b>功能。<br />";
+        content += "abc.def.com.cn<br />";
+        content += "<br />此文件中 <b>0.0.0.0/0</b> 和 <b>0.0.0.0</b> 为无效地址。文件地址条目中不能有网络协议前缀 (如 http://、https:// 或 ftp:// 等)、端口号 (如 :23456) 、路径及文件名、特殊符号等影响地址解析的内容。<br />";
+        content += "<br />当列表数据文件中包含<b>域名格式</b>地址时，需启用本策略中的<b>域名地址预解析</b>功能。若第三方传输代理软件中使用有特定的 DNS 服务器，为避免 DNS 劫持和污染，可同时启用和设置<b>自定义预解析 DNS 服务器</b>为该 DNS 服务器地址。<br />";
+        content += "<br />由于该地址列表仅用于<b>静态直通路由</b>，所有远程节点服务器地址应为<b>静态地址</b>。当使用域名格式地址时，路由器运行过程中域名条目对应的 IP 地址一旦改变，原有线路连接可能失效，需手动<b>重启策略路由</b>软件进行域名地址解析以<b>重新</b>构建路由。<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 85) {
         content = "<div>实用命令工具集。</div>";
@@ -1184,8 +1233,9 @@ function openOverHint(itemNum) {
         content = "<div>目标主机地址为域名地址时，可指定域名解析的 <b>DNS 服务器</b>地址。内容为空时，表示使用路由器内置的 DNS 服务。<br />";
         content += "<br />若查询的是自定义域名地址，<b>DNS 服务器</b>地址请设置为路由器主机<b>内网 IP 地址</b>或 <b>0.0.0.0</b>。</div>";
     } else if (itemNum == 89) {
-        content = "<div>此功能用于将指定<b>域名</b>解析到特定的 <b>IP 地址</b>上。<br />";
+        content = "<div>此功能用于将指定<b>域名</b>解析到特定的 <b>IP 地址</b>上，可实现本地网络的 DNS 劫持。<br />";
         content += "<br /><b>自定义域名地址解析文件</b>中所定义的<b>域名</b>被访问时将跳转到指定的 <b>IP 地址</b>，作用与主机上的 <b>hosts</b> 文件相同。<br />";
+        content += "<br />仅对以 DHCP 方式自动连接路由器，或 DNS 指向路由器主机本地地址的<b>客户端</b>内的网络流量有效。若客户端内软件使用其他 DNS 服务器解析网络访问地址，则本功能无效。<br />";
         content += "<br />缺省为<b>停用</b>。<br />";
         content += `<br />缺省<b>自定义域名地址解析文件</b>名为 <b>${policySettingsArray.path}/data/custom_hosts.txt</b>，无有效数据条目。<br />`;
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";

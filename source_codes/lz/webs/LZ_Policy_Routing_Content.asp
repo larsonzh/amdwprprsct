@@ -517,6 +517,12 @@
                                                                         <input id="lzr_wan_2_domain_file" type="text" maxlength="255" class="input_32_table" name="lzr_wan_2_domain_file" value="/jffs/scripts/lz/data/wan_2_domain.txt" onchange="checkTextField(this)" autocorrect="off" autocapitalize="off">
                                                                     </td>
                                                                 </tr>
+                                                                <tr>
+                                                                    <th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(51);">域名解析后 IP 地址缓存时间<br />(0--永久; 1~2147483秒)</a></th>
+                                                                    <td>
+                                                                        <input type="number" min="0" max="2147483" maxlength="7" class="input_15_table" id="lzr_dn_cache_time" name="lzr_dn_cache_time" value="864000" onkeypress="return validator.isNumber(this, event);" onchange="checkNumberField(this, 864000)" autocorrect="off" autocapitalize="off">
+                                                                    </td>
+                                                                </tr>
                                                             </table>
                                                             <table width="100%" border="1" align="center" cellpadding="4" cellspacing="0" bordercolor="#6b8fa3" class="FormTable">
                                                                 <thead>
@@ -760,7 +766,7 @@
                                                                     </tr>
                                                                 </thead>
                                                                 <tr>
-                                                                    <th>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(41);">客户端 IP 地址列表</a></th>
+                                                                    <th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(41);">客户端 IP 地址列表</a></th>
                                                                     <td>
                                                                         <input id="lzr_local_ipsets_file" type="text" maxlength="255" class="input_32_table" name="lzr_local_ipsets_file" value="/jffs/scripts/lz/data/local_ipsets_data.txt" onchange="checkTextField(this)" autocorrect="off" autocapitalize="off">
                                                                     </td>
@@ -824,7 +830,7 @@
                                                                     </tr>
                                                                 </thead>
                                                                 <tr>
-                                                                    <th rowspan="2">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(84);">远程节点服务器地址列表</a></th>
+                                                                    <th rowspan="2"><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(84);">远程节点服务器地址列表</a></th>
                                                                     <td colspan="4">
                                                                         <input type="radio" value="0" name="lzr_proxy_route" class="content_input_fd">首选 WAN
                                                                         <input type="radio" value="1" name="lzr_proxy_route" class="content_input_fd">第二 WAN
@@ -834,6 +840,23 @@
                                                                 <tr>
                                                                     <td>
                                                                         <input id="lzr_proxy_remote_node_addr_file" type="text" maxlength="255" class="input_32_table" name="lzr_proxy_remote_node_addr_file" value="/jffs/scripts/lz/proxy_remote_node_addr.txt" onchange="checkTextField(this)" autocorrect="off" autocapitalize="off">
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(49);">域名地址预解析</a></th>
+                                                                    <td>
+                                                                        <select id="lzr_dn_pre_resolved" name="lzr_dn_pre_resolved" class="input_option" style="margin-left:2px;">
+                                                                            <option value="0" selected>系统 DNS</option>
+                                                                            <option value="1">自定义 DNS</option>
+                                                                            <option value="2">系统 DNS + 自定义 DNS</option>
+                                                                            <option value="5">停用</option>
+                                                                        </select>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(50);">自定义预解析 DNS 服务器</a></th>
+                                                                    <td>
+                                                                        <input type="text" maxlength="15" class="input_15_table" id="lzr_pre_dns" name="lzr_pre_dns" value="8.8.8.8" onKeyPress="return validator.isIPAddr(this, event);" onchange="checkIPaddrField(this)" autocorrect="off" autocapitalize="off">
                                                                     </td>
                                                                 </tr>
                                                             </table>
@@ -862,29 +885,6 @@
                                                                 <tr>
                                                                     <td>
                                                                         <input id="lzr_custom_hosts_file" type="text" maxlength="255" class="input_32_table" name="lzr_custom_hosts_file" value="/jffs/scripts/lz/custom_hosts.txt" onchange="checkTextField(this)" autocorrect="off" autocapitalize="off">
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(49);">域名地址预解析</a></th>
-                                                                    <td>
-                                                                        <select id="lzr_dn_pre_resolved" name="lzr_dn_pre_resolved" class="input_option" style="margin-left:2px;">
-                                                                            <option value="0" selected>系统 DNS</option>
-                                                                            <option value="1">自定义 DNS</option>
-                                                                            <option value="2">系统 DNS + 自定义 DNS</option>
-                                                                            <option value="5">停用</option>
-                                                                        </select>
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(50);">自定义预解析 DNS 服务器</a></th>
-                                                                    <td>
-                                                                        <input type="text" maxlength="15" class="input_15_table" id="lzr_pre_dns" name="lzr_pre_dns" value="8.8.8.8" onKeyPress="return validator.isIPAddr(this, event);" onchange="checkIPaddrField(this)" autocorrect="off" autocapitalize="off">
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(51);">域名解析后 IP 地址缓存时间<br />(0--永久; 1~2147483秒)</a></th>
-                                                                    <td>
-                                                                        <input type="number" min="0" max="2147483" maxlength="7" class="input_15_table" id="lzr_dn_cache_time" name="lzr_dn_cache_time" value="864000" onkeypress="return validator.isNumber(this, event);" onchange="checkNumberField(this, 864000)" autocorrect="off" autocapitalize="off">
                                                                     </td>
                                                                 </tr>
                                                                 <tr>

@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v4.3.5
+# lz_rule_func.sh v4.3.6
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 #BEIGIN
@@ -120,7 +120,7 @@ lz_get_custom_hosts_file_item_total() {
 ##     域名地址条目列表
 lz_get_domain_list() {
     sed -e "s/\'//g" -e 's/\"//g' -e 's/[[:space:]]\+/ /g' -e 's/^[ ]*//g' -e '/^[#]/d' -e 's/[#].*$//g' -e 's/^\([^ ]*\).*$/\1/g' \
-        -e 's/^[^ ]*[\:][\/][\/]//g' -e 's/^[^ ]\{0,6\}[\:]//g' -e 's/[\/]*$//g' -e 's/[ ]*$//g' -e '/^[\.]*$/d' -e '/^[\.]*[^\.]*$/d' \
+        -e 's/^[^ ]*[\:][\/][\/]//g' -e 's/^[^ ]\{0,6\}[\:]//g' -e 's/[\/].*$//g' -e 's/[ ].*$//g' -e '/^[\.]/d' \
         -e '/^[ ]*$/d' "${1}" 2> /dev/null | tr '[:A-Z:]' '[:a-z:]'
 }
 
@@ -2700,17 +2700,11 @@ lz_create_domain_wan_set() {
             break
         fi
         retval="0"
-        [ "${dn_pre_resolved}" != "0" ] && [ "${dn_pre_resolved}" != "1" ] && [ "${dn_pre_resolved}" != "2" ] && break
         echo "$(lzdate)" [$$]: Pre resolving domain name for "${5}"...... | tee -ai "${SYSLOG}" 2> /dev/null
-        [ "${dn_pre_resolved}" != "1" ] && lz_get_domain_list "${2}" | awk 'NF >= "1" && !i[$1]++ {system("'"ipset -q -r add ${3} "'"$1)}'
-        [ "${dn_pre_resolved}" = "0" ] && break
-        ! echo "${pre_dns}" | awk -v count="0" '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ \
-            && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
-            && NF == "1" {count++} END{if (count == "1") exit(0); else exit(1)}' && break
         DOMAIN_BUF="$( lz_get_domain_list "${2}" | awk 'NF >= "1" && !i[$1]++ {print $1}' )"
         while IFS= read -r line
         do
-            nslookup "${line}" "${pre_dns}" 2> /dev/null | sed '1,4d' \
+            nslookup "${line}" 2> /dev/null | sed '1,4d' \
                 | awk '$3 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ {system("'"ipset -q add ${3} "'"$3)}'
         done <<DOMAIN_BUF_INPUT
 ${DOMAIN_BUF}
@@ -3671,8 +3665,14 @@ lz_proxy_route_support() {
     { { [ "${proxy_route}" != "0" ] && [ "${proxy_route}" != "1" ]; } \
         || [ "${proxy_route}" = "${wan_access_port}" ] \
         || [ ! -s "${proxy_remote_node_addr_file}" ]; } && return
-    local PROXY_NODE_BUF="" line="" wan_no="${WAN0}" node_list=""
+    local PROXY_NODE_BUF="" line="" wan_no="${WAN0}" node_list="" pre_dns_enable="1"
     [ "${proxy_route}" != "0" ] && wan_no="${WAN1}"
+    if [ "${dn_pre_resolved}" = "1" ] || [ "${dn_pre_resolved}" = "2" ]; then
+        echo "${pre_dns}" | awk -v count="0" '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ \
+            && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
+            && NF == "1" {count++} END{if (count == "1") exit(0); else exit(1)}' \
+            && pre_dns_enable="0"
+    fi
     PROXY_NODE_BUF="$( sed -e 's/^[[:space:]]\+//g' -e '/^[#]/d' -e 's/[[:space:]]*[#].*$//g' -e '/^[[:space:]]*$/d' "${proxy_remote_node_addr_file}" \
         | tr '[:A-Z:]' '[:a-z:]' \
         | awk 'NF >= 1 && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" && !i[$1]++ {print $1}' )"
@@ -3687,14 +3687,16 @@ lz_proxy_route_support() {
                 nslookup "${line}" 2> /dev/null | awk 'NR > 4 && $3 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ && $3 != "0.0.0.0" \
                         {system("ip rule add from 0.0.0.0 to "$3"'" table ${wan_no} prio ${IP_RULE_PRIO_TOPEST} > /dev/null 2>&1; ip rule add from "'"$3"'" to 0.0.0.0 table ${wan_no} prio ${IP_RULE_PRIO_TOPEST} > /dev/null 2>&1"'")}'
             elif [ "${dn_pre_resolved}" = "1" ]; then
-                nslookup "${line}" "${pre_dns}" 2> /dev/null | awk 'NR > 4 && $3 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ && $3 != "0.0.0.0" \
+                [ "${pre_dns_enable}" = "0" ] \
+                    && nslookup "${line}" "${pre_dns}" 2> /dev/null | awk 'NR > 4 && $3 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ && $3 != "0.0.0.0" \
                         {system("ip rule add from 0.0.0.0 to "$3"'" table ${wan_no} prio ${IP_RULE_PRIO_TOPEST} > /dev/null 2>&1; ip rule add from "'"$3"'" to 0.0.0.0 table ${wan_no} prio ${IP_RULE_PRIO_TOPEST} > /dev/null 2>&1"'")}'
             elif [ "${dn_pre_resolved}" = "2" ]; then
                 node_list="$( nslookup "${line}" 2> /dev/null | awk 'NR > 4 && $3 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ && $3 != "0.0.0.0" {print $3}' )"
-                eval "$( nslookup "${line}" "${pre_dns}" 2> /dev/null | awk 'NR > 4 && $3 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ && $3 != "0.0.0.0" \
+                [ "${pre_dns_enable}" = "0" ] \
+                    && eval "$( nslookup "${line}" "${pre_dns}" 2> /dev/null | awk 'NR > 4 && $3 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ && $3 != "0.0.0.0" \
                         {printf "node_list=\"\$\( echo \"\${node_list}\" \| sed -e \"\\\$a %s\" -e \"\/\^[[:space:]]\*\$\/d\" \)\"\n", $3}' )"
                 echo "${node_list}" | awk '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ && !i[$1]++ \
-                        {system("ip rule add from 0.0.0.0 to "$1"'" table ${wan_no} prio ${IP_RULE_PRIO_TOPEST} > /dev/null 2>&1; ip rule add from "'"$1"'" to 0.0.0.0 table ${wan_no} prio ${IP_RULE_PRIO_TOPEST} > /dev/null 2>&1"'")}'
+                    {system("ip rule add from 0.0.0.0 to "$1"'" table ${wan_no} prio ${IP_RULE_PRIO_TOPEST} > /dev/null 2>&1; ip rule add from "'"$1"'" to 0.0.0.0 table ${wan_no} prio ${IP_RULE_PRIO_TOPEST} > /dev/null 2>&1"'")}'
             fi
         fi
     done <<PROXY_NODE_BUF_INPUT

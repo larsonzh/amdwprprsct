@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_status.sh v4.3.5
+# lz_rule_status.sh v4.3.6
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 显示脚本运行状态脚本
@@ -212,7 +212,7 @@ lz_get_domain_data_file_item_total_status() {
     local retval="0"
     [ -f "${1}" ] && {
         retval="$( sed -e "s/\'//g" -e 's/\"//g' -e 's/[[:space:]]\+/ /g' -e 's/^[ ]*//g' -e '/^[#]/d' -e 's/[#].*$//g' -e 's/^\([^ ]*\).*$/\1/g' \
-                -e 's/^[^ ]*[\:][\/][\/]//g' -e 's/^[^ ]\{0,6\}[\:]//g' -e 's/[\/]*$//g' -e 's/[ ]*$//g' -e '/^[\.]*$/d' -e '/^[\.]*[^\.]*$/d' \
+                -e 's/^[^ ]*[\:][\/][\/]//g' -e 's/^[^ ]\{0,6\}[\:]//g' -e 's/[\/].*$//g' -e 's/[ ].*$//g' -e '/^[\.]/d' \
                 -e '/^[ ]*$/d' "${1}" 2> /dev/null | tr '[:A-Z:]' '[:a-z:]' | awk -v count="0" 'NF >= "1" && !i[$1]++ {count++} END{print count}' )"
     }
     echo "${retval}"
