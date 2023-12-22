@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v4.3.6
+# lz_rule_func.sh v4.3.7
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 #BEIGIN
@@ -3668,10 +3668,10 @@ lz_proxy_route_support() {
     local PROXY_NODE_BUF="" line="" wan_no="${WAN0}" node_list="" pre_dns_enable="1"
     [ "${proxy_route}" != "0" ] && wan_no="${WAN1}"
     if [ "${dn_pre_resolved}" = "1" ] || [ "${dn_pre_resolved}" = "2" ]; then
-        echo "${pre_dns}" | awk -v count="0" '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ \
-            && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
-            && NF == "1" {count++} END{if (count == "1") exit(0); else exit(1)}' \
-            && pre_dns_enable="0"
+        eval "$( awk -v x="${pre_dns}" 'BEGIN{
+            if (x ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ && x !~ /[3-9][0-9][0-9]/ && x !~ /[2][6-9][0-9]/ && x !~ /[2][5][6-9]/ && x !~ /[\/][4-9][0-9]/ && x !~ /[\/][3][3-9]/)
+                print "pre_dns_enable=\"0\""
+        }' )"
     fi
     PROXY_NODE_BUF="$( sed -e 's/^[[:space:]]\+//g' -e '/^[#]/d' -e 's/[[:space:]]*[#].*$//g' -e '/^[[:space:]]*$/d' "${proxy_remote_node_addr_file}" \
         | tr '[:A-Z:]' '[:a-z:]' \

@@ -1,5 +1,5 @@
 /*
-# lz_policy_routing.js v4.3.6
+# lz_policy_routing.js v4.3.7
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ JavaScript for Asuswrt-Merlin Router
