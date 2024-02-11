@@ -114,7 +114,8 @@
                                                         <div class="formfontdesc">
                                                             <p id="lzr_producid" style="cursor:help;">
                                                                 <span id="lzr_producid_block"></span>
-                                                                <span id="lzr_last_version_block" style="margin-left:36px;text-decoration:underline;cursor:pointer;color:#FC0;display:none;" title="当前最新版本。" onmouseover="over_var=1;" onmouseout="over_var=0;"></span>
+                                                                <span id="lzr_new_version_prompt_block" style="margin-left:36px;color:#FC0;display:none;"></span>
+                                                                <span id="lzr_last_version_block" style="text-decoration:underline;cursor:pointer;color:#FC0;display:none;" title="当前最新版本。" onmouseover="over_var=1;" onmouseout="over_var=0;"></span>
                                                             </P>
                                                             <p id="lzr_infomation" style="cursor:help;"></p>
                                                         </div>

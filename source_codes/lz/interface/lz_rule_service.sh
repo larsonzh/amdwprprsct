@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_service.sh v4.3.7
+# lz_rule_service.sh v4.3.8
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 服务接口脚本
@@ -189,6 +189,6 @@ case "${2}" in
     ;;
     *)
         [ "${2%%_*}" = "LZAddress" ] \
-            && "${PATH_LZ}/lz_rule.sh" "address" "$( echo "${2}" | cut -f 2 -d '#' )" "$( echo "${2}" | cut -f 3 -d '#' )" &
+            && "${PATH_LZ}/lz_rule.sh" "address" "$( echo "${2}" | cut -f 2 -d '_' )" "$( echo "${2}" | cut -f 3 -d '_' )" &
     ;;
 esac

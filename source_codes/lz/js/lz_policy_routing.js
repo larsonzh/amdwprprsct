@@ -1,5 +1,5 @@
 /*
-# lz_policy_routing.js v4.3.7
+# lz_policy_routing.js v4.3.8
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ JavaScript for Asuswrt-Merlin Router
@@ -37,12 +37,16 @@ function getLastVersion() {
                 setTimeout(getLastVersion, 1000);
             else if (versionStatus != 'None') {
                 policySettingsArray.lastVersion = versionStatus;
-                $("#lzr_last_version_block").html(policySettingsArray.lastVersion).show();
                 if (policySettingsArray.lastVersion != policySettingsArray.version) {
+                    $("#lzr_new_version_prompt_block").html("有新版本:&nbsp&nbsp").show();
+                    $("#lzr_last_version_block").html(policySettingsArray.lastVersion).show();
                     setInterval(function() {
                         $("#lzr_last_version_block").fadeOut(200);
                         $("#lzr_last_version_block").fadeIn(100);
                     }, 3000);
+                } else {
+                    $("#lzr_new_version_prompt_block").html("").show();
+                    $("#lzr_last_version_block").html(policySettingsArray.lastVersion).show();
                 }
             }
         }
@@ -1233,16 +1237,17 @@ function openOverHint(itemNum) {
         content = "<div>目标主机地址为域名地址时，可指定域名解析的 <b>DNS 服务器</b>地址。内容为空时，表示使用路由器内置的 DNS 服务。<br />";
         content += "<br />若查询的是自定义域名地址，<b>DNS 服务器</b>地址请设置为路由器主机<b>内网 IP 地址</b>或 <b>0.0.0.0</b>。</div>";
     } else if (itemNum == 89) {
-        content = "<div>此功能用于将指定<b>域名</b>解析到特定的 <b>IP 地址</b>上，可实现本地网络的 DNS 劫持。<br />";
+        content = "<div>此功能用于将指定<b>域名</b>解析到特定的 <b>IP 地址</b>上，可实现本地网络的 DNS 劫持；还支持实现关联已有域名的自定义别名。<br />";
         content += "<br /><b>自定义域名地址解析文件</b>中所定义的<b>域名</b>被访问时将跳转到指定的 <b>IP 地址</b>，作用与主机上的 <b>hosts</b> 文件相同。<br />";
         content += "<br />仅对以 DHCP 方式自动连接路由器，或 DNS 指向路由器主机本地地址的<b>客户端</b>内的网络流量有效。若客户端内软件使用其他 DNS 服务器解析网络访问地址，则本功能无效。<br />";
         content += "<br />缺省为<b>停用</b>。<br />";
         content += `<br />缺省<b>自定义域名地址解析文件</b>名为 <b>${policySettingsArray.path}/data/custom_hosts.txt</b>，无有效数据条目。<br />`;
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
-        content += "<br />文本格式：每行由 <b>IP 地址</b>和<b>域名</b>两个字段组成，字段之间用<b>空格</b>隔开，一个条目一行，可多行多个条目。<br />";
+        content += "<br />文本格式：每行由目标 <b>IP 地址/域名</b>和自定义<b>域名/别名</b>两个字段组成，字段之间用<b>空格</b>隔开，一个条目一行，可多行多个条目。<br />";
         content += "<br />例如：<br />";
         content += "123.123.123.123 xxx123.com<br />";
         content += "192.168.50.15 yyy.cn<br />";
+        content += "www.qq.com mydomain.alias<br />";
         content += "<br />此文件中 <b>0.0.0.0</b> 为无效地址。<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 100) {
@@ -1947,7 +1952,7 @@ function toolsCommand() {
             disabledToolsButton();
             document.getElementById("toolsTextArea").innerHTML = "";
             addressHeight = 0;
-            document.scriptActionsForm.action_script.value = "start_LZAddress_#" + destIPVal + "#" + dnsIPAddressVal + "#";
+            document.scriptActionsForm.action_script.value = "start_LZAddress_" + destIPVal + "_" + dnsIPAddressVal + "_";
             document.scriptActionsForm.action_wait.value = "0";
             document.scriptActionsForm.submit();
             if (!addressEnable) {

@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_config.sh v4.3.7
+# lz_rule_config.sh v4.3.8
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # 本软件采用CIDR（无类别域间路由，Classless Inter-Domain Routing）技术，是一个在Internet上创建附加地
@@ -725,7 +725,7 @@ usage_mode=0
 ## 自定义域名地址解析
 ## 0--启用；非0--禁用；取值范围：0~9
 ## 缺省为禁用（5）。
-## 将指定域名解析到特定的IP地址上，可实现本地网络的DNS劫持。
+## 将指定域名解析到特定的IP地址上，可实现本地网络的DNS劫持；还支持实现关联已有域名的自定义别名。
 ## 仅对以DHCP方式自动连接路由器，或DNS指向路由器主机本地地址的客户端内的网络流量有效。
 ## 若客户端内软件使用其他 DNS 服务器解析网络访问地址，则本功能无效。
 custom_hosts=5
@@ -734,10 +734,11 @@ custom_hosts=5
 ## 文件中的域名被访问时将跳转到指定的IP地址。
 ## 文件路径、名称可自定义和修改，文件路径及名称不得为空。
 ## 缺省为"/jffs/scripts/lz/data/custom_hosts.txt"，为空文件。
-## 文本格式：每行由IP地址和域名两个字段组成，字段之间用空格隔开，一个条目一行，可多行多个条目。
+## 文本格式：每行由目标IP地址/域名和域名/别名两个字段组成，字段之间用空格隔开，一个条目一行，可多行多个条目。
 ## 例如：
 ## 123.123.123.123 xxx123.com
 ## 192.168.50.15 yyy.cn
+## www.qq.com mydomain.alias
 ## 此文件中0.0.0.0为无效IP地址。
 custom_hosts_file="/jffs/scripts/lz/data/custom_hosts.txt"
 

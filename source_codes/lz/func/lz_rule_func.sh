@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v4.3.7
+# lz_rule_func.sh v4.3.8
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 #BEIGIN
@@ -105,11 +105,7 @@ lz_get_ipv4_src_to_dst_data_file_item_total() {
 ##     总有效条目数
 lz_get_custom_hosts_file_item_total() {
     local retval="0"
-    [ -s "${1}" ] && {
-        retval="$( awk -v count="0" '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ \
-            && $2 ~ /^[[:alnum:]_\.\-]+$/ && !i[$2]++ {count++} END{print count}' "${1}" )"
-        
-    }
+    [ -s "${1}" ] && retval="$( awk -v count="0" '$1 ~ /^[[:alnum:]_\.\-]+$/ && $2 ~ /^[[:alnum:]_\.\-]+$/ && !i[$2]++ {count++} END{print count}' "${1}" )"
     echo "${retval}"
 }
 
@@ -1782,8 +1778,12 @@ lz_load_custom_hosts_file() {
             mkdir -p "${PATH_DNSMASQ_DOMAIN_CONF}" > /dev/null 2>&1
             chmod -R 775 "${PATH_DNSMASQ_DOMAIN_CONF}"/* > /dev/null 2>&1
         fi
-        awk '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ \
-            && $2 ~ /^[[:alnum:]_\.\-]+$/ && !i[$2]++ {print "address=/"$2"/"$1}' "${custom_hosts_file}" > "${PATH_DNSMASQ_DOMAIN_CONF}/${CUSTOM_HOSTS_CONF}"
+        awk '$1 ~ /^[[:alnum:]_\.\-]+$/ && $2 ~ /^[[:alnum:]_\.\-]+$/ && !i[$2]++ {
+            if ($1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/)
+                print "address=/"$2"/"$1
+            else
+                print "cname="$2","$1
+        }' "${custom_hosts_file}" > "${PATH_DNSMASQ_DOMAIN_CONF}/${CUSTOM_HOSTS_CONF}"
         if [ ! -s "${DNSMASQ_CONF_ADD}" ]; then
             echo "conf-dir=${PATH_DNSMASQ_DOMAIN_CONF}" >> "${DNSMASQ_CONF_ADD}" 2> /dev/null
         elif ! grep -q "^conf-dir=${PATH_DNSMASQ_DOMAIN_CONF//"/"/[\/]}$" "${DNSMASQ_CONF_ADD}"; then
