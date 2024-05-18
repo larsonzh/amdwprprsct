@@ -1,5 +1,5 @@
 /*
-# lz_policy_routing.js v4.3.8
+# lz_policy_routing.js v4.3.9
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ JavaScript for Asuswrt-Merlin Router
@@ -1031,12 +1031,14 @@ function openOverHint(itemNum) {
     } else if (itemNum == 51) {
         content = "<div>缺省为 <b>864000</b> 秒 (<b>10</b> 天)。<br /><br />若设置缓存时间，软件重启后，时间会重新计数。<br /><br />该参数对<b>代理转发静态直通策略</b>中的静态域名地址解析无效。</div>";
     } else if (itemNum == 52) {
-        content = "<div>缺省为<b>启用</b>。</div>";
+        content = "<div>缺省为<b>启用</b>。<br />";
+        content += "<br />在软件执行结束时执行一次，<b>启用</b>后同时会在<b>自动清理路由表及系统缓存时间间隔 (小时)</b> 的定时任务中执行。</div>";
     } else if (itemNum == 53) {
         content = "<div>缺省为<b>启用</b>。<br />";
-        content += "<br />在软件执行结束时执行一次，同时会在<b>自动清理路由表及系统缓存时间间隔 (小时)</b> 的定时任务中进行。</div>";
+        content += "<br />在软件执行结束时执行一次，<b>启用</b>后同时会在<b>自动清理路由表及系统缓存时间间隔 (小时)</b> 的定时任务中执行。</div>";
     } else if (itemNum == 54) {
-        content = "<div>缺省为每 <b>4</b> 小时清理一次。</div>";
+        content = "<div>缺省为每 <b>4</b> 小时清理一次。<br />";
+        content += "<br /><b>路由表缓存清理</b>或<b>系统缓存清理</b>中任一个功能启用后，该功能才会执行。</div>";
     } else if (itemNum == 55) {
         content = "<div>缺省为 <b>DHCP 或 IPoE</b> 方式获取网络播放源地址，此连接方式也是地址获取方式/寻址方式。<br />";
         content += "<br />若不接入网络直播源，保持缺省即可。</div>";

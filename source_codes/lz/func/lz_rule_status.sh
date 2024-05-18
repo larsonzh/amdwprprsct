@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_status.sh v4.3.8
+# lz_rule_status.sh v4.3.9
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 显示脚本运行状态脚本
@@ -1369,21 +1369,21 @@ lz_get_route_status_info() {
             echo "$(lzdate)" [$$]: "   Proxy Route: Primary WAN" | tee -ai "${STATUS_LOG}" 2> /dev/null
         fi
         if [ "${status_route_cache}" = "0" ]; then
-            echo "$(lzdate)" [$$]: "   Route Cache: Enable" | tee -ai "${STATUS_LOG}" 2> /dev/null
+            echo "$(lzdate)" [$$]: "   Route Cache Cleaning: Enable" | tee -ai "${STATUS_LOG}" 2> /dev/null
         else
-            echo "$(lzdate)" [$$]: "   Route Cache: Disable" | tee -ai "${STATUS_LOG}" 2> /dev/null
+            echo "$(lzdate)" [$$]: "   Route Cache Cleaning: Disable" | tee -ai "${STATUS_LOG}" 2> /dev/null
+        fi
+        if [ "${drop_sys_caches}" = "0" ]; then
+            echo "$(lzdate)" [$$]: "   System Caches Cleaning: Enable" | tee -ai "${STATUS_LOG}" 2> /dev/null
+        else
+            echo "$(lzdate)" [$$]: "   System Caches Cleaning: Disable" | tee -ai "${STATUS_LOG}" 2> /dev/null
         fi
         if [ "${status_clear_route_cache_time_interval}" -gt "0" ] && [ "${status_clear_route_cache_time_interval}" -le "24" ]; then
             local local_interval_suffix_str="s"
             [ "${status_clear_route_cache_time_interval}" = "1" ] && local_interval_suffix_str=""
-            echo "$(lzdate)" [$$]: "   Route Flush Cache: Every ${status_clear_route_cache_time_interval} hour${local_interval_suffix_str}" | tee -ai "${STATUS_LOG}" 2> /dev/null
+            echo "$(lzdate)" [$$]: "   Timed Cache Cleaning: Every ${status_clear_route_cache_time_interval} hour${local_interval_suffix_str}" | tee -ai "${STATUS_LOG}" 2> /dev/null
         else
-            echo "$(lzdate)" [$$]: "   Route Flush Cache: System" | tee -ai "${STATUS_LOG}" 2> /dev/null
-        fi
-        if [ "${drop_sys_caches}" = "0" ]; then
-            echo "$(lzdate)" [$$]: "   Drop System Caches: Enable" | tee -ai "${STATUS_LOG}" 2> /dev/null
-        else
-            echo "$(lzdate)" [$$]: "   Drop System Caches: Disable" | tee -ai "${STATUS_LOG}" 2> /dev/null
+            echo "$(lzdate)" [$$]: "   Timed Cache Cleaning: System" | tee -ai "${STATUS_LOG}" 2> /dev/null
         fi
     fi
     echo "$(lzdate)" [$$]: --------------------------------------------- | tee -ai "${STATUS_LOG}" 2> /dev/null

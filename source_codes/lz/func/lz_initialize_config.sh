@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_initialize_config.sh v4.3.8
+# lz_initialize_config.sh v4.3.9
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 初始化脚本配置
@@ -1162,20 +1162,22 @@ custom_hosts=${local_custom_hosts}
 ## 此文件中0.0.0.0为无效IP地址。
 custom_hosts_file=${local_custom_hosts_file}
 
-## 路由表缓存
+## 路由表缓存清理
 ## 0--启用；非0--禁用；取值范围：0~9
 ## 缺省为启用（0）。
+## 在脚本执行结束时执行一次，该功能启用后同时会在“定时自动清理路由表及系统缓存”定时任务中执行。
 route_cache=${local_route_cache}
 
 ## 系统缓存清理
 ## 0--启用；非0--禁用；取值范围：0~9
 ## 缺省为启用（0）。
-## 在脚本执行结束时执行一次，同时会在“自动清理路由表及系统缓存”定时任务中进行。
+## 在脚本执行结束时执行一次，该功能启用后同时会在“定时自动清理路由表及系统缓存”定时任务中执行。
 drop_sys_caches=${local_drop_sys_caches}
 
-## 自动清理路由表及系统缓存
+## 定时自动清理路由表及系统缓存
 ## 0--禁用；1~24--时间间隔，以小时为单位。
 ## 缺省为每4小时清理一次。
+## “路由表缓存清理”或“系统缓存清理”中任一个功能启用后，该功能才会执行。
 clear_route_cache_time_interval=${local_clear_route_cache_time_interval}
 
 
@@ -1631,6 +1633,10 @@ lz_get_config_data() {
             if (count != length(i))
                 print "lz_restore_cfg_file";
         }' "${PATH_CONFIGS}/lz_rule_config.sh" )"
+    if [ "${local_route_cache}" != "0" ] && [ "${local_drop_sys_caches}" != "0" ] && [ "${local_clear_route_cache_time_interval}" != "0" ]; then
+        sed -i "s|^[[:space:]]*clear_route_cache_time_interval=${local_clear_route_cache_time_interval}|clear_route_cache_time_interval=0|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+        local_clear_route_cache_time_interval="0"
+    fi
     eval "$( awk -F "=" -v value="" -v x=0 -v fname="${PATH_FUNC}/lz_define_global_variables.sh" '$1 == "udpxy_used" {
             x++;
             value=$2;
@@ -2183,6 +2189,10 @@ lz_get_box_data() {
             if (count != length(i)-1)
                 print "lz_restore_box_data";
         }' "${PATH_CONFIGS}/lz_rule_config.box" )"
+    if [ "${local_ini_route_cache}" != "0" ] && [ "${local_ini_drop_sys_caches}" != "0" ] && [ "${local_ini_clear_route_cache_time_interval}" != "0" ]; then
+        sed -i "s|^[[:space:]]*lz_config_clear_route_cache_time_interval=${local_ini_clear_route_cache_time_interval}|lz_config_clear_route_cache_time_interval=0|" "${PATH_CONFIGS}/lz_rule_config.box" > /dev/null 2>&1
+        local_ini_clear_route_cache_time_interval="0"
+    fi
 }
 
 ## 判断配置数据是否变更函数

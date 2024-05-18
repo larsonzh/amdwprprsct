@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v4.3.8
+# lz_rule_func.sh v4.3.9
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 #BEIGIN
@@ -968,21 +968,21 @@ lz_get_route_info() {
             echo "$(lzdate)" [$$]: "   Proxy Route: Primary WAN" | tee -ai "${SYSLOG}" 2> /dev/null
         fi
         if [ "${route_cache}" = "0" ]; then
-            echo "$(lzdate)" [$$]: "   Route Cache: Enable" | tee -ai "${SYSLOG}" 2> /dev/null
+            echo "$(lzdate)" [$$]: "   Route Cache Cleaning: Enable" | tee -ai "${SYSLOG}" 2> /dev/null
         else
-            echo "$(lzdate)" [$$]: "   Route Cache: Disable" | tee -ai "${SYSLOG}" 2> /dev/null
+            echo "$(lzdate)" [$$]: "   Route Cache Cleaning: Disable" | tee -ai "${SYSLOG}" 2> /dev/null
+        fi
+        if [ "${drop_sys_caches}" = "0" ]; then
+            echo "$(lzdate)" [$$]: "   System Caches Cleaning: Enable" | tee -ai "${SYSLOG}" 2> /dev/null
+        else
+            echo "$(lzdate)" [$$]: "   System Caches Cleaning: Disable" | tee -ai "${SYSLOG}" 2> /dev/null
         fi
         if [ "${clear_route_cache_time_interval}" -gt "0" ] && [ "${clear_route_cache_time_interval}" -le "24" ]; then
             local local_interval_suffix_str="s"
             [ "${clear_route_cache_time_interval}" = "1" ] && local_interval_suffix_str=""
-            echo "$(lzdate)" [$$]: "   Route Flush Cache: Every ${clear_route_cache_time_interval} hour${local_interval_suffix_str}" | tee -ai "${SYSLOG}" 2> /dev/null
+            echo "$(lzdate)" [$$]: "   Timed Cache Cleaning: Every ${clear_route_cache_time_interval} hour${local_interval_suffix_str}" | tee -ai "${SYSLOG}" 2> /dev/null
         else
-            echo "$(lzdate)" [$$]: "   Route Flush Cache: System" | tee -ai "${SYSLOG}" 2> /dev/null
-        fi
-        if [ "${drop_sys_caches}" = "0" ]; then
-            echo "$(lzdate)" [$$]: "   Drop System Caches: Enable" | tee -ai "${SYSLOG}" 2> /dev/null
-        else
-            echo "$(lzdate)" [$$]: "   Drop System Caches: Disable" | tee -ai "${SYSLOG}" 2> /dev/null
+            echo "$(lzdate)" [$$]: "   Timed Cache Cleaning: System" | tee -ai "${SYSLOG}" 2> /dev/null
         fi
     fi
     echo "$(lzdate)" [$$]: --------------------------------------------- | tee -ai "${SYSLOG}" 2> /dev/null
@@ -5328,8 +5328,8 @@ lz_deployment_routing_policy() {
     fi
 
     ## 禁用路由缓存
-    [ "${route_cache}" != "0" ] && [ -f "/proc/sys/net/ipv4/rt_cache_rebuild_count" ] \
-        && echo "-1" > "/proc/sys/net/ipv4/rt_cache_rebuild_count"
+    # [ "${route_cache}" != "0" ] && [ -f "/proc/sys/net/ipv4/rt_cache_rebuild_count" ] \
+    #    && echo "-1" > "/proc/sys/net/ipv4/rt_cache_rebuild_count"
 
     ## 从系统中获取本地网络接口设备标识
     local iptv_wan0_ifname="$( nvram get "wan0_ifname" | grep -Eo 'vlan[0-9]*|eth[0-9]*' | sed -n 1p )"
@@ -5900,10 +5900,12 @@ lz_deployment_routing_policy() {
         else
             local_ruid_min="48"
         fi
-        if [ "${drop_sys_caches}" = "0" ]; then
+        if [ "${route_cache}" = "0" ] && [ "${drop_sys_caches}" = "0" ]; then
             cru a "${CLEAR_ROUTE_CACHE_TIMEER_ID}" "${local_ruid_min} */${clear_route_cache_time_interval} * * * { ip route flush cache && [ -f /proc/sys/vm/drop_caches ] && sync && echo 3 > /proc/sys/vm/drop_caches && echo -e \"\$( date +\"%F %T\" ) [\$\$]:\\n\$( date +\"%F %T\" ) [\$\$]: LZ ${LZ_VERSION} Free Memory OK\\n\$( date +\"%F %T\" ) [\$\$]:\" >> ${SYSLOG}; } 2> /dev/null" > /dev/null 2>&1
-        else
+        elif [ "${route_cache}" = "0" ] && [ "${drop_sys_caches}" != "0" ]; then
             cru a "${CLEAR_ROUTE_CACHE_TIMEER_ID}" "${local_ruid_min} */${clear_route_cache_time_interval} * * * ip route flush cache 2> /dev/null" > /dev/null 2>&1
+        elif [ "${route_cache}" != "0" ] && [ "${drop_sys_caches}" = "0" ]; then
+            cru a "${CLEAR_ROUTE_CACHE_TIMEER_ID}" "${local_ruid_min} */${clear_route_cache_time_interval} * * * { [ -f /proc/sys/vm/drop_caches ] && sync && echo 3 > /proc/sys/vm/drop_caches && echo -e \"\$( date +\"%F %T\" ) [\$\$]:\\n\$( date +\"%F %T\" ) [\$\$]: LZ ${LZ_VERSION} Free Memory OK\\n\$( date +\"%F %T\" ) [\$\$]:\" >> ${SYSLOG}; } 2> /dev/null" > /dev/null 2>&1
         fi
     fi
 

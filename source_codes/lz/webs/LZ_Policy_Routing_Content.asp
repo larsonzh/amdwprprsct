@@ -889,7 +889,7 @@
                                                                     </td>
                                                                 </tr>
                                                                 <tr>
-                                                                    <th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(52);">路由表缓存</a></th>
+                                                                    <th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(52);">路由表缓存清理</a></th>
                                                                     <td colspan="4">
                                                                         <input type="radio" value="0" name="lzr_route_cache" class="content_input_fd">启用
                                                                         <input type="radio" value="5" name="lzr_route_cache" class="content_input_fd">停用
