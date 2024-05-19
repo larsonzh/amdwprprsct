@@ -17,7 +17,7 @@ Asuswrt-Merlin dual WAN port router policy routing service configuration tool
 
 在不断迭代和改善的过程中，本软件始终保持良好的向下兼容性，建议用户尽可能使用当前最新版本软件。
 
-[已知可用机型列表 \(包括但不限于\)](https://www.asuswrt-merlin.net)
+[已知适用设备列表 \(包括但不限于\)](https://www.asuswrt-merlin.net)
 
 [软件安装说明](/华硕梅林策略路由软件安装说明.md)
 
