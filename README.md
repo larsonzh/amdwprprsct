@@ -55,7 +55,7 @@ Asuswrt-Merlin dual WAN port router policy routing service configuration tool
 ### 三、运行功能
 - 应用模式：可选择动态分流模式、静态分流模式两种应用模式中的一种。
 - 自定义域名地址解析功能。
-- 路由表缓存功能。
+- 路由表缓存清理功能。
 - 系统缓存清理功能。
 - 自动清理路由表及系统缓存功能。
 
