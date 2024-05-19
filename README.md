@@ -19,6 +19,8 @@ Asuswrt-Merlin dual WAN port router policy routing service configuration tool
 
 [已知可用机型列表 \(包括但不限于\)](https://www.asuswrt-merlin.net)
 
+[软件安装说明](/华硕梅林策略路由软件安装说明.md)
+
 ## 主要功能
 
 ### 一、基础功能
