@@ -2185,11 +2185,10 @@ lz_get_box_data() {
             print "local_ini_"key"="value;
             if (invalid != 6) count++;
         } END{
-            if (count != length(i)-1)
+            param_total=length(i)-1;
+            if (count != param_total || NR != param_total)
                 print "lz_restore_box_data";
-            print "local param_total="length(i)-1
         }' "${PATH_CONFIGS}/lz_rule_config.box" )"
-    [ "${param_total}" != "$( wc -l "${PATH_CONFIGS}/lz_rule_config.box" 2> /dev/null | awk '{print $1}' )" ] && lz_restore_box_data
     if [ "${local_ini_route_cache}" != "0" ] && [ "${local_ini_drop_sys_caches}" != "0" ] && [ "${local_ini_clear_route_cache_time_interval}" != "0" ]; then
         sed -i "s|^[[:space:]]*lz_config_clear_route_cache_time_interval=${local_ini_clear_route_cache_time_interval}|lz_config_clear_route_cache_time_interval=0|" "${PATH_CONFIGS}/lz_rule_config.box" > /dev/null 2>&1
         local_ini_clear_route_cache_time_interval="0"
@@ -2605,7 +2604,7 @@ if [ -f "${PATH_CONFIGS}/lz_rule_config.box" ]; then
         -e '/^[[:space:]]*$/d' "${PATH_CONFIGS}/lz_rule_config.box"
     ## 删除lz_rule_config.box中可能出现的重复参数项
     awk -v x="0" '$1 ~ /^[a-zA-Z0-9_-][a-zA-Z0-9_-]*[=]/ && i[substr($1, 1, index($1, "="))]++ \
-        {x++; printf " -e '\''%ss\/\^\.\*\$\/#\&\/g'\''", NR} END{if (x != "0") printf "\n"}' "${PATH_CONFIGS}/lz_rule_config.box" \
+        {x++; printf " -e '\''%ss\/\^\.\*\$\/#\&\/g'\''", NR} END{if (x != "0") printf "\n";}' "${PATH_CONFIGS}/lz_rule_config.box" \
         | awk 'NF != "0" {system("sed -i"$0" -e '\''\/\^#\/d'\'' ""'"${PATH_CONFIGS}/lz_rule_config.box"'")}'
 fi
 
@@ -2643,10 +2642,9 @@ else
         -e 's/^\([a-zA-Z0-9_-][a-zA-Z0-9_-]*\)[[:space:]][[:space:]]*\([=][^=].*\)$/\1\2/' \
         -e 's/^\([a-zA-Z0-9_-][a-zA-Z0-9_-]*[=]\)[[:space:]][[:space:]]*\([^#[:space:]].*\)$/\1\2/' \
         -e 's/^[[:space:]][[:space:]]*//' "${PATH_CONFIGS}/lz_rule_config.sh"
-
     ## 注释lz_rule_config.sh中的重复参数项
     awk -v x="0" '$1 ~ /^[a-zA-Z0-9_-][a-zA-Z0-9_-]*[=]/ && i[substr($1, 1, index($1, "="))]++ \
-        {x++; printf " -e '\''%ss\/\^\.\*\$\/###\&\/g'\''", NR} END{if (x != "0") printf "\n"}' "${PATH_CONFIGS}/lz_rule_config.sh" \
+        {x++; printf " -e '\''%ss\/\^\.\*\$\/###\&\/g'\''", NR} END{if (x != "0") printf "\n";}' "${PATH_CONFIGS}/lz_rule_config.sh" \
         | awk 'NF != "0" {system("sed -i"$0" ""'"${PATH_CONFIGS}/lz_rule_config.sh"'")}'
 fi
 
