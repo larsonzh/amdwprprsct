@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_initialize_config.sh v4.3.9
+# lz_initialize_config.sh v4.4.0
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 初始化脚本配置
@@ -1618,13 +1618,13 @@ lz_get_config_data() {
                 && match(value, /^[\"][^\"]*[\"]$/) > 0)
                 value="\\\""value"\\\"";
             if (invalid == 1 || invalid == 2)
-                system("sed -i \"s\|\^\[ \\t\]\*"$1"=\.\*\$\|"$1"="value"\|\" \""fname"\" \> \/dev\/null 2\>\&1");
+                system("sed -i \"s\|\^\[\[\:space\:\]\]\*"$1"=\.\*\$\|"$1"="value"\|\" \""fname"\" \> \/dev\/null 2\>\&1");
             else if (invalid == 3)
-                system("sed -i \"s\|\^\[ \\t\]\*"$1"=\.\*\$\|"$1"="value"    ## 间隔天数（1~31）；\\\"ruid_interval_day=5\\\"表示每隔5天。\|\" \""fname"\" \> \/dev\/null 2\>\&1");
+                system("sed -i \"s\|\^\[\[\:space\:\]\]\*"$1"=\.\*\$\|"$1"="value"    ## 间隔天数（1~31）；\\\"ruid_interval_day=5\\\"表示每隔5天。\|\" \""fname"\" \> \/dev\/null 2\>\&1");
             else if (invalid == 4)
-                system("sed -i \"s\|\^\[ \\t\]\*"$1"=\.\*\$\|"$1"="value"    ## 时间小时数（0~23，\\\*表示由系统指定）；\\\"ruid_timer_hour=3\\\"表示更新当天的凌晨3点。\|\" \""fname"\" \> \/dev\/null 2\>\&1");
+                system("sed -i \"s\|\^\[\[\:space\:\]\]\*"$1"=\.\*\$\|"$1"="value"    ## 时间小时数（0~23，\\\*表示由系统指定）；\\\"ruid_timer_hour=3\\\"表示更新当天的凌晨3点。\|\" \""fname"\" \> \/dev\/null 2\>\&1");
             else if (invalid == 5)
-                system("sed -i \"s\|\^\[ \\t\]\*"$1"=\.\*\$\|"$1"="value"    ## 时间分钟数（0~59，\\\*表示由系统指定）；\\\"ruid_timer_min=18\\\"表示更新当天的凌晨3点18分。\|\" \""fname"\" \> \/dev\/null 2\>\&1");
+                system("sed -i \"s\|\^\[\[\:space\:\]\]\*"$1"=\.\*\$\|"$1"="value"    ## 时间分钟数（0~59，\\\*表示由系统指定）；\\\"ruid_timer_min=18\\\"表示更新当天的凌晨3点18分。\|\" \""fname"\" \> \/dev\/null 2\>\&1");
             print "local_"$1"="value;
             count++;
         } END{
@@ -1643,7 +1643,7 @@ lz_get_config_data() {
             gsub(/[ \t#].*$/, "", value);
             if (value !~ /^[0-9]$/) {
                 value="5";
-                system("sed -i \"s\|\^\[ \\t\]\*"$1"=\.\*\$\|"$1"="value"\|\" \""fname"\" \> \/dev\/null 2\>\&1");
+                system("sed -i \"s\|\^\[\[\:space\:\]\]\*"$1"=\.\*\$\|"$1"="value"\|\" \""fname"\" \> \/dev\/null 2\>\&1");
             }
             print "local_"$1"="value;
             exit;
@@ -1766,7 +1766,6 @@ EOF
 
 ## 恢复备份配置参数函数
 ## 输入项：
-##     $1--变量前缀
 ##     全局常量及变量
 ## 返回值：无
 lz_restore_box_data() {
@@ -2182,13 +2181,15 @@ lz_get_box_data() {
                 && match(value, /^[\"][^\"]*[\"]$/) > 0)
                 value="\\\""value"\\\"";
             if (invalid != 0)
-                system("sed -i \"s\|\^\[ \\t\]\*lz_config_"key"=\.\*\$\|lz_config_"key"="value"\|\" \""fname"\" \> \/dev\/null 2\>\&1");
+                system("sed -i \"s\|\^\[\[\:space\:\]\]\*lz_config_"key"=\.\*\$\|lz_config_"key"="value"\|\" \""fname"\" \> \/dev\/null 2\>\&1");
             print "local_ini_"key"="value;
             if (invalid != 6) count++;
         } END{
             if (count != length(i)-1)
                 print "lz_restore_box_data";
+            print "local param_total="length(i)-1
         }' "${PATH_CONFIGS}/lz_rule_config.box" )"
+    [ "${param_total}" != "$( wc -l "${PATH_CONFIGS}/lz_rule_config.box" 2> /dev/null | awk '{print $1}' )" ] && lz_restore_box_data
     if [ "${local_ini_route_cache}" != "0" ] && [ "${local_ini_drop_sys_caches}" != "0" ] && [ "${local_ini_clear_route_cache_time_interval}" != "0" ]; then
         sed -i "s|^[[:space:]]*lz_config_clear_route_cache_time_interval=${local_ini_clear_route_cache_time_interval}|lz_config_clear_route_cache_time_interval=0|" "${PATH_CONFIGS}/lz_rule_config.box" > /dev/null 2>&1
         local_ini_clear_route_cache_time_interval="0"
@@ -2469,8 +2470,8 @@ lz_optimize_to_iptv() {
             }
             if (flag == 0) next;
             if (update != 0) {
-                system("sed -i \"s\|\^\[ \\t\]\*lz_config_"key"=\.\*\$\|lz_config_"key"="value"\|\" \""fname"\" \> \/dev\/null 2\>\&1");
-                system("sed -i \"s\|\^\[ \\t\]\*"key"=\.\*\$\|"key"="value"\|\" \""fnm"\" \> \/dev\/null 2\>\&1");
+                system("sed -i \"s\|\^\[\[\:space\:\]\]\*lz_config_"key"=\.\*\$\|lz_config_"key"="value"\|\" \""fname"\" \> \/dev\/null 2\>\&1");
+                system("sed -i \"s\|\^\[\[\:space\:\]\]\*"key"=\.\*\$\|"key"="value"\|\" \""fnm"\" \> \/dev\/null 2\>\&1");
             }
             print "local_ini_"key"="value;
             print "local_"key"="value;
@@ -2492,8 +2493,8 @@ lz_optimize_to_hd() {
             gsub(/[ \t#].*$/, "", value);
             if (value != 1) {
                 value=1;
-                system("sed -i \"s\|\^\[ \\t\]\*lz_config_"key"=\.\*\$\|lz_config_"key"="value"\|\" \""fname"\" \> \/dev\/null 2\>\&1");
-                system("sed -i \"s\|\^\[ \\t\]\*"key"=\.\*\$\|"key"="value"\|\" \""fnm"\" \> \/dev\/null 2\>\&1");
+                system("sed -i \"s\|\^\[\[\:space\:\]\]\*lz_config_"key"=\.\*\$\|lz_config_"key"="value"\|\" \""fname"\" \> \/dev\/null 2\>\&1");
+                system("sed -i \"s\|\^\[\[\:space\:\]\]\*"key"=\.\*\$\|"key"="value"\|\" \""fnm"\" \> \/dev\/null 2\>\&1");
             }
             print "local_ini_"key"="value;
             print "local_"key"="value;
@@ -2515,8 +2516,8 @@ lz_restore_to_rn() {
             gsub(/[ \t#].*$/, "", value);
             if (value != 0) {
                 value=0;
-                system("sed -i \"s\|\^\[ \\t\]\*lz_config_"key"=\.\*\$\|lz_config_"key"="value"\|\" \""fname"\" \> \/dev\/null 2\>\&1");
-                system("sed -i \"s\|\^\[ \\t\]\*"key"=\.\*\$\|"key"="value"\|\" \""fnm"\" \> \/dev\/null 2\>\&1");
+                system("sed -i \"s\|\^\[\[\:space\:\]\]\*lz_config_"key"=\.\*\$\|lz_config_"key"="value"\|\" \""fname"\" \> \/dev\/null 2\>\&1");
+                system("sed -i \"s\|\^\[\[\:space\:\]\]\*"key"=\.\*\$\|"key"="value"\|\" \""fnm"\" \> \/dev\/null 2\>\&1");
             }
             print "local_ini_"key"="value;
             print "local_"key"="value;
@@ -2565,16 +2566,16 @@ lz_get_web_data_to_config() {
             value="\*";
         if (prefix == "") {
             if (key == "ruid_interval_day")
-                system("sed -i \"s\|\^\[ \\t\]\*"key"=\.\*\$\|"key"="value"    ## 间隔天数（1~31）；\\\"ruid_interval_day=5\\\"表示每隔5天。\|\" \""fname"\" \> \/dev\/null 2\>\&1");
+                system("sed -i \"s\|\^\[\[\:space\:\]\]\*"key"=\.\*\$\|"key"="value"    ## 间隔天数（1~31）；\\\"ruid_interval_day=5\\\"表示每隔5天。\|\" \""fname"\" \> \/dev\/null 2\>\&1");
             else if (key == "ruid_timer_hour")
-                system("sed -i \"s\|\^\[ \\t\]\*"key"=\.\*\$\|"key"="value"    ## 时间小时数（0~23，\\\*表示由系统指定）；\\\"ruid_timer_hour=3\\\"表示更新当天的凌晨3点。\|\" \""fname"\" \> \/dev\/null 2\>\&1");
+                system("sed -i \"s\|\^\[\[\:space\:\]\]\*"key"=\.\*\$\|"key"="value"    ## 时间小时数（0~23，\\\*表示由系统指定）；\\\"ruid_timer_hour=3\\\"表示更新当天的凌晨3点。\|\" \""fname"\" \> \/dev\/null 2\>\&1");
             else if (key == "ruid_timer_min")
-                system("sed -i \"s\|\^\[ \\t\]\*"key"=\.\*\$\|"key"="value"    ## 时间分钟数（0~59，\\\*表示由系统指定）；\\\"ruid_timer_min=18\\\"表示更新当天的凌晨3点18分。\|\" \""fname"\" \> \/dev\/null 2\>\&1");
+                system("sed -i \"s\|\^\[\[\:space\:\]\]\*"key"=\.\*\$\|"key"="value"    ## 时间分钟数（0~59，\\\*表示由系统指定）；\\\"ruid_timer_min=18\\\"表示更新当天的凌晨3点18分。\|\" \""fname"\" \> \/dev\/null 2\>\&1");
             else
-                system("sed -i \"s\|\^\[ \\t\]\*"key"=\.\*\$\|"key"="value"\|\" \""fname"\" \> \/dev\/null 2\>\&1");
+                system("sed -i \"s\|\^\[\[\:space\:\]\]\*"key"=\.\*\$\|"key"="value"\|\" \""fname"\" \> \/dev\/null 2\>\&1");
         } else {
             key=prefix""key;
-            system("sed -i \"s\|\^\[ \\t\]\*"key"=\.\*\$\|"key"="value"\|\" \""fname"\" \> \/dev\/null 2\>\&1");
+            system("sed -i \"s\|\^\[\[\:space\:\]\]\*"key"=\.\*\$\|"key"="value"\|\" \""fname"\" \> \/dev\/null 2\>\&1");
         }
     }' "${SETTINGSFILE}"
     sed -i '/^[[:space:]]*lz_rule_/d' "${SETTINGSFILE}"
@@ -2594,18 +2595,27 @@ if [ "${local_reinstall}" -gt "0" ] && [ "${PATH_LZ}" != "/jffs/scripts/lz" ]; t
     [ -f "${PATH_CONFIGS}/lz_rule_config.sh" ] && sed -i "s:/jffs/scripts/lz/:${PATH_LZ}/:g" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
 fi
 
+if [ -f "${PATH_CONFIGS}/lz_rule_config.box" ]; then
+    ## 清除lz_rule_config.box内参数赋值等式中等号两端的不合法空格
+    sed -i -e 's/^[[:space:]][[:space:]]*//' \
+        -e 's/^\([a-zA-Z0-9_-][a-zA-Z0-9_-]*\)[[:space:]][[:space:]]*\([=][^=].*\)$/\1\2/' \
+        -e 's/^\([a-zA-Z0-9_-][a-zA-Z0-9_-]*[=]\)[[:space:]][[:space:]]*\([^#[:space:]].*\)$/\1\2/' \
+        -e 's/^[[:space:]][[:space:]]*//' \
+        -e '/^[[:space:]]*#/d' \
+        -e '/^[[:space:]]*$/d' "${PATH_CONFIGS}/lz_rule_config.box"
+    ## 删除lz_rule_config.box中可能出现的重复参数项
+    awk -v x="0" '$1 ~ /^[a-zA-Z0-9_-][a-zA-Z0-9_-]*[=]/ && i[substr($1, 1, index($1, "="))]++ \
+        {x++; printf " -e '\''%ss\/\^\.\*\$\/#\&\/g'\''", NR} END{if (x != "0") printf "\n"}' "${PATH_CONFIGS}/lz_rule_config.box" \
+        | awk 'NF != "0" {system("sed -i"$0" -e '\''\/\^#\/d'\'' ""'"${PATH_CONFIGS}/lz_rule_config.box"'")}'
+fi
+
 ## 若lz_rule_config.sh不存在，则重新生成一个
 ## 恢复缺省配置数据文件
 ## 输入项：
 ##     全局常量
 ## 返回值：无
 if [ ! -f "${PATH_CONFIGS}/lz_rule_config.sh" ]; then
-    if [ -f "${PATH_CONFIGS}/lz_rule_config.box" ]; then
-        ## 删除lz_rule_config.box中可能出现的重复参数项
-        awk -v x="0" '$1 ~ /^[a-zA-Z0-9_-][a-zA-Z0-9_-]*[=]/ && i[substr($1, 1, index($1, "="))]++ \
-            {x++; printf " -e '\''%ss\/\^\.\*\$\/#\&\/g'\''", NR} END{if (x != "0") printf "\n"}' "${PATH_CONFIGS}/lz_rule_config.box" \
-            | awk 'NF != "0" {system("sed -i"$0" -e '\''\/\^#\/d'\'' ""'"${PATH_CONFIGS}/lz_rule_config.box"'")}'
-    else
+    if [ ! -f "${PATH_CONFIGS}/lz_rule_config.box" ]; then
         ## 创建新的备份文件
         ## 备份配置参数函数
         ## 输入项：
@@ -2627,6 +2637,17 @@ if [ ! -f "${PATH_CONFIGS}/lz_rule_config.sh" ]; then
     ## 返回值：无
     lz_restore_cfg_file
     local_reinstall="$(( local_reinstall + 1 ))"
+else
+    ## 清除lz_rule_config.sh内参数赋值等式中等号两端的不合法空格
+    sed -i -e 's/^[[:space:]][[:space:]]*//' \
+        -e 's/^\([a-zA-Z0-9_-][a-zA-Z0-9_-]*\)[[:space:]][[:space:]]*\([=][^=].*\)$/\1\2/' \
+        -e 's/^\([a-zA-Z0-9_-][a-zA-Z0-9_-]*[=]\)[[:space:]][[:space:]]*\([^#[:space:]].*\)$/\1\2/' \
+        -e 's/^[[:space:]][[:space:]]*//' "${PATH_CONFIGS}/lz_rule_config.sh"
+
+    ## 注释lz_rule_config.sh中的重复参数项
+    awk -v x="0" '$1 ~ /^[a-zA-Z0-9_-][a-zA-Z0-9_-]*[=]/ && i[substr($1, 1, index($1, "="))]++ \
+        {x++; printf " -e '\''%ss\/\^\.\*\$\/###\&\/g'\''", NR} END{if (x != "0") printf "\n"}' "${PATH_CONFIGS}/lz_rule_config.sh" \
+        | awk 'NF != "0" {system("sed -i"$0" ""'"${PATH_CONFIGS}/lz_rule_config.sh"'")}'
 fi
 
 if [ "${1}" = "default" ]; then
@@ -2640,11 +2661,6 @@ if [ "${1}" = "default" ]; then
         rm "${PATH_CONFIGS}/lz_rule_config.box" > /dev/null 2>&1
     fi
 fi
-
-## 注释lz_rule_config.sh中的重复参数项
-awk -v x="0" '$1 ~ /^[a-zA-Z0-9_-][a-zA-Z0-9_-]*[=]/ && i[substr($1, 1, index($1, "="))]++ \
-    {x++; printf " -e '\''%ss\/\^\.\*\$\/###\&\/g'\''", NR} END{if (x != "0") printf "\n"}' "${PATH_CONFIGS}/lz_rule_config.sh" \
-    | awk 'NF != "0" {system("sed -i"$0" ""'"${PATH_CONFIGS}/lz_rule_config.sh"'")}'
 
 ## 接收WEB前端数据至配置文件
 ## 输入项：
@@ -2669,11 +2685,6 @@ if [ ! -f "${PATH_CONFIGS}/lz_rule_config.box" ]; then
     ## 返回值：无
     lz_backup_config
 else
-    ## 删除lz_rule_config.box中的重复参数项
-    awk -v x="0" '$1 ~ /^[a-zA-Z0-9_-][a-zA-Z0-9_-]*[=]/ && i[substr($1, 1, index($1, "="))]++ \
-        {x++; printf " -e '\''%ss\/\^\.\*\$\/#\&\/g'\''", NR} END{if (x != "0") printf "\n"}' "${PATH_CONFIGS}/lz_rule_config.box" \
-        | awk 'NF != "0" {system("sed -i"$0" -e '\''\/\^#\/d'\'' ""'"${PATH_CONFIGS}/lz_rule_config.box"'")}'
-
     ## 获取备份参数
     ## 输入项：
     ##     全局常量及变量
