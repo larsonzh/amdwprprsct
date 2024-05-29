@@ -1,11 +1,12 @@
 #!/bin/sh
-# lz_rule_func.sh v4.4.0
+# lz_rule_func.sh v4.4.1
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 #BEIGIN
 
 # shellcheck source=/dev/null
 # shellcheck disable=SC2034  # Unused variables left for readability
+# shellcheck disable=SC2153
 # shellcheck disable=SC2154
 # shellcheck disable=SC3051
 
@@ -115,9 +116,9 @@ lz_get_custom_hosts_file_item_total() {
 ## 返回值：
 ##     域名地址条目列表
 lz_get_domain_list() {
-    sed -e "s/\'//g" -e 's/\"//g' -e 's/[[:space:]]\+/ /g' -e 's/^[ ]*//g' -e '/^[#]/d' -e 's/[#].*$//g' -e 's/^\([^ ]*\).*$/\1/g' \
-        -e 's/^[^ ]*[\:][\/][\/]//g' -e 's/^[^ ]\{0,6\}[\:]//g' -e 's/[\/].*$//g' -e 's/[ ].*$//g' -e '/^[\.]/d' \
-        -e '/^[ ]*$/d' "${1}" 2> /dev/null | tr '[:A-Z:]' '[:a-z:]'
+    sed -e "s/\'//g" -e 's/\"//g' -e 's/[[:space:]]\+/ /g' -e 's/^[[:space:]]*//g' -e '/^[#]/d' -e 's/[#].*$//g' -e 's/^\([^[:space:]]*\).*$/\1/g' \
+        -e 's/^[^[:space:]]*[\:][\/][\/]//g' -e 's/^[^[:space:]]\{0,6\}[\:]//g' -e 's/[\/].*$//g' -e 's/[[:space:]].*$//g' -e '/^[\.]/d' \
+        -e '/^[[:space:]]*$/d' "${1}" 2> /dev/null | tr '[:A-Z:]' '[:a-z:]'
 }
 
 ## 获取WAN口域名地址条目列表数据文件总有效条目数函数

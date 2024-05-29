@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_initialize_config.sh v4.4.0
+# lz_initialize_config.sh v4.4.1
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 初始化脚本配置
@@ -407,6 +407,103 @@ lz_init_cfg_data() {
     eval "[ \"\${${1}custom_dualwan_scripts_filename-undefined}\" = \"undefined\" ]" && eval "${1}custom_dualwan_scripts_filename=\\\"${PATH_LZ}/custom_dualwan_scripts.sh\\\""
 }
 
+## 备份参数初始化配置参数函数
+## 输入项：
+##     全局变量
+## 返回值：无
+lz_init_box_to_cfg_data() {
+    local_all_foreign_wan_port="${local_ini_all_foreign_wan_port}"
+    local_chinatelecom_wan_port="${local_ini_chinatelecom_wan_port}"
+    local_unicom_cnc_wan_port="${local_ini_unicom_cnc_wan_port}"
+    local_cmcc_wan_port="${local_ini_cmcc_wan_port}"
+    local_crtc_wan_port="${local_ini_crtc_wan_port}"
+    local_cernet_wan_port="${local_ini_cernet_wan_port}"
+    local_gwbn_wan_port="${local_ini_gwbn_wan_port}"
+    local_othernet_wan_port="${local_ini_othernet_wan_port}"
+    local_hk_wan_port="${local_ini_hk_wan_port}"
+    local_mo_wan_port="${local_ini_mo_wan_port}"
+    local_tw_wan_port="${local_ini_tw_wan_port}"
+    local_regularly_update_ispip_data_enable="${local_ini_regularly_update_ispip_data_enable}"
+    local_ruid_interval_day="${local_ini_ruid_interval_day}"
+    local_ruid_timer_hour="${local_ini_ruid_timer_hour}"
+    local_ruid_timer_min="${local_ini_ruid_timer_min}"
+    local_ruid_retry_num="${local_ini_ruid_retry_num}"
+    local_custom_data_wan_port_1="${local_ini_custom_data_wan_port_1}"
+    local_custom_data_file_1="${local_ini_custom_data_file_1}"
+    local_custom_data_wan_port_2="${local_ini_custom_data_wan_port_2}"
+    local_custom_data_file_2="${local_ini_custom_data_file_2}"
+    local_wan_1_domain="${local_ini_wan_1_domain}"
+    local_wan_1_domain_client_src_addr_file="${local_ini_wan_1_domain_client_src_addr_file}"
+    local_wan_1_domain_file="${local_ini_wan_1_domain_file}"
+    local_wan_2_domain="${local_ini_wan_2_domain}"
+    local_wan_2_domain_client_src_addr_file="${local_ini_wan_2_domain_client_src_addr_file}"
+    local_wan_2_domain_file="${local_ini_wan_2_domain_file}"
+    local_wan_1_client_src_addr="${local_ini_wan_1_client_src_addr}"
+    local_wan_1_client_src_addr_file="${local_ini_wan_1_client_src_addr_file}"
+    local_wan_2_client_src_addr="${local_ini_wan_2_client_src_addr}"
+    local_wan_2_client_src_addr_file="${local_ini_wan_2_client_src_addr_file}"
+    local_high_wan_1_client_src_addr="${local_ini_high_wan_1_client_src_addr}"
+    local_high_wan_1_client_src_addr_file="${local_ini_high_wan_1_client_src_addr_file}"
+    local_high_wan_2_client_src_addr="${local_ini_high_wan_2_client_src_addr}"
+    local_high_wan_2_client_src_addr_file="${local_ini_high_wan_2_client_src_addr_file}"
+    local_wan_1_src_to_dst_addr="${local_ini_wan_1_src_to_dst_addr}"
+    local_wan_1_src_to_dst_addr_file="${local_ini_wan_1_src_to_dst_addr_file}"
+    local_wan_2_src_to_dst_addr="${local_ini_wan_2_src_to_dst_addr}"
+    local_wan_2_src_to_dst_addr_file="${local_ini_wan_2_src_to_dst_addr_file}"
+    local_high_wan_1_src_to_dst_addr="${local_ini_high_wan_1_src_to_dst_addr}"
+    local_high_wan_1_src_to_dst_addr_file="${local_ini_high_wan_1_src_to_dst_addr_file}"
+    local_wan0_dest_tcp_port="${local_ini_wan0_dest_tcp_port}"
+    local_wan0_dest_udp_port="${local_ini_wan0_dest_udp_port}"
+    local_wan0_dest_udplite_port="${local_ini_wan0_dest_udplite_port}"
+    local_wan0_dest_sctp_port="${local_ini_wan0_dest_sctp_port}"
+    local_wan1_dest_tcp_port="${local_ini_wan1_dest_tcp_port}"
+    local_wan1_dest_udp_port="${local_ini_wan1_dest_udp_port}"
+    local_wan1_dest_udplite_port="${local_ini_wan1_dest_udplite_port}"
+    local_wan1_dest_sctp_port="${local_ini_wan1_dest_sctp_port}"
+    local_wan_1_src_to_dst_addr_port="${local_ini_wan_1_src_to_dst_addr_port}"
+    local_wan_1_src_to_dst_addr_port_file="${local_ini_wan_1_src_to_dst_addr_port_file}"
+    local_wan_2_src_to_dst_addr_port="${local_ini_wan_2_src_to_dst_addr_port}"
+    local_wan_2_src_to_dst_addr_port_file="${local_ini_wan_2_src_to_dst_addr_port_file}"
+    local_high_wan_1_src_to_dst_addr_port="${local_ini_high_wan_1_src_to_dst_addr_port}"
+    local_high_wan_1_src_to_dst_addr_port_file="${local_ini_high_wan_1_src_to_dst_addr_port_file}"
+    local_local_ipsets_file="${local_ini_local_ipsets_file}"
+    local_wan_access_port="${local_ini_wan_access_port}"
+    local_ovs_client_wan_port="${local_ini_ovs_client_wan_port}"
+    local_vpn_client_polling_time="${local_ini_vpn_client_polling_time}"
+    local_proxy_route="${local_ini_proxy_route}"
+    local_proxy_remote_node_addr_file="${local_ini_proxy_remote_node_addr_file}"
+    local_usage_mode="${local_ini_usage_mode}"
+    local_custom_hosts="${local_ini_custom_hosts}"
+    local_custom_hosts_file="${local_ini_custom_hosts_file}"
+    local_dn_pre_resolved="${local_ini_dn_pre_resolved}"
+    local_pre_dns="${local_ini_pre_dns}"
+    local_dn_cache_time="${local_ini_dn_cache_time}"
+    local_route_cache="${local_ini_route_cache}"
+    local_drop_sys_caches="${local_ini_drop_sys_caches}"
+    local_clear_route_cache_time_interval="${local_ini_clear_route_cache_time_interval}"
+    local_wan1_iptv_mode="${local_ini_wan1_iptv_mode}"
+    local_wan2_iptv_mode="${local_ini_wan2_iptv_mode}"
+    local_iptv_igmp_switch="${local_ini_iptv_igmp_switch}"
+    local_iptv_access_mode="${local_ini_iptv_access_mode}"
+    local_iptv_box_ip_lst_file="${local_ini_iptv_box_ip_lst_file}"
+    local_iptv_isp_ip_lst_file="${local_ini_iptv_isp_ip_lst_file}"
+    local_hnd_br0_bcmmcast_mode="${local_ini_hnd_br0_bcmmcast_mode}"
+    local_wan1_udpxy_switch="${local_ini_wan1_udpxy_switch}"
+    local_wan1_udpxy_port="${local_ini_wan1_udpxy_port}"
+    local_wan1_udpxy_buffer="${local_ini_wan1_udpxy_buffer}"
+    local_wan1_udpxy_client_num="${local_ini_wan1_udpxy_client_num}"
+    local_wan2_udpxy_switch="${local_ini_wan2_udpxy_switch}"
+    local_wan2_udpxy_port="${local_ini_wan2_udpxy_port}"
+    local_wan2_udpxy_buffer="${local_ini_wan2_udpxy_buffer}"
+    local_wan2_udpxy_client_num="${local_ini_wan2_udpxy_client_num}"
+    local_custom_clear_scripts="${local_ini_custom_clear_scripts}"
+    local_custom_clear_scripts_filename="${local_ini_custom_clear_scripts_filename}"
+    local_custom_config_scripts="${local_ini_custom_config_scripts}"
+    local_custom_config_scripts_filename="${local_ini_custom_config_scripts_filename}"
+    local_custom_dualwan_scripts="${local_ini_custom_dualwan_scripts}"
+    local_custom_dualwan_scripts_filename="${local_ini_custom_dualwan_scripts_filename}"
+}
+
 ## 复原配置文件函数
 ## 输入项：
 ##     全局常量及变量
@@ -418,7 +515,7 @@ lz_restore_cfg_file() {
     ##     全局常量及变量
     ## 返回值：无
     lz_init_cfg_data "local_"
-    cat > "${PATH_CONFIGS}/lz_rule_config.sh" <<EOF
+    cat > "${PATH_CONFIGS}/lz_rule_config.sh" <<EOF_CFG
 #!/bin/sh
 # lz_rule_config.sh ${LZ_VERSION}
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
@@ -594,7 +691,6 @@ unicom_cnc_wan_port=${local_unicom_cnc_wan_port}
 ## 中国移动IPv4目标网段流量出口（网段数据文件：cmcc_cidr.txt）
 ## 0--第一WAN口；1--第二WAN口；2--均分出口；3--反向均分出口；>3--自动分配出口；取值范围：0~9
 ## 缺省为第二WAN口（1）。
-## 1：表示对中国移动网段的访问使用第二AN口。
 cmcc_wan_port=${local_cmcc_wan_port}
 
 ## 中国铁通IPv4目标网段流量出口（网段数据文件：crtc_cidr.txt）
@@ -1287,7 +1383,7 @@ wan2_udpxy_port=${local_wan2_udpxy_port}
 wan2_udpxy_buffer=${local_wan2_udpxy_buffer}
 
 ## 第二WAN口UDPXY代理支持的内网客户端数量
-##取值范围：1~5000
+##b取值范围：1~5000
 ## 缺省为10。
 wan2_udpxy_client_num=${local_wan2_udpxy_client_num}
 
@@ -1341,7 +1437,7 @@ custom_dualwan_scripts_filename=${local_custom_dualwan_scripts_filename}
 ## ----------------------------------------------------
 
 #END
-EOF
+EOF_CFG
     chmod 775 "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
 }
 
@@ -1350,7 +1446,7 @@ EOF
 ##     全局常量及变量
 ## 返回值：无
 lz_get_config_data() {
-    local dnsmasq_enable="0"
+    local dnsmasq_enable="0" restore_cfg="0" original_length="-1" current_length="-1"
     ! dnsmasq -v 2> /dev/null | grep -w 'ipset' | grep -qvw 'no[\-]ipset' && dnsmasq_enable="1"
     eval "$( awk -F "=" -v path="${PATH_LZ}" -v pathd="${PATH_DATA}" -v fname="${PATH_CONFIGS}/lz_rule_config.sh" \
         'BEGIN{
@@ -1446,10 +1542,10 @@ lz_get_config_data() {
             i["custom_config_scripts_filename"]=path"/custom_config.sh";
             i["custom_dualwan_scripts"]=5;
             i["custom_dualwan_scripts_filename"]=path"/custom_dualwan_scripts.sh";
-        } $1 ~ /^[a-zA-Z0-9]+/ {
+        } $0 ~ /^[[:space:]]*[[:alnum:]_]+[=]/ {
             flag=0;
             value=$2;
-            gsub(/[ \t#].*$/, "", value);
+            gsub(/[[:space:]#].*$/, "", value);
             invalid=0;
             if ($1 == "all_foreign_wan_port" \
                 || $1 == "chinatelecom_wan_port" \
@@ -1592,7 +1688,7 @@ lz_get_config_data() {
                 || $1 == "custom_config_scripts_filename" \
                 || $1 == "custom_dualwan_scripts_filename") {
                 flag=2;
-                if ((value !~ /^[\"]([\/][a-zA-Z0-9_\-][a-zA-Z0-9_\.\-]*)+[\"]$/ && value !~ /^([\/][a-zA-Z0-9_\-][a-zA-Z0-9_\.\-]*)+$/) \
+                if ((value !~ /^[\"]([\/][[:alnum:]_\-][[:alnum:]_\.\-]*)+[\"]$/ && value !~ /^([\/][[:alnum:]_\-][[:alnum:]_\.\-]*)+$/) \
                     || value ~ /[\/][\/]/)
                     invalid=2;
             } else if ($1 == "pre_dns") {
@@ -1631,16 +1727,27 @@ lz_get_config_data() {
             if (x > 0)
                 print "local_default=\"0\"";
             if (count != length(i))
-                print "lz_restore_cfg_file";
+                print "restore_cfg=\"1\"";
+            print "current_length="NR;
         }' "${PATH_CONFIGS}/lz_rule_config.sh" )"
+    if [ "${restore_cfg}" = "1" ]; then
+        lz_restore_cfg_file
+    else
+        original_length="$( awk 'BEIGN{x=-1; y=-1; z=0;} \
+            /EOF_CFG/ {if ($0 ~ /<<EOF_CFG/) x=NR; else if ($0 ~ /^EOF_CFG/) y=NR; z++; if (z > 1) exit;} \
+            END{if (x > 0 && y > 0 && y > x && z == 2) print y-x-1; else print -1;}' "${PATH_FUNC}/lz_initialize_config.sh" 2> /dev/null )"
+        [ -n "${original_length}" ] && [ "${original_length}" -gt "0" ] && [ "${current_length}" -gt "0" ] \
+            && [ "${original_length}" != "${current_length}" ] && lz_restore_cfg_file
+    fi
     if [ "${local_route_cache}" != "0" ] && [ "${local_drop_sys_caches}" != "0" ] && [ "${local_clear_route_cache_time_interval}" != "0" ]; then
         sed -i "s|^[[:space:]]*clear_route_cache_time_interval=${local_clear_route_cache_time_interval}|clear_route_cache_time_interval=0|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
         local_clear_route_cache_time_interval="0"
     fi
-    eval "$( awk -F "=" -v value="" -v x=0 -v fname="${PATH_FUNC}/lz_define_global_variables.sh" '$1 == "udpxy_used" {
+    eval "$( awk -F "=" -v value="" -v x=0 -v fname="${PATH_FUNC}/lz_define_global_variables.sh" '$0 ~ /^[[:space:]]*udpxy_used[=]/ \
+        && $1 == "udpxy_used" {
             x++;
             value=$2;
-            gsub(/[ \t#].*$/, "", value);
+            gsub(/[[:space:]#].*$/, "", value);
             if (value !~ /^[0-9]$/) {
                 value="5";
                 system("sed -i \"s\|\^\[\[\:space\:\]\]\*"$1"=\.\*\$\|"$1"="value"\|\" \""fname"\" \> \/dev\/null 2\>\&1");
@@ -1979,12 +2086,12 @@ lz_get_box_data() {
             i["custom_dualwan_scripts_filename"]=path"/custom_dualwan_scripts.sh";
             i["udpxy_used"]=5;
             i["policy_mode"]=5;
-        } $1 ~ /^lz_config_[a-zA-Z0-9]+/ {
+        } $0 ~ /^[[:space:]]*lz_config_[[:alnum:]_]+[=]/ {
             flag=0;
             key=$1;
             sub(/^lz_config_/, "", key);
             value=$2;
-            gsub(/[ \t#].*$/, "", value);
+            gsub(/[[:space:]#].*$/, "", value);
             invalid=0;
             if (key == "version") {
                 flag=1;
@@ -2163,7 +2270,7 @@ lz_get_box_data() {
                 || key == "custom_config_scripts_filename" \
                 || key == "custom_dualwan_scripts_filename") {
                 flag=2;
-                if ((value !~ /^[\"]([\/][a-zA-Z0-9_\-][a-zA-Z0-9_\.\-]*)+[\"]$/ && value !~ /^([\/][a-zA-Z0-9_\-][a-zA-Z0-9_\.\-]*)+$/) \
+                if ((value !~ /^[\"]([\/][[:alnum:]_\-][[:alnum:]_\.\-]*)+[\"]$/ && value !~ /^([\/][[:alnum:]_\-][[:alnum:]_\.\-]*)+$/) \
                     || value ~ /[\/][\/]/)
                     invalid=2;
             } else if (key == "pre_dns") {
@@ -2356,22 +2463,22 @@ lz_restore_config() {
     [ "${local_high_wan_1_src_to_dst_addr_changed}" = "1" ] && sed -i "s|^[[:space:]]*high_wan_1_src_to_dst_addr=${local_high_wan_1_src_to_dst_addr}|high_wan_1_src_to_dst_addr=${local_ini_high_wan_1_src_to_dst_addr}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
     [ "${local_high_wan_1_src_to_dst_addr_file_changed}" = "1" ] && sed -i "s|^[[:space:]]*high_wan_1_src_to_dst_addr_file=${local_high_wan_1_src_to_dst_addr_file}|high_wan_1_src_to_dst_addr_file=${local_ini_high_wan_1_src_to_dst_addr_file}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
 
-    [ "${local_wan0_dest_tcp_port_changed}" = "1" ] && sed -i "s|^[ ]*wan0_dest_tcp_port=${local_wan0_dest_tcp_port}|wan0_dest_tcp_port=${local_ini_wan0_dest_tcp_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_wan0_dest_udp_port_changed}" = "1" ] && sed -i "s|^[ ]*wan0_dest_udp_port=${local_wan0_dest_udp_port}|wan0_dest_udp_port=${local_ini_wan0_dest_udp_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_wan0_dest_udplite_port_changed}" = "1" ] && sed -i "s|^[ ]*wan0_dest_udplite_port=${local_wan0_dest_udplite_port}|wan0_dest_udplite_port=${local_ini_wan0_dest_udplite_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_wan0_dest_sctp_port_changed}" = "1" ] && sed -i "s|^[ ]*wan0_dest_sctp_port=${local_wan0_dest_sctp_port}|wan0_dest_sctp_port=${local_ini_wan0_dest_sctp_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan0_dest_tcp_port_changed}" = "1" ] && sed -i "s|^[[:space:]]*wan0_dest_tcp_port=${local_wan0_dest_tcp_port}|wan0_dest_tcp_port=${local_ini_wan0_dest_tcp_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan0_dest_udp_port_changed}" = "1" ] && sed -i "s|^[[:space:]]*wan0_dest_udp_port=${local_wan0_dest_udp_port}|wan0_dest_udp_port=${local_ini_wan0_dest_udp_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan0_dest_udplite_port_changed}" = "1" ] && sed -i "s|^[[:space:]]*wan0_dest_udplite_port=${local_wan0_dest_udplite_port}|wan0_dest_udplite_port=${local_ini_wan0_dest_udplite_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan0_dest_sctp_port_changed}" = "1" ] && sed -i "s|^[[:space:]]*wan0_dest_sctp_port=${local_wan0_dest_sctp_port}|wan0_dest_sctp_port=${local_ini_wan0_dest_sctp_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
 
-    [ "${local_wan1_dest_tcp_port_changed}" = "1" ] && sed -i "s|^[ ]*wan1_dest_tcp_port=${local_wan1_dest_tcp_port}|wan1_dest_tcp_port=${local_ini_wan1_dest_tcp_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_wan1_dest_udp_port_changed}" = "1" ] && sed -i "s|^[ ]*wan1_dest_udp_port=${local_wan1_dest_udp_port}|wan1_dest_udp_port=${local_ini_wan1_dest_udp_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_wan1_dest_udplite_port_changed}" = "1" ] && sed -i "s|^[ ]*wan1_dest_udplite_port=${local_wan1_dest_udplite_port}|wan1_dest_udplite_port=${local_ini_wan1_dest_udplite_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_wan1_dest_sctp_port_changed}" = "1" ] && sed -i "s|^[ ]*wan1_dest_sctp_port=${local_wan1_dest_sctp_port}|wan1_dest_sctp_port=${local_ini_wan1_dest_sctp_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan1_dest_tcp_port_changed}" = "1" ] && sed -i "s|^[[:space:]]*wan1_dest_tcp_port=${local_wan1_dest_tcp_port}|wan1_dest_tcp_port=${local_ini_wan1_dest_tcp_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan1_dest_udp_port_changed}" = "1" ] && sed -i "s|^[[:space:]]*wan1_dest_udp_port=${local_wan1_dest_udp_port}|wan1_dest_udp_port=${local_ini_wan1_dest_udp_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan1_dest_udplite_port_changed}" = "1" ] && sed -i "s|^[[:space:]]*wan1_dest_udplite_port=${local_wan1_dest_udplite_port}|wan1_dest_udplite_port=${local_ini_wan1_dest_udplite_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan1_dest_sctp_port_changed}" = "1" ] && sed -i "s|^[[:space:]]*wan1_dest_sctp_port=${local_wan1_dest_sctp_port}|wan1_dest_sctp_port=${local_ini_wan1_dest_sctp_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
 
-    [ "${local_wan_1_src_to_dst_addr_port_changed}" = "1" ] && sed -i "s|^[ ]*wan_1_src_to_dst_addr_port=${local_wan_1_src_to_dst_addr_port}|wan_1_src_to_dst_addr_port=${local_ini_wan_1_src_to_dst_addr_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_wan_1_src_to_dst_addr_port_file_changed}" = "1" ] && sed -i "s|^[ ]*wan_1_src_to_dst_addr_port_file=${local_wan_1_src_to_dst_addr_port_file}|wan_1_src_to_dst_addr_port_file=${local_ini_wan_1_src_to_dst_addr_port_file}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_wan_2_src_to_dst_addr_port_changed}" = "1" ] && sed -i "s|^[ ]*wan_2_src_to_dst_addr_port=${local_wan_2_src_to_dst_addr_port}|wan_2_src_to_dst_addr_port=${local_ini_wan_2_src_to_dst_addr_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_wan_2_src_to_dst_addr_port_file_changed}" = "1" ] && sed -i "s|^[ ]*wan_2_src_to_dst_addr_port_file=${local_wan_2_src_to_dst_addr_port_file}|wan_2_src_to_dst_addr_port_file=${local_ini_wan_2_src_to_dst_addr_port_file}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_high_wan_1_src_to_dst_addr_port_changed}" = "1" ] && sed -i "s|^[ ]*high_wan_1_src_to_dst_addr_port=${local_high_wan_1_src_to_dst_addr_port}|high_wan_1_src_to_dst_addr_port=${local_ini_high_wan_1_src_to_dst_addr_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
-    [ "${local_high_wan_1_src_to_dst_addr_port_file_changed}" = "1" ] && sed -i "s|^[ ]*high_wan_1_src_to_dst_addr_port_file=${local_high_wan_1_src_to_dst_addr_port_file}|high_wan_1_src_to_dst_addr_port_file=${local_ini_high_wan_1_src_to_dst_addr_port_file}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan_1_src_to_dst_addr_port_changed}" = "1" ] && sed -i "s|^[[:space:]]*wan_1_src_to_dst_addr_port=${local_wan_1_src_to_dst_addr_port}|wan_1_src_to_dst_addr_port=${local_ini_wan_1_src_to_dst_addr_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan_1_src_to_dst_addr_port_file_changed}" = "1" ] && sed -i "s|^[[:space:]]*wan_1_src_to_dst_addr_port_file=${local_wan_1_src_to_dst_addr_port_file}|wan_1_src_to_dst_addr_port_file=${local_ini_wan_1_src_to_dst_addr_port_file}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan_2_src_to_dst_addr_port_changed}" = "1" ] && sed -i "s|^[[:space:]]*wan_2_src_to_dst_addr_port=${local_wan_2_src_to_dst_addr_port}|wan_2_src_to_dst_addr_port=${local_ini_wan_2_src_to_dst_addr_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_wan_2_src_to_dst_addr_port_file_changed}" = "1" ] && sed -i "s|^[[:space:]]*wan_2_src_to_dst_addr_port_file=${local_wan_2_src_to_dst_addr_port_file}|wan_2_src_to_dst_addr_port_file=${local_ini_wan_2_src_to_dst_addr_port_file}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_high_wan_1_src_to_dst_addr_port_changed}" = "1" ] && sed -i "s|^[[:space:]]*high_wan_1_src_to_dst_addr_port=${local_high_wan_1_src_to_dst_addr_port}|high_wan_1_src_to_dst_addr_port=${local_ini_high_wan_1_src_to_dst_addr_port}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ "${local_high_wan_1_src_to_dst_addr_port_file_changed}" = "1" ] && sed -i "s|^[[:space:]]*high_wan_1_src_to_dst_addr_port_file=${local_high_wan_1_src_to_dst_addr_port_file}|high_wan_1_src_to_dst_addr_port_file=${local_ini_high_wan_1_src_to_dst_addr_port_file}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
 
     [ "${local_local_ipsets_file_changed}" = "1" ] && sed -i "s|^[[:space:]]*local_ipsets_file=${local_local_ipsets_file}|local_ipsets_file=${local_ini_local_ipsets_file}|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
 
@@ -2425,13 +2532,13 @@ lz_restore_config() {
 lz_optimize_to_iptv() {
     [ "${1}" != "iptv" ] && return
     eval "$( awk -F "=" -v fnm="${PATH_CONFIGS}/lz_rule_config.sh" -v fname="${PATH_CONFIGS}/lz_rule_config.box" \
-        '$1 ~ /^lz_config_[a-zA-Z0-9]+/ {
+        '$0 ~ /^[[:space:]]*lz_config_[[:alnum:]_]+[=]/ {
             flag=0;
             update=0;
             key=$1;
             sub(/^lz_config_/, "", key);
             value=$2;
-            gsub(/[ \t#].*$/, "", value);
+            gsub(/[[:space:]#].*$/, "", value);
             if (key == "all_foreign_wan_port" \
                 || key == "chinatelecom_wan_port" \
                 || key == "unicom_cnc_wan_port" \
@@ -2485,11 +2592,11 @@ lz_optimize_to_iptv() {
 lz_optimize_to_hd() {
     [ "${1}" != "hd" ] && [ "${1}" != "iptv" ] && return
     eval "$( awk -F "=" -v fnm="${PATH_CONFIGS}/lz_rule_config.sh" -v fname="${PATH_CONFIGS}/lz_rule_config.box" \
-        '$1 == "lz_config_usage_mode" {
+        '$0 ~ /^[[:space:]]*lz_config_[[:alnum:]_]+[=]/ && $1 == "lz_config_usage_mode" {
             key=$1;
             sub(/^lz_config_/, "", key);
             value=$2;
-            gsub(/[ \t#].*$/, "", value);
+            gsub(/[[:space:]#].*$/, "", value);
             if (value != 1) {
                 value=1;
                 system("sed -i \"s\|\^\[\[\:space\:\]\]\*lz_config_"key"=\.\*\$\|lz_config_"key"="value"\|\" \""fname"\" \> \/dev\/null 2\>\&1");
@@ -2508,11 +2615,11 @@ lz_optimize_to_hd() {
 lz_restore_to_rn() {
     [ "$1" != "rn" ] && return
     eval "$( awk -F "=" -v fnm="${PATH_CONFIGS}/lz_rule_config.sh" -v fname="${PATH_CONFIGS}/lz_rule_config.box" \
-        '$1 == "lz_config_usage_mode" {
+        '$0 ~ /^[[:space:]]*lz_config_[[:alnum:]_]+[=]/ && $1 == "lz_config_usage_mode" {
             key=$1;
             sub(/^lz_config_/, "", key);
             value=$2;
-            gsub(/[ \t#].*$/, "", value);
+            gsub(/[[:space:]#].*$/, "", value);
             if (value != 0) {
                 value=0;
                 system("sed -i \"s\|\^\[\[\:space\:\]\]\*lz_config_"key"=\.\*\$\|lz_config_"key"="value"\|\" \""fname"\" \> \/dev\/null 2\>\&1");
@@ -2595,16 +2702,14 @@ if [ "${local_reinstall}" -gt "0" ] && [ "${PATH_LZ}" != "/jffs/scripts/lz" ]; t
 fi
 
 if [ -f "${PATH_CONFIGS}/lz_rule_config.box" ]; then
-    ## 清除lz_rule_config.box内参数赋值等式中等号两端的不合法空格
-    sed -i -e 's/^[[:space:]][[:space:]]*//' \
-        -e 's/^\([a-zA-Z0-9_-][a-zA-Z0-9_-]*\)[[:space:]][[:space:]]*\([=][^=].*\)$/\1\2/' \
-        -e 's/^\([a-zA-Z0-9_-][a-zA-Z0-9_-]*[=]\)[[:space:]][[:space:]]*\([^#[:space:]].*\)$/\1\2/' \
-        -e 's/^[[:space:]][[:space:]]*//' \
-        -e '/^[[:space:]]*#/d' \
-        -e '/^[[:space:]]*$/d' "${PATH_CONFIGS}/lz_rule_config.box"
+    ## 清除lz_rule_config.box内的错误字符内容及参数赋值等式中等号两端的非法空格
+    sed -i -e 's/^[[:space:]][[:space:]]*//' -e 's/[=][=][=]*/=/g' \
+        -e 's/^\(lz_config_[[:alnum:]_][[:alnum:]_]*\)[[:space:]][[:space:]]*\([=].*\)$/\1\2/' \
+        -e 's/^\(lz_config_[[:alnum:]_][[:alnum:]_]*[=]\)[[:space:]][[:space:]]*\([^[:space:]#].*\)$/\1\2/' \
+        -e 's/[[:space:]#].*$//' -e '/^lz_config_[[:alnum:]_][[:alnum:]_]*[=]/!d' "${PATH_CONFIGS}/lz_rule_config.box"
     ## 删除lz_rule_config.box中可能出现的重复参数项
-    awk -v x="0" '$1 ~ /^[a-zA-Z0-9_-][a-zA-Z0-9_-]*[=]/ && i[substr($1, 1, index($1, "="))]++ \
-        {x++; printf " -e '\''%ss\/\^\.\*\$\/#\&\/g'\''", NR} END{if (x != "0") printf "\n";}' "${PATH_CONFIGS}/lz_rule_config.box" \
+    awk -v x="0" '$1 ~ /^lz_config_[[:alnum:]_]+[=]/ && i[substr($1, 1, index($1, "="))]++ \
+        {x++; printf " -e '\''%ss\/\^\.\*\$\/#\&\/'\''", NR} END{if (x != "0") printf "\n";}' "${PATH_CONFIGS}/lz_rule_config.box" \
         | awk 'NF != "0" {system("sed -i"$0" -e '\''\/\^#\/d'\'' ""'"${PATH_CONFIGS}/lz_rule_config.box"'")}'
 fi
 
@@ -2637,15 +2742,17 @@ if [ ! -f "${PATH_CONFIGS}/lz_rule_config.sh" ]; then
     lz_restore_cfg_file
     local_reinstall="$(( local_reinstall + 1 ))"
 else
-    ## 清除lz_rule_config.sh内参数赋值等式中等号两端的不合法空格
+    ## 清除lz_rule_config.sh内的错误字符内容及参数赋值等式中等号两端的非法空格
     sed -i -e 's/^[[:space:]][[:space:]]*//' \
-        -e 's/^\([a-zA-Z0-9_-][a-zA-Z0-9_-]*\)[[:space:]][[:space:]]*\([=][^=].*\)$/\1\2/' \
-        -e 's/^\([a-zA-Z0-9_-][a-zA-Z0-9_-]*[=]\)[[:space:]][[:space:]]*\([^#[:space:]].*\)$/\1\2/' \
-        -e 's/^[[:space:]][[:space:]]*//' "${PATH_CONFIGS}/lz_rule_config.sh"
+        -e 's/^\([[:alnum:]_][[:alnum:]_]*\)[[:space:]][[:space:]]*\([=][^=].*\)$/\1\2/' \
+        -e 's/^\([[:alnum:]_][[:alnum:]_]*[=]\)[[:space:]][[:space:]]*\([^[:space:]#].*\)$/\1\2/' \
+        -e 's/^\([[:alnum:]_][[:alnum:]_]*[=][^[:space:]#]*\)[[:space:]][[:space:]]*[^[:space:]#][^[:space:]#]*\([[:space:]][[:space:]]*[^[:space:]#][^[:space:]#]*\)*/\1/' \
+        -e 's/[[:space:]][[:space:]]*$//' \
+        -e '/^\([[:space:]]*\|[#].*\|[[:alnum:]_][[:alnum:]_]*[=].*\)$/!d' "${PATH_CONFIGS}/lz_rule_config.sh"
     ## 注释lz_rule_config.sh中的重复参数项
-    awk -v x="0" '$1 ~ /^[a-zA-Z0-9_-][a-zA-Z0-9_-]*[=]/ && i[substr($1, 1, index($1, "="))]++ \
-        {x++; printf " -e '\''%ss\/\^\.\*\$\/###\&\/g'\''", NR} END{if (x != "0") printf "\n";}' "${PATH_CONFIGS}/lz_rule_config.sh" \
-        | awk 'NF != "0" {system("sed -i"$0" ""'"${PATH_CONFIGS}/lz_rule_config.sh"'")}'
+    awk -v x="0" '$1 ~ /^[[:alnum:]_]+[=]/ && i[substr($1, 1, index($1, "="))]++ \
+        {x++; printf " -e '\''%ss\/\^\.\*\$\/DEL###\&\/'\''", NR} END{if (x != "0") printf "\n";}' "${PATH_CONFIGS}/lz_rule_config.sh" \
+        | awk 'NF != "0" {system("sed -i"$0" -e '\''\/\^DEL###\/d'\''  ""'"${PATH_CONFIGS}/lz_rule_config.sh"'")}'
 fi
 
 if [ "${1}" = "default" ]; then
@@ -2668,15 +2775,15 @@ fi
 ## 返回值：无
 [ "${local_reinstall}" = "0" ] && lz_get_web_data_to_config "${PATH_CONFIGS}/lz_rule_config.sh" ""
 
-## 获取配置参数函数
-## 输入项：
-##     全局常量及变量
-## 返回值：无
-lz_get_config_data
-
 if [ ! -f "${PATH_CONFIGS}/lz_rule_config.box" ]; then
     ## lz_rule_config.box不存在，属新安装脚本
     ## 直接创建并填入lz_rule_config.sh中的配置参数
+    ## 获取配置参数函数
+    ## 输入项：
+    ##     全局常量及变量
+    ## 返回值：无
+    lz_get_config_data
+ 
     ## 备份配置参数
     ## 输入项：
     ##     全局常量及变量
@@ -2688,6 +2795,19 @@ else
     ##     全局常量及变量
     ## 返回值：无
     lz_get_box_data
+
+    ## 用z_rule_config.box中的参数初始化lz_rule_config.sh中的配置参数，防止配置参数丢失
+    ## 备份参数初始化配置参数
+    ## 输入项：
+    ##     全局变量
+    ## 返回值：无
+    lz_init_box_to_cfg_data
+
+    ## 获取配置参数函数
+    ## 输入项：
+    ##     全局常量及变量
+    ## 返回值：无
+    lz_get_config_data
 
     ## 通过比对lz_rule_config.box和lz_rule_config.sh中的配置参数判断文件是否发生改变
     ## 判断配置数据是否变更
@@ -2716,7 +2836,6 @@ else
             ## 输入项：
             ##     全局常量及变量
             ## 返回值：无
-
             lz_backup_config
         elif [ "${local_default}" = "1" ] && [ "${local_changed}" = "1" ]; then
             ## lz_rule_config.sh处于缺省状态，lz_rule_config.box中有变更过的参数
@@ -2728,7 +2847,6 @@ else
                 ## 输入项：
                 ##     全局常量及变量
                 ## 返回值：无
-
                 lz_restore_config
             else
                 ## 属于正常变更参数
@@ -2737,7 +2855,6 @@ else
                 ## 输入项：
                 ##     全局常量及变量
                 ## 返回值：无
-
                 lz_backup_config
             fi
         fi
@@ -2750,7 +2867,6 @@ else
             ## 输入项：
             ##     全局常量及变量
             ## 返回值：无
-
             lz_restore_config
             ## 更新lz_rule_config.box中的版本号
             sed -i "s|^[[:space:]]*lz_config_version=${local_ini_version}|lz_config_version=${local_version}|" "${PATH_CONFIGS}/lz_rule_config.box"
@@ -2760,7 +2876,6 @@ else
             ## 输入项：
             ##     全局常量及变量
             ## 返回值：无
-
             lz_backup_config
         fi
     fi

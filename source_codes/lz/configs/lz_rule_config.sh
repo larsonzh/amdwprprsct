@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_config.sh v4.4.0
+# lz_rule_config.sh v4.4.1
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # 本软件采用CIDR（无类别域间路由，Classless Inter-Domain Routing）技术，是一个在Internet上创建附加地
@@ -173,7 +173,6 @@ unicom_cnc_wan_port=0
 ## 中国移动IPv4目标网段流量出口（网段数据文件：cmcc_cidr.txt）
 ## 0--第一WAN口；1--第二WAN口；2--均分出口；3--反向均分出口；>3--自动分配出口；取值范围：0~9
 ## 缺省为第二WAN口（1）。
-## 1：表示对中国移动网段的访问使用第二AN口。
 cmcc_wan_port=1
 
 ## 中国铁通IPv4目标网段流量出口（网段数据文件：crtc_cidr.txt）
@@ -866,7 +865,7 @@ wan2_udpxy_port=8888
 wan2_udpxy_buffer=65536
 
 ## 第二WAN口UDPXY代理支持的内网客户端数量
-##取值范围：1~5000
+## 取值范围：1~5000
 ## 缺省为10。
 wan2_udpxy_client_num=10
 

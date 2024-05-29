@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_vpn_daemon.sh v4.4.0
+# lz_vpn_daemon.sh v4.4.1
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 虚拟专网客户端路由刷新处理后台守护进程脚本
@@ -9,7 +9,7 @@
 
 #BEIGIN
 ## 版本号
-LZ_VERSION=v4.4.0
+LZ_VERSION=v4.4.1
 
 ## 项目接口文件部署路径
 PATH_INTERFACE="${0%/*}"

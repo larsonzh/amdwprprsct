@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule.sh v4.4.0
+# lz_rule.sh v4.4.1
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # 本软件采用CIDR（无类别域间路由，Classless Inter-Domain Routing）技术，是一个在Internet上创建附加地
@@ -80,7 +80,7 @@
 ## -------------全局数据定义及初始化-------------------
 
 ## 版本号
-LZ_VERSION=v4.4.0
+LZ_VERSION=v4.4.1
 
 ## 运行状态查询命令
 SHOW_STATUS="status"
@@ -1228,11 +1228,11 @@ __lz_main() {
 
 drop_sys_caches=0
 if [ -f "${PATH_CONFIGS}/lz_rule_config.box" ]; then
-    eval "$( awk -F "=" '$1 == "lz_config_drop_sys_caches" {
+    eval "$( awk -F "=" '$0 ~ /^[[:space:]]*lz_config_[[:alnum:]_]+[=]/ && $1 == "lz_config_drop_sys_caches" {
             key=$1;
             sub(/^lz_config_/, "", key);
             value=$2;
-            gsub(/[ \t#].*$/, "", value);
+            gsub(/[[:space:]#].*$/, "", value);
             if (value !~ /^[0-9]$/)
                 value=0
             print key"="value;

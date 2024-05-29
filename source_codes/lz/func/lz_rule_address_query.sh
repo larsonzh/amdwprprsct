@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_address_query.sh v4.4.0
+# lz_rule_address_query.sh v4.4.1
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 网址信息查询脚本
@@ -746,7 +746,7 @@ lz_aq_get_box_data() {
             i["aq_high_wan_1_src_to_dst_addr_port_file"]=pathd"/high_wan_1_src_to_dst_addr_port.txt";
             i["aq_usage_mode"]=0;
             total=length(i);
-        } $1 ~ /^lz_config_[a-zA-Z0-9]+/ {
+        } $0 ~ /^[[:space:]]*lz_config_[[:alnum:]_]+[=]/ {
             flag=0;
             if ($1 == "lz_config_all_foreign_wan_port")
                 key="aq_isp_wan_port_0";
@@ -775,7 +775,7 @@ lz_aq_get_box_data() {
                 sub(/^lz_config_/, "aq_", key);
             }
             value=$2;
-            gsub(/[ \t#].*$/, "", value);
+            gsub(/[[:space:]#].*$/, "", value);
             invalid=0;
             if (key == "aq_version") {
                 flag=1;
@@ -855,7 +855,7 @@ lz_aq_get_box_data() {
                 || key == "aq_wan_2_src_to_dst_addr_port_file" \
                 || key == "aq_high_wan_1_src_to_dst_addr_port_file") {
                 flag=2;
-                if ((value !~ /^[\"]([\/][a-zA-Z0-9_\-][a-zA-Z0-9_\.\-]*)+[\"]$/ && value !~ /^([\/][a-zA-Z0-9_\-][a-zA-Z0-9_\.\-]*)+$/) \
+                if ((value !~ /^[\"]([\/][[:alnum:]_\-][[:alnum:]_\.\-]*)+[\"]$/ && value !~ /^([\/][[:alnum:]_\-][[:alnum:]_\.\-]*)+$/) \
                     || value ~ /[\/][\/]/)
                     invalid=2;
             }
@@ -973,26 +973,26 @@ lz_aq_get_static_policy_wan_port() {
 ##     IPv4网络IP地址^_域名^_DNS服务器地址^_DNS服务器名称
 lz_aq_resolve_ip() {
     local local_ip="$( echo "${1}" | sed -e 's/^[[:space:]]*\([^[:space:]].*$\)/\1/g' -e 's/[[:space:]]\+/ /g' \
-                        -e 's/\(^.*[^ ]\)[ ]*$/\1/g' -e '/[3-9][0-9][0-9]/d' -e '/[2][6-9][0-9]/d' \
+                        -e 's/\(^.*[^[:space:]]\)[[:space:]]*$/\1/g' -e '/[3-9][0-9][0-9]/d' -e '/[2][6-9][0-9]/d' \
                         -e '/[2][5][6-9]/d' -e 's/\/.*$//g' \
                         | grep -Eo '^([0-9]{1,3}[\.]){3}[0-9]{1,3}$' | sed -n 1p )"
     local local_domain_name="$( echo "${1}" | sed -e 's/^[[:space:]]*\([^[:space:]].*$\)/\1/g' -e 's/[[:space:]]\+/ /g' \
-                                -e 's/\(^.*[^ ]\)[ ]*$/\1/g' -e 's/^.*\:\/\///g' -e 's/^[^ ]\{0,6\}\://g' \
+                                -e 's/\(^.*[^[:space:]]\)[[:space:]]*$/\1/g' -e 's/^.*\:\/\///g' -e 's/^[^[:space:]]\{0,6\}\://g' \
                                 -e 's/\/.*$//g' | sed -n 1p | tr '[:A-Z:]' '[:a-z:]' )"
     local local_dns_server_ip=""
     local local_dns_server_name=""
     if [ "${local_ip}" = "${local_domain_name}" ]; then
         local_domain_name=""
         [ -z "${local_ip}" ] && local_ip="$( echo "${1}" | sed -e 's/^[[:space:]]*\([^[:space:]].*$\)/\1/g' -e 's/[[:space:]]\+/ /g' \
-                                            -e 's/\(^.*[^ ]\)[ ]*$/\1/g' | sed -n 1p | tr '[:A-Z:]' '[:a-z:]' )"
+                                            -e 's/\(^.*[^[:space:]]\)[[:space:]]*$/\1/g' | sed -n 1p | tr '[:A-Z:]' '[:a-z:]' )"
     else
         local local_dnslookup_server="$( echo "${2}" | sed -e 's/^[[:space:]]*\([^[:space:]].*$\)/\1/g' \
                                         -e 's/[[:space:]]\+/ /g' \
-                                        -e 's/\(^.*[^ ]\)[ ]*$/\1/g' \
+                                        -e 's/\(^.*[^[:space:]]\)[[:space:]]*$/\1/g' \
                                         -e '/[3-9][0-9][0-9]/d' -e '/[2][6-9][0-9]/d' \
                                         -e '/[2][5][6-9]/d' -e 's/\/.*$//g' \
                                         | grep -Eo '^([0-9]{1,3}[\.]){3}[0-9]{1,3}$' | sed -n 1p )"
-        if ! echo "${local_domain_name}" | grep -qEo "[ ]"; then
+        if ! echo "${local_domain_name}" | grep -qEo "[[:space:]]"; then
             local local_info=
             if [ -z "${local_dnslookup_server}" ]; then
                 local_info="$( nslookup "${local_domain_name}" 2> /dev/null )"
@@ -1005,21 +1005,21 @@ lz_aq_resolve_ip() {
             [ -z "${local_domain_name}" ] && local_domain_name="$( echo "${1}" \
                                                                 | sed -e 's/^[[:space:]]*\([^[:space:]].*$\)/\1/g' \
                                                                 -e 's/[[:space:]]\+/ /g' \
-                                                                -e 's/\(^.*[^ ]\)[ ]*$/\1/g' \
+                                                                -e 's/\(^.*[^[:space:]]\)[[:space:]]*$/\1/g' \
                                                                 -e 's/^.*\:\/\///g' \
-                                                                -e 's/^[^ ]\{0,6\}\://g' \
+                                                                -e 's/^[^[:space:]]\{0,6\}\://g' \
                                                                 -e 's/\/.*$//g' \
                                                                 | tr '[:A-Z:]' '[:a-z:]' )"
             local_dns_server_ip="$( echo "${local_info}" | sed -n 2p | awk '{print $3}' | tr '[:A-Z:]' '[:a-z:]' )"
             local_dns_server_name="$( echo "${local_info}" | sed -n 2p | awk '{print $4}' \
                                     | sed 's/[\.]$//g' | tr '[:A-Z:]' '[:a-z:]' )"
             [ -z "${local_ip}" ] && {
-                local_ip="$( echo "${1}" | sed -e 's/^[[:space:]]*\([^[:space:]].*$\)/\1/g' -e 's/[[:space:]]\+/ /g' -e 's/\(^.*[^ ]\)[ ]*$/\1/g' \
+                local_ip="$( echo "${1}" | sed -e 's/^[[:space:]]*\([^[:space:]].*$\)/\1/g' -e 's/[[:space:]]\+/ /g' -e 's/\(^.*[^[:space:]]\)[[:space:]]*$/\1/g' \
                             | sed -n 1p | tr '[:A-Z:]' '[:a-z:]' )"
                 local_domain_name=""
             }
         else
-            local_ip="$( echo "${1}" | sed -e 's/^[[:space:]]*\([^[:space:]].*$\)/\1/g' -e 's/[[:space:]]\+/ /g' -e 's/\(^.*[^ ]\)[ ]*$/\1/g' \
+            local_ip="$( echo "${1}" | sed -e 's/^[[:space:]]*\([^[:space:]].*$\)/\1/g' -e 's/[[:space:]]\+/ /g' -e 's/\(^.*[^[:space:]]\)[[:space:]]*$/\1/g' \
                         | sed -n 1p | tr '[:A-Z:]' '[:a-z:]' )"
             local_domain_name=""
         fi
@@ -1072,7 +1072,7 @@ lz_show_address_info() {
         fi
     elif [ "${3}" = "$(( AQ_ISP_TOTAL + 4 ))" ]; then 
         echo "$(lzdate)" [$$]: "  Private network address" | tee -ai "${ADDRESS_LOG}" 2> /dev/null
-    elif echo "${1}" | sed -e 's/^[[:space:]]*\([^[:space:]].*$\)/\1/g' -e 's/[[:space:]]\+/ /g' -e 's/\(^.*[^ ]\)[ ]*$/\1/g' \
+    elif echo "${1}" | sed -e 's/^[[:space:]]*\([^[:space:]].*$\)/\1/g' -e 's/[[:space:]]\+/ /g' -e 's/\(^.*[^[:space:]]\)[[:space:]]*$/\1/g' \
                 -e '/[3-9][0-9][0-9]/d' -e '/[2][6-9][0-9]/d' -e '/[2][5][6-9]/d' -e 's/\/.*$//g' \
                 | grep -qEo '^([0-9]{1,3}[\.]){3}[0-9]{1,3}$'; then
         if [ "${2}" = "0" ]; then
@@ -1164,7 +1164,7 @@ lz_query_address() {
     local local_ip_item_total="$( echo "${local_net_ip}" | wc -l )"
 
     if [ "${local_ip_item_total}" -le "1" ]; then
-        if echo "${local_net_ip}" | sed -e 's/^[[:space:]]*\([^[:space:]].*$\)/\1/g' -e 's/[[:space:]]\+/ /g' -e 's/\(^.*[^ ]\)[ ]*$/\1/g' \
+        if echo "${local_net_ip}" | sed -e 's/^[[:space:]]*\([^[:space:]].*$\)/\1/g' -e 's/[[:space:]]\+/ /g' -e 's/\(^.*[^[:space:]]\)[[:space:]]*$/\1/g' \
                 -e '/[3-9][0-9][0-9]/d' -e '/[2][6-9][0-9]/d' -e '/[2][5][6-9]/d' -e 's/\/.*$//g' \
                 | grep -qEo '^([0-9]{1,3}[\.]){3}[0-9]{1,3}$'; then
             ipset -q flush lz_aq_ispip_tmp_sets && ipset -q destroy lz_aq_ispip_tmp_sets

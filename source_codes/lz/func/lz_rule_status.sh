@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_status.sh v4.4.0
+# lz_rule_status.sh v4.4.1
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 显示脚本运行状态脚本
@@ -211,9 +211,9 @@ lz_get_custom_hosts_file_item_total_status() {
 lz_get_domain_data_file_item_total_status() {
     local retval="0"
     [ -f "${1}" ] && {
-        retval="$( sed -e "s/\'//g" -e 's/\"//g' -e 's/[[:space:]]\+/ /g' -e 's/^[ ]*//g' -e '/^[#]/d' -e 's/[#].*$//g' -e 's/^\([^ ]*\).*$/\1/g' \
-                -e 's/^[^ ]*[\:][\/][\/]//g' -e 's/^[^ ]\{0,6\}[\:]//g' -e 's/[\/].*$//g' -e 's/[ ].*$//g' -e '/^[\.]/d' \
-                -e '/^[ ]*$/d' "${1}" 2> /dev/null | tr '[:A-Z:]' '[:a-z:]' | awk -v count="0" 'NF >= "1" && !i[$1]++ {count++} END{print count}' )"
+        retval="$( sed -e "s/\'//g" -e 's/\"//g' -e 's/[[:space:]]\+/ /g' -e 's/^[[:space:]]*//g' -e '/^[#]/d' -e 's/[#].*$//g' -e 's/^\([^[:space:]]*\).*$/\1/g' \
+                -e 's/^[^[:space:]]*[\:][\/][\/]//g' -e 's/^[^[:space:]]\{0,6\}[\:]//g' -e 's/[\/].*$//g' -e 's/[[:space:]].*$//g' -e '/^[\.]/d' \
+                -e '/^[[:space:]]*$/d' "${1}" 2> /dev/null | tr '[:A-Z:]' '[:a-z:]' | awk -v count="0" 'NF >= "1" && !i[$1]++ {count++} END{print count}' )"
     }
     echo "${retval}"
 }
@@ -601,7 +601,7 @@ lz_get_box_data_status() {
             i["status_custom_dualwan_scripts"]=5;
             i["status_custom_dualwan_scripts_filename"]=pathd"/custom_dualwan_scripts.sh";
             total=length(i);
-        } $1 ~ /^lz_config_[a-zA-Z0-9]+/ {
+        } $0 ~ /^[[:space:]]*lz_config_[[:alnum:]_]+[=]/ {
             flag=0;
             if ($1 == "lz_config_all_foreign_wan_port")
                 key="status_isp_wan_port_0";
@@ -630,7 +630,7 @@ lz_get_box_data_status() {
                 sub(/^lz_config_/, "status_", key);
             }
             value=$2;
-            gsub(/[ \t#].*$/, "", value);
+            gsub(/[[:space:]#].*$/, "", value);
             invalid=0;
             if (key == "status_version") {
                 flag=1;
@@ -758,7 +758,7 @@ lz_get_box_data_status() {
                 || key == "status_custom_config_scripts_filename" \
                 || key == "status_custom_dualwan_scripts_filename") {
                 flag=2;
-                if ((value !~ /^[\"]([\/][a-zA-Z0-9_\-][a-zA-Z0-9_\.\-]*)+[\"]$/ && value !~ /^([\/][a-zA-Z0-9_\-][a-zA-Z0-9_\.\-]*)+$/) \
+                if ((value !~ /^[\"]([\/][[:alnum:]_\-][[:alnum:]_\.\-]*)+[\"]$/ && value !~ /^([\/][[:alnum:]_\-][[:alnum:]_\.\-]*)+$/) \
                     || value ~ /[\/][\/]/)
                     invalid=2;
             }
