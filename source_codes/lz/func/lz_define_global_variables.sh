@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_define_global_variables.sh v4.4.1
+# lz_define_global_variables.sh v4.4.2
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 # QnkgTFog5aaZ5aaZ5ZGc77yI6Juk6J+G5aKp5YS/77yJ（首次运行标识，切勿修改）
 
@@ -8,7 +8,7 @@
 ##     全局常量及变量
 ## 返回值：无
 
-#BEIGIN
+#BEGIN
 
 # shellcheck disable=SC2034  # Unused variables left for readability
 # shellcheck disable=SC2154

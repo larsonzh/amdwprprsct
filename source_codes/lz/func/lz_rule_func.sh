@@ -1,8 +1,8 @@
 #!/bin/sh
-# lz_rule_func.sh v4.4.1
+# lz_rule_func.sh v4.4.2
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
-#BEIGIN
+#BEGIN
 
 # shellcheck source=/dev/null
 # shellcheck disable=SC2034  # Unused variables left for readability
@@ -574,112 +574,6 @@ lz_get_policy_mode() {
     unset local_wan2_isp_addr_total
 
     return "0"
-}
-
-## 计算8位掩码数的位数函数
-## 输入项：
-##     $1--8位掩码数
-## 返回值：
-##     0~8--8位掩码数的位数
-lz_cal_8bit_mask_bit_counter() {
-    local local_mask_bit_counter="0"
-    if [ "${1}" -ge "255" ]; then
-        local_mask_bit_counter="$(( local_mask_bit_counter + 8 ))"
-    elif [ "${1}" -ge "128" ]; then
-        local_mask_bit_counter="$(( local_mask_bit_counter + 1 ))"
-        if [ "${1}" -ge "192" ]; then
-            local_mask_bit_counter="$(( local_mask_bit_counter + 1 ))"
-            if [ "${1}" -ge "224" ]; then
-                local_mask_bit_counter="$(( local_mask_bit_counter + 1 ))"
-                if [ "${1}" -ge "240" ]; then
-                    local_mask_bit_counter="$(( local_mask_bit_counter + 1 ))"
-                    if [ "${1}" -ge "248" ]; then
-                        local_mask_bit_counter="$(( local_mask_bit_counter + 1 ))"
-                        if [ "${1}" -ge "252" ]; then
-                            local_mask_bit_counter="$(( local_mask_bit_counter + 1 ))"
-                            if [ "${1}" -ge "254" ]; then
-                                local_mask_bit_counter="$(( local_mask_bit_counter + 1 ))"
-                            fi
-                        fi
-                    fi
-                fi
-            fi
-        fi
-    fi
-
-    return "${local_mask_bit_counter}"
-}
-
-## 计算ipv4网络地址掩码位数函数
-## 输入项：
-##     $1--ipv4网络地址掩码
-## 返回值：
-##     0~32--ipv4网络地址掩码位数
-lz_cal_ipv4_cidr_mask() {
-    local local_cidr_mask="0"
-    local local_ip_mask_1="$( echo "${1}" | awk -F "." '{print $1}' )"
-    local local_ip_mask_2="$( echo "${1}" | awk -F "." '{print $2}' )"
-    local local_ip_mask_3="$( echo "${1}" | awk -F "." '{print $3}' )"
-    local local_ip_mask_4="$( echo "${1}" | awk -F "." '{print $4}' )"
-    ## 计算8位掩码数的位数
-    ## 输入项：
-    ##     $1--8位掩码数
-    ## 返回值：
-    ##     0~8--8位掩码数的位数
-    lz_cal_8bit_mask_bit_counter "${local_ip_mask_1}"
-    local_cidr_mask="${?}"
-    if [ "${local_cidr_mask}" -ge "8" ]; then
-        ## 计算8位掩码数的位数
-        ## 输入项：
-        ##     $1--8位掩码数
-        ## 返回值：
-        ##     0~8--8位掩码数的位数
-        lz_cal_8bit_mask_bit_counter "${local_ip_mask_2}"
-        local_cidr_mask="$(( local_cidr_mask + ${?} ))"
-        if [ "${local_cidr_mask}" -ge "16" ]; then
-            ## 计算8位掩码数的位数
-            ## 输入项：
-            ##     $1--8位掩码数
-            ## 返回值：
-            ##     0~8--8位掩码数的位数
-            lz_cal_8bit_mask_bit_counter "${local_ip_mask_3}"
-            local_cidr_mask="$(( local_cidr_mask + ${?} ))"
-            if [ "${local_cidr_mask}" -ge "24" ]; then
-                ## 计算8位掩码数的位数
-                ## 输入项：
-                ##     $1--8位掩码数
-                ## 返回值：
-                ##     0~8--8位掩码数的位数
-                lz_cal_8bit_mask_bit_counter "${local_ip_mask_4}"
-                local_cidr_mask="$(( local_cidr_mask + ${?} ))"
-            fi
-        fi
-    fi
-
-    return "${local_cidr_mask}"
-}
-
-## ipv4网络掩码转换至掩码位函数
-## 输入项：
-##     $1--ipv4网络地址掩码
-## 返回值：
-##     0~32--ipv4网络地址掩码位数
-lz_netmask2cdr() {
-    local x="${1##*255.}"
-    set -- "0^^^128^192^224^240^248^252^254^" "$(( (${#1} - ${#x})*2 ))" "${x%%.*}"
-    x="${1%%"${3}"*}"
-    echo "$(( ${2} + (${#x}/4) ))"
-}
-
-## ipv4网络掩码位转换至掩码函数
-## 输入项：
-##     $1--ipv4网络地址掩码位数
-## 返回值：
-##     ipv4网络地址掩码
-lz_netcdr2mask() {
-    set -- "$(( 5 - (${1} / 8) ))" "255" "255" "255" "255" "$(( (255 << (8 - (${1} % 8))) & 255 ))" "0" "0" "0"
-    if [ "${1}" -gt "1" ]; then shift "${1}"; else shift; fi;
-    echo "${1-0}.${2-0}.${3-0}.${4-0}"
 }
 
 ## 获取路由器基本信息并输出至系统记录函数
@@ -1810,7 +1704,7 @@ lz_create_update_ispip_data_scripts_file() {
 
 ## 更新ISP网络运营商CIDR网段数据文件脚本
 
-#BEIGIN
+#BEGIN
 
 lzdate() { date +"%F %T"; }
 
@@ -1939,7 +1833,15 @@ lz_establish_regularly_update_ispip_data_task() {
             ## 创建定时任务
         #    [ "${local_min}" = "*" ] && local_min="$( date +"%M" | sed 's/^[0]\([0-9]\)$/\1/g' )"
         #    [ "${local_hour}" = "*" ] && local_hour="$( date +"%H" | sed 's/^[0]\([0-9]\)$/\1/g' )"
-            eval "$( awk 'BEGIN{srand(); print "local_hour="int(rand() * 5) + 1"\nlocal_min="int(rand() * 60)}' )"
+            if { [ "${local_min}" = "*" ] && [ "${local_hour}" = "*" ]; } \
+                || { [ "${local_min}" = "0" ] && [ "${local_hour}" = "0" ]; }; then
+                eval "$( awk 'BEGIN{srand(); print "local_hour="int(rand() * 5) + 1"\nlocal_min="int(rand() * 60)}' )"
+            elif [ "${local_min}" != "*" ] && [ "${local_hour}" = "*" ]; then
+                local_hour="$( awk 'BEGIN{srand(); print int(rand() * 5) + 1}' )"
+            elif [ "${local_min}" = "*" ] && [ "${local_hour}" != "*" ]; then
+                local_min="$( awk 'BEGIN{srand(); print int(rand() * 60)}' )"
+            fi
+            [ "${local_hour}" = "0" ] && [ "${local_min}" = "0" ] && local_min="1"
             cru a "${UPDATE_ISPIP_DATA_TIMEER_ID}" "${local_min} ${local_hour} ${local_day} ${local_month} ${local_week} /bin/sh ${PATH_LZ}/${UPDATE_FILENAME}" > /dev/null 2>&1
         else
             local_ruid_min="$( echo "${local_regularly_update_ispip_data_info}" | awk '{print $1}' )"
@@ -1954,6 +1856,7 @@ lz_establish_regularly_update_ispip_data_task() {
                     || [ "${local_ruid_min}" = "*" ] || [ "${local_ruid_hour}" = "*" ] \
                     || [ "${local_ruid_hour}" = "0" ] || [ "${local_ruid_hour}" -ge "6" ]; then
                     eval "$( awk 'BEGIN{srand(); print "local_hour="int(rand() * 5) + 1"\nlocal_min="int(rand() * 60)}' )"
+                    [ "${local_hour}" = "0" ] && [ "${local_min}" = "0" ] && local_min="1"
                     ## 计划发生变化，修改既有定时任务
                     cru a "${UPDATE_ISPIP_DATA_TIMEER_ID}" "${local_min} ${local_hour} ${local_day} ${local_month} ${local_week} /bin/sh ${PATH_LZ}/${UPDATE_FILENAME}" > /dev/null 2>&1
                 fi
@@ -1974,6 +1877,7 @@ lz_establish_regularly_update_ispip_data_task() {
                     || [ "${local_ruid_min}" = "*" ] || [ "${local_ruid_hour}" = "*" ] \
                     || [ "${local_ruid_hour}" = "0" ] || [ "${local_ruid_hour}" -ge "6" ]; then
                     local_hour="$( awk 'BEGIN{srand(); print int(rand() * 5) + 1}' )"
+                    [ "${local_hour}" = "0" ] && [ "${local_min}" = "0" ] && local_min="1"
                     ## 计划发生变化，修改既有定时任务
                     cru a "${UPDATE_ISPIP_DATA_TIMEER_ID}" "${local_min} ${local_hour} ${local_day} ${local_month} ${local_week} /bin/sh ${PATH_LZ}/${UPDATE_FILENAME}" > /dev/null 2>&1
                 fi
@@ -3722,7 +3626,7 @@ lz_add_openvpn_event_scripts() {
 # Do not manually modify!!!
 # 内容自动生成，请勿编辑修改或删除!!!
 
-#BEIGIN
+#BEGIN
 
 [ ! -d "${PATH_LOCK}" ] && { mkdir -p "${PATH_LOCK}" > /dev/null 2>&1; chmod 777 "${PATH_LOCK}" > /dev/null 2>&1; }
 exec ${LOCK_FILE_ID}<>"${LOCK_FILE}"; flock -x "${LOCK_FILE_ID}" > /dev/null 2>&1;
@@ -5928,7 +5832,7 @@ lz_deployment_routing_policy() {
 # Do not manually modify!!!
 # 内容自动生成，请勿编辑修改或删除!!!
 
-#BEIGIN
+#BEGIN
 
 [ ! -d "${PATH_LOCK}" ] && { mkdir -p "${PATH_LOCK}" > /dev/null 2>&1; chmod 777 "${PATH_LOCK}" > /dev/null 2>&1; }
 exec ${LOCK_FILE_ID}<>"${LOCK_FILE}"; flock -x "${LOCK_FILE_ID}" > /dev/null 2>&1;

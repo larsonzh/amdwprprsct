@@ -1,12 +1,12 @@
 #!/bin/sh
-# lz_rule_config.sh v4.4.1
+# lz_rule_config.sh v4.4.2
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # 本软件采用CIDR（无类别域间路由，Classless Inter-Domain Routing）技术，是一个在Internet上创建附加地
 # 址的方法，这些地址提供给服务提供商（ISP），再由ISP分配给客户。CIDR将路由集中起来，使一个IP地址代表主要
 # 骨干提供商服务的几千个IP地址，从而减轻Internet路由器的负担。
 
-#BEIGIN
+#BEGIN
 
 ## 技巧：
 ##       上传编辑好的firewall-start文件和本代码至路由器后，开关防火墙即可启动本代码，不必重启路由器。

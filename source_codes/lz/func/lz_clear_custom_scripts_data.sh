@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_clear_custom_scripts_data.sh v4.4.1
+# lz_clear_custom_scripts_data.sh v4.4.2
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 清除用户自定义脚本数据
@@ -7,7 +7,7 @@
 ##     $1--主执行脚本运行输入参数
 ## 返回值：无
 
-#BEIGIN
+#BEGIN
 
 # shellcheck disable=SC2154
 

@@ -1,5 +1,5 @@
 #!/bin/sh
-# install.sh v4.4.1
+# install.sh v4.4.2
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ RULE script for Asuswrt-Merlin Router
@@ -9,9 +9,9 @@
 # JFFS partition:           ./install.sh
 # Entware in USB disk:      ./install.sh entware
 
-#BEIGIN
+#BEGIN
 
-LZ_VERSION=v4.4.1
+LZ_VERSION=v4.4.2
 TIMEOUT=10
 CURRENT_PATH="${0%/*}"
 [ "${CURRENT_PATH:0:1}" != '/' ] && CURRENT_PATH="$( pwd )${CURRENT_PATH#*.}"

@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_status.sh v4.4.1
+# lz_rule_status.sh v4.4.2
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 显示脚本运行状态脚本
@@ -7,7 +7,7 @@
 ##     全局常量及变量
 ## 返回值：无
 
-#BEIGIN
+#BEGIN
 
 # shellcheck disable=SC2034  # Unused variables left for readability
 # shellcheck disable=SC2154

@@ -1,14 +1,14 @@
 #!/bin/sh
-# uninstall.sh v4.4.1
+# uninstall.sh v4.4.2
 # By LZ (larsonzhang@gmail.com)
 
 # LZ RULE script for Asuswrt-Merlin Router
 
 # uninstall script
 
-# BEIGIN
+#BEGIN
 
-LZ_VERSION=v4.4.1
+LZ_VERSION=v4.4.2
 TIMEOUT=10
 CURRENT_PATH="${0%/*}"
 [ "${CURRENT_PATH:0:1}" != '/' ] && CURRENT_PATH="$( pwd )${CURRENT_PATH#*.}"
@@ -127,4 +127,4 @@ rmdir "${CURRENT_PATH}" > /dev/null 2>&1
 
 exit "0"
 
-# END
+#END
