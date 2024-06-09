@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_initialize_config.sh v4.4.2
+# lz_initialize_config.sh v4.4.3
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 初始化脚本配置
@@ -33,11 +33,8 @@ lz_variable_initialize() {
 ## 返回值：无
 lz_variable_uninitialize() {
     eval "$( echo "${param_list}" | sed "s/^[[:alnum:]_][[:alnum:]_]*$/unset local_& local_ini_& local_&_changed local_&_flag/g" )"
-    unset local_default
-    unset local_changed
-    unset local_reinstall
-    unset dnsmasq_enable
     unset param_list param_default_list ini_param_default_list
+    unset local_default local_changed local_reinstall dnsmasq_enable
 }
 
 ## 初始化配置参数函数
@@ -160,10 +157,9 @@ lz_init_cfg_data() {
 ##     全局变量
 ## 返回值：无
 lz_fix_lost_data() {
-    eval "$( echo "${param_list}" | sed -n "/^all_foreign_wan_port$/,/^custom_dualwan_scripts_filename$/{
-            s/^[[:alnum:]_][[:alnum:]_]*$/[ ! \"\${local_&_flag}\" ] \&\& local_&=\"\${local_ini_&}\"/g;
-            p
-        }" )"
+    eval "$( eval "$( echo "${param_list}" | sed -n "/^all_foreign_wan_port$/,/^custom_dualwan_scripts_filename$/{
+            s/^[[:alnum:]_][[:alnum:]_]*$/echo \"& \${local_&_flag}\"/;p}" )" \
+        | awk '$2 != "1" {x++; print "local_"$1"=\"\${local_ini_"$1"}\"";}' )"
 }
 
 ## 复原配置文件函数
@@ -1106,10 +1102,11 @@ lz_get_config_data() {
     ini_param_default_list="$( eval "$( echo "${param_list}" \
         | sed "s/^[[:alnum:]_][[:alnum:]_]*$/echo &=\"\${local_ini_&}\"/" )" \
         | sed 's/\"//g' )"
-    eval "$( awk -F "=" -v param_default="${param_default_list}" -v ini_param_default="${ini_param_default_list}" -v str_buffer="" -v fname="${PATH_CONFIGS}/lz_rule_config.sh" \
+    eval "$( awk -F "=" -v param_default="${param_default_list}" -v ini_param_default="${ini_param_default_list}" -v dmq="${dnsmasq_enable}" -v fname="${PATH_CONFIGS}/lz_rule_config.sh" \
         'BEGIN{
             x=0;
             count=0;
+            str_buffer="";
             split(param_default, arr, "\n");
             for (id in arr) {
                 pos=index(arr[id], "=");
@@ -1170,7 +1167,7 @@ lz_get_config_data() {
                     invalid=1;
             } else if ($1 == "wan_1_domain" || $1 == "wan_2_domain") {
                 flag=1;
-                if (value !~ /^[0-9]$/ || (value == "0" && "'"${dnsmasq_enable//\"/}"'" != "0"))
+                if (value !~ /^[0-9]$/ || (value == "0" && dmq != "0"))
                     invalid=1;
             } else if ($1 == "ruid_interval_day") {
                 flag=1;
@@ -1303,7 +1300,7 @@ lz_get_config_data() {
             else if (invalid == 5)
                 str_buffer=str_buffer" -e \"s\|\^\[\[\:space\:\]\]\*"$1"=\.\*\$\|"$1"="value"     ## 时间分钟数（0~59，\*表示由系统指定）；\"ruid_timer_min=18\"表示更新当天的凌晨3点18分。\|\"";
             print "local_"$1"="value;
-            print "local_"$1"_flag=s";
+            print "local_"$1"_flag=\"1\"";
             count++;
         } END{
             param_total=length(i);
@@ -1394,11 +1391,12 @@ lz_get_box_data() {
     ini_param_default_list="$( eval "$( echo "${param_list}" \
         | sed "s/^[[:alnum:]_][[:alnum:]_]*$/echo &=\"\${local_ini_&}\"/" )" \
         | sed 's/\"//g' )"
-    eval "$( awk -F "=" -v ini_param_default="${ini_param_default_list}" -v str_buffer="" -v fname="${PATH_CONFIGS}/lz_rule_config.box" \
+    eval "$( awk -F "=" -v ini_param_default="${ini_param_default_list}" -v dmq="${dnsmasq_enable}" -v fname="${PATH_CONFIGS}/lz_rule_config.box" \
         'BEGIN{
             count=0;
             mark=0;
             policymode=0;
+            str_buffer=""
             split(ini_param_default, arr, "\n");
             for (id in arr) {
                 pos=index(arr[id], "=");
@@ -1488,7 +1486,7 @@ lz_get_box_data() {
                 invalid=6;
             } else if (key == "wan_1_domain" || key == "wan_2_domain") {
                 flag=1;
-                if (value !~ /^[0-9]$/ || (value == "0" && "'"${dnsmasq_enable//\"/}"'" != "0"))
+                if (value !~ /^[0-9]$/ || (value == "0" && dmq != "0"))
                     invalid=1;
             } else if (key == "ruid_interval_day") {
                 flag=1;
@@ -1628,16 +1626,12 @@ lz_get_box_data() {
 ## 输入项：
 ##     全局常量及变量
 ## 返回值：
-##     1--已改变
-##     0--未改变
-lz_cfg_is_changed() {
-    local local_cfg_changed="0"
+##     local_changed
+lz_get_cfg_changed() {
     eval "$( eval "$( echo "${param_list}" | sed -n "/^all_foreign_wan_port$/,/^custom_dualwan_scripts_filename$/{
-            s/^[[:alnum:]_][[:alnum:]_]*$/echo \"& \${local_ini_&} \${local_&}\"/;
-            p
-        }" )" | awk -v x="0" '$2 != $3 && NF != "0" {x++; print "local_"$1"_changed=\"1\"";} \
-            END{if (x > 0) print "local_cfg_changed=\"1\"";}' )"
-    return "${local_cfg_changed}"
+            s/^[[:alnum:]_][[:alnum:]_]*$/echo \"& \${local_ini_&} \${local_&}\"/;p}" )" \
+        | awk -v x="0" '$2 != $3 {x++; print "local_"$1"_changed=\"1\"";} \
+            END{if (x > 0) print "local_changed=\"1\"";}' )"
 }
 
 ## 恢复原有配置数据函数
@@ -1646,8 +1640,8 @@ lz_cfg_is_changed() {
 ## 返回值：无
 lz_restore_config() {
     eval "$( eval "$( echo "${param_list}" | sed -n "/^all_foreign_wan_port$/,/^custom_dualwan_scripts_filename$/{
-            s/^[[:alnum:]_][[:alnum:]_]*$/echo \"& \${local_&_changed}\"/;p
-        }" )" | awk -v x="0" '$2 == "1" {
+            s/^[[:alnum:]_][[:alnum:]_]*$/echo \"& \${local_&_changed}\"/;p}" )" \
+        | awk -v x="0" '$2 == "1" {
             x++;
             if ($1 == "ruid_interval_day")
                 printf " -e \"s|^[[:space:]]\*%s=.*$|%s=\${local_ini_%s}  ## 间隔天数（1~31）；\"ruid_interval_day=5\"表示每隔5天。|\"",$1,$1,$1;
@@ -1962,9 +1956,8 @@ else
     ## 输入项：
     ##     全局常量及变量
     ## 返回值：
-    ##     1--已改变
-    ##     0--未改变
-    ! lz_cfg_is_changed && local_changed="1"
+    ##     local_changed
+    lz_get_cfg_changed
 
     [ "${local_ini_udpxy_used}" != "${local_udpxy_used}" ] && local_udpxy_used_changed="1"
     if [ "${local_udpxy_used_changed}" = "1" ]; then
