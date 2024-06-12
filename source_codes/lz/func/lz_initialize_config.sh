@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_initialize_config.sh v4.4.3
+# lz_initialize_config.sh v4.4.4
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 初始化脚本配置
@@ -1357,7 +1357,7 @@ lz_get_config_data() {
 ## 返回值：无
 lz_full_data_backup() {
     eval "$( echo "${param_list}" | awk '/^[[:alnum:]_][[:alnum:]_]*$/ {print "echo lz_config_"$1"=\$\{local_"$1"\}"}' )" > "${PATH_CONFIGS}/lz_rule_config.box"
-    chmod +x "${PATH_CONFIGS}/lz_rule_config.box" > /dev/null 2>&1
+    chmod 775 "${PATH_CONFIGS}/lz_rule_config.box" > /dev/null 2>&1
 }
 
 ## 备份已改变的配置参数函数
@@ -1380,7 +1380,7 @@ lz_backup_data_changed() {
 ## 返回值：无
 lz_restore_box_data() {
     eval "$( echo "${param_list}" | awk '/^[[:alnum:]_][[:alnum:]_]*$/ {print "echo lz_config_"$1"=\$\{local_ini_"$1"\}"}' )" > "${PATH_CONFIGS}/lz_rule_config.box"
-    chmod +x "${PATH_CONFIGS}/lz_rule_config.box" > /dev/null 2>&1
+    chmod 775 "${PATH_CONFIGS}/lz_rule_config.box" > /dev/null 2>&1
 }
 
 ## 获取备份参数函数
@@ -1775,7 +1775,7 @@ lz_restore_to_rn() {
 ##     全局常量及变量
 ## 返回值：无
 lz_get_web_data_to_config() {
-    { [ ! -f "${SETTINGSFILE}" ] || [ ! -f "${1}" ]; } && return
+    { [ ! -s "${SETTINGSFILE}" ] || [ ! -s "${1}" ]; } && return
     awk -v key="" -v value="" -v str_buffer="" -v fname="${1}" -v prefix="${2}" '$1 ~ /^lz_rule_/ {
         key=$1;
         sub(/^lz_rule_/, "", key);
@@ -1845,10 +1845,10 @@ local_reinstall="$( grep -c 'QnkgTFog5aaZ5aaZ5ZGc77yI6Juk6J[\+]G5aKp5YS[\/]77yJ'
 ## 新安装的脚本，更新主运行脚本和脚本配置文件中初始缺省的路径数据
 if [ "${local_reinstall}" -gt "0" ] && [ "${PATH_LZ}" != "/jffs/scripts/lz" ]; then
     sed -i "s:/jffs/scripts/lz/:${PATH_LZ}/:g" "${PATH_LZ}/lz_rule.sh" > /dev/null 2>&1
-    [ -f "${PATH_CONFIGS}/lz_rule_config.sh" ] && sed -i "s:/jffs/scripts/lz/:${PATH_LZ}/:g" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
+    [ -s "${PATH_CONFIGS}/lz_rule_config.sh" ] && sed -i "s:/jffs/scripts/lz/:${PATH_LZ}/:g" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
 fi
 
-if [ -f "${PATH_CONFIGS}/lz_rule_config.box" ]; then
+if [ -s "${PATH_CONFIGS}/lz_rule_config.box" ]; then
     ## 清除lz_rule_config.box内的错误字符内容及参数赋值等式中等号两端的非法空格
     sed -i -e 's/^[[:space:]][[:space:]]*//' -e 's/[=][=][=]*/=/g' \
         -e 's/^\(lz_config_[[:alnum:]_][[:alnum:]_]*\)[[:space:]][[:space:]]*\([=].*\)$/\1\2/' \
@@ -1865,8 +1865,8 @@ fi
 ## 输入项：
 ##     全局常量
 ## 返回值：无
-if [ ! -f "${PATH_CONFIGS}/lz_rule_config.sh" ]; then
-    if [ ! -f "${PATH_CONFIGS}/lz_rule_config.box" ]; then
+if [ ! -s "${PATH_CONFIGS}/lz_rule_config.sh" ]; then
+    if [ ! -s "${PATH_CONFIGS}/lz_rule_config.box" ]; then
         ## 创建新的备份文件
         ## 完整备份配置参数
         ## 输入项：
@@ -1924,7 +1924,7 @@ fi
 ## 返回值：无
 [ "${local_reinstall}" = "0" ] && lz_get_web_data_to_config "${PATH_CONFIGS}/lz_rule_config.sh" ""
 
-if [ ! -f "${PATH_CONFIGS}/lz_rule_config.box" ]; then
+if [ ! -s "${PATH_CONFIGS}/lz_rule_config.box" ]; then
     ## lz_rule_config.box不存在，属新安装脚本
     ## 直接创建并填入lz_rule_config.sh中的配置参数
     ## 获取配置参数函数
