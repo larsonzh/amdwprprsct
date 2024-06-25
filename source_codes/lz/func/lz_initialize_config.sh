@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_initialize_config.sh v4.4.4
+# lz_initialize_config.sh v4.4.5
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 初始化脚本配置
@@ -24,8 +24,6 @@ lz_variable_initialize() {
     dnsmasq_enable="0"
     ! dnsmasq -v 2> /dev/null | grep -w 'ipset' | grep -qvw 'no[\-]ipset' && dnsmasq_enable="1"
     param_list=""
-    param_default_list=""
-    ini_param_default_list=""
 }
 
 ## 卸载变量函数
@@ -33,7 +31,6 @@ lz_variable_initialize() {
 ## 返回值：无
 lz_variable_uninitialize() {
     eval "$( echo "${param_list}" | sed "s/^[[:alnum:]_][[:alnum:]_]*$/unset local_& local_ini_& local_&_changed local_&_flag/g" )"
-    unset param_list param_default_list ini_param_default_list
     unset local_default local_changed local_reinstall dnsmasq_enable
 }
 
@@ -142,14 +139,30 @@ lz_init_cfg_data() {
             p
         }" "${PATH_FUNC}/lz_initialize_config.sh" 2> /dev/null )" 
     eval "$( echo "${param_list}" | sed "s/^[[:alnum:]_][[:alnum:]_]*$/local_&=\"\${local_ini_&}\"/" )"
-    param_default_list="$( eval "$( echo "${param_list}" \
+}
+
+## 获取配置缺省参数列表函数
+## 输入项：
+##     全局变量
+## 返回值：
+##     配置缺省参数列表
+lz_get_param_default_list() {
+    eval "$( echo "${param_list}" \
         | sed -n "/^all_foreign_wan_port$/,/^custom_dualwan_scripts_filename$/{
             s/^[[:alnum:]_][[:alnum:]_]*$/echo &=\"\${local_&}\"/;
             p
-        }" )" | sed 's/\"//g' )"
-    ini_param_default_list="$( eval "$( echo "${param_list}" \
+        }" )" | sed 's/\"//g'
+}
+
+## 获取备份配置缺省参数列表函数
+## 输入项：
+##     全局变量
+## 返回值：
+##     备份配置缺省参数列表
+lz_get_ini_param_default_list() {
+    eval "$( echo "${param_list}" \
         | sed "s/^[[:alnum:]_][[:alnum:]_]*$/echo &=\"\${local_ini_&}\"/" )" \
-        | sed 's/\"//g' )"
+        | sed 's/\"//g'
 }
 
 ## 修复丢失的配置参数函数
@@ -1099,10 +1112,7 @@ EOF_CFG
 ## 返回值：无
 lz_get_config_data() {
     local restore_cfg="0" original_length="-1" current_length="-1"
-    ini_param_default_list="$( eval "$( echo "${param_list}" \
-        | sed "s/^[[:alnum:]_][[:alnum:]_]*$/echo &=\"\${local_ini_&}\"/" )" \
-        | sed 's/\"//g' )"
-    eval "$( awk -F "=" -v param_default="${param_default_list}" -v ini_param_default="${ini_param_default_list}" -v dmq="${dnsmasq_enable}" -v fname="${PATH_CONFIGS}/lz_rule_config.sh" \
+    eval "$( awk -F "=" -v param_default="$( lz_get_param_default_list )" -v ini_param_default="$( lz_get_ini_param_default_list )" -v dmq="${dnsmasq_enable}" -v fname="${PATH_CONFIGS}/lz_rule_config.sh" \
         'BEGIN{
             x=0;
             count=0;
@@ -1388,10 +1398,7 @@ lz_restore_box_data() {
 ##     全局常量及变量
 ## 返回值：无
 lz_get_box_data() {
-    ini_param_default_list="$( eval "$( echo "${param_list}" \
-        | sed "s/^[[:alnum:]_][[:alnum:]_]*$/echo &=\"\${local_ini_&}\"/" )" \
-        | sed 's/\"//g' )"
-    eval "$( awk -F "=" -v ini_param_default="${ini_param_default_list}" -v dmq="${dnsmasq_enable}" -v fname="${PATH_CONFIGS}/lz_rule_config.box" \
+    eval "$( awk -F "=" -v ini_param_default="$( lz_get_ini_param_default_list )" -v dmq="${dnsmasq_enable}" -v fname="${PATH_CONFIGS}/lz_rule_config.box" \
         'BEGIN{
             count=0;
             mark=0;
