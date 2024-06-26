@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule.sh v4.4.5
+# lz_rule.sh v4.4.6
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # 本软件采用CIDR（无类别域间路由，Classless Inter-Domain Routing）技术，是一个在Internet上创建附加地
@@ -80,7 +80,7 @@
 ## -------------全局数据定义及初始化-------------------
 
 ## 版本号
-LZ_VERSION=v4.4.5
+LZ_VERSION=v4.4.6
 
 ## 运行状态查询命令
 SHOW_STATUS="status"
@@ -927,7 +927,7 @@ __lz_main() {
     ## 载入脚本配置参数
     ## 策略分流的用户自定义配置在/jffs/scripts/lz/configs/目录下的lz_rule_config.sh
     ## 和lz_rule_func_config.sh文件中
-    eval "${CALL_CONFIG_SUBROUTINE}/lz_rule_config.sh"
+    ## eval "${CALL_CONFIG_SUBROUTINE}/lz_rule_config.sh"
 
     ## 全局常量、变量定义及初始化
     ## 输入项：

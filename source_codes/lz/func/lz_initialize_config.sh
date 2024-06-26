@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_initialize_config.sh v4.4.5
+# lz_initialize_config.sh v4.4.6
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 初始化脚本配置
@@ -31,7 +31,7 @@ lz_variable_initialize() {
 ## 返回值：无
 lz_variable_uninitialize() {
     eval "$( echo "${param_list}" | sed "s/^[[:alnum:]_][[:alnum:]_]*$/unset local_& local_ini_& local_&_changed local_&_flag/g" )"
-    unset local_default local_changed local_reinstall dnsmasq_enable
+    unset local_default local_changed local_reinstall dnsmasq_enable param_list
 }
 
 ## 初始化配置参数函数
@@ -137,15 +137,16 @@ lz_init_cfg_data() {
             /^[[:space:]]*local_ini_[[:alnum:]_][[:alnum:]_]*[=].*$/!d;
             s/^[[:space:]]*local_ini_\([[:alnum:]_][[:alnum:]_]*\)[=].*$/\1/g;
             p
-        }" "${PATH_FUNC}/lz_initialize_config.sh" 2> /dev/null )" 
+        }" "${PATH_FUNC}/lz_initialize_config.sh" 2> /dev/null \
+        | awk '!i[$1]++ {print $1}' )"
     eval "$( echo "${param_list}" | sed "s/^[[:alnum:]_][[:alnum:]_]*$/local_&=\"\${local_ini_&}\"/" )"
 }
 
-## 获取配置缺省参数列表函数
+## 获取配置参数缺省值列表函数
 ## 输入项：
 ##     全局变量
 ## 返回值：
-##     配置缺省参数列表
+##     配置参数缺省值列表
 lz_get_param_default_list() {
     eval "$( echo "${param_list}" \
         | sed -n "/^all_foreign_wan_port$/,/^custom_dualwan_scripts_filename$/{
@@ -154,11 +155,11 @@ lz_get_param_default_list() {
         }" )" | sed 's/\"//g'
 }
 
-## 获取备份配置缺省参数列表函数
+## 获取备份配置参数缺省值列表函数
 ## 输入项：
 ##     全局变量
 ## 返回值：
-##     备份配置缺省参数列表
+##     备份配置参数缺省值列表
 lz_get_ini_param_default_list() {
     eval "$( echo "${param_list}" \
         | sed "s/^[[:alnum:]_][[:alnum:]_]*$/echo &=\"\${local_ini_&}\"/" )" \
@@ -1662,6 +1663,7 @@ lz_restore_config() {
         | awk -v fname="${PATH_CONFIGS}/lz_rule_config.sh" 'NF != "0" {print "sed -i"$0" "fname}' )"
     [ "${local_udpxy_used_changed}" = "1" ] \
         && sed -i "s|^[[:space:]]*udpxy_used=${local_udpxy_used}|udpxy_used=${local_ini_udpxy_used}|" "${PATH_FUNC}/lz_define_global_variables.sh"
+    eval "$( echo "${param_list}" | sed "s/^[[:alnum:]_][[:alnum:]_]*$/local_&=\"\${local_ini_&}\"/" )"
 }
 
 ## 将当前配置优化至IPTV配置函数
@@ -2054,6 +2056,13 @@ if [ "${local_reinstall}" -gt "0" ]; then
     ## 删除重新安装标识
     sed -i "/QnkgTFog5aaZ5aaZ5ZGc77yI6Juk6J+G5aKp5YS\/77yJ/d" "${PATH_FUNC}/lz_define_global_variables.sh" > /dev/null 2>&1
 fi
+
+## 生成并传递软件的配置参数
+eval "$( eval "$( echo "${param_list}" \
+    | sed -n "/^all_foreign_wan_port$/,/^custom_dualwan_scripts_filename$/{
+        s/^[[:alnum:]_][[:alnum:]_]*$/echo &=\"\${local_&}\"/;
+        p
+    }" )" )"
 
 ## 卸载变量
 ## 输入项：无
