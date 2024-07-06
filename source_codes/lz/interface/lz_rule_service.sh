@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_service.sh v4.4.6
+# lz_rule_service.sh v4.4.7
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 服务接口脚本
@@ -16,12 +16,29 @@ PATH_LZ="${PATH_LZ%/*}"
 [ "${1}" = "stop" ] && [ "${2}" = "LZRule" ] && "${PATH_LZ}/lz_rule.sh" "STOP"
 [ "${1}" != "start" ] && [ "${1}" != "restart" ] && return
 
+get_repo_site() {
+    local remoteRepo="https://gitee.com/"
+    local configFile="${PATH_LZ}/configs/lz_rule_config.box"
+    [ ! -s "${configFile}" ] && configFile="${PATH_LZ}/configs/lz_rule_config.sh"
+    eval "$( awk -F "=" '$0 ~ /^[[:space:]]*(lz_config_){0,1}repo_site[=]/ {
+            key=$1;
+            gsub(/^[[:space:]]*(lz_config_){0,1}/, "", key);
+            value=$2;
+            gsub(/[[:space:]#].*$/, "", value);
+            print key,value;
+        }' "${configFile}" 2> /dev/null \
+        | awk '!i[$1]++ {
+            if ($2 == "1")
+                print "remoteRepo=\"https://github.com/\"";
+        }' )"
+    echo "${remoteRepo}"
+}
+
 get_last_version() {
-    local CN_REPO="https://gitee.com/"
     local VER_SRC="larsonzh/amdwprprsct/blob/master/source_codes/lz/lz_rule.sh"
-    /usr/sbin/curl -fsLC "-" --retry 3 \
+    /usr/sbin/curl -fsLC "-" --retry 1 \
         -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.5304.88 Safari/537.36 Edg/108.0.1462.46" \
-        -e "${CN_REPO}" "${CN_REPO}${VER_SRC}" \
+        -e "${1}" "${1}${VER_SRC}" \
         | grep -oE 'LZ_VERSION=v[0-9]+([\.][0-9]+){2}' | sed 's/LZ_VERSION=//g' | sed -n 1p
 }
 
@@ -144,13 +161,24 @@ case "${2}" in
     ;;
     LZDetectVersion)
         detect_version() {
-            PATH_WEB_LZR="$( readlink "/www/user" )/lzr"
+            local PATH_WEB_LZR="$( readlink "/www/user" )/lzr"
             echo 'var versionStatus = "InProgress";' > "${PATH_WEB_LZR}/detect_version.js"
-            remoteVer="$( get_last_version )"
+            local LZ_REPO="$( get_repo_site )"
+            local remoteVer="$( get_last_version "${LZ_REPO}" )"
             if [ -n "${remoteVer}" ]; then
                 echo 'var versionStatus = "'"${remoteVer}"'";' > "${PATH_WEB_LZR}/detect_version.js"
+                {
+                    printf "%s [%s]:\n" "$( date +"%F %T")" "${$}"
+                    printf "%s [%s]: The latest version of LZ Rule is %s in %s.\n" "$( date +"%F %T")" "${$}" "${remoteVer}" "${LZ_REPO}"
+                    printf "%s [%s]:\n" "$( date +"%F %T")" "${$}"
+                } >> "/tmp/syslog.log"
             else
                 echo 'var versionStatus = "None";' > "${PATH_WEB_LZR}/detect_version.js"
+                {
+                    printf "%s [%s]:\n" "$( date +"%F %T")" "${$}"
+                    printf "%s [%s]: Version information of LZ Rule not detected from %s.\n" "$( date +"%F %T")" "${$}" "${LZ_REPO}"
+                    printf "%s [%s]:\n" "$( date +"%F %T")" "${$}"
+                } >> "/tmp/syslog.log"
             fi
         }
         detect_version &
@@ -158,15 +186,25 @@ case "${2}" in
     LZDoUpdate)
         do_update() {
             [ -d "${PATH_LZ}/tmp/doupdate" ] && rm -rf "${PATH_LZ}/tmp/doupdate" 2> /dev/null
-            remoteVer="$( get_last_version )"
+            local LZ_REPO="$( get_repo_site )"
+            local remoteVer="$( get_last_version "${LZ_REPO}" )"
             if [ -n "${remoteVer}" ]; then
+                {
+                    printf "%s [%s]:\n" "$( date +"%F %T")" "${$}"
+                    printf "%s [%s]: The latest version of LZ Rule is %s in %s.\n" "$( date +"%F %T")" "${$}" "${remoteVer}" "${LZ_REPO}"
+                    printf "%s [%s]:\n" "$( date +"%F %T")" "${$}"
+                } >> "/tmp/syslog.log"
                 mkdir -p "${PATH_LZ}/tmp/doupdate" 2> /dev/null
-                CN_REPO="https://gitee.com/"
-                PACKAGE_SRC="larsonzh/amdwprprsct/raw/master/installation_package/lz_rule-${remoteVer}.tgz"
-                /usr/sbin/curl -fsLC "-" --retry 3 \
+                local PACKAGE_SRC="larsonzh/amdwprprsct/raw/master/installation_package/lz_rule-${remoteVer}.tgz"
+                /usr/sbin/curl -fsLC "-" --retry 1 \
                     -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.5304.88 Safari/537.36 Edg/108.0.1462.46" \
-                    -e "${CN_REPO}" "${CN_REPO}${PACKAGE_SRC}" -o "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}.tgz"
+                    -e "${LZ_REPO}" "${LZ_REPO}${PACKAGE_SRC}" -o "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}.tgz"
                 if [ -f "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}.tgz" ]; then
+                    {
+                        printf "%s [%s]:\n" "$( date +"%F %T")" "${$}"
+                        printf "%s [%s]: Successfully downloaded lz_rule-%s.tgz from %s.\n" "$( date +"%F %T")" "${$}" "${remoteVer}" "${LZ_REPO}"
+                        printf "%s [%s]:\n" "$( date +"%F %T")" "${$}"
+                    } >> "/tmp/syslog.log"
                     tar -xzf "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}.tgz" -C "${PATH_LZ}/tmp/doupdate"
                     rm -f "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}.tgz" 2> /dev/null
                     if [ -s "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}/install.sh" ]; then
@@ -177,9 +215,27 @@ case "${2}" in
                         else
                             "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}/install.sh" "entware" && "${PATH_LZ}/lz_rule.sh"
                         fi
+                    else
+                        {
+                            printf "%s [%s]:\n" "$( date +"%F %T")" "${$}"
+                            printf "%s [%s]: The installation package is damaged.\n" "$( date +"%F %T")" "${$}"
+                            printf "%s [%s]:\n" "$( date +"%F %T")" "${$}"
+                        } >> "/tmp/syslog.log"
                     fi
+                else
+                    {
+                        printf "%s [%s]:\n" "$( date +"%F %T")" "${$}"
+                        printf "%s [%s]: Failed to download lz_rule-%s.tgz from %s.\n" "$( date +"%F %T")" "${$}" "${remoteVer}" "${LZ_REPO}"
+                        printf "%s [%s]:\n" "$( date +"%F %T")" "${$}"
+                    } >> "/tmp/syslog.log"
                 fi
                 rm -rf "${PATH_LZ}/tmp/doupdate" 2> /dev/null
+            else
+                {
+                    printf "%s [%s]:\n" "$( date +"%F %T")" "${$}"
+                    printf "%s [%s]: Version information of LZ Rule not detected from %s.\n" "$( date +"%F %T")" "${$}" "${LZ_REPO}"
+                    printf "%s [%s]:\n" "$( date +"%F %T")" "${$}"
+                } >> "/tmp/syslog.log"
             fi
         }
         do_update &

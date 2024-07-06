@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_initialize_config.sh v4.4.6
+# lz_initialize_config.sh v4.4.7
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 初始化脚本配置
@@ -30,7 +30,7 @@ lz_variable_initialize() {
 ## 输入项：无
 ## 返回值：无
 lz_variable_uninitialize() {
-    eval "$( echo "${param_list}" | sed "s/^[[:alnum:]_][[:alnum:]_]*$/unset local_& local_ini_& local_&_changed local_&_flag/g" )"
+    eval "$( echo "${param_list}" | sed "s/^[[:alnum:]_][[:alnum:]_]*$/unset local_& local_ini_& local_&_changed local_&_flag local_ini_&_flag/g" )"
     unset local_default local_changed local_reinstall dnsmasq_enable param_list
 }
 
@@ -39,7 +39,8 @@ lz_variable_uninitialize() {
 ##     全局常量及变量
 ## 返回值：无
 lz_init_cfg_data() {
-#BEGIN_PARAM（此注释不可修改及删除）
+## 以下注释不可修改及删除
+<<EOF_INI_PARAM
     local_ini_version="${LZ_VERSION}"
     local_ini_all_foreign_wan_port=0
     local_ini_chinatelecom_wan_port=0
@@ -104,6 +105,7 @@ lz_init_cfg_data() {
     local_ini_usage_mode=0
     local_ini_custom_hosts=5
     local_ini_custom_hosts_file="\"${PATH_DATA}/custom_hosts.txt\""
+    local_ini_repo_site=0
     local_ini_dn_pre_resolved=0
     local_ini_pre_dns="\"8.8.8.8\""
     local_ini_dn_cache_time=864000
@@ -132,8 +134,15 @@ lz_init_cfg_data() {
     local_ini_custom_dualwan_scripts=5
     local_ini_custom_dualwan_scripts_filename="\"${PATH_LZ}/custom_dualwan_scripts.sh\""
     local_ini_udpxy_used=5
-#END_PARAM（此注释不可修改及删除）
-    param_list="$( sed -n "/^[[:space:]]*#BEGIN_PARAM/,/^[[:space:]]*#END_PARAM/{
+EOF_INI_PARAM
+## 以上注释不可修改及删除
+    eval "$( sed -n "/^[[:space:]]*<<EOF_INI_PARAM/,/^[[:space:]]*EOF_INI_PARAM/{
+        /^[[:space:]]*local_ini_[[:alnum:]_][[:alnum:]_]*[=].*$/!d;
+        s/^[[:space:]]*\(local_ini_[[:alnum:]_][[:alnum:]_]*[=][^[:space:]#]*\)/\1/g;
+        p
+    }" "${PATH_FUNC}/lz_initialize_config.sh" 2> /dev/null \
+    | awk -F '=' '!i[$1]++ {print $0}' )"
+    param_list="$( sed -n "/^[[:space:]]*<<EOF_INI_PARAM/,/^[[:space:]]*EOF_INI_PARAM/{
             /^[[:space:]]*local_ini_[[:alnum:]_][[:alnum:]_]*[=].*$/!d;
             s/^[[:space:]]*local_ini_\([[:alnum:]_][[:alnum:]_]*\)[=].*$/\1/g;
             p
@@ -166,6 +175,17 @@ lz_get_ini_param_default_list() {
         | sed 's/\"//g'
 }
 
+## 获取配置参数状态函数
+## 输入项：
+##     全局变量
+## 返回值：
+##     1--不完整
+lz_get_data_status() {
+    eval "$( echo "${param_list}" | sed -n "/^all_foreign_wan_port$/,/^custom_dualwan_scripts_filename$/{
+            s/^[[:alnum:]_][[:alnum:]_]*$/echo \"& \${local_&_flag}\"/;p}" )" \
+        | awk '$2 != "1" {print "1"; exit}'
+}
+
 ## 修复丢失的配置参数函数
 ## 输入项：
 ##     全局变量
@@ -173,7 +193,17 @@ lz_get_ini_param_default_list() {
 lz_fix_lost_data() {
     eval "$( eval "$( echo "${param_list}" | sed -n "/^all_foreign_wan_port$/,/^custom_dualwan_scripts_filename$/{
             s/^[[:alnum:]_][[:alnum:]_]*$/echo \"& \${local_&_flag}\"/;p}" )" \
-        | awk '$2 != "1" {x++; print "local_"$1"=\"\${local_ini_"$1"}\"";}' )"
+        | awk '$2 != "1" {print "local_"$1"=\"\${local_ini_"$1"}\"";}' )"
+}
+
+## 获取备份配置参数状态函数
+## 输入项：
+##     全局变量
+## 返回值：
+##     1--不完整
+lz_get_ini_data_status() {
+    eval "$( echo "${param_list}" | sed "s/^[[:alnum:]_][[:alnum:]_]*$/echo \"& \${local_ini_&_flag}\"/" )" \
+        | awk '$2 != "1" {print "1"; exit}'
 }
 
 ## 复原配置文件函数
@@ -924,6 +954,13 @@ custom_hosts=${local_custom_hosts}
 ## 此文件中0.0.0.0为无效IP地址。
 custom_hosts_file=${local_custom_hosts_file}
 
+## 软件最新版本检测及在线安装远程网络站点（仅用于路由器 Web UI 设置页面操作）
+## 0--中国大陆（Gitee）；1--国际（Github）；取值范围：0~1
+## 缺省使用中国大陆（Gitee）站点（0）。
+## 从中国大陆内地访问国际（Github）站点，线路通畅性可能不佳，若有受到干扰甚至屏蔽，或版本检测或在线安装功能
+## 无法正常使用时，请选择中国大陆（Gitee）站点。
+repo_site=${local_repo_site}
+
 ## 路由表缓存清理
 ## 0--启用；非0--禁用；取值范围：0~9
 ## 缺省为启用（0）。
@@ -1122,6 +1159,7 @@ lz_get_config_data() {
             for (id in arr) {
                 pos=index(arr[id], "=");
                 i[substr(arr[id], 1, pos-1)]=substr(arr[id], pos+1);
+                iii[substr(arr[id], 1, pos-1)"_flag"]=0;
             }
             delete arr;
             split(ini_param_default, arr, "\n");
@@ -1132,154 +1170,156 @@ lz_get_config_data() {
             delete arr;
         } $0 ~ /^[[:space:]]*[[:alnum:]_]+[=]/ {
             flag=0;
+            key=$1;
+            gsub(/[[:space:]]/, "", key);
             value=$2;
             gsub(/[[:space:]#].*$/, "", value);
             invalid=0;
-            if ($1 == "all_foreign_wan_port" \
-                || $1 == "chinatelecom_wan_port" \
-                || $1 == "unicom_cnc_wan_port" \
-                || $1 == "cmcc_wan_port" \
-                || $1 == "crtc_wan_port" \
-                || $1 == "cernet_wan_port" \
-                || $1 == "gwbn_wan_port" \
-                || $1 == "othernet_wan_port" \
-                || $1 == "hk_wan_port" \
-                || $1 == "mo_wan_port" \
-                || $1 == "tw_wan_port" \
-                || $1 == "ovs_client_wan_port" \
-                || $1 == "dn_pre_resolved" \
-                || $1 == "route_cache" \
-                || $1 == "drop_sys_caches" \
-                || $1 == "regularly_update_ispip_data_enable" \
-                || $1 == "custom_data_wan_port_1" \
-                || $1 == "custom_data_wan_port_2" \
-                || $1 == "wan_1_client_src_addr" \
-                || $1 == "wan_2_client_src_addr" \
-                || $1 == "high_wan_1_client_src_addr" \
-                || $1 == "high_wan_2_client_src_addr" \
-                || $1 == "wan_1_src_to_dst_addr" \
-                || $1 == "wan_2_src_to_dst_addr" \
-                || $1 == "high_wan_1_src_to_dst_addr" \
-                || $1 == "wan_1_src_to_dst_addr_port" \
-                || $1 == "wan_2_src_to_dst_addr_port" \
-                || $1 == "high_wan_1_src_to_dst_addr_port" \
-                || $1 == "proxy_route" \
-                || $1 == "custom_hosts" \
-                || $1 == "wan1_iptv_mode" \
-                || $1 == "wan2_iptv_mode" \
-                || $1 == "iptv_igmp_switch" \
-                || $1 == "wan1_udpxy_switch" \
-                || $1 == "wan2_udpxy_switch" \
-                || $1 == "custom_clear_scripts" \
-                || $1 == "custom_config_scripts" \
-                || $1 == "custom_dualwan_scripts") {
+            if (key == "all_foreign_wan_port" \
+                || key == "chinatelecom_wan_port" \
+                || key == "unicom_cnc_wan_port" \
+                || key == "cmcc_wan_port" \
+                || key == "crtc_wan_port" \
+                || key == "cernet_wan_port" \
+                || key == "gwbn_wan_port" \
+                || key == "othernet_wan_port" \
+                || key == "hk_wan_port" \
+                || key == "mo_wan_port" \
+                || key == "tw_wan_port" \
+                || key == "ovs_client_wan_port" \
+                || key == "dn_pre_resolved" \
+                || key == "route_cache" \
+                || key == "drop_sys_caches" \
+                || key == "regularly_update_ispip_data_enable" \
+                || key == "custom_data_wan_port_1" \
+                || key == "custom_data_wan_port_2" \
+                || key == "wan_1_client_src_addr" \
+                || key == "wan_2_client_src_addr" \
+                || key == "high_wan_1_client_src_addr" \
+                || key == "high_wan_2_client_src_addr" \
+                || key == "wan_1_src_to_dst_addr" \
+                || key == "wan_2_src_to_dst_addr" \
+                || key == "high_wan_1_src_to_dst_addr" \
+                || key == "wan_1_src_to_dst_addr_port" \
+                || key == "wan_2_src_to_dst_addr_port" \
+                || key == "high_wan_1_src_to_dst_addr_port" \
+                || key == "proxy_route" \
+                || key == "custom_hosts" \
+                || key == "wan1_iptv_mode" \
+                || key == "wan2_iptv_mode" \
+                || key == "iptv_igmp_switch" \
+                || key == "wan1_udpxy_switch" \
+                || key == "wan2_udpxy_switch" \
+                || key == "custom_clear_scripts" \
+                || key == "custom_config_scripts" \
+                || key == "custom_dualwan_scripts") {
                 flag=1;
                 if (value !~ /^[0-9]$/)
                     invalid=1;
-            } else if ($1 == "wan_1_domain" || $1 == "wan_2_domain") {
+            } else if (key == "wan_1_domain" || key == "wan_2_domain") {
                 flag=1;
                 if (value !~ /^[0-9]$/ || (value == "0" && dmq != "0"))
                     invalid=1;
-            } else if ($1 == "ruid_interval_day") {
+            } else if (key == "ruid_interval_day") {
                 flag=1;
                 if (value !~ /^[1-9]$|^[1-2][0-9]$|^[3][0-1]$/)
                     invalid=3;
-            } else if ($1 == "ruid_timer_hour") {
+            } else if (key == "ruid_timer_hour") {
                 flag=1;
                 if (value !~ /^[0-9]$|^[1][0-9]$|^[2][0-3]$|^[\*]$/)
                     invalid=4;
                 if (value == "\*")
                     value="\"\*\"";
-            } else if ($1 == "ruid_timer_min") {
+            } else if (key == "ruid_timer_min") {
                 flag=1;
                 if (value !~ /^[0-9]$|^[1-5][0-9]$|^[\*]$/)
                     invalid=5;
                 if (value == "\*")
                     value="\"\*\"";
-            } else if ($1 == "ruid_retry_num") {
+            } else if (key == "ruid_retry_num") {
                 flag=1;
                 if (value !~ /^[0-9]$|^[1-9][0-9]$/)
                     invalid=1;
-            } else if ($1 == "wan_access_port" || $1 == "usage_mode") {
+            } else if (key == "wan_access_port" || key == "usage_mode" || key == "repo_site") {
                 flag=1;
                 if (value !~ /^[01]$/)
                     invalid=1;
-            } else if ($1 == "vpn_client_polling_time") {
+            } else if (key == "vpn_client_polling_time") {
                 flag=1;
                 if (value !~ /^[0-9]$|^[1][0-9]$|^[2][0]$/)
                     invalid=1;
-            } else if ($1 == "dn_cache_time") {
+            } else if (key == "dn_cache_time") {
                 flag=1;
                 if (value !~ /^[0-9]+$/ || (value + 0) < 0 || (value + 0) > 2147483)
                     invalid=1;
-            } else if ($1 == "clear_route_cache_time_interval") {
+            } else if (key == "clear_route_cache_time_interval") {
                 flag=1;
                 if (value !~ /^[0-9]$|^[1][0-9]$|^[2][0-4]$/)
                     invalid=1;
-            } else if ($1 == "iptv_access_mode") {
+            } else if (key == "iptv_access_mode") {
                 flag=1;
                 if (value !~ /^[12]$/)
                     invalid=1;
-            } else if ($1 == "hnd_br0_bcmmcast_mode") {
+            } else if (key == "hnd_br0_bcmmcast_mode") {
                 flag=1;
                 if (value !~ /^[0-2]$/)
                     invalid=1;
-            } else if ($1 == "wan1_udpxy_port") {
+            } else if (key == "wan1_udpxy_port") {
                 flag=1;
                 if (value !~ /^[1-9]$|^[1-9][0-9]+$/ || (value + 0) < 1 || (value + 0) > 65535)
                     invalid=1;
-            } else if ($1 == "wan1_udpxy_buffer" || $1 == "wan2_udpxy_buffer") {
+            } else if (key == "wan1_udpxy_buffer" || key == "wan2_udpxy_buffer") {
                 flag=1;
                 if (value !~ /^[1-9]$|^[1-9][0-9]+$/ || (value + 0) < 4096 || (value + 0) > 2097152)
                     invalid=1;
-            } else if ($1 == "wan1_udpxy_client_num" || $1 == "wan2_udpxy_client_num") {
+            } else if (key == "wan1_udpxy_client_num" || key == "wan2_udpxy_client_num") {
                 flag=1;
                 if (value !~ /^[1-9]$|^[1-9][0-9]+$/ || (value + 0) < 1 || (value + 0) > 5000)
                     invalid=1;
-            } else if ($1 == "wan2_udpxy_port") {
+            } else if (key == "wan2_udpxy_port") {
                 flag=1;
                 if (value !~ /^[1-9]$|^[1-9][0-9]+$/ || (value + 0) < 1 || (value + 0) > 65535)
                     invalid=1;
-            } else if ($1 == "wan0_dest_tcp_port" \
-                || $1 == "wan0_dest_udp_port" \
-                || $1 == "wan0_dest_udplite_port" \
-                || $1 == "wan0_dest_sctp_port" \
-                || $1 == "wan1_dest_tcp_port" \
-                || $1 == "wan1_dest_udp_port" \
-                || $1 == "wan1_dest_udplite_port" \
-                || $1 == "wan1_dest_sctp_port") {
+            } else if (key == "wan0_dest_tcp_port" \
+                || key == "wan0_dest_udp_port" \
+                || key == "wan0_dest_udplite_port" \
+                || key == "wan0_dest_sctp_port" \
+                || key == "wan1_dest_tcp_port" \
+                || key == "wan1_dest_udp_port" \
+                || key == "wan1_dest_udplite_port" \
+                || key == "wan1_dest_sctp_port") {
                 flag=1;
                 if (value ~ /[^0-9\:\,]|^[\,\:]|[\,\:]$|[\,\:][\,\:]+|[0-9]+[\:][0-9]+[\:]/)
                     invalid=1;
-            } else if ($1 == "custom_data_file_1" \
-                || $1 == "custom_data_file_2" \
-                || $1 == "wan_1_domain_client_src_addr_file" \
-                || $1 == "wan_1_domain_file" \
-                || $1 == "wan_2_domain_client_src_addr_file"\
-                || $1 == "wan_2_domain_file" \
-                || $1 == "wan_1_client_src_addr_file" \
-                || $1 == "wan_2_client_src_addr_file" \
-                || $1 == "high_wan_1_client_src_addr_file" \
-                || $1 == "high_wan_2_client_src_addr_file" \
-                || $1 == "wan_1_src_to_dst_addr_file" \
-                || $1 == "wan_2_src_to_dst_addr_file" \
-                || $1 == "high_wan_1_src_to_dst_addr_file" \
-                || $1 == "wan_1_src_to_dst_addr_port_file" \
-                || $1 == "wan_2_src_to_dst_addr_port_file" \
-                || $1 == "high_wan_1_src_to_dst_addr_port_file" \
-                || $1 == "local_ipsets_file" \
-                || $1 == "proxy_remote_node_addr_file" \
-                || $1 == "custom_hosts_file" \
-                || $1 == "iptv_box_ip_lst_file" \
-                || $1 == "iptv_isp_ip_lst_file" \
-                || $1 == "custom_clear_scripts_filename" \
-                || $1 == "custom_config_scripts_filename" \
-                || $1 == "custom_dualwan_scripts_filename") {
+            } else if (key == "custom_data_file_1" \
+                || key == "custom_data_file_2" \
+                || key == "wan_1_domain_client_src_addr_file" \
+                || key == "wan_1_domain_file" \
+                || key == "wan_2_domain_client_src_addr_file"\
+                || key == "wan_2_domain_file" \
+                || key == "wan_1_client_src_addr_file" \
+                || key == "wan_2_client_src_addr_file" \
+                || key == "high_wan_1_client_src_addr_file" \
+                || key == "high_wan_2_client_src_addr_file" \
+                || key == "wan_1_src_to_dst_addr_file" \
+                || key == "wan_2_src_to_dst_addr_file" \
+                || key == "high_wan_1_src_to_dst_addr_file" \
+                || key == "wan_1_src_to_dst_addr_port_file" \
+                || key == "wan_2_src_to_dst_addr_port_file" \
+                || key == "high_wan_1_src_to_dst_addr_port_file" \
+                || key == "local_ipsets_file" \
+                || key == "proxy_remote_node_addr_file" \
+                || key == "custom_hosts_file" \
+                || key == "iptv_box_ip_lst_file" \
+                || key == "iptv_isp_ip_lst_file" \
+                || key == "custom_clear_scripts_filename" \
+                || key == "custom_config_scripts_filename" \
+                || key == "custom_dualwan_scripts_filename") {
                 flag=2;
                 if ((value !~ /^[\"]([\/][[:alnum:]_\-][[:alnum:]_\.\-]*)+[\"]$/ && value !~ /^([\/][[:alnum:]_\-][[:alnum:]_\.\-]*)+$/) \
                     || value ~ /[\/][\/]/)
                     invalid=2;
-            } else if ($1 == "pre_dns") {
+            } else if (key == "pre_dns") {
                 flag=2;
                 if (value !~ /^[\"]([0-9]{1,3}[\.]){3}[0-9]{1,3}[\"]$|([0-9]{1,3}[\.]){3}[0-9]{1,3}/ \
                     || value ~ /[3-9][0-9][0-9]|[2][6-9][0-9]|[2][5][6-9]/)
@@ -1287,31 +1327,33 @@ lz_get_config_data() {
             }
             if (flag == 0) next;
             if (flag == 2) {
-                if (value != "\""i[$1]"\"")
+                if (value != "\""i[key]"\"")
                     x++;
             } else {
-                if ($1 == "ruid_timer_hour" || $1 == "ruid_timer_min") {
-                    if (value != "\""i[$1]"\"") x++;
-                } else if (value != i[$1]) x++;
+                if (key == "ruid_timer_hour" || key == "ruid_timer_min") {
+                    if (value != "\""i[key]"\"") x++;
+                } else if (value != i[key]) x++;
             }
             if (invalid == 2)
-                value="\\\""ii[$1]"\\\"";
+                value="\\\""ii[key]"\\\"";
             else if (invalid != 0)
-                value=ii[$1];
+                value=ii[key];
             if (flag == 2 && invalid != 2 \
                 && match(value, /^[\"][^\"]*[\"]$/) > 0) {
                 value="\\\""value"\\\"";
             }
-            if (invalid == 1 || invalid == 2)
-                str_buffer=str_buffer" -e \"s\|\^\[\[\:space\:\]\]\*"$1"=\.\*\$\|"$1"="value"\|\"";
-            else if (invalid == 3)
-                str_buffer=str_buffer" -e \"s\|\^\[\[\:space\:\]\]\*"$1"=\.\*\$\|"$1"="value"  ## 间隔天数（1~31）；\"ruid_interval_day=5\"表示每隔5天。\|\"";
-            else if (invalid == 4)
-                str_buffer=str_buffer" -e \"s\|\^\[\[\:space\:\]\]\*"$1"=\.\*\$\|"$1"="value"    ## 时间小时数（0~23，\*表示由系统指定）；\"ruid_timer_hour=3\"表示更新当天的凌晨3点。\|\"";
-            else if (invalid == 5)
-                str_buffer=str_buffer" -e \"s\|\^\[\[\:space\:\]\]\*"$1"=\.\*\$\|"$1"="value"     ## 时间分钟数（0~59，\*表示由系统指定）；\"ruid_timer_min=18\"表示更新当天的凌晨3点18分。\|\"";
-            print "local_"$1"="value;
-            print "local_"$1"_flag=\"1\"";
+            if (iii[key"_flag"] != 1) {
+                if (invalid == 1 || invalid == 2)
+                    str_buffer=str_buffer" -e \"s\|\^\[\[\:space\:\]\]\*"key"=\.\*\$\|"key"="value"\|\"";
+                else if (invalid == 3)
+                    str_buffer=str_buffer" -e \"s\|\^\[\[\:space\:\]\]\*"key"=\.\*\$\|"key"="value"  ## 间隔天数（1~31）；\"ruid_interval_day=5\"表示每隔5天。\|\"";
+                else if (invalid == 4)
+                    str_buffer=str_buffer" -e \"s\|\^\[\[\:space\:\]\]\*"key"=\.\*\$\|"key"="value"    ## 时间小时数（0~23，\*表示由系统指定）；\"ruid_timer_hour=3\"表示更新当天的凌晨3点。\|\"";
+                else if (invalid == 5)
+                    str_buffer=str_buffer" -e \"s\|\^\[\[\:space\:\]\]\*"key"=\.\*\$\|"key"="value"     ## 时间分钟数（0~59，\*表示由系统指定）；\"ruid_timer_min=18\"表示更新当天的凌晨3点18分。\|\"";
+                print "local_"key"="value"; local_"key"_flag=\"1\";";
+                iii[key"_flag"]=1;
+            }
             count++;
         } END{
             param_total=length(i);
@@ -1330,6 +1372,9 @@ lz_get_config_data() {
         ## 返回值：无
         lz_fix_lost_data
         lz_restore_cfg_file
+    elif [ "$( lz_get_data_status )" = "1" ]; then
+        lz_fix_lost_data
+        lz_restore_cfg_file
     else
         original_length="$( awk 'BEIGN{x=-1; y=-1; z=0;} \
             /EOF_CFG/ {if ($0 ~ /<<EOF_CFG/) x=NR; else if ($0 ~ /^EOF_CFG/) y=NR; z++; if (z > 1) exit;} \
@@ -1344,16 +1389,17 @@ lz_get_config_data() {
         sed -i "s|^[[:space:]]*clear_route_cache_time_interval=${local_clear_route_cache_time_interval}|clear_route_cache_time_interval=0|" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
         local_clear_route_cache_time_interval="0"
     fi
-    eval "$( awk -F "=" -v value="" -v x=0 -v fname="${PATH_FUNC}/lz_define_global_variables.sh" '$0 ~ /^[[:space:]]*udpxy_used[=]/ \
-        && $1 == "udpxy_used" {
+    eval "$( awk -F "=" -v value="" -v x=0 -v fname="${PATH_FUNC}/lz_define_global_variables.sh" '$0 ~ /^[[:space:]]*udpxy_used[=]/ {
             x++;
+            key=$1;
+            gsub(/[[:space:]]/, "", key);
             value=$2;
             gsub(/[[:space:]#].*$/, "", value);
             if (value !~ /^[0-9]$/) {
                 value="5";
-                system("sed -i \"s\|\^\[\[\:space\:\]\]\*"$1"=\.\*\$\|"$1"="value"\|\" \""fname"\" \> \/dev\/null 2\>\&1");
+                system("sed -i \"s\|\^\[\[\:space\:\]\]\*"key"=\.\*\$\|"key"="value"\|\" \""fname"\" \> \/dev\/null 2\>\&1");
             }
-            print "local_"$1"="value;
+            print "local_"key"="value;
             exit;
         } END{
             if (x > 0)
@@ -1409,13 +1455,14 @@ lz_get_box_data() {
             for (id in arr) {
                 pos=index(arr[id], "=");
                 i[substr(arr[id], 1, pos-1)]=substr(arr[id], pos+1);
+                iii[substr(arr[id], 1, pos-1)"_flag"]=0;
             }
             delete arr;
             i["policy_mode"]=5;
         } $0 ~ /^[[:space:]]*lz_config_[[:alnum:]_]+[=]/ {
             flag=0;
             key=$1;
-            sub(/^lz_config_/, "", key);
+            sub(/^[[:space:]]*lz_config_/, "", key);
             value=$2;
             gsub(/[[:space:]#].*$/, "", value);
             invalid=0;
@@ -1516,7 +1563,7 @@ lz_get_box_data() {
                 flag=1;
                 if (value !~ /^[0-9]$|^[1-9][0-9]$/)
                     invalid=1;
-            } else if (key == "wan_access_port") {
+            } else if (key == "wan_access_port" || key == "repo_site") {
                 flag=1;
                 if (value !~ /^[01]$/)
                     invalid=1;
@@ -1613,9 +1660,12 @@ lz_get_box_data() {
             if (flag == 2 && invalid != 2 \
                 && match(value, /^[\"][^\"]*[\"]$/) > 0)
                 value="\\\""value"\\\"";
-            if (invalid != 0)
-                str_buffer=str_buffer" -e \"s\|\^\[\[\:space\:\]\]\*lz_config_"key"=\.\*\$\|lz_config_"key"="value"\|\"";
-            print "local_ini_"key"="value;
+            if (iii[key"_flag"] != 1) {
+                if (invalid != 0)
+                    str_buffer=str_buffer" -e \"s\|\^\[\[\:space\:\]\]\*lz_config_"key"=\.\*\$\|lz_config_"key"="value"\|\"";
+                print "local_ini_"key"="value"; local_ini_"key"_flag=\"1\";";
+                iii[key"_flag"]=1;
+            }
             if (invalid != 6) count++;
         } END{
             param_total=length(i)-1;
@@ -1624,6 +1674,7 @@ lz_get_box_data() {
             } else if (str_buffer != "")
                 system("sed -i"str_buffer" "fname);
         }' "${PATH_CONFIGS}/lz_rule_config.box" )"
+    [ "$( lz_get_ini_data_status )" = "1" ] && lz_restore_box_data
     if [ "${local_ini_route_cache}" != "0" ] && [ "${local_ini_drop_sys_caches}" != "0" ] && [ "${local_ini_clear_route_cache_time_interval}" != "0" ]; then
         sed -i "s|^[[:space:]]*lz_config_clear_route_cache_time_interval=${local_ini_clear_route_cache_time_interval}|lz_config_clear_route_cache_time_interval=0|" "${PATH_CONFIGS}/lz_rule_config.box" > /dev/null 2>&1
         local_ini_clear_route_cache_time_interval="0"
@@ -1678,7 +1729,7 @@ lz_optimize_to_iptv() {
             flag=0;
             update=0;
             key=$1;
-            sub(/^lz_config_/, "", key);
+            sub(/^[[:space:]]*lz_config_/, "", key);
             value=$2;
             gsub(/[[:space:]#].*$/, "", value);
             if (key == "all_foreign_wan_port" \
@@ -1739,9 +1790,9 @@ lz_optimize_to_iptv() {
 lz_optimize_to_hd() {
     [ "${1}" != "hd" ] && [ "${1}" != "iptv" ] && return
     eval "$( awk -F "=" -v fname="${PATH_CONFIGS}/lz_rule_config.box" -v fnm="${PATH_CONFIGS}/lz_rule_config.sh" \
-        '$0 ~ /^[[:space:]]*lz_config_[[:alnum:]_]+[=]/ && $1 == "lz_config_usage_mode" {
+        '$0 ~ /^[[:space:]]*lz_config_usage_mode[=]/ {
             key=$1;
-            sub(/^lz_config_/, "", key);
+            sub(/^[[:space:]]*lz_config_/, "", key);
             value=$2;
             gsub(/[[:space:]#].*$/, "", value);
             if (value != 1) {
@@ -1751,7 +1802,18 @@ lz_optimize_to_hd() {
             }
             print "local_ini_"key"="value;
             print "local_"key"="value;
-        }' "${PATH_CONFIGS}/lz_rule_config.box" )"
+        }' "${PATH_CONFIGS}/lz_rule_config.box" \
+        | awk '!i[$1]++ {
+            key=$1;
+            value=$2;
+            if (value != 1) {
+                value=1;
+                system("sed -i \"s\|\^\[\[\:space\:\]\]\*lz_config_"key"=\.\*\$\|lz_config_"key"="value"\|\" \""fname"\" \> \/dev\/null 2\>\&1");
+                system("sed -i \"s\|\^\[\[\:space\:\]\]\*"key"=\.\*\$\|"key"="value"\|\" \""fnm"\" \> \/dev\/null 2\>\&1");
+            }
+            print "local_ini_"key"="value;
+            print "local_"key"="value;
+        }' )"
 }
 
 ## 将当前配置恢复至动态分流模式RN配置函数
@@ -1762,11 +1824,15 @@ lz_optimize_to_hd() {
 lz_restore_to_rn() {
     [ "$1" != "rn" ] && return
     eval "$( awk -F "=" -v fnm="${PATH_CONFIGS}/lz_rule_config.sh" -v fname="${PATH_CONFIGS}/lz_rule_config.box" \
-        '$0 ~ /^[[:space:]]*lz_config_[[:alnum:]_]+[=]/ && $1 == "lz_config_usage_mode" {
+        '$0 ~ /^[[:space:]]*lz_config_usage_mode[=]/ {
             key=$1;
-            sub(/^lz_config_/, "", key);
+            sub(/^[[:space:]]*lz_config_/, "", key);
             value=$2;
             gsub(/[[:space:]#].*$/, "", value);
+            print key,value;
+        }' "${PATH_CONFIGS}/lz_rule_config.box" | awk '!i[$1]++ {
+            key=$1;
+            value=$2;
             if (value != 0) {
                 value=0;
                 system("sed -i \"s\|\^\[\[\:space\:\]\]\*lz_config_"key"=\.\*\$\|lz_config_"key"="value"\|\" \""fname"\" \> \/dev\/null 2\>\&1");
@@ -1774,7 +1840,7 @@ lz_restore_to_rn() {
             }
             print "local_ini_"key"="value;
             print "local_"key"="value;
-        }' "${PATH_CONFIGS}/lz_rule_config.box" )"
+        }')"
 }
 
 ## 接收WEB前端数据至配置文件函数
@@ -1785,7 +1851,7 @@ lz_restore_to_rn() {
 ## 返回值：无
 lz_get_web_data_to_config() {
     { [ ! -s "${SETTINGSFILE}" ] || [ ! -s "${1}" ]; } && return
-    awk -v key="" -v value="" -v str_buffer="" -v fname="${1}" -v prefix="${2}" '$1 ~ /^lz_rule_/ {
+    awk -v key="" -v value="" -v str_buffer="" -v fname="${1}" -v prefix="${2}" '$1 ~ /^lz_rule_/ && !i[$1]++ {
         key=$1;
         sub(/^lz_rule_/, "", key);
         value=$2;

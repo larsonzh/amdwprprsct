@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_config.sh v4.4.6
+# lz_rule_config.sh v4.4.7
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # 本软件采用CIDR（无类别域间路由，Classless Inter-Domain Routing）技术，是一个在Internet上创建附加地
@@ -740,6 +740,13 @@ custom_hosts=5
 ## www.qq.com mydomain.alias
 ## 此文件中0.0.0.0为无效IP地址。
 custom_hosts_file="/jffs/scripts/lz/data/custom_hosts.txt"
+
+## 软件最新版本检测及在线安装远程网络站点（仅用于路由器 Web UI 设置页面操作）
+## 0--中国大陆（Gitee）；1--国际（Github）；取值范围：0~1
+## 缺省使用中国大陆（Gitee）站点（0）。
+## 从中国大陆内地访问国际（Github）站点，线路通畅性可能不佳，若有受到干扰甚至屏蔽，或版本检测或在线安装功能
+## 无法正常使用时，请选择中国大陆（Gitee）站点。
+repo_site=0
 
 ## 路由表缓存清理
 ## 0--启用；非0--禁用；取值范围：0~9

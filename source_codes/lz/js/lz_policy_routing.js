@@ -1,5 +1,5 @@
 /*
-# lz_policy_routing.js v4.4.6
+# lz_policy_routing.js v4.4.7
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ JavaScript for Asuswrt-Merlin Router
@@ -26,6 +26,11 @@ function getVersion() {
 
 function getLastVersion() {
     policySettingsArray["lastVersion"] = policySettingsArray.version;
+    let siteStr="";
+    if (policySettingsArray.hasOwnProperty("lzr_repo_site")) {
+        siteStr=" (Gitee)";
+        if (policySettingsArray["lzr_repo_site"] == 1) siteStr=" (Github)";
+    }
     $.ajax({
         url: '/ext/lzr/detect_version.js',
         dataType: 'script',
@@ -39,15 +44,18 @@ function getLastVersion() {
                 policySettingsArray.lastVersion = versionStatus;
                 if (policySettingsArray.lastVersion != policySettingsArray.version) {
                     $("#lzr_new_version_prompt_block").html("有新版本:&nbsp&nbsp").show();
-                    $("#lzr_last_version_block").html(policySettingsArray.lastVersion).show();
+                    $("#lzr_last_version_block").html(policySettingsArray.lastVersion + siteStr).show();
                     setInterval(function() {
                         $("#lzr_last_version_block").fadeOut(200);
                         $("#lzr_last_version_block").fadeIn(100);
                     }, 3000);
                 } else {
                     $("#lzr_new_version_prompt_block").html("").show();
-                    $("#lzr_last_version_block").html(policySettingsArray.lastVersion).show();
+                    $("#lzr_last_version_block").html(policySettingsArray.lastVersion + siteStr).show();
                 }
+            } else if (versionStatus == 'None') {
+                $("#lzr_new_version_prompt_block").html("在线检测新版本失败" + siteStr).show();
+                $("#lzr_last_version_block").html("").show();
             }
         }
     });
@@ -327,6 +335,7 @@ function initControls() {
     initCheckRadio("lzr_usage_mode", 0, 1, 0);
     initCheckRadio("lzr_custom_hosts", 0, 0, 5);
     initTextEdit("lzr_custom_hosts_file");
+    initCheckRadio("lzr_repo_site", 0, 1, 0);
     initListBox("lzr_dn_pre_resolved", 0, 2, 5);
     initTextEdit("lzr_pre_dns");
     initNumberEdit("lzr_dn_cache_time", 0, 2147483, 864000);
@@ -1252,6 +1261,9 @@ function openOverHint(itemNum) {
         content += "www.qq.com mydomain.alias<br />";
         content += "<br />此文件中 <b>0.0.0.0</b> 为无效地址。<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
+    } else if (itemNum == 90) {
+        content = "<div>缺省为<b>中国大陆 (Gitee)</b> 站点。<br />";
+        content += "<br />从中国大陆内地访问<b>国际 (Github)</b> 站点，线路通畅性可能不佳，若有受到干扰甚至屏蔽，或版本检测或在线安装功能无法正常使用时，请选择<b>中国大陆 (Gitee)</b> 站点。</b></div>";
     } else if (itemNum == 100) {
         mode = 1;
         caption = "基本设置 - 策略路由优先级";
@@ -2053,10 +2065,22 @@ function initAjaxTextArea() {
 }
 
 function detectVersion() {
-    document.scriptActionsForm.action_script.value = 'start_LZDetectVersion';
-    document.scriptActionsForm.action_wait.value = "0";
-    document.scriptActionsForm.submit();
-    setTimeout(getLastVersion, 3000);
+    $.ajax({
+        async: false,
+        url: '/ext/lzr/LZRInstance.html',
+        dataType: 'text',
+        error: function(xhr) {
+            if (xhr.status == 404) {
+                document.scriptActionsForm.action_script.value = 'start_LZDetectVersion';
+                document.scriptActionsForm.action_wait.value = "0";
+                document.scriptActionsForm.submit();
+                setTimeout(getLastVersion, 3000);
+            }
+        },
+        success: function() {
+            setTimeout(detectVersion, 3000);
+        }
+    });
 }
 
 function initial() {
@@ -2075,8 +2099,8 @@ function initial() {
     if (restart)
         saveSettings(false);
     else
-        detectVersion();
-}
+        setTimeout(detectVersion, 100);
+    }
 
 $(document).ready(function() {
     $("#lzr_producid").click(function() {

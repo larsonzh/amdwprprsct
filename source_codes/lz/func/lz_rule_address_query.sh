@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_address_query.sh v4.4.6
+# lz_rule_address_query.sh v4.4.7
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 网址信息查询脚本
@@ -12,6 +12,7 @@
 #BEGIN
 
 # shellcheck disable=SC2034  # Unused variables left for readability
+# shellcheck disable=SC2154
 
 ## 定义网址信息查询用常量函数
 lz_define_aq_constant() {
@@ -601,97 +602,31 @@ lz_set_aq_parameter_variable() {
     ##     aq_route_local_ip--路由器本机IP地址（全局变量）
     ##     aq_route_local_ip_cidr_mask--路由器本机IP地址掩码（全局变量）
     lz_aq_get_route_local_address_info
+
+    aq_param_list="$( eval "$( sed -n "/^[[:space:]]*<<EOF_INI_PARAM/,/^[[:space:]]*EOF_INI_PARAM/{
+        /^[[:space:]]*local_ini_[[:alnum:]_][[:alnum:]_]*[=].*$/!d;
+        s/^[[:space:]]*local_ini_\([[:alnum:]_][[:alnum:]_]*[=][^[:space:]#]*\)/echo aq_\1/g;
+        p
+    }" "${PATH_FUNC}/lz_initialize_config.sh" 2> /dev/null )" \
+    | sed 's/\"//g' \
+    | awk -F '=' '!i[$1]++ {print $0}' )"
 }
 
 ## 卸载网址信息查询用变量函数
 lz_unset_aq_parameter_variable() {
-
-    unset aq_version
-
     ## 卸载ISP网络运营商出口参数变量
     lz_aq_unset_isp_wan_port_variable
 
-    unset aq_usage_mode
-    unset aq_custom_data_wan_port_1
-    unset aq_custom_data_file_1
-    unset aq_custom_data_wan_port_2
-    unset aq_custom_data_file_2
-    unset aq_wan_1_domain
-    unset aq_wan_2_domain
-    unset aq_wan_1_client_src_addr
-    unset aq_wan_1_client_src_addr_file
-    unset aq_wan_2_client_src_addr
-    unset aq_wan_2_client_src_addr_file
-    unset aq_high_wan_1_client_src_addr
-    unset aq_high_wan_1_client_src_addr_file
-    unset aq_high_wan_2_client_src_addr
-    unset aq_high_wan_2_client_src_addr_file
-    unset aq_wan_1_src_to_dst_addr
-    unset aq_wan_1_src_to_dst_addr_file
-    unset aq_wan_2_src_to_dst_addr
-    unset aq_wan_2_src_to_dst_addr_file
-    unset aq_high_wan_1_src_to_dst_addr
-    unset aq_high_wan_1_src_to_dst_addr_file
-    unset aq_wan_1_src_to_dst_addr_port
-    unset aq_wan_1_src_to_dst_addr_port_file
-    unset aq_wan_2_src_to_dst_addr_port
-    unset aq_wan_2_src_to_dst_addr_port_file
-    unset aq_high_wan_1_src_to_dst_addr_port
-    unset aq_high_wan_1_src_to_dst_addr_port_file
-
     ## 卸载ISP网络运营商CIDR网段数据条目数变量
     lz_aq_unset_isp_data_item_total_variable
+
+    eval "$( echo "${aq_param_list}" | awk -F '=' '{print "unset "$1}' )"
+    unset aq_param_list
 
     unset aq_route_local_ip
     unset aq_route_local_ip_cidr_mask
     unset aq_client_full_traffic_wan
     unset aq_static_wan_port
-}
-
-## 初始化配置参数函数
-## 输入项：
-##     全局常量及变量
-## 返回值：无
-lz_aq_init_cfg_data() {
-    [ "${aq_version-undefined}" = "undefined" ] && aq_version="${LZ_VERSION}"
-    [ "${aq_isp_wan_port_0-undefined}" = "undefined" ] && aq_isp_wan_port_0=0
-    [ "${aq_isp_wan_port_1-undefined}" = "undefined" ] && aq_isp_wan_port_1=0
-    [ "${aq_isp_wan_port_2-undefined}" = "undefined" ] && aq_isp_wan_port_2=0
-    [ "${aq_isp_wan_port_3-undefined}" = "undefined" ] && aq_isp_wan_port_3=1
-    [ "${aq_isp_wan_port_4-undefined}" = "undefined" ] && aq_isp_wan_port_4=1
-    [ "${aq_isp_wan_port_5-undefined}" = "undefined" ] && aq_isp_wan_port_5=1
-    [ "${aq_isp_wan_port_6-undefined}" = "undefined" ] && aq_isp_wan_port_6=1
-    [ "${aq_isp_wan_port_7-undefined}" = "undefined" ] && aq_isp_wan_port_7=0
-    [ "${aq_isp_wan_port_8-undefined}" = "undefined" ] && aq_isp_wan_port_8=0
-    [ "${aq_isp_wan_port_9-undefined}" = "undefined" ] && aq_isp_wan_port_9=0
-    [ "${aq_isp_wan_port_10-undefined}" = "undefined" ] && aq_isp_wan_port_10=0
-    [ "${aq_custom_data_wan_port_1-undefined}" = "undefined" ] && aq_custom_data_wan_port_1=5
-    [ "${aq_custom_data_file_1-undefined}" = "undefined" ] && aq_custom_data_file_1="${PATH_DATA}/custom_data_1.txt"
-    [ "${aq_custom_data_wan_port_2-undefined}" = "undefined" ] && aq_custom_data_wan_port_2=5
-    [ "${aq_custom_data_file_2-undefined}" = "undefined" ] && aq_custom_data_file_2="${PATH_DATA}/custom_data_2.txt"
-    [ "${aq_wan_1_domain-undefined}" = "undefined" ] && aq_wan_1_domain=5
-    [ "${aq_wan_2_domain-undefined}" = "undefined" ] && aq_wan_2_domain=5
-    [ "${aq_wan_1_client_src_addr-undefined}" = "undefined" ] && aq_wan_1_client_src_addr=5
-    [ "${aq_wan_1_client_src_addr_file-undefined}" = "undefined" ] && aq_wan_1_client_src_addr_file="${PATH_DATA}/wan_1_client_src_addr.txt"
-    [ "${aq_wan_2_client_src_addr-undefined}" = "undefined" ] && aq_wan_2_client_src_addr=5
-    [ "${aq_wan_2_client_src_addr_file-undefined}" = "undefined" ] && aq_wan_2_client_src_addr_file="${PATH_DATA}/wan_2_client_src_addr.txt"
-    [ "${aq_high_wan_1_client_src_addr-undefined}" = "undefined" ] && aq_high_wan_1_client_src_addr=5
-    [ "${aq_high_wan_1_client_src_addr_file-undefined}" = "undefined" ] && aq_high_wan_1_client_src_addr_file="${PATH_DATA}/high_wan_1_client_src_addr.txt"
-    [ "${aq_high_wan_2_client_src_addr-undefined}" = "undefined" ] && aq_high_wan_2_client_src_addr=5
-    [ "${aq_high_wan_2_client_src_addr_file-undefined}" = "undefined" ] && aq_high_wan_2_client_src_addr_file="${PATH_DATA}/high_wan_2_client_src_addr.txt"
-    [ "${aq_wan_1_src_to_dst_addr-undefined}" = "undefined" ] && aq_wan_1_src_to_dst_addr=5
-    [ "${aq_wan_1_src_to_dst_addr_file-undefined}" = "undefined" ] && aq_wan_1_src_to_dst_addr_file="${PATH_DATA}/wan_1_src_to_dst_addr.txt"
-    [ "${aq_wan_2_src_to_dst_addr-undefined}" = "undefined" ] && aq_wan_2_src_to_dst_addr=5
-    [ "${aq_wan_2_src_to_dst_addr_file-undefined}" = "undefined" ] && aq_wan_2_src_to_dst_addr_file="${PATH_DATA}/wan_2_src_to_dst_addr.txt"
-    [ "${aq_high_wan_1_src_to_dst_addr-undefined}" = "undefined" ] && aq_high_wan_1_src_to_dst_addr=5
-    [ "${aq_high_wan_1_src_to_dst_addr_file-undefined}" = "undefined" ] && aq_high_wan_1_src_to_dst_addr_file="${PATH_DATA}/high_wan_1_src_to_dst_addr.txt"
-    [ "${aq_wan_1_src_to_dst_addr_port-undefined}" = "undefined" ] && aq_wan_1_src_to_dst_addr_port=5
-    [ "${aq_wan_1_src_to_dst_addr_port_file-undefined}" = "undefined" ] && aq_wan_1_src_to_dst_addr_port_file="${PATH_DATA}/wan_1_src_to_dst_addr_port.txt"
-    [ "${aq_wan_2_src_to_dst_addr_port-undefined}" = "undefined" ] && aq_wan_2_src_to_dst_addr_port=5
-    [ "${aq_wan_2_src_to_dst_addr_port_file-undefined}" = "undefined" ] && aq_wan_2_src_to_dst_addr_port_file="${PATH_DATA}/wan_2_src_to_dst_addr_port.txt"
-    [ "${aq_high_wan_1_src_to_dst_addr_port-undefined}" = "undefined" ] && aq_high_wan_1_src_to_dst_addr_port=5
-    [ "${aq_high_wan_1_src_to_dst_addr_port_file-undefined}" = "undefined" ] && aq_high_wan_1_src_to_dst_addr_port_file="${PATH_DATA}/high_wan_1_src_to_dst_addr_port.txt"
-    [ "${aq_usage_mode-undefined}" = "undefined" ] && aq_usage_mode=0
 }
 
 ## 获取备份参数函数
@@ -701,52 +636,20 @@ lz_aq_init_cfg_data() {
 lz_aq_get_box_data() {
     local dnsmasq_enable="0"
     ! dnsmasq -v 2> /dev/null | grep -w 'ipset' | grep -qvw 'no[\-]ipset' && dnsmasq_enable="1"
-    eval "$( awk -F "=" -v path="${PATH_LZ}" -v pathd="${PATH_DATA}" -v fname="${PATH_CONFIGS}/lz_rule_config.box" \
+    eval "${aq_param_list}"
+    eval "$( awk -F "=" -v ini_param_default="${aq_param_list}" \
         'BEGIN{
             count=0;
             mark=0;
             policymode=0;
-            i["aq_version"]="'"${LZ_VERSION}"'";
-            i["aq_isp_wan_port_0"]=0;
-            i["aq_isp_wan_port_1"]=0;
-            i["aq_isp_wan_port_2"]=0;
-            i["aq_isp_wan_port_3"]=1;
-            i["aq_isp_wan_port_4"]=1;
-            i["aq_isp_wan_port_5"]=1;
-            i["aq_isp_wan_port_6"]=1;
-            i["aq_isp_wan_port_7"]=0;
-            i["aq_isp_wan_port_8"]=0;
-            i["aq_isp_wan_port_9"]=0;
-            i["aq_isp_wan_port_10"]=0;
-            i["aq_custom_data_wan_port_1"]=5;
-            i["aq_custom_data_file_1"]=pathd"/custom_data_1.txt";
-            i["aq_custom_data_wan_port_2"]=5;
-            i["aq_custom_data_file_2"]=pathd"/custom_data_2.txt";
-            i["aq_wan_1_domain"]=5;
-            i["aq_wan_2_domain"]=5;
-            i["aq_wan_1_client_src_addr"]=5;
-            i["aq_wan_1_client_src_addr_file"]=pathd"/wan_1_client_src_addr.txt";
-            i["aq_wan_2_client_src_addr"]=5;
-            i["aq_wan_2_client_src_addr_file"]=pathd"/wan_2_client_src_addr.txt";
-            i["aq_high_wan_1_client_src_addr"]=5;
-            i["aq_high_wan_1_client_src_addr_file"]=pathd"/high_wan_1_client_src_addr.txt";
-            i["aq_high_wan_2_client_src_addr"]=5;
-            i["aq_high_wan_2_client_src_addr_file"]=pathd"/high_wan_2_client_src_addr.txt";
-            i["aq_wan_1_src_to_dst_addr"]=5;
-            i["aq_wan_1_src_to_dst_addr_file"]=pathd"/wan_1_src_to_dst_addr.txt";
-            i["aq_wan_2_src_to_dst_addr"]=5;
-            i["aq_wan_2_src_to_dst_addr_file"]=pathd"/wan_2_src_to_dst_addr.txt";
-            i["aq_high_wan_1_src_to_dst_addr"]=5;
-            i["aq_high_wan_1_src_to_dst_addr_file"]=pathd"/high_wan_1_src_to_dst_addr.txt";
-            i["aq_wan_1_src_to_dst_addr_port"]=5;
-            i["aq_wan_1_src_to_dst_addr_port_file"]=pathd"/wan_1_src_to_dst_addr_port.txt";
-            i["aq_wan_2_src_to_dst_addr_port"]=5;
-            i["aq_wan_2_src_to_dst_addr_port_file"]=pathd"/wan_2_src_to_dst_addr_port.txt";
-            i["aq_high_wan_1_src_to_dst_addr_port"]=5;
-            i["aq_high_wan_1_src_to_dst_addr_port_file"]=pathd"/high_wan_1_src_to_dst_addr_port.txt";
-            i["aq_usage_mode"]=0;
-            total=length(i);
-        } $0 ~ /^[[:space:]]*lz_config_[[:alnum:]_]+[=]/ {
+            split(ini_param_default, arr, "\n");
+            for (id in arr) {
+                pos=index(arr[id], "=");
+                i[substr(arr[id], 1, pos-1)]=substr(arr[id], pos+1);
+            }
+            delete arr;
+            i["aq_policy_mode"]=5;
+        } $0 ~ /^[[:space:]]*lz_config_[[:alnum:]_]+[=]/ && !iii[$1]++ {
             flag=0;
             if ($1 == "lz_config_all_foreign_wan_port")
                 key="aq_isp_wan_port_0";
@@ -833,7 +736,7 @@ lz_aq_get_box_data() {
                 else
                     value=1;
                 key="aq_usage_mode";
-                value=6;
+                invalid=6;
             } else if (key == "aq_wan_1_domain" || key == "aq_wan_2_domain") {
                 flag=1;
                 if (value !~ /^[0-9]$/ || (value == "0" && "'"${dnsmasq_enable}"'" != "0"))
@@ -865,11 +768,6 @@ lz_aq_get_box_data() {
             else if (invalid != 0 && invalid != 6)
                 value=i[key];
             print key"="value;
-            if (invalid != 6) count++;
-            if (count == total) exit;
-        } END{
-            if (count != total)
-                print "lz_aq_init_cfg_data";
         }' "${PATH_CONFIGS}/lz_rule_config.box" )"
 }
 
