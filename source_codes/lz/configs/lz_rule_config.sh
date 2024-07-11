@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_config.sh v4.4.7
+# lz_rule_config.sh v4.4.8
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # 本软件采用CIDR（无类别域间路由，Classless Inter-Domain Routing）技术，是一个在Internet上创建附加地
@@ -9,18 +9,23 @@
 #BEGIN
 
 ## 技巧：
-##       上传编辑好的firewall-start文件和本代码至路由器后，开关防火墙即可启动本代码，不必重启路由器。
-##       也可通过SSH命令行窗口直接输入如下命令：
-##       启动/重启        /jffs/scripts/lz/lz_rule.sh
-##       暂停运行         /jffs/scripts/lz/lz_rule.sh stop
-##       终止运行         /jffs/scripts/lz/lz_rule.sh STOP
-##       恢复缺省配置     /jffs/scripts/lz/lz_rule.sh default
-##       动态分流模式配置 /jffs/scripts/lz/lz_rule.sh rn
-##       静态分流模式配置 /jffs/scripts/lz/lz_rule.sh hd
-##       IPTV模式配置     /jffs/scripts/lz/lz_rule.sh iptv
-##       运行状态查询     /jffs/scripts/lz/lz_rule.sh status
-##       网址信息查询     /jffs/scripts/lz/lz_rule.sh address 网址 [第三方DNS服务器IP地址（可选项）]
-##       解除运行锁       /jffs/scripts/lz/lz_rule.sh unlock
+##       上传编辑好的 firewall-start 文件和本代码至路由器后，开关防火墙即可启动本代码，不必重启路由器。
+##       也可通过 SSH 命令行窗口直接输入如下命令：
+##       启动/重启                  /jffs/scripts/lz/lz_rule.sh
+##       暂停运行                   /jffs/scripts/lz/lz_rule.sh stop
+##       终止运行                   /jffs/scripts/lz/lz_rule.sh STOP
+##       恢复缺省配置               /jffs/scripts/lz/lz_rule.sh default
+##       动态分流模式配置           /jffs/scripts/lz/lz_rule.sh rn
+##       静态分流模式配置           /jffs/scripts/lz/lz_rule.sh hd
+##       IPTV 模式配置              /jffs/scripts/lz/lz_rule.sh iptv
+##       运行状态查询               /jffs/scripts/lz/lz_rule.sh status
+##       网址信息查询               /jffs/scripts/lz/lz_rule.sh address 网址 [第三方 DNS 服务器 IP 地址（可选项）]
+##       解除运行锁                 /jffs/scripts/lz/lz_rule.sh unlock
+##       卸载 WEB 窗口页面          /jffs/scripts/lz/lz_rule.sh unwebui
+##       在线获取最新版本信息       /jffs/scripts/lz/lz_rule.sh lastver
+##       在线安装软件最新版本       /jffs/scripts/lz/lz_rule.sh upgrade
+##       在线更新 ISP 运营商数据    /jffs/scripts/lz/lz_rule.sh isp
+##       显示命令列表               /jffs/scripts/lz/lz_rule.sh cmd
 ## 提示：
 ##     1."启动/重启"命令用于手工启动或重启脚本服务。
 ##     2."暂停运行"命令仅是暂时关闭策略路由服务，重启路由器、线路接入或断开、WAN口IP改变、防火墙开关等
@@ -741,9 +746,10 @@ custom_hosts=5
 ## 此文件中0.0.0.0为无效IP地址。
 custom_hosts_file="/jffs/scripts/lz/data/custom_hosts.txt"
 
-## 软件最新版本检测及在线安装远程网络站点（仅用于路由器 Web UI 设置页面操作）
+## 软件版本资源库位置
 ## 0--中国大陆（Gitee）；1--国际（Github）；取值范围：0~1
 ## 缺省使用中国大陆（Gitee）站点（0）。
+## 用于在线检测本软件最新版本，以及通过网络进行本软件的在线升级或重新安装。
 ## 从中国大陆内地访问国际（Github）站点，线路通畅性可能不佳，若有受到干扰甚至屏蔽，或版本检测或在线安装功能
 ## 无法正常使用时，请选择中国大陆（Gitee）站点。
 repo_site=0

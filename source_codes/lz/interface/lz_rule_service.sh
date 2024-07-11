@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_service.sh v4.4.7
+# lz_rule_service.sh v4.4.8
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 服务接口脚本
@@ -12,7 +12,7 @@
 PATH_LZ="${0%/*}"
 [ "${PATH_LZ:0:1}" != '/' ] && PATH_LZ="$( pwd )${PATH_LZ#*.}"
 PATH_LZ="${PATH_LZ%/*}"
-[ ! -f "${PATH_LZ}/lz_rule.sh" ] && return
+[ ! -s "${PATH_LZ}/lz_rule.sh" ] && return
 [ "${1}" = "stop" ] && [ "${2}" = "LZRule" ] && "${PATH_LZ}/lz_rule.sh" "STOP"
 [ "${1}" != "start" ] && [ "${1}" != "restart" ] && return
 
@@ -151,7 +151,7 @@ case "${2}" in
         show_crontab &
     ;;
     LZUpdate)
-        [ -f "${PATH_LZ}/lz_update_ispip_data.sh" ] && "${PATH_LZ}/lz_update_ispip_data.sh" &
+        [ -s "${PATH_LZ}/lz_update_ispip_data.sh" ] && "${PATH_LZ}/lz_update_ispip_data.sh" &
     ;;
     LZUnlock)
         "${PATH_LZ}/lz_rule.sh" "unlock" &
@@ -169,14 +169,14 @@ case "${2}" in
                 echo 'var versionStatus = "'"${remoteVer}"'";' > "${PATH_WEB_LZR}/detect_version.js"
                 {
                     printf "%s [%s]:\n" "$( date +"%F %T")" "${$}"
-                    printf "%s [%s]: The latest version of LZ Rule is %s in %s.\n" "$( date +"%F %T")" "${$}" "${remoteVer}" "${LZ_REPO}"
+                    printf "%s [%s]: The latest version of LZ Rule is %s in %s.\n" "$( date +"%F %T")" "${$}" "${remoteVer}" "${LZ_REPO}larsonzh"
                     printf "%s [%s]:\n" "$( date +"%F %T")" "${$}"
                 } >> "/tmp/syslog.log"
             else
                 echo 'var versionStatus = "None";' > "${PATH_WEB_LZR}/detect_version.js"
                 {
                     printf "%s [%s]:\n" "$( date +"%F %T")" "${$}"
-                    printf "%s [%s]: Version information of LZ Rule not detected from %s.\n" "$( date +"%F %T")" "${$}" "${LZ_REPO}"
+                    printf "%s [%s]: Version information of LZ Rule not detected from %s.\n" "$( date +"%F %T")" "${$}" "${LZ_REPO}larsonzh"
                     printf "%s [%s]:\n" "$( date +"%F %T")" "${$}"
                 } >> "/tmp/syslog.log"
             fi
@@ -191,7 +191,7 @@ case "${2}" in
             if [ -n "${remoteVer}" ]; then
                 {
                     printf "%s [%s]:\n" "$( date +"%F %T")" "${$}"
-                    printf "%s [%s]: The latest version of LZ Rule is %s in %s.\n" "$( date +"%F %T")" "${$}" "${remoteVer}" "${LZ_REPO}"
+                    printf "%s [%s]: The latest version of LZ Rule is %s in %s.\n" "$( date +"%F %T")" "${$}" "${remoteVer}" "${LZ_REPO}larsonzh"
                     printf "%s [%s]:\n" "$( date +"%F %T")" "${$}"
                 } >> "/tmp/syslog.log"
                 mkdir -p "${PATH_LZ}/tmp/doupdate" 2> /dev/null
@@ -202,7 +202,7 @@ case "${2}" in
                 if [ -f "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}.tgz" ]; then
                     {
                         printf "%s [%s]:\n" "$( date +"%F %T")" "${$}"
-                        printf "%s [%s]: Successfully downloaded lz_rule-%s.tgz from %s.\n" "$( date +"%F %T")" "${$}" "${remoteVer}" "${LZ_REPO}"
+                        printf "%s [%s]: Successfully downloaded lz_rule-%s.tgz from %s.\n" "$( date +"%F %T")" "${$}" "${remoteVer}" "${LZ_REPO}larsonzh"
                         printf "%s [%s]:\n" "$( date +"%F %T")" "${$}"
                     } >> "/tmp/syslog.log"
                     tar -xzf "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}.tgz" -C "${PATH_LZ}/tmp/doupdate"
@@ -211,9 +211,9 @@ case "${2}" in
                         chmod 775 "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}/install.sh"
                         sed -i "s/elif \[ \"\${USER}\" = \"root\" \]; then/elif \[ \"\${USER}\" = \"\" \]; then/g" "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}/install.sh" 2> /dev/null
                         if [ "${PATH_LZ}" = "/jffs/scripts/lz" ]; then
-                            "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}/install.sh" && "${PATH_LZ}/lz_rule.sh"
+                            "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}/install.sh" && [ -s "${PATH_LZ}/lz_rule.sh" ] && "${PATH_LZ}/lz_rule.sh"
                         else
-                            "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}/install.sh" "entware" && "${PATH_LZ}/lz_rule.sh"
+                            "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}/install.sh" "entware" && [ -s "${PATH_LZ}/lz_rule.sh" ] && "${PATH_LZ}/lz_rule.sh"
                         fi
                     else
                         {
@@ -225,7 +225,7 @@ case "${2}" in
                 else
                     {
                         printf "%s [%s]:\n" "$( date +"%F %T")" "${$}"
-                        printf "%s [%s]: Failed to download lz_rule-%s.tgz from %s.\n" "$( date +"%F %T")" "${$}" "${remoteVer}" "${LZ_REPO}"
+                        printf "%s [%s]: Failed to download lz_rule-%s.tgz from %s.\n" "$( date +"%F %T")" "${$}" "${remoteVer}" "${LZ_REPO}larsonzh"
                         printf "%s [%s]:\n" "$( date +"%F %T")" "${$}"
                     } >> "/tmp/syslog.log"
                 fi
@@ -233,7 +233,7 @@ case "${2}" in
             else
                 {
                     printf "%s [%s]:\n" "$( date +"%F %T")" "${$}"
-                    printf "%s [%s]: Version information of LZ Rule not detected from %s.\n" "$( date +"%F %T")" "${$}" "${LZ_REPO}"
+                    printf "%s [%s]: Version information of LZ Rule not detected from %s.\n" "$( date +"%F %T")" "${$}" "${LZ_REPO}larsonzh"
                     printf "%s [%s]:\n" "$( date +"%F %T")" "${$}"
                 } >> "/tmp/syslog.log"
             fi
@@ -241,7 +241,7 @@ case "${2}" in
         do_update &
     ;;
     LZUnintall)
-        "${PATH_LZ}/uninstall.sh" "y" &
+        [ -s "${PATH_LZ}/uninstall.sh" ] && "${PATH_LZ}/uninstall.sh" "y" &
     ;;
     *)
         [ "${2%%_*}" = "LZAddress" ] \

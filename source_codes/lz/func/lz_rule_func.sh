@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v4.4.7
+# lz_rule_func.sh v4.4.8
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 #BEGIN
@@ -681,6 +681,13 @@ lz_get_route_info() {
     [ -n "${local_bootloader_cfe}" ] && {
         echo "$(lzdate)" [$$]: "   Bootloader (CFE): ${local_bootloader_cfe}" | tee -ai "${SYSLOG}" 2> /dev/null
     }
+
+    ## 输出显示本软件版本资源库位置
+    if [ "${repo_site}" = "1" ]; then
+        echo "$(lzdate)" [$$]: "   Repository Site: https://github.com/larsonzh" | tee -ai "${SYSLOG}" 2> /dev/null
+    else
+        echo "$(lzdate)" [$$]: "   Repository Site: https://gitee.com/larsonzh" | tee -ai "${SYSLOG}" 2> /dev/null
+    fi
 
     ## 输出显示路由器CPU和内存主频
     local local_cpu_frequency="$( nvram get "clkfreq" 2> /dev/null | awk -F ',' '{print $1}' | sed -n 1p )"
@@ -1784,7 +1791,7 @@ if [ "\${dl_succeed}" = "1" ]; then
     if ipset -q test "${PROJECT_STATUS_SET}" "${PROJECT_START_ID}"; then
         if [ -f "${PATH_LZ}/${PROJECT_FILENAME}" ]; then
             echo "\$(lzdate)" [\$\$]: LZ "${LZ_VERSION}" restart lz_rule.sh ...... | tee -ai "${SYSLOG}" 2> /dev/null
-            sh "${PATH_LZ}/${PROJECT_FILENAME}" "${ISPIP_DATA_UPDATE}"
+            sh "${PATH_LZ}/${PROJECT_FILENAME}" "${ISPIP_DATA_UPDATE_ID}"
         fi
         echo "\$(lzdate)" [\$\$]: LZ "${LZ_VERSION}" update the ISP IP data files successfully. | tee -ai "${SYSLOG}" 2> /dev/null
     fi

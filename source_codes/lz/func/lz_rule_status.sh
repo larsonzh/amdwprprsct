@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_status.sh v4.4.7
+# lz_rule_status.sh v4.4.8
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 显示脚本运行状态脚本
@@ -512,7 +512,7 @@ lz_get_box_data_status() {
                 flag=1;
                 if (value !~ /^[0-9]$/ || (value == "0" && "'"${dnsmasq_enable}"'" != "0"))
                     invalid=1;
-            } else if (key == "status_wan_access_port") {
+            } else if (key == "status_wan_access_port" || key == "status_repo_site") {
                 flag=1;
                 if (value !~ /^[01]$/)
                     invalid=1;
@@ -990,6 +990,13 @@ lz_get_route_status_info() {
     [ -n "${local_bootloader_cfe}" ] && {
         echo "$(lzdate)" [$$]: "   Bootloader (CFE): ${local_bootloader_cfe}" | tee -ai "${STATUS_LOG}" 2> /dev/null
     }
+
+    ## 输出显示本软件版本资源库位置
+    if [ "${status_repo_site}" = "1" ]; then
+        echo "$(lzdate)" [$$]: "   Repository Site: https://github.com/larsonzh" | tee -ai "${STATUS_LOG}" 2> /dev/null
+    else
+        echo "$(lzdate)" [$$]: "   Repository Site: https://gitee.com/larsonzh" | tee -ai "${STATUS_LOG}" 2> /dev/null
+    fi
 
     ## 输出显示路由器CPU和内存主频
     local local_cpu_frequency="$( nvram get "clkfreq" 2> /dev/null | sed -n 1p | awk -F ',' '{print $1}' )"

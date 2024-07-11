@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule.sh v4.4.7
+# lz_rule.sh v4.4.8
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # 本软件采用CIDR（无类别域间路由，Classless Inter-Domain Routing）技术，是一个在Internet上创建附加地
@@ -9,18 +9,23 @@
 #BEGIN
 
 ## 技巧：
-##       上传编辑好的firewall-start文件和本代码至路由器后，开关防火墙即可启动本代码，不必重启路由器。
-##       也可通过SSH命令行窗口直接输入如下命令：
-##       启动/重启        /jffs/scripts/lz/lz_rule.sh
-##       暂停运行         /jffs/scripts/lz/lz_rule.sh stop
-##       终止运行         /jffs/scripts/lz/lz_rule.sh STOP
-##       恢复缺省配置     /jffs/scripts/lz/lz_rule.sh default
-##       动态分流模式配置 /jffs/scripts/lz/lz_rule.sh rn
-##       静态分流模式配置 /jffs/scripts/lz/lz_rule.sh hd
-##       IPTV模式配置     /jffs/scripts/lz/lz_rule.sh iptv
-##       运行状态查询     /jffs/scripts/lz/lz_rule.sh status
-##       网址信息查询     /jffs/scripts/lz/lz_rule.sh address 网址 [第三方DNS服务器IP地址（可选项）]
-##       解除运行锁       /jffs/scripts/lz/lz_rule.sh unlock
+##       上传编辑好的 firewall-start 文件和本代码至路由器后，开关防火墙即可启动本代码，不必重启路由器。
+##       也可通过 SSH 命令行窗口直接输入如下命令：
+##       启动/重启                  /jffs/scripts/lz/lz_rule.sh
+##       暂停运行                   /jffs/scripts/lz/lz_rule.sh stop
+##       终止运行                   /jffs/scripts/lz/lz_rule.sh STOP
+##       恢复缺省配置               /jffs/scripts/lz/lz_rule.sh default
+##       动态分流模式配置           /jffs/scripts/lz/lz_rule.sh rn
+##       静态分流模式配置           /jffs/scripts/lz/lz_rule.sh hd
+##       IPTV 模式配置              /jffs/scripts/lz/lz_rule.sh iptv
+##       运行状态查询               /jffs/scripts/lz/lz_rule.sh status
+##       网址信息查询               /jffs/scripts/lz/lz_rule.sh address 网址 [第三方 DNS 服务器 IP 地址（可选项）]
+##       解除运行锁                 /jffs/scripts/lz/lz_rule.sh unlock
+##       卸载 WEB 窗口页面          /jffs/scripts/lz/lz_rule.sh unwebui
+##       在线获取最新版本信息       /jffs/scripts/lz/lz_rule.sh lastver
+##       在线安装软件最新版本       /jffs/scripts/lz/lz_rule.sh upgrade
+##       在线更新 ISP 运营商数据    /jffs/scripts/lz/lz_rule.sh isp
+##       显示命令列表               /jffs/scripts/lz/lz_rule.sh cmd
 ## 提示：
 ##     1."启动/重启"命令用于手工启动或重启脚本服务。
 ##     2."暂停运行"命令仅是暂时关闭策略路由服务，重启路由器、线路接入或断开、WAN口IP改变、防火墙开关等
@@ -80,7 +85,7 @@
 ## -------------全局数据定义及初始化-------------------
 
 ## 版本号
-LZ_VERSION=v4.4.7
+LZ_VERSION=v4.4.8
 
 ## 运行状态查询命令
 SHOW_STATUS="status"
@@ -92,10 +97,22 @@ ADDRESS_QUERY="address"
 FORCED_UNLOCKING="unlock"
 
 ## ISP运营商网段数据文件更新状态标识
-ISPIP_DATA_UPDATE="update"
+ISPIP_DATA_UPDATE_ID="update"
 
-## 卸载WEB界面命令
+## 卸载WEB窗口页面命令
 UNMOUNT_WEB_UI="unwebui"
+
+## 在线获取软件最新版本信息命令
+LAST_VERSION="lastver"
+
+## 在线安装软件最新版本命令
+UPGRADE_SOFTWARE="upgrade"
+
+## 在线更新ISP运营商网段数据文件命令
+ISPIP_DATA_UPDATE="ispip"
+
+## 显示显示命令列表命令
+DISPLAY_CMD_LIST="cmd"
 
 ## 系统记录文件名
 SYSLOG="/tmp/syslog.log"
@@ -172,8 +189,8 @@ UNLOCK_LOG="${PATH_TMP}/unlock.log"
 ## 更新ISP网络运营商CIDR网段数据脚本文件名
 UPDATE_FILENAME="lz_update_ispip_data.sh"
 
-if [ "${1}" != "${SHOW_STATUS}" ] && [ "${1}" != "${ADDRESS_QUERY}" ] \
-    && [ "${1}" != "${FORCED_UNLOCKING}" ]; then
+if [ "${1}" != "${DISPLAY_CMD_LIST}" ] && [ "${1}" != "${SHOW_STATUS}" ] \
+    && [ "${1}" != "${ADDRESS_QUERY}" ] && [ "${1}" != "${FORCED_UNLOCKING}" ]; then
     {
         echo "$(lzdate)" [$$]:
         echo "$(lzdate)" [$$]: LZ "${LZ_VERSION}" script commands start......
@@ -224,6 +241,29 @@ PPP0_FAULT_FILE="/tmp/lz_ppp0_fault"
 ## ppp1失败标识文件名
 PPP1_FAULT_FILE="/tmp/lz_ppp1_fault"
 
+if [ "${1}" = "${DISPLAY_CMD_LIST}" ]; then
+    ## 显示命令列表
+    echo "$(lzdate)" [$$]: "Start/Restart                   ${PATH_LZ}/lz_rule.sh"
+    echo "$(lzdate)" [$$]: "Pause                           ${PATH_LZ}/lz_rule.sh stop"
+    echo "$(lzdate)" [$$]: "Stop                            ${PATH_LZ}/lz_rule.sh STOP"
+    echo "$(lzdate)" [$$]: "Factory Default                 ${PATH_LZ}/lz_rule.sh default"
+    echo "$(lzdate)" [$$]: "Dynamic Policy                  ${PATH_LZ}/lz_rule.sh rn"
+    echo "$(lzdate)" [$$]: "Static Policy                   ${PATH_LZ}/lz_rule.sh hd"
+    echo "$(lzdate)" [$$]: "IPTV Mode                       ${PATH_LZ}/lz_rule.sh iptv"
+    echo "$(lzdate)" [$$]: "Display running status          ${PATH_LZ}/lz_rule.sh status"
+    echo "$(lzdate)" [$$]: "Network Address Information     ${PATH_LZ}/lz_rule.sh address [Network Address] [DNS(Optional)]"
+    echo "$(lzdate)" [$$]: "Unlock the running lock         ${PATH_LZ}/lz_rule.sh unlock"
+    echo "$(lzdate)" [$$]: "Uninstall Web UI page           ${PATH_LZ}/lz_rule.sh unwebui"
+    echo "$(lzdate)" [$$]: "Latest Version Information      ${PATH_LZ}/lz_rule.sh lastver"
+    echo "$(lzdate)" [$$]: "Upgrade software                ${PATH_LZ}/lz_rule.sh upgrade"
+    echo "$(lzdate)" [$$]: "Update ISP IP data              ${PATH_LZ}/lz_rule.sh ispip"
+    echo "$(lzdate)" [$$]: "Display command list            ${PATH_LZ}/lz_rule.sh cmd"
+    echo "$(lzdate)" [$$]: ---------------------------------------------
+    echo "$(lzdate)" [$$]: LZ "${LZ_VERSION}" script commands executed!
+    echo "$(lzdate)" [$$]:
+    exit
+fi
+
 if [ "${1}" != "${FORCED_UNLOCKING}" ]; then
     echo "lz_${1}" >> "${INSTANCE_LIST}"
     ## 设置文件同步锁
@@ -235,7 +275,7 @@ if [ "${1}" != "${FORCED_UNLOCKING}" ]; then
     if grep -q 'lz_' "${INSTANCE_LIST}" 2> /dev/null; then
         local_instance="$( grep 'lz_' ${INSTANCE_LIST} | sed -n 1p | sed -e 's/^[[:space:]]*//g' -e 's/[[:space:]]*$//g' )"
         if [ "${local_instance}" = "lz_${1}" ] && [ "${local_instance}" != "lz_${SHOW_STATUS}" ] \
-            && [ "${local_instance}" != "lz_${ADDRESS_QUERY}" ]; then
+            && [ "${local_instance}" != "lz_${ADDRESS_QUERY}" ] && [ "${local_instance}" != "lz_${LAST_VERSION}" ]; then
             unset local_instance
             echo "$(lzdate)" [$$]: The policy routing service is being started by another instance.
             echo "$(lzdate)" [$$]: ---------------------------------------------
@@ -383,7 +423,7 @@ lz_check_instance() {
     ! grep -q 'lz_' "${INSTANCE_LIST}" 2> /dev/null && return "1"
     local local_instance="$( grep 'lz_' "${INSTANCE_LIST}" | sed -n 1p | sed -e 's/^[[:space:]]*//g' -e 's/[[:space:]]*$//g' )"
     if [ "${local_instance}" != "lz_${1}" ] || [ "${local_instance}" = "lz_${SHOW_STATUS}" ] \
-        || [ "${local_instance}" = "lz_${ADDRESS_QUERY}" ]; then
+        || [ "${local_instance}" = "lz_${ADDRESS_QUERY}" ] || [ "${local_instance}" = "lz_${LAST_VERSION}" ]; then
         return "1"
     fi
     drop_sys_caches="5"
@@ -415,8 +455,9 @@ lz_instance_exit() {
 
     [ -f "${INSTANCE_LIST}" ] && ! grep -q 'lz_' "${INSTANCE_LIST}" && rm -f "${INSTANCE_LIST}" > /dev/null 2>&1
     [ -f "${LOCK_FILE}" ] && flock -u "${LOCK_FILE_ID}" > /dev/null 2>&1
-    if [ "${drop_sys_caches}" = "0" ] && [ "${2}" != "${ISPIP_DATA_UPDATE}" ] && [ -f /proc/sys/vm/drop_caches ]; then
-        if [ "${2}" != "${SHOW_STATUS}" ] && [ "${2}" != "${ADDRESS_QUERY}" ] \
+    if [ "${drop_sys_caches}" = "0" ] && [ "${2}" != "${ISPIP_DATA_UPDATE}" ] && [ "${2}" != "${ISPIP_DATA_UPDATE_ID}" ] \
+        && [ -f /proc/sys/vm/drop_caches ]; then
+        if [ "${2}" != "${SHOW_STATUS}" ] && [ "${2}" != "${ADDRESS_QUERY}" ] && [ "${2}" != "${LAST_VERSION}" ] \
             && [ "${2}" != "${FORCED_UNLOCKING}" ]; then
             {
                 ip route flush cache \
@@ -440,6 +481,15 @@ lz_instance_exit() {
     ## 开机PPPoE失败时重启一次
     [ "${ppp0_restart}" = "1" ] && service "restart_wan_if 0;restart_stubby" > /dev/null 2>&1
     [ "${ppp1_restart}" = "1" ] && service "restart_wan_if 1;restart_stubby" > /dev/null 2>&1
+
+    ## 在线安装软件最新版本重启
+    if [ "${2}" = "${UPGRADE_SOFTWARE}" ]; then
+        [ "${upgrade_restart}" ] && [ -s "${PATH_LZ}/${PROJECT_FILENAME}" ] && "${PATH_LZ}/${PROJECT_FILENAME}"
+    ## 在线更新ISP运营商网段数据文件
+    elif [ "${2}" = "${ISPIP_DATA_UPDATE}" ]; then
+        [ "${restart_rule}" ] && [ -s "${PATH_LZ}/${PROJECT_FILENAME}" ] && "${PATH_LZ}/${PROJECT_FILENAME}"
+        [ "${start_isp_data_update}" ] && [ -s "${PATH_LZ}/${UPDATE_FILENAME}" ] && "${PATH_LZ}/${UPDATE_FILENAME}"
+    fi
 }
 
 ## 格式化路径文件名正则表达式字符串函数
@@ -846,6 +896,42 @@ lz_mount_web_ui() {
     return "${retval}"
 }
 
+## 获取软件仓库托管网站网址函数
+## 输入项：
+##     全局常量
+## 返回值：
+##     软件仓库托管网站网址
+lz_get_repo_site() {
+    local remoteRepo="https://gitee.com/"
+    local configFile="${PATH_CONFIGS}/lz_rule_config.box"
+    [ ! -s "${configFile}" ] && configFile="${PATH_CONFIGS}/lz_rule_config.sh"
+    eval "$( awk -F "=" '$0 ~ /^[[:space:]]*(lz_config_){0,1}repo_site[=]/ {
+            key=$1;
+            gsub(/^[[:space:]]*(lz_config_){0,1}/, "", key);
+            value=$2;
+            gsub(/[[:space:]#].*$/, "", value);
+            print key,value;
+        }' "${configFile}" 2> /dev/null \
+        | awk '!i[$1]++ {
+            if ($2 == "1")
+                print "remoteRepo=\"https://github.com/\"";
+        }' )"
+    echo "${remoteRepo}"
+}
+
+## 获取软件最新版本信息函数
+## 输入项：
+##     $1--软件仓库托管网站网址
+##     全局常量
+## 返回值：
+##     软件最新版本信息
+lz_get_last_version() {
+    local VER_SRC="larsonzh/amdwprprsct/blob/master/source_codes/lz/${PROJECT_FILENAME}"
+    /usr/sbin/curl -fsLC "-" --retry 1 \
+        -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.5304.88 Safari/537.36 Edg/108.0.1462.46" \
+        -e "${1}" "${1}${VER_SRC}" \
+        | grep -oE 'LZ_VERSION=v[0-9]+([\.][0-9]+){2}' | sed 's/LZ_VERSION=//g' | sed -n 1p
+}
 
 ## ---------------------主执行脚本---------------------
 
@@ -1303,6 +1389,96 @@ if lz_project_file_management "${1}"; then
         ## 卸载WEB界面
         lz_unmount_web_ui
         echo "$(lzdate)" [$$]: Policy Routing Web UI has been unmounted. | tee -ai "${SYSLOG}" 2> /dev/null
+    elif [ "${1}" = "${LAST_VERSION}" ]; then
+        ## 检测软件最新版本信息函数
+        ## 输入项：
+        ##     全局常量
+        ## 返回值：无
+        llz_detect_version() {
+            {
+                echo "$(lzdate)" [$$]: "This process may take a long time."
+                echo "$(lzdate)" [$$]: "Don't interrupt & Please wait......"
+                echo "$(lzdate)" [$$]: ---------------------------------------------
+            } | tee -ai "${SYSLOG}" 2> /dev/null
+            local LZ_REPO="$( lz_get_repo_site )"
+            local remoteVer="$( lz_get_last_version "${LZ_REPO}" )"
+            if [ -n "${remoteVer}" ]; then
+                {
+                    echo "$(lzdate)" [$$]: "Current Version: ${LZ_VERSION}"
+                    echo "$(lzdate)" [$$]: "Latest Version: ${remoteVer} (${LZ_REPO}larsonzh)"
+                } | tee -ai "${SYSLOG}" 2> /dev/null
+            else
+                {
+                    echo "$(lzdate)" [$$]: "Current Version: ${LZ_VERSION}"
+                    echo "$(lzdate)" [$$]: "Latest Version: unknown (${LZ_REPO}larsonzh)"
+                    echo "$(lzdate)" [$$]: "Failed to obtain the latest version information"
+                    echo "$(lzdate)" [$$]: "of this software online."
+            } | tee -ai "${SYSLOG}" 2> /dev/null
+            fi
+        }
+        llz_detect_version
+    elif [ "${1}" = "${UPGRADE_SOFTWARE}" ]; then
+        llz_do_update() {
+            {
+                echo "$(lzdate)" [$$]: "This process may take a long time."
+                echo "$(lzdate)" [$$]: "Don't interrupt & Please wait......"
+                echo "$(lzdate)" [$$]: ---------------------------------------------
+            } | tee -ai "${SYSLOG}" 2> /dev/null
+            [ -d "${PATH_LZ}/tmp/doupdate" ] && rm -rf "${PATH_LZ}/tmp/doupdate" 2> /dev/null
+            local LZ_REPO="$( lz_get_repo_site )"
+            local remoteVer="$( lz_get_last_version "${LZ_REPO}" )"
+            if [ -n "${remoteVer}" ]; then
+                echo "$(lzdate)" [$$]: "Latest Version: ${remoteVer} (${LZ_REPO})" | tee -ai "${SYSLOG}" 2> /dev/null
+                mkdir -p "${PATH_LZ}/tmp/doupdate" 2> /dev/null
+                local PACKAGE_SRC="larsonzh/amdwprprsct/raw/master/installation_package/lz_rule-${remoteVer}.tgz"
+                /usr/sbin/curl -fsLC "-" --retry 1 \
+                    -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.5304.88 Safari/537.36 Edg/108.0.1462.46" \
+                    -e "${LZ_REPO}" "${LZ_REPO}${PACKAGE_SRC}" -o "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}.tgz"
+                if [ -f "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}.tgz" ]; then
+                    echo "$(lzdate)" [$$]: "Successfully downloaded lz_rule-${remoteVer}.tgz from ${LZ_REPO}." | tee -ai "${SYSLOG}" 2> /dev/null
+                    tar -xzf "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}.tgz" -C "${PATH_LZ}/tmp/doupdate"
+                    rm -f "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}.tgz" 2> /dev/null
+                    if [ -s "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}/install.sh" ]; then
+                        chmod 775 "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}/install.sh"
+                        sed -i "s/elif \[ \"\${USER}\" = \"root\" \]; then/elif \[ \"\${USER}\" = \"\" \]; then/g" "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}/install.sh" 2> /dev/null
+                        if [ "${PATH_LZ}" = "/jffs/scripts/lz" ]; then
+                            "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}/install.sh" && upgrade_restart="1"
+                        else
+                            "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}/install.sh" "entware" && upgrade_restart="1"
+                        fi
+                    else
+                        {
+                            echo "$(lzdate)" [$$]: "The installation package is damaged."
+                            echo "$(lzdate)" [$$]: "The online installation of the latest version"
+                            echo "$(lzdate)" [$$]: "of this software failed."
+                        } | tee -ai "${SYSLOG}" 2> /dev/null
+                    fi
+                else
+                    {
+                        echo "$(lzdate)" [$$]: "Failed to download lz_rule-${remoteVer}.tgz from ${LZ_REPO}."
+                        echo "$(lzdate)" [$$]: "The online installation of the latest version"
+                        echo "$(lzdate)" [$$]: "of this software failed."
+                    } | tee -ai "${SYSLOG}" 2> /dev/null
+                fi
+                rm -rf "${PATH_LZ}/tmp/doupdate" 2> /dev/null
+            else
+                {
+                    echo "$(lzdate)" [$$]: "Latest Version: unknown (${LZ_REPO})"
+                    echo "$(lzdate)" [$$]: "The online installation of the latest version"
+                    echo "$(lzdate)" [$$]: "of this software failed."
+            } | tee -ai "${SYSLOG}" 2> /dev/null
+            fi
+        }
+        llz_do_update
+    elif [ "${1}" = "${ISPIP_DATA_UPDATE}" ]; then
+        {
+            echo "$(lzdate)" [$$]: "This process may take a long time."
+            echo "$(lzdate)" [$$]: "Don't interrupt & Please wait......"
+            echo "$(lzdate)" [$$]: ---------------------------------------------
+            echo "$(lzdate)" [$$]:
+        } | tee -ai "${SYSLOG}" 2> /dev/null
+        [ ! -s "${PATH_LZ}/${UPDATE_FILENAME}" ] && restart_rule="1"
+        start_isp_data_update="1"
     else
         echo > "${STATUS_LOG}" 2> /dev/null
         echo > "${ADDRESS_LOG}" 2> /dev/null
@@ -1364,17 +1540,19 @@ if lz_project_file_management "${1}"; then
     fi
 fi
 
-if [ "${1}" != "${SHOW_STATUS}" ] && [ "${1}" != "${ADDRESS_QUERY}" ] \
-    && [ "${1}" != "${FORCED_UNLOCKING}" ]; then
-    {
-        echo "$(lzdate)" [$$]: ---------------------------------------------
+if [ "${1}" != "${ISPIP_DATA_UPDATE}" ]; then
+    if [ "${1}" != "${SHOW_STATUS}" ] && [ "${1}" != "${ADDRESS_QUERY}" ] \
+        && [ "${1}" != "${FORCED_UNLOCKING}" ]; then
+        {
+            echo "$(lzdate)" [$$]: ---------------------------------------------
+            echo "$(lzdate)" [$$]: LZ "${LZ_VERSION}" script commands executed!
+            echo "$(lzdate)" [$$]:
+        } | tee -ai "${SYSLOG}" 2> /dev/null
+    else
+        [ "${1}" != "${ADDRESS_QUERY}" ] && echo "$(lzdate)" [$$]: ---------------------------------------------
         echo "$(lzdate)" [$$]: LZ "${LZ_VERSION}" script commands executed!
         echo "$(lzdate)" [$$]:
-    } | tee -ai "${SYSLOG}" 2> /dev/null
-else
-    [ "${1}" != "${ADDRESS_QUERY}" ] && echo "$(lzdate)" [$$]: ---------------------------------------------
-    echo "$(lzdate)" [$$]: LZ "${LZ_VERSION}" script commands executed!
-    echo "$(lzdate)" [$$]:
+    fi
 fi
 
 lz_instance_exit "${0}" "${1}"

@@ -889,7 +889,7 @@
                                                                     </td>
                                                                 </tr>
                                                                 <tr>
-                                                                    <th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(90);">软件最新版本检测及在线安装远程网络站点</a></th>
+                                                                    <th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(90);">软件版本资源库位置</a></th>
                                                                     <td colspan="4">
                                                                         <input type="radio" value="0" name="lzr_repo_site" class="content_input_fd">中国大陆 (Gitee)
                                                                         <input type="radio" value="1" name="lzr_repo_site" class="content_input_fd">国际 (Github)

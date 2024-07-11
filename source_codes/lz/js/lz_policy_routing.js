@@ -1,5 +1,5 @@
 /*
-# lz_policy_routing.js v4.4.7
+# lz_policy_routing.js v4.4.8
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ JavaScript for Asuswrt-Merlin Router
@@ -1262,7 +1262,8 @@ function openOverHint(itemNum) {
         content += "<br />此文件中 <b>0.0.0.0</b> 为无效地址。<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 90) {
-        content = "<div>缺省为<b>中国大陆 (Gitee)</b> 站点。<br />";
+        content = "<div>用于在线检测本软件最新版本，以及通过网络进行本软件的在线升级或重新安装。<br />";
+        content += "<br />缺省为<b>中国大陆 (Gitee)</b> 站点。<br />";
         content += "<br />从中国大陆内地访问<b>国际 (Github)</b> 站点，线路通畅性可能不佳，若有受到干扰甚至屏蔽，或版本检测或在线安装功能无法正常使用时，请选择<b>中国大陆 (Gitee)</b> 站点。</b></div>";
     } else if (itemNum == 100) {
         mode = 1;
