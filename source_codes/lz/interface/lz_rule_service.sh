@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_service.sh v4.4.8
+# lz_rule_service.sh v4.4.9
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 服务接口脚本
@@ -169,14 +169,14 @@ case "${2}" in
                 echo 'var versionStatus = "'"${remoteVer}"'";' > "${PATH_WEB_LZR}/detect_version.js"
                 {
                     printf "%s [%s]:\n" "$( date +"%F %T")" "${$}"
-                    printf "%s [%s]: The latest version of LZ Rule is %s in %s.\n" "$( date +"%F %T")" "${$}" "${remoteVer}" "${LZ_REPO}larsonzh"
+                    printf "%s [%s]: The latest version of LZ Rule is %s in %s.\n" "$( date +"%F %T")" "${$}" "${remoteVer}" "${LZ_REPO}larsonzh/amdwprprsct"
                     printf "%s [%s]:\n" "$( date +"%F %T")" "${$}"
                 } >> "/tmp/syslog.log"
             else
                 echo 'var versionStatus = "None";' > "${PATH_WEB_LZR}/detect_version.js"
                 {
                     printf "%s [%s]:\n" "$( date +"%F %T")" "${$}"
-                    printf "%s [%s]: Version information of LZ Rule not detected from %s.\n" "$( date +"%F %T")" "${$}" "${LZ_REPO}larsonzh"
+                    printf "%s [%s]: Version information of LZ Rule not detected from %s.\n" "$( date +"%F %T")" "${$}" "${LZ_REPO}larsonzh/amdwprprsct"
                     printf "%s [%s]:\n" "$( date +"%F %T")" "${$}"
                 } >> "/tmp/syslog.log"
             fi
@@ -191,7 +191,7 @@ case "${2}" in
             if [ -n "${remoteVer}" ]; then
                 {
                     printf "%s [%s]:\n" "$( date +"%F %T")" "${$}"
-                    printf "%s [%s]: The latest version of LZ Rule is %s in %s.\n" "$( date +"%F %T")" "${$}" "${remoteVer}" "${LZ_REPO}larsonzh"
+                    printf "%s [%s]: The latest version of LZ Rule is %s in %s.\n" "$( date +"%F %T")" "${$}" "${remoteVer}" "${LZ_REPO}larsonzh/amdwprprsct"
                     printf "%s [%s]:\n" "$( date +"%F %T")" "${$}"
                 } >> "/tmp/syslog.log"
                 mkdir -p "${PATH_LZ}/tmp/doupdate" 2> /dev/null
@@ -202,7 +202,7 @@ case "${2}" in
                 if [ -f "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}.tgz" ]; then
                     {
                         printf "%s [%s]:\n" "$( date +"%F %T")" "${$}"
-                        printf "%s [%s]: Successfully downloaded lz_rule-%s.tgz from %s.\n" "$( date +"%F %T")" "${$}" "${remoteVer}" "${LZ_REPO}larsonzh"
+                        printf "%s [%s]: Successfully downloaded lz_rule-%s.tgz from %s.\n" "$( date +"%F %T")" "${$}" "${remoteVer}" "${LZ_REPO}larsonzh/amdwprprsct"
                         printf "%s [%s]:\n" "$( date +"%F %T")" "${$}"
                     } >> "/tmp/syslog.log"
                     tar -xzf "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}.tgz" -C "${PATH_LZ}/tmp/doupdate"
@@ -225,7 +225,7 @@ case "${2}" in
                 else
                     {
                         printf "%s [%s]:\n" "$( date +"%F %T")" "${$}"
-                        printf "%s [%s]: Failed to download lz_rule-%s.tgz from %s.\n" "$( date +"%F %T")" "${$}" "${remoteVer}" "${LZ_REPO}larsonzh"
+                        printf "%s [%s]: Failed to download lz_rule-%s.tgz from %s.\n" "$( date +"%F %T")" "${$}" "${remoteVer}" "${LZ_REPO}larsonzh/amdwprprsct"
                         printf "%s [%s]:\n" "$( date +"%F %T")" "${$}"
                     } >> "/tmp/syslog.log"
                 fi
@@ -233,7 +233,7 @@ case "${2}" in
             else
                 {
                     printf "%s [%s]:\n" "$( date +"%F %T")" "${$}"
-                    printf "%s [%s]: Version information of LZ Rule not detected from %s.\n" "$( date +"%F %T")" "${$}" "${LZ_REPO}larsonzh"
+                    printf "%s [%s]: Version information of LZ Rule not detected from %s.\n" "$( date +"%F %T")" "${$}" "${LZ_REPO}larsonzh/amdwprprsct"
                     printf "%s [%s]:\n" "$( date +"%F %T")" "${$}"
                 } >> "/tmp/syslog.log"
             fi

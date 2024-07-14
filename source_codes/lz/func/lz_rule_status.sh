@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_status.sh v4.4.8
+# lz_rule_status.sh v4.4.9
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 显示脚本运行状态脚本
@@ -15,7 +15,7 @@
 ## 定义基本运行状态常量函数
 lz_define_status_constant() {
     ## 项目路径，主运行脚本及事件接口文件名
-    STATUS_PROJECT_FILENAME="lz_rule.sh"
+    STATUS_PROJECT_FILENAME="${PROJECT_FILENAME}"
     STATUS_BOOTLOADER_NAME="firewall-start"
     STATUS_SERVICE_EVENT_NAME="service-event"
     STATUS_OPENVPN_EVENT_NAME="openvpn-event"
@@ -993,9 +993,9 @@ lz_get_route_status_info() {
 
     ## 输出显示本软件版本资源库位置
     if [ "${status_repo_site}" = "1" ]; then
-        echo "$(lzdate)" [$$]: "   Repository Site: https://github.com/larsonzh" | tee -ai "${STATUS_LOG}" 2> /dev/null
+        echo "$(lzdate)" [$$]: "   Repository Site: https://github.com/larsonzh/amdwprprsct" | tee -ai "${STATUS_LOG}" 2> /dev/null
     else
-        echo "$(lzdate)" [$$]: "   Repository Site: https://gitee.com/larsonzh" | tee -ai "${STATUS_LOG}" 2> /dev/null
+        echo "$(lzdate)" [$$]: "   Repository Site: https://gitee.com/larsonzh/amdwprprsct" | tee -ai "${STATUS_LOG}" 2> /dev/null
     fi
 
     ## 输出显示路由器CPU和内存主频

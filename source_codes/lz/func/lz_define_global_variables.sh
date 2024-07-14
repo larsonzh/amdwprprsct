@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_define_global_variables.sh v4.4.8
+# lz_define_global_variables.sh v4.4.9
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 # QnkgTFog5aaZ5aaZ5ZGc77yI6Juk6J+G5aKp5YS/77yJ（首次运行标识，切勿修改）
 
@@ -29,7 +29,7 @@ DOMAIN_WAN2_CONF="lz_wan2_domain.conf"
 ## 状态标识：不存在--项目未启动或处于终止运行STOP状态
 ## 状态标识内容：PROJECT_START_ID--项目启动运行
 ## 状态标识内容：空--项目已启动，处于暂停运行stop状态
-PROJECT_STATUS_SET="lz_rule_status"
+PROJECT_STATUS_SET="${PROJECT_ID}_status"
 
 ## 项目启动运行标识
 PROJECT_START_ID="168.168.168.168"

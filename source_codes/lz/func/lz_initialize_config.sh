@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_initialize_config.sh v4.4.8
+# lz_initialize_config.sh v4.4.9
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 初始化脚本配置
@@ -232,7 +232,7 @@ lz_restore_cfg_file() {
 ##       动态分流模式配置           ${PATH_LZ}/lz_rule.sh rn
 ##       静态分流模式配置           ${PATH_LZ}/lz_rule.sh hd
 ##       IPTV 模式配置              ${PATH_LZ}/lz_rule.sh iptv
-##       运行状态查询               ${PATH_LZ}/lz_rule.sh status
+##       显示运行状态               ${PATH_LZ}/lz_rule.sh status
 ##       网址信息查询               ${PATH_LZ}/lz_rule.sh address 网址 [第三方 DNS 服务器 IP 地址（可选项）]
 ##       解除运行锁                 ${PATH_LZ}/lz_rule.sh unlock
 ##       卸载 WEB 窗口页面          ${PATH_LZ}/lz_rule.sh unwebui
@@ -240,6 +240,7 @@ lz_restore_cfg_file() {
 ##       在线安装软件最新版本       ${PATH_LZ}/lz_rule.sh upgrade
 ##       在线更新 ISP 运营商数据    ${PATH_LZ}/lz_rule.sh isp
 ##       显示命令列表               ${PATH_LZ}/lz_rule.sh cmd
+##       显示帮助                   ${PATH_LZ}/lz_rule.sh help
 ## 提示：
 ##     1."启动/重启"命令用于手工启动或重启脚本服务。
 ##     2."暂停运行"命令仅是暂时关闭策略路由服务，重启路由器、线路接入或断开、WAN口IP改变、防火墙开关等
@@ -1926,7 +1927,7 @@ local_reinstall="$( grep -c 'QnkgTFog5aaZ5aaZ5ZGc77yI6Juk6J[\+]G5aKp5YS[\/]77yJ'
 
 ## 新安装的脚本，更新主运行脚本和脚本配置文件中初始缺省的路径数据
 if [ "${local_reinstall}" -gt "0" ] && [ "${PATH_LZ}" != "/jffs/scripts/lz" ]; then
-    sed -i "s:/jffs/scripts/lz/:${PATH_LZ}/:g" "${PATH_LZ}/lz_rule.sh" > /dev/null 2>&1
+    sed -i "s:/jffs/scripts/lz/:${PATH_LZ}/:g" "${PATH_LZ}/${PROJECT_FILENAME}" > /dev/null 2>&1
     [ -s "${PATH_CONFIGS}/lz_rule_config.sh" ] && sed -i "s:/jffs/scripts/lz/:${PATH_LZ}/:g" "${PATH_CONFIGS}/lz_rule_config.sh" > /dev/null 2>&1
 fi
 

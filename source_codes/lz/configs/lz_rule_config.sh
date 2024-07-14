@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_config.sh v4.4.8
+# lz_rule_config.sh v4.4.9
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # 本软件采用CIDR（无类别域间路由，Classless Inter-Domain Routing）技术，是一个在Internet上创建附加地
@@ -18,7 +18,7 @@
 ##       动态分流模式配置           /jffs/scripts/lz/lz_rule.sh rn
 ##       静态分流模式配置           /jffs/scripts/lz/lz_rule.sh hd
 ##       IPTV 模式配置              /jffs/scripts/lz/lz_rule.sh iptv
-##       运行状态查询               /jffs/scripts/lz/lz_rule.sh status
+##       显示运行状态               /jffs/scripts/lz/lz_rule.sh status
 ##       网址信息查询               /jffs/scripts/lz/lz_rule.sh address 网址 [第三方 DNS 服务器 IP 地址（可选项）]
 ##       解除运行锁                 /jffs/scripts/lz/lz_rule.sh unlock
 ##       卸载 WEB 窗口页面          /jffs/scripts/lz/lz_rule.sh unwebui
@@ -26,6 +26,7 @@
 ##       在线安装软件最新版本       /jffs/scripts/lz/lz_rule.sh upgrade
 ##       在线更新 ISP 运营商数据    /jffs/scripts/lz/lz_rule.sh isp
 ##       显示命令列表               /jffs/scripts/lz/lz_rule.sh cmd
+##       显示帮助                   /jffs/scripts/lz/lz_rule.sh help
 ## 提示：
 ##     1."启动/重启"命令用于手工启动或重启脚本服务。
 ##     2."暂停运行"命令仅是暂时关闭策略路由服务，重启路由器、线路接入或断开、WAN口IP改变、防火墙开关等

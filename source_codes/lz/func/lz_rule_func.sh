@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v4.4.8
+# lz_rule_func.sh v4.4.9
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 #BEGIN
@@ -684,9 +684,9 @@ lz_get_route_info() {
 
     ## 输出显示本软件版本资源库位置
     if [ "${repo_site}" = "1" ]; then
-        echo "$(lzdate)" [$$]: "   Repository Site: https://github.com/larsonzh" | tee -ai "${SYSLOG}" 2> /dev/null
+        echo "$(lzdate)" [$$]: "   Repository Site: https://github.com/larsonzh/amdwprprsct" | tee -ai "${SYSLOG}" 2> /dev/null
     else
-        echo "$(lzdate)" [$$]: "   Repository Site: https://gitee.com/larsonzh" | tee -ai "${SYSLOG}" 2> /dev/null
+        echo "$(lzdate)" [$$]: "   Repository Site: https://gitee.com/larsonzh/amdwprprsct" | tee -ai "${SYSLOG}" 2> /dev/null
     fi
 
     ## 输出显示路由器CPU和内存主频
