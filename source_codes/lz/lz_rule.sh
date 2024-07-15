@@ -649,14 +649,14 @@ lz_create_event_interface_file_header() {
     [ ! -s "${PATH_BOOTLOADER}/${1}" ] && echo "#!/bin/sh" >> "${PATH_BOOTLOADER}/${1}"
     [ ! -f "${PATH_BOOTLOADER}/${1}" ] && return "1"
     if ! grep -qm 1 '^#!/bin/sh$' "${PATH_BOOTLOADER}/${1}"; then
-        sed -i '/^[:space:]*#!\/bin\/sh/d' "${PATH_BOOTLOADER}/${1}"
+        sed -i '/^[[:space:]]*#!\/bin\/sh/d' "${PATH_BOOTLOADER}/${1}"
         if [ ! -s "${PATH_BOOTLOADER}/${1}" ]; then
             echo "#!/bin/sh" >> "${PATH_BOOTLOADER}/${1}"
         else
             sed -i '1i #!\/bin\/sh' "${PATH_BOOTLOADER}/${1}"
         fi
     fi
-    sed -i '2,${/^[:space:]*#!\/bin\/sh/d;/^[:space:]*$/d;}' "${PATH_BOOTLOADER}/${1}"
+    sed -i '2,${/^[[:space:]]*#!\/bin\/sh/d;/^[[:space:]]*$/d;}' "${PATH_BOOTLOADER}/${1}"
     return "0"
 }
 
