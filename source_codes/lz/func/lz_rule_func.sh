@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v4.4.9
+# lz_rule_func.sh v4.5.0
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 #BEGIN
@@ -691,18 +691,14 @@ lz_get_route_info() {
 
     ## 输出显示路由器CPU和内存主频
     local local_cpu_frequency="$( nvram get "clkfreq" 2> /dev/null | awk -F ',' '{print $1}' | sed -n 1p )"
+    [ -n "${local_cpu_frequency}" ] && echo "$(lzdate)" [$$]: "   CPU clkfreq: ${local_cpu_frequency} MHz" | tee -ai "${SYSLOG}" 2> /dev/null
     local local_memory_frequency="$( nvram get "clkfreq" 2> /dev/null | awk -F ',' '{print $2}' | sed -n 1p )"
-    if [ -n "${local_cpu_frequency}" ] || [ -n "${local_memory_frequency}" ]; then
-        {
-            echo "$(lzdate)" [$$]: "   CPU clkfreq: ${local_cpu_frequency} MHz"
-            echo "$(lzdate)" [$$]: "   Mem clkfreq: ${local_memory_frequency} MHz"
-        } | tee -ai "${SYSLOG}" 2> /dev/null
-    fi
+    [ -n "${local_memory_frequency}" ] && echo "$(lzdate)" [$$]: "   Mem clkfreq: ${local_memory_frequency} MHz" | tee -ai "${SYSLOG}" 2> /dev/null
 
     ## 输出显示路由器CPU温度
-    local local_cpu_temperature="$( sed -e 's/.C$/ degrees C/g' -e '/^$/d' "/proc/dmu/temperature" 2> /dev/null | awk -F ': ' '{print $2}' | sed -n 1p )"
+    local local_cpu_temperature="$( sed -e 's/[\.]C$/ degrees C/g' -e '/^$/d' "/proc/dmu/temperature" 2> /dev/null | awk -F ': ' '{print $2}' | sed -n 1p )"
     if [ -z "${local_cpu_temperature}" ]; then
-        local_cpu_temperature="$( awk '{print $1/1000}' "/sys/class/thermal/thermal_zone0/temp" 2> /dev/null | sed -n 1p )"
+        local_cpu_temperature="$( awk '{if ($1 >= 1000) print $1/1000; else print $1;}' "/sys/class/thermal/thermal_zone0/temp" 2> /dev/null | sed -n 1p )"
         [ -n "${local_cpu_temperature}" ] && {
             echo "$(lzdate)" [$$]: "   CPU temperature: ${local_cpu_temperature} degrees C" | tee -ai "${SYSLOG}" 2> /dev/null
         }

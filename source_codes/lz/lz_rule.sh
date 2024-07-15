@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule.sh v4.4.9
+# lz_rule.sh v4.5.0
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # 本软件采用CIDR（无类别域间路由，Classless Inter-Domain Routing）技术，是一个在Internet上创建附加地
@@ -86,7 +86,7 @@
 ## -------------全局数据定义及初始化-------------------
 
 ## 版本号
-LZ_VERSION=v4.4.9
+LZ_VERSION=v4.5.0
 
 ## 运行状态查询命令
 SHOW_STATUS="status"
@@ -256,24 +256,16 @@ lz_display_cmd_help() {
 
 while [ "${#}" -gt "0" ]
 do
-    if [ "${#}" = "1" ]; then
-        [ "${1}" = "stop" ] && break
-        [ "${1}" = "STOP" ] && break
-        [ "${1}" = "default" ] && break
-        [ "${1}" = "rn" ] && break
-        [ "${1}" = "hd" ] && break
-        [ "${1}" = "iptv" ] && break
-        [ "${1}" = "${SHOW_STATUS}" ] && break
-        [ "${1}" = "${FORCED_UNLOCKING}" ] && break
-        [ "${1}" = "${UNMOUNT_WEB_UI}" ] && break
-        [ "${1}" = "${LAST_VERSION}" ] && break
-        [ "${1}" = "${UPGRADE_SOFTWARE}" ] && break
-        [ "${1}" = "${ISPIP_DATA_UPDATE}" ] && break
-        [ "${1}" = "${DISPLAY_CMD_LIST}" ] && break
-        [ "${1}" = "${DISPLAY_CMD_HELP}" ] && break
-        [ "${1}" = "${ISPIP_DATA_UPDATE_ID}" ] && break
-    fi
-    [ "${1}" = "${ADDRESS_QUERY}" ] && [ "${#}" -le "3" ] && break
+    case "${1}" in
+        "stop" | "STOP" | "default" | "rn" | "hd" | "iptv" \
+            | "${SHOW_STATUS}" | "${FORCED_UNLOCKING}" | "${UNMOUNT_WEB_UI}" | "${LAST_VERSION}" | "${UPGRADE_SOFTWARE}" \
+            | "${ISPIP_DATA_UPDATE}" | "${DISPLAY_CMD_LIST}" | "${DISPLAY_CMD_HELP}" | "${ISPIP_DATA_UPDATE_ID}" )
+            [ "${#}" = "1" ] && break
+        ;;
+        "${ADDRESS_QUERY}" )
+            [ "${#}" -le "3" ] && break
+        ;;
+    esac
     echo "$(lzdate)" [$$]:
     echo "$(lzdate)" [$$]: LZ "${LZ_VERSION}" script commands start......
     echo "$(lzdate)" [$$]: By LZ \(larsonzhang@gmail.com\)
