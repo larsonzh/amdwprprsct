@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule.sh v4.5.0
+# lz_rule.sh v4.5.1
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # 本软件采用CIDR（无类别域间路由，Classless Inter-Domain Routing）技术，是一个在Internet上创建附加地
@@ -86,7 +86,7 @@
 ## -------------全局数据定义及初始化-------------------
 
 ## 版本号
-LZ_VERSION=v4.5.0
+LZ_VERSION=v4.5.1
 
 ## 运行状态查询命令
 SHOW_STATUS="status"
@@ -98,7 +98,7 @@ ADDRESS_QUERY="address"
 FORCED_UNLOCKING="unlock"
 
 ## ISP运营商网段数据文件更新状态标识
-ISPIP_DATA_UPDATE_ID="update"
+ISPIP_DATA_UPDATE_ID="update_id"
 
 ## 卸载WEB窗口页面命令
 UNMOUNT_WEB_UI="unwebui"
@@ -215,7 +215,6 @@ UPDATE_FILENAME="lz_update_ispip_data.sh"
 ## 返回值：
 ##     命令帮助
 lz_display_cmd_help() {
-    echo
     echo "Usage: ${1} COMMAND"
     echo
     echo "Commands:"
@@ -251,7 +250,31 @@ lz_display_cmd_help() {
     echo "    Print command list"
     echo "help"
     echo "    Print help"
-    echo
+}
+
+## 显示命令列表函数
+## 输入项：
+##     $1--主执行脚本全路径文件名
+## 返回值：
+##     命令列表
+lz_display_cmd_list() {
+    echo "Command List:"
+    echo "    Start/Restart                   ${1}"
+    echo "    Pause                           ${1} stop"
+    echo "    Stop                            ${1} STOP"
+    echo "    Factory Default                 ${1} default"
+    echo "    Dynamic Policy                  ${1} rn"
+    echo "    Static Policy                   ${1} hd"
+    echo "    IPTV Mode                       ${1} iptv"
+    echo "    Print running status            ${1} status"
+    echo "    Network Address Information     ${1} address [Network Address] [DNS(Optional)]"
+    echo "    Unlock the running lock         ${1} unlock"
+    echo "    Uninstall Web UI page           ${1} unwebui"
+    echo "    Latest Version Information      ${1} lastver"
+    echo "    Upgrade software                ${1} upgrade"
+    echo "    Update ISP IP data              ${1} ispip"
+    echo "    Print command list              ${1} cmd"
+    echo "    Print help                      ${1} help"
 }
 
 while [ "${#}" -gt "0" ]
@@ -276,8 +299,13 @@ do
     echo "${0}" "${@}"
     echo
     echo "No command specified: unknown argument '${*}'"
+    echo
     ## 显示命令帮助
     lz_display_cmd_help "${PATH_LZ}/${PROJECT_FILENAME}"
+    echo
+    ## 显示命令列表
+    lz_display_cmd_list "${PATH_LZ}/${PROJECT_FILENAME}"
+    echo
     echo "$(lzdate)" [$$]: ---------------------------------------------
     echo "$(lzdate)" [$$]: LZ "${LZ_VERSION}" script commands executed!
     echo "$(lzdate)" [$$]:
@@ -291,40 +319,15 @@ if [ "${1}" = "${DISPLAY_CMD_HELP}" ]; then
     echo "$(lzdate)" [$$]: ---------------------------------------------
     echo "$(lzdate)" [$$]: Location: "${PATH_LZ}"
     echo "$(lzdate)" [$$]: ---------------------------------------------
+    echo
     ## 显示命令帮助
     lz_display_cmd_help "${PATH_LZ}/${PROJECT_FILENAME}"
+    echo
     echo "$(lzdate)" [$$]: ---------------------------------------------
     echo "$(lzdate)" [$$]: LZ "${LZ_VERSION}" script commands executed!
     echo "$(lzdate)" [$$]:
     exit
 fi
-
-## 显示命令列表函数
-## 输入项：
-##     $1--主执行脚本全路径文件名
-## 返回值：
-##     命令列表
-lz_display_cmd_list() {
-    echo
-    echo "Command List:"
-    echo "    Start/Restart                   ${1}"
-    echo "    Pause                           ${1} stop"
-    echo "    Stop                            ${1} STOP"
-    echo "    Factory Default                 ${1} default"
-    echo "    Dynamic Policy                  ${1} rn"
-    echo "    Static Policy                   ${1} hd"
-    echo "    IPTV Mode                       ${1} iptv"
-    echo "    Print running status            ${1} status"
-    echo "    Network Address Information     ${1} address [Network Address] [DNS(Optional)]"
-    echo "    Unlock the running lock         ${1} unlock"
-    echo "    Uninstall Web UI page           ${1} unwebui"
-    echo "    Latest Version Information      ${1} lastver"
-    echo "    Upgrade software                ${1} upgrade"
-    echo "    Update ISP IP data              ${1} ispip"
-    echo "    Print command list              ${1} cmd"
-    echo "    Print help                      ${1} help"
-    echo
-}
 
 if [ "${1}" = "${DISPLAY_CMD_LIST}" ]; then
     echo "$(lzdate)" [$$]:
@@ -333,8 +336,10 @@ if [ "${1}" = "${DISPLAY_CMD_LIST}" ]; then
     echo "$(lzdate)" [$$]: ---------------------------------------------
     echo "$(lzdate)" [$$]: Location: "${PATH_LZ}"
     echo "$(lzdate)" [$$]: ---------------------------------------------
+    echo
     ## 显示命令列表
     lz_display_cmd_list "${PATH_LZ}/${PROJECT_FILENAME}"
+    echo
     echo "$(lzdate)" [$$]: ---------------------------------------------
     echo "$(lzdate)" [$$]: LZ "${LZ_VERSION}" script commands executed!
     echo "$(lzdate)" [$$]:
@@ -1540,8 +1545,7 @@ if lz_project_file_management "${1}"; then
                 {
                     echo "$(lzdate)" [$$]: "Current Version: ${LZ_VERSION}"
                     echo "$(lzdate)" [$$]: "Latest Version: unknown (${LZ_REPO}larsonzh/amdwprprsct)"
-                    echo "$(lzdate)" [$$]: "Failed to obtain the latest version information"
-                    echo "$(lzdate)" [$$]: "of this software online."
+                    echo "$(lzdate)" [$$]: "Failed to obtain the latest version information of this software online."
             } | tee -ai "${SYSLOG}" 2> /dev/null
             fi
         }
@@ -1578,24 +1582,21 @@ if lz_project_file_management "${1}"; then
                     else
                         {
                             echo "$(lzdate)" [$$]: "The installation package is damaged."
-                            echo "$(lzdate)" [$$]: "The online installation of the latest version"
-                            echo "$(lzdate)" [$$]: "of this software failed."
+                            echo "$(lzdate)" [$$]: "The online installation of the latest version of this software failed."
                         } | tee -ai "${SYSLOG}" 2> /dev/null
                     fi
                 else
                     {
                         echo "$(lzdate)" [$$]: "Failed to download lz_rule-${remoteVer}.tgz from ${LZ_REPO}larsonzh/amdwprprsct."
-                        echo "$(lzdate)" [$$]: "The online installation of the latest version"
-                        echo "$(lzdate)" [$$]: "of this software failed."
+                        echo "$(lzdate)" [$$]: "The online installation of the latest version of this software failed."
                     } | tee -ai "${SYSLOG}" 2> /dev/null
                 fi
                 rm -rf "${PATH_LZ}/tmp/doupdate" 2> /dev/null
             else
                 {
                     echo "$(lzdate)" [$$]: "Latest Version: unknown (${LZ_REPO}larsonzh/amdwprprsct)"
-                    echo "$(lzdate)" [$$]: "The online installation of the latest version"
-                    echo "$(lzdate)" [$$]: "of this software failed."
-            } | tee -ai "${SYSLOG}" 2> /dev/null
+                    echo "$(lzdate)" [$$]: "The online installation of the latest version of this software failed."
+                } | tee -ai "${SYSLOG}" 2> /dev/null
             fi
         }
         llz_do_update

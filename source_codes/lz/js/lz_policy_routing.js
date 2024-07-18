@@ -1,5 +1,5 @@
 /*
-# lz_policy_routing.js v4.5.0
+# lz_policy_routing.js v4.5.1
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ JavaScript for Asuswrt-Merlin Router
@@ -28,8 +28,8 @@ function getLastVersion() {
     policySettingsArray["lastVersion"] = policySettingsArray.version;
     let siteStr="";
     if (policySettingsArray.hasOwnProperty("lzr_repo_site")) {
-        siteStr=" (Gitee)";
-        if (policySettingsArray["lzr_repo_site"] == 1) siteStr=" (Github)";
+        siteStr=" in Gitee";
+        if (policySettingsArray["lzr_repo_site"] == 1) siteStr=" in Github";
     }
     $.ajax({
         url: '/ext/lzr/detect_version.js',
@@ -2017,7 +2017,7 @@ function toolsCommand() {
             document.form.submit();
             break;
         case 11:
-            if (!confirm("「解除程序运行锁」后会造成同步运行安全机制失效，需重新启动「策略路由」才可恢复。\n\n  确定要执行此操作吗？"))
+            if (!confirm("「解除程序运行锁」后会造成同步运行安全机制失效，需重新启动「策略路由」才可恢复。\n\n确定要执行此操作吗？"))
                 break;
             disabledToolsButton();
             document.getElementById("toolsTextArea").innerHTML = "";
@@ -2031,7 +2031,7 @@ function toolsCommand() {
             }
             break;
         case 12:
-            if (!confirm("「恢复缺省配置」将不可恢复的清除用户所有已配置数据。\n\n  确定要执行此操作吗？"))
+            if (!confirm("「恢复缺省配置」将不可恢复的清除用户所有已配置数据。\n\n确定要执行此操作吗？"))
                 break;
             $("#amng_custom").val("");
             document.form.action_script.value = "start_LZDefault";
@@ -2040,7 +2040,7 @@ function toolsCommand() {
             document.form.submit();
             break;
         case 13:
-            if (!confirm("「卸载策略路由」将不可恢复的卸载并清除「策略路由」软件。\n\n  卸载命令执行后，该软件的路由器项目目录内仅遗留与用户配置有关的数据文件，若不需要，可手工删除。\n\n  确定要执行此操作吗？"))
+            if (!confirm("「卸载策略路由」将不可恢复的卸载并清除「策略路由」软件。\n\n卸载命令执行后，该软件的路由器项目目录内仅遗留与用户配置有关的数据文件，若不需要，可手工删除。\n\n确定要执行此操作吗？"))
                 break;
             $("#amng_custom").val("");
             document.form.current_page.value = "Advanced_WANPort_Content.asp";
@@ -2119,7 +2119,7 @@ $(document).ready(function() {
             alert("上一个任务正在进行中，请稍后再试。");
             return;
         }
-        if (!confirm("  当前版本：" + policySettingsArray.version + "      最新版本：" + policySettingsArray.lastVersion + "\n\n  软件「在线更新」或「在线重新安装」时，须保持内外部网络畅通。\n\n  请确保路由器软件安装目录里有 2 MB 以上的剩余存储空间。\n\n  此操作不会改变软件原有参数设置。\n\n  确定要执行此操作吗？"))
+        if (!confirm("当前版本：" + policySettingsArray.version + "       最新版本：" + policySettingsArray.lastVersion + "\n\n软件「在线升级」或「在线重新安装」时，须保持内外部网络畅通。\n\n请确保路由器软件安装目录里有 2 MB 以上的剩余存储空间。\n\n此操作不会改变软件原有参数设置。\n\n确定要执行此操作吗？"))
             return;
         $("#amng_custom").val("");
         document.form.action_script.value = "start_LZDoUpdate";
