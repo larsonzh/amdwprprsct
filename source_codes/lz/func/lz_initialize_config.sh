@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_initialize_config.sh v4.5.1
+# lz_initialize_config.sh v4.5.2
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 初始化脚本配置
@@ -475,7 +475,7 @@ custom_data_wan_port_1=${local_custom_data_wan_port_1}
 ## 例如：
 ## 123.234.123.111
 ## 133.234.123.0/24
-## 此文件中0.0.0.0/0和0.0.0.0为无效地址。
+## 此文件中0.0.0.0/0、0.0.0.0和路由器本地IP地址为无效地址。
 ## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
 custom_data_file_1=${local_custom_data_file_1}
 
@@ -495,7 +495,7 @@ custom_data_wan_port_2=${local_custom_data_wan_port_2}
 ## 文件路径、名称可自定义和修改，文件路径及名称不得为空。
 ## 缺省为"${PATH_DATA}/custom_data_2.txt"，为空文件。
 ## 文本格式：一个网址/网段一行，为一个条目，可多行多个条目。
-## 此文件中0.0.0.0/0和0.0.0.0为无效地址。
+## 此文件中0.0.0.0/0、0.0.0.0和路由器本地IP地址为无效地址。
 ## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
 custom_data_file_2=${local_custom_data_file_2}
 
@@ -518,7 +518,7 @@ wan_1_domain=${local_wan_1_domain}
 ## 例如：
 ## 192.168.50.111
 ## 10.0.0.0/28
-## 可以用0.0.0.0/0表示所有客户端。
+## 可以用0.0.0.0/0表示所有客户端，0.0.0.0和路由器本地IP地址为无效地址。
 ## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
 wan_1_domain_client_src_addr_file=${local_wan_1_domain_client_src_addr_file}
 
@@ -551,7 +551,7 @@ wan_2_domain=${local_wan_2_domain}
 ## 文件路径、名称可自定义和修改，文件路径及名称不得为空。
 ## 缺省为"${PATH_DATA}/wan_2_domain_client_src_addr.txt"，为空文件。
 ## 文本格式：一个网址/网段一行，为一个条目，可多行多个条目。
-## 可以用0.0.0.0/0表示所有客户端。
+## 可以用0.0.0.0/0表示所有客户端，0.0.0.0和路由器本地IP地址为无效地址。
 ## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
 wan_2_domain_client_src_addr_file=${local_wan_2_domain_client_src_addr_file}
 
@@ -585,7 +585,7 @@ wan_1_client_src_addr=${local_wan_1_client_src_addr}
 ## 例如：
 ## 192.168.50.111
 ## 10.0.0.0/28
-## 可以用0.0.0.0/0表示所有客户端。
+## 可以用0.0.0.0/0表示所有客户端，0.0.0.0和路由器本地IP地址为无效地址。
 ## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
 wan_1_client_src_addr_file=${local_wan_1_client_src_addr_file}
 
@@ -600,7 +600,7 @@ wan_2_client_src_addr=${local_wan_2_client_src_addr}
 ## 文件路径、名称可自定义和修改，文件路径及名称不得为空。
 ## 缺省为"${PATH_DATA}/wan_2_client_src_addr.txt"，为空文件。
 ## 文本格式：一个网址/网段一行，为一个条目，可多行多个条目。
-## 可以用0.0.0.0/0表示所有客户端。
+## 可以用0.0.0.0/0表示所有客户端，0.0.0.0和路由器本地IP地址为无效地址。
 ## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
 wan_2_client_src_addr_file=${local_wan_2_client_src_addr_file}
 
@@ -615,7 +615,7 @@ high_wan_1_client_src_addr=${local_high_wan_1_client_src_addr}
 ## 文件路径、名称可自定义和修改，文件路径及名称不得为空。
 ## 缺省为"${PATH_DATA}/high_wan_1_client_src_addr.txt"，为空文件。
 ## 文本格式：一个网址/网段一行，为一个条目，可多行多个条目。
-## 可以用0.0.0.0/0表示所有客户端。
+## 可以用0.0.0.0/0表示所有客户端，0.0.0.0和路由器本地IP地址为无效地址。
 ## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
 high_wan_1_client_src_addr_file=${local_high_wan_1_client_src_addr_file}
 
@@ -630,7 +630,7 @@ high_wan_2_client_src_addr=${local_high_wan_2_client_src_addr}
 ## 文件路径、名称可自定义和修改，文件路径及名称不得为空。
 ## 缺省为"${PATH_DATA}/high_wan_2_client_src_addr.txt"，为空文件。
 ## 文本格式：一个网址/网段一行，为一个条目，可多行多个条目。
-## 可以用0.0.0.0/0表示所有客户端。
+## 可以用0.0.0.0/0表示所有客户端，0.0.0.0和路由器本地IP地址为无效地址。
 ## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
 high_wan_2_client_src_addr_file=${local_high_wan_2_client_src_addr_file}
 
@@ -647,7 +647,7 @@ wan_1_src_to_dst_addr=${local_wan_1_src_to_dst_addr}
 ## 文本格式：每行的源网址/网段和目标网址/网段之间按顺序用空格隔开，一个条目一行，可多行多个条目。
 ## 例如：
 ## 192.168.50.101 103.10.4.108
-## 可以用0.0.0.0/0表示所有未知IP地址。
+## 可以用0.0.0.0/0表示所有未知IP地址，0.0.0.0和路由器本地IP地址为无效地址。
 ## NAS设备远程访问接入示例：
 ## 假设NAS设备本地地址为 192.168.50.123，通过本WAN口远程访问，需填写如下两个条目：
 ## 192.168.50.123 0.0.0.0/0
@@ -671,7 +671,7 @@ wan_2_src_to_dst_addr=${local_wan_2_src_to_dst_addr}
 ## 文本格式：每行的源网址/网段和目标网址/网段之间按顺序用空格隔开，一个条目一行，可多行多个条目。
 ## 例如：
 ## 192.168.50.102 210.74.192.0/18
-## 可以用0.0.0.0/0表示所有未知IP地址。
+## 可以用0.0.0.0/0表示所有未知IP地址，0.0.0.0和路由器本地IP地址为无效地址。
 ## NAS设备远程访问接入示例：
 ## 假设NAS设备本地地址为 192.168.50.123，通过本WAN口远程访问，需填写如下两个条目：
 ## 192.168.50.123 0.0.0.0/0
@@ -695,7 +695,7 @@ high_wan_1_src_to_dst_addr=${local_high_wan_1_src_to_dst_addr}
 ## 文本格式：每行的源网址/网段和目标网址/网段之间按顺序用空格隔开，一个条目一行，可多行多个条目。
 ## 例如：
 ## 192.168.50.0/27 0.0.0.0/0
-## 可以用0.0.0.0/0表示所有未知IP地址。
+## 可以用0.0.0.0/0表示所有未知IP地址，0.0.0.0和路由器本地IP地址为无效地址。
 ## NAS设备远程访问接入示例：
 ## 假设NAS设备本地地址为 192.168.50.123，通过本WAN口远程访问，需填写如下两个条目：
 ## 192.168.50.123 0.0.0.0/0
@@ -752,7 +752,7 @@ wan_1_src_to_dst_addr_port=${local_wan_1_src_to_dst_addr_port}
 ## 0.0.0.0/0 123.123.123.123 udplite 12345
 ## 192.168.50.102 0.0.0.0/0 sctp
 ## 0.0.0.0/0 0.0.0.0/0
-## 可以用0.0.0.0/0表示所有未知IP地址。
+## 可以用0.0.0.0/0表示所有未知IP地址，0.0.0.0和路由器本地IP地址为无效地址。
 ## “客户端IPv4网址/网段”和“IPv4目标网址/网段”为必选项。
 ## “通讯协议”及“目标端口号”为可选项。选择“目标端口号”时，“通讯协议”则为必选项。
 ## 每个条目只能使用一个端口通讯协议，只能是TCP、UDP、UDPLITE、SCTP四种协议中的一个，字母英文大小写均可。
@@ -783,7 +783,7 @@ wan_2_src_to_dst_addr_port=${local_wan_2_src_to_dst_addr_port}
 ## 0.0.0.0/0 123.123.123.123 udplite 12345
 ## 192.168.50.102 0.0.0.0/0 sctp
 ## 0.0.0.0/0 0.0.0.0/0
-## 可以用0.0.0.0/0表示所有未知IP地址。
+## 可以用0.0.0.0/0表示所有未知IP地址，0.0.0.0和路由器本地IP地址为无效地址。
 ## “客户端IPv4网址/网段”和“IPv4目标网址/网段”为必选项。
 ## “通讯协议”及“目标端口号”为可选项。选择“目标端口号”时，“通讯协议”则为必选项。
 ## 每个条目只能使用一个端口通讯协议，只能是TCP、UDP、UDPLITE、SCTP四种协议中的一个，字母英文大小写均可。
@@ -814,7 +814,7 @@ high_wan_1_src_to_dst_addr_port=${local_high_wan_1_src_to_dst_addr_port}
 ## 0.0.0.0/0 123.123.123.123 udplite 12345
 ## 192.168.50.102 0.0.0.0/0 sctp
 ## 0.0.0.0/0 0.0.0.0/0
-## 可以用0.0.0.0/0表示所有未知IP地址。
+## 可以用0.0.0.0/0表示所有未知IP地址，0.0.0.0和路由器本地IP地址为无效地址。
 ## “客户端IPv4网址/网段”和“IPv4目标网址/网段”为必选项。
 ## “通讯协议”及“目标端口号”为可选项。选择“目标端口号”时，“通讯协议”则为必选项。
 ## 每个条目只能使用一个端口通讯协议，只能是TCP、UDP、UDPLITE、SCTP四种协议中的一个，字母英文大小写均可。
@@ -830,7 +830,7 @@ high_wan_1_src_to_dst_addr_port_file=${local_high_wan_1_src_to_dst_addr_port_fil
 ## 文件路径、名称可自定义和修改，文件路径及名称不得为空。
 ## 缺省为"${PATH_DATA}/local_ipsets_data.txt"，为空文件。
 ## 文本格式：一个网址/网段一行，为一个条目，可多行多个条目。
-## 此文件中0.0.0.0/0和0.0.0.0为无效地址。
+## 此文件中0.0.0.0/0、0.0.0.0和路由器本地IP地址为无效地址。
 ## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
 local_ipsets_file=${local_local_ipsets_file}
 
@@ -882,8 +882,8 @@ proxy_route=${local_proxy_route}
 ## 123.234.123.111
 ## 133.234.123.0/24
 ## abc.def.com.cn
-## 此文件中0.0.0.0/0和0.0.0.0为无效地址；条目中不能有网络协议前缀（如 http://、https:// 或 ftp://等）、
-## 端口号（如:23456）、路径及文件名、特殊符号等影响地址解析的内容。
+## 此文件中0.0.0.0/0、0.0.0.0和路由器本地IP地址为无效地址。地址条目中不能有网络协议前缀（如 http:// 或
+## https:// 或 ftp:// 等）、端口号（如:23456）、路径及文件名、特殊符号等影响地址解析的内容。
 ## 由于该地址列表仅用于静态直通路由，所有远程节点服务器地址应为静态地址。
 ## 当列表数据文件中包含域名格式地址时，需启用“代理转发远程节点服务器域名地址预解析”功能。若第三方传输代理
 ## 软件中使用有特定的DNS服务器，为避免DNS劫持和污染，可同时启用和设置“代理转发远程节点服务器自定义域名地
@@ -1028,7 +1028,7 @@ iptv_access_mode=${local_iptv_access_mode}
 ## 192.168.50.46
 ## 192.168.50.86
 ## 192.168.50.101
-## 此文件中0.0.0.0/0和0.0.0.0为无效地址。
+## 此文件中0.0.0.0/0、0.0.0.0和路由器本地IP地址为无效地址。
 ## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
 iptv_box_ip_lst_file=${local_iptv_box_ip_lst_file}
 
@@ -1039,7 +1039,7 @@ iptv_box_ip_lst_file=${local_iptv_box_ip_lst_file}
 ## 网络服务地址，需要用户自己获取和填写，如果地址不全或错误，机顶盒将无法通过路由器正确接入IPTV线路。若
 ## 填入的地址覆盖了用户使用的互联网访问地址，会导致机顶盒无法通过该地址访问互联网。
 ## 文本格式，一个IPv4网址/网段一行，可逐行填入多个网址/网段。
-## 此文件中0.0.0.0/0和0.0.0.0为无效地址。
+## 此文件中0.0.0.0/0、0.0.0.0和路由器本地IP地址为无效地址。
 ## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
 iptv_isp_ip_lst_file=${local_iptv_isp_ip_lst_file}
 
@@ -1797,21 +1797,15 @@ lz_optimize_to_iptv() {
 ## 返回值：无
 lz_optimize_to_hd() {
     [ "${1}" != "hd" ] && [ "${1}" != "iptv" ] && return
-    eval "$( awk -F "=" -v fname="${PATH_CONFIGS}/lz_rule_config.box" -v fnm="${PATH_CONFIGS}/lz_rule_config.sh" \
+    eval "$( awk -F "=" \
         '$0 ~ /^[[:space:]]*lz_config_usage_mode[=]/ {
             key=$1;
             sub(/^[[:space:]]*lz_config_/, "", key);
             value=$2;
             gsub(/[[:space:]#].*$/, "", value);
-            if (value != 1) {
-                value=1;
-                system("sed -i \"s\|\^\[\[\:space\:\]\]\*lz_config_"key"=\.\*\$\|lz_config_"key"="value"\|\" \""fname"\" \> \/dev\/null 2\>\&1");
-                system("sed -i \"s\|\^\[\[\:space\:\]\]\*"key"=\.\*\$\|"key"="value"\|\" \""fnm"\" \> \/dev\/null 2\>\&1");
-            }
-            print "local_ini_"key"="value;
-            print "local_"key"="value;
+            print key,value;
         }' "${PATH_CONFIGS}/lz_rule_config.box" \
-        | awk '!i[$1]++ {
+        | awk -v fname="${PATH_CONFIGS}/lz_rule_config.box" -v fnm="${PATH_CONFIGS}/lz_rule_config.sh" '!i[$1]++ {
             key=$1;
             value=$2;
             if (value != 1) {
@@ -1831,14 +1825,15 @@ lz_optimize_to_hd() {
 ## 返回值：无
 lz_restore_to_rn() {
     [ "$1" != "rn" ] && return
-    eval "$( awk -F "=" -v fnm="${PATH_CONFIGS}/lz_rule_config.sh" -v fname="${PATH_CONFIGS}/lz_rule_config.box" \
+    eval "$( awk -F "=" \
         '$0 ~ /^[[:space:]]*lz_config_usage_mode[=]/ {
             key=$1;
             sub(/^[[:space:]]*lz_config_/, "", key);
             value=$2;
             gsub(/[[:space:]#].*$/, "", value);
             print key,value;
-        }' "${PATH_CONFIGS}/lz_rule_config.box" | awk '!i[$1]++ {
+        }' "${PATH_CONFIGS}/lz_rule_config.box" \
+        | awk -v fnm="${PATH_CONFIGS}/lz_rule_config.sh" -v fname="${PATH_CONFIGS}/lz_rule_config.box" '!i[$1]++ {
             key=$1;
             value=$2;
             if (value != 0) {

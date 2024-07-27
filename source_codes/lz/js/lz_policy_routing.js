@@ -1,5 +1,5 @@
 /*
-# lz_policy_routing.js v4.5.1
+# lz_policy_routing.js v4.5.2
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ JavaScript for Asuswrt-Merlin Router
@@ -729,7 +729,7 @@ function openOverHint(itemNum) {
         content += "<br />例如：<br />";
         content += "123.234.123.111<br />";
         content += "133.234.123.0/24<br />";
-        content += "<br />此文件中 <b>0.0.0.0/0</b> 和 <b>0.0.0.0</b> 为无效地址。<br />";
+        content += "<br />此文件中 <b>0.0.0.0/0</b>、<b>0.0.0.0</b> 和<b>路由器本地 IP 地址</b>为无效地址。<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 17) {
         content = "<div><b>自定义策略 - 2</b> 流量出口选项："
@@ -754,7 +754,7 @@ function openOverHint(itemNum) {
         content += "<br />例如：<br />";
         content += "192.168.50.11<br />";
         content += "10.0.0.0/31<br />";
-        content += "<br />可以用 <b>0.0.0.0/0</b> 表示所有客户端。<br />";
+        content += "<br />可以用 <b>0.0.0.0/0</b> 表示所有客户端，<b>0.0.0.0</b> 和<b>路由器本地 IP 地址</b>为无效地址。<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 20) {
         content = "<div>文件中具体定义所有使用<b>首选 WAN</b> 口作为流量出口的预设域名地址。<br />";
@@ -774,7 +774,7 @@ function openOverHint(itemNum) {
         content += "<br />例如：<br />";
         content += "192.168.50.102<br />";
         content += "10.0.0.0/30<br />";
-        content += "<br />可以用 <b>0.0.0.0/0</b> 表示所有客户端。<br />";
+        content += "<br />可以用 <b>0.0.0.0/0</b> 表示所有客户端，<b>0.0.0.0</b> 和<b>路由器本地 IP 地址</b>为无效地址。<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 22) {
         content = "<div>文件中具体定义所有使用<b>第二 WAN</b> 口作为流量出口的预设域名地址。<br />";
@@ -797,7 +797,7 @@ function openOverHint(itemNum) {
         content += "<br />例如：<br />";
         content += "192.168.50.101<br />";
         content += "10.6.0.0/24<br />";
-        content += "<br />可以用 <b>0.0.0.0/0</b> 表示所有客户端。<br />";
+        content += "<br />可以用 <b>0.0.0.0/0</b> 表示所有客户端，<b>0.0.0.0</b> 和<b>路由器本地 IP 地址</b>为无效地址。<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 25) {
         content = "<div>文件中具体定义所有使用<b>第二 WAN 口客户端静态直通策略</b>的客户端在本地网络中的 IP 地址。<br />";
@@ -807,7 +807,7 @@ function openOverHint(itemNum) {
         content += "<br />例如：<br />";
         content += "192.168.50.17<br />";
         content += "10.10.10.0/31<br />";
-        content += "<br />可以用 <b>0.0.0.0/0</b> 表示所有客户端。<br />";
+        content += "<br />可以用 <b>0.0.0.0/0</b> 表示所有客户端，<b>0.0.0.0</b> 和<b>路由器本地 IP 地址</b>为无效地址。<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 26) {
         content = "<div>为<b>客户端 IP 地址列表</b>中所有使用固定出口的设备以高优先级方式绑定流量出口。<br />";
@@ -820,7 +820,7 @@ function openOverHint(itemNum) {
         content += "<br />例如：<br />";
         content += "192.168.50.9<br />";
         content += "10.0.0.0/25<br />";
-        content += "<br />可以用 <b>0.0.0.0/0</b> 表示所有客户端。<br />";
+        content += "<br />可以用 <b>0.0.0.0/0</b> 表示所有客户端，<b>0.0.0.0</b> 和<b>路由器本地 IP 地址</b>为无效地址。<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 28) {
         content = "<div>文件中具体定义所有使用<b>第二 WAN 口高优先级客户端静态直通策略</b>的客户端在本地网络中的 IP 地址。<br />";
@@ -830,7 +830,7 @@ function openOverHint(itemNum) {
         content += "<br />例如：<br />";
         content += "192.168.50.12<br />";
         content += "10.10.10.0/31<br />";
-        content += "<br />可以用 <b>0.0.0.0/0</b> 表示所有客户端。<br />";
+        content += "<br />可以用 <b>0.0.0.0/0</b> 表示所有客户端，<b>0.0.0.0</b> 和<b>路由器本地 IP 地址</b>为无效地址。<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 29) {
         content = "<div>指定客户端以静态路由方式访问预设目标 IP 地址时使用的流量出口。<br />";
@@ -843,7 +843,7 @@ function openOverHint(itemNum) {
         content += "<br />例如：<br />";
         content += "192.168.50.101&nbsp;103.10.4.108<br />";
         content += "0.0.0.0/0&nbsp;202.89.233.100<br />";
-        content += "<br />可以用 <b>0.0.0.0/0</b> 表示所有未知IP地址。<br />";
+        content += "<br />可以用 <b>0.0.0.0/0</b> 表示所有未知 IP 地址，<b>0.0.0.0</b> 和<b>路由器本地 IP 地址</b>为无效地址。<br />";
         content += "<br /><b>NAS 设备</b>远程访问接入示例：<br />";
         content += "假设 NAS 设备本地地址为 192.168.50.123，通过本 WAN 口远程访问，需填写如下两个条目：<br />";
         content += "192.168.50.123&nbsp;0.0.0.0/0<br />";
@@ -859,7 +859,7 @@ function openOverHint(itemNum) {
         content += "<br />文本格式：每行的<b>源地址</b>和<b>目标地址</b>之间按顺序用<b>空格</b>隔开，一个条目一行，可多行多个条目。<br />";
         content += "<br />例如：<br />";
         content += "192.168.50.102&nbsp;210.74.0.0/16<br />";
-        content += "<br />可以用 <b>0.0.0.0/0</b> 表示所有未知IP地址。<br />";
+        content += "<br />可以用 <b>0.0.0.0/0</b> 表示所有未知 IP 地址，<b>0.0.0.0</b> 和<b>路由器本地 IP 地址</b>为无效地址。<br />";
         content += "<br /><b>NAS 设备</b>远程访问接入示例：<br />";
         content += "假设 NAS 设备本地地址为 192.168.50.123，通过本 WAN 口远程访问，需填写如下两个条目：<br />";
         content += "192.168.50.123&nbsp;0.0.0.0/0<br />";
@@ -878,7 +878,7 @@ function openOverHint(itemNum) {
         content += "<br />文本格式：每行的<b>源地址</b>和<b>目标地址</b>之间按顺序用<b>空格</b>隔开，一个条目一行，可多行多个条目。<br />";
         content += "<br />例如：<br />";
         content += "192.168.50.0/27&nbsp;0.0.0.0/0<br />";
-        content += "<br />可以用 <b>0.0.0.0/0</b> 表示所有未知IP地址。<br />";
+        content += "<br />可以用 <b>0.0.0.0/0</b> 表示所有未知 IP 地址，<b>0.0.0.0</b> 和<b>路由器本地 IP 地址</b>为无效地址。<br />";
         content += "<br /><b>NAS 设备</b>远程访问接入示例：<br />";
         content += "假设 NAS 设备本地地址为 192.168.50.123，通过本 WAN 口远程访问，需填写如下两个条目：<br />";
         content += "192.168.50.123&nbsp;0.0.0.0/0<br />";
@@ -916,7 +916,7 @@ function openOverHint(itemNum) {
         content += "0.0.0.0/0&nbsp;123.123.123.123&nbsp;udplite&nbsp;12345<br />";
         content += "192.168.50.102&nbsp;0.0.0.0/0&nbsp;sctp<br />";
         content += "0.0.0.0/0&nbsp;0.0.0.0/0<br />";
-        content += "<br />可以用 <b>0.0.0.0/0</b> 表示所有未知IP地址。<br />";
+        content += "<br />可以用 <b>0.0.0.0/0</b> 表示所有未知 IP 地址，<b>0.0.0.0</b> 和<b>路由器本地 IP 地址</b>为无效地址。<br />";
         content += "<br /><b>客户端地址</b>和<b>目标地址</b>为必选项。<br />";
         content += "<br /><b>通讯协议</b>及<b>目标端口号</b>为可选项。选择<b>目标端口号</b>时，<b>通讯协议</b>则为必选项。<br />";
         content += "<br />每个条目只能使用一个端口通讯协议，只能是 TCP、UDP、UDPLITE、SCTP 四种协议中的一个，字母英文大小写均可。<br />";
@@ -937,7 +937,7 @@ function openOverHint(itemNum) {
         content += "0.0.0.0/0&nbsp;123.123.123.123&nbsp;udplite&nbsp;12345<br />";
         content += "192.168.50.102&nbsp;0.0.0.0/0&nbsp;sctp<br />";
         content += "0.0.0.0/0&nbsp;0.0.0.0/0<br />";
-        content += "<br />可以用 <b>0.0.0.0/0</b> 表示所有未知IP地址。<br />";
+        content += "<br />可以用 <b>0.0.0.0/0</b> 表示所有未知 IP 地址，<b>0.0.0.0</b> 和<b>路由器本地 IP 地址</b>为无效地址。<br />";
         content += "<br /><b>客户端地址</b>和<b>目标地址</b>为必选项。<br />";
         content += "<br /><b>通讯协议</b>及<b>目标端口号</b>为可选项。选择<b>目标端口号</b>时，<b>通讯协议</b>则为必选项。<br />";
         content += "<br />每个条目只能使用一个端口通讯协议，只能是 TCP、UDP、UDPLITE、SCTP 四种协议中的一个，字母英文大小写均可。<br />";
@@ -963,7 +963,7 @@ function openOverHint(itemNum) {
         content += "0.0.0.0/0&nbsp;123.123.123.123&nbsp;udplite&nbsp;12345<br />";
         content += "192.168.50.102&nbsp;0.0.0.0/0&nbsp;sctp<br />";
         content += "0.0.0.0/0&nbsp;0.0.0.0/0<br />";
-        content += "<br />可以用 <b>0.0.0.0/0</b> 表示所有未知IP地址。<br />";
+        content += "<br />可以用 <b>0.0.0.0/0</b> 表示所有未知 IP 地址，<b>0.0.0.0</b> 和<b>路由器本地 IP 地址</b>为无效地址。<br />";
         content += "<br /><b>客户端地址</b>和<b>目标地址</b>为必选项。<br />";
         content += "<br /><b>通讯协议</b>及<b>目标端口号</b>为可选项。选择<b>目标端口号</b>时，<b>通讯协议</b>则为必选项。<br />";
         content += "<br />每个条目只能使用一个端口通讯协议，只能是 TCP、UDP、UDPLITE、SCTP 四种协议中的一个，字母英文大小写均可。<br />";
@@ -980,7 +980,7 @@ function openOverHint(itemNum) {
         content += "<br />例如：<br />";
         content += "192.168.50.0/31<br />";
         content += "192.168.50.207<br />";
-        content += "<br />此文件中 <b>0.0.0.0/0</b> 和 <b>0.0.0.0</b> 为无效地址。<br />";
+        content += "<br />此文件中 <b>0.0.0.0/0</b>、<b>0.0.0.0</b> 和<b>路由器本地 IP 地址</b>为无效地址。<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 42) {
         content = "<div>本策略用于从外部网络远程连接路由器访问本地网络，以及路由器本机内部应用访问外部网络。<br />";
@@ -1095,7 +1095,7 @@ function openOverHint(itemNum) {
         content += "192.168.50.46<br />";
         content += "192.168.50.86<br />";
         content += "192.168.50.101<br />";
-        content += "<br />此文件中 <b>0.0.0.0/0</b> 和 <b>0.0.0.0</b> 为无效地址。<br />";
+        content += "<br />此文件中 <b>0.0.0.0/0</b>、<b>0.0.0.0</b> 和<b>路由器本地 IP 地址</b>为无效地址。<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 62) {
         content = "<div>仅在<b>IPTV 机顶盒访问 IPTV 线路方式</b>为<b>按服务地址访问</b>时使用。<br />";
@@ -1103,7 +1103,7 @@ function openOverHint(itemNum) {
         content += `<br />缺省文件名为 <b>${policySettingsArray.path}/data/iptv_isp_ip_lst.txt</b>，无有效数据条目。<br />`;
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
         content += "<br />文本格式，一个IPv4格式网址/网段一行，可逐行填入多个网址/网段。<br />";
-        content += "<br />此文件中 <b>0.0.0.0/0</b> 和 <b>0.0.0.0</b> 为无效地址。<br />";
+        content += "<br />此文件中 <b>0.0.0.0/0</b>、<b>0.0.0.0</b> 和<b>路由器本地 IP 地址</b>为无效地址。<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 63) {
         content = "<div><b>核心网桥组播数据侦测方式</b>选项：<br />";
@@ -1180,7 +1180,7 @@ function openOverHint(itemNum) {
         content += "<br />例如：<br />";
         content += "123.234.123.112<br />";
         content += "133.234.0.0/16<br />";
-        content += "<br />此文件中 <b>0.0.0.0/0</b> 和 <b>0.0.0.0</b> 为无效地址。<br />";
+        content += "<br />此文件中 <b>0.0.0.0/0</b>、<b>0.0.0.0</b> 和<b>路由器本地 IP 地址</b>为无效地址。<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 82) {
         content = "<div>缺省为<b>停用</b>。<br />";
@@ -1202,7 +1202,7 @@ function openOverHint(itemNum) {
         content += "123.234.123.111<br />";
         content += "133.234.123.0/24<br />";
         content += "abc.def.com.cn<br />";
-        content += "<br />此文件中 <b>0.0.0.0/0</b> 和 <b>0.0.0.0</b> 为无效地址。文件地址条目中不能有网络协议前缀 (如 http://、https:// 或 ftp:// 等)、端口号 (如 :23456) 、路径及文件名、特殊符号等影响地址解析的内容。<br />";
+        content += "<br />此文件中 <b>0.0.0.0/0</b>、<b>0.0.0.0</b> 和<b>路由器本地 IP 地址</b>为无效地址。地址条目中不能有网络协议前缀 (如 http:// 或 https:// 或 ftp:// 等)、端口号 (如 :23456) 、路径及文件名、特殊符号等影响地址解析的内容。<br />";
         content += "<br />当列表数据文件中包含<b>域名格式</b>地址时，需启用本策略中的<b>域名地址预解析</b>功能。若第三方传输代理软件中使用有特定的 DNS 服务器，为避免 DNS 劫持和污染，可同时启用和设置<b>自定义预解析 DNS 服务器</b>为该 DNS 服务器地址。<br />";
         content += "<br />由于该地址列表仅用于<b>静态直通路由</b>，所有远程节点服务器地址应为<b>静态地址</b>。当使用域名格式地址时，路由器运行过程中域名条目对应的 IP 地址一旦改变，原有线路连接可能失效，需手动<b>重启策略路由</b>软件进行域名地址解析以<b>重新</b>构建路由。<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";

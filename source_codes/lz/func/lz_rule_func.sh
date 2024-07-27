@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v4.5.1
+# lz_rule_func.sh v4.5.2
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 #BEGIN
@@ -77,7 +77,8 @@ lz_get_ipv4_data_file_valid_item_total() {
     [ -s "${1}" ] && {
         retval="$( awk -v count="0" '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
             && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
-            && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" && $1 != "'"${route_local_ip}"'" && NF >= "1" && !i[$1]++ {count++} END{print count}' "${1}" )"
+            && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" && $1 != "'"${route_local_ip}"'" \
+            && NF >= "1" && !i[$1]++ {count++} END{print count}' "${1}" )"
     }
     echo "${retval}"
 }
@@ -92,8 +93,10 @@ lz_get_ipv4_src_to_dst_data_file_item_total() {
     [ -s "${1}" ] && {
         retval="$( awk -v count="0" '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
             && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
+            && $1 != "0.0.0.0" && $1 != "'"${route_local_ip}"'" \
             && $2 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
             && $2 !~ /[3-9][0-9][0-9]/ && $2 !~ /[2][6-9][0-9]/ && $2 !~ /[2][5][6-9]/ && $2 !~ /[\/][4-9][0-9]/ && $2 !~ /[\/][3][3-9]/ \
+            && $2 != "0.0.0.0" && $2 != "'"${route_local_ip}"'" \
             && NF >= "2" && !i[$1"_"$2]++ {count++} END{print count}' "${1}" )"
     }
     echo "${retval}"
@@ -194,21 +197,23 @@ lz_get_ipv4_src_dst_addr_port_data_file_item_total() {
     [ -s "${1}" ] && {
         retval="$( awk '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
             && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
+            && $1 != "0.0.0.0" && $1 != "'"${route_local_ip}"'" \
             && $2 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
             && $2 !~ /[3-9][0-9][0-9]/ && $2 !~ /[2][6-9][0-9]/ && $2 !~ /[2][5][6-9]/ && $2 !~ /[\/][4-9][0-9]/ && $2 !~ /[\/][3][3-9]/ \
+            && $2 != "0.0.0.0" && $2 != "'"${route_local_ip}"'" \
             && NF >= "2" && !i[$1"_"$2"_"$3"_"$4]++ {print $1,$2,$3,$4}' "${1}" \
             | tr '[:A-Z:]' '[:a-z:]' \
             | awk -v count="0" '$3 ~ /^tcp$|^udp$|^udplite$|^sctp$/ && $4 ~ /^[1-9][0-9,:]*[0-9]$/ && NF == "4" {
-                count++
-                next
+                count++;
+                next;
             } \
             $3 ~ /^tcp$|^udp$|^udplite$|^sctp$/ && NF == "3" {
-                count++
-                next
+                count++;
+                next;
             } \
             NF == "2" {
-                count++
-                next
+                count++;
+                next;
             } END{print count}' )"
     }
     echo "${retval}"
@@ -1996,7 +2001,7 @@ lz_add_net_address_sets() {
     ipset -q create "${2}" nethash maxelem 4294967295 #--hashsize 1024 mexleme 65536
     awk '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
         && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
-        && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" \
+        && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" && $1 != "'"${route_local_ip}"'" \
         && NF >= "1" && !i[$1]++ {print "'"-! del ${2} "'"$1"'"\n-! add ${2} "'"$1"'"${NOMATCH}"'"} END{print "COMMIT"}' "${1}" \
         | ipset restore > /dev/null 2>&1
 }
@@ -2024,12 +2029,14 @@ lz_add_ed_net_address_sets() {
     awk -v count="0" -v criterion="${5}" -v ed_num="${local_ed_num}" '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
         && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
         && NF >= "1" && !i[$1]++ {
-            count++
+            count++;
             if (criterion == "0") {
-                if ($1 != "0.0.0.0/0" && $1 != "0.0.0.0") print "'"-! del ${2} "'"$1"'"\n-! add ${2} "'"$1"'"${NOMATCH}"'"
-                if (count >= ed_num) exit
+                if ($1 != "0.0.0.0/0" && $1 != "0.0.0.0" && $1 != "'"${route_local_ip}"'")
+                    print "'"-! del ${2} "'"$1"'"\n-! add ${2} "'"$1"'"${NOMATCH}"'";
+                if (count >= ed_num) exit;
             }
-            else if (count >= ed_num && $1 != "0.0.0.0/0" && $1 != "0.0.0.0") print "'"-! del ${2} "'"$1"'"\n-! add ${2} "'"$1"'"${NOMATCH}"'"
+            else if (count >= ed_num && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" && $1 != "'"${route_local_ip}"'")
+                print "'"-! del ${2} "'"$1"'"\n-! add ${2} "'"$1"'"${NOMATCH}"'";
         } END{print "COMMIT"}' "${1}" \
         | ipset restore > /dev/null 2>&1
 }
@@ -2087,7 +2094,7 @@ lz_add_ipv4_dst_addr_list_binding_wan() {
     if [ ! -f "${1}" ] || [ -z "${2}" ]; then return; fi;
     awk '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
         && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
-        && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" \
+        && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" && $1 != "'"${route_local_ip}"'" \
         && NF >= "1" && !i[$1]++ {system("ip rule add from all to "$1"'" table ${2} prio ${3} > /dev/null 2>&1"'")}' "${1}"
 }
 
@@ -2110,12 +2117,14 @@ lz_add_ed_ipv4_dst_addr_list_binding_wan() {
     awk -v count="0" -v criterion="${5}" -v ed_num="${local_ed_num}" '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
         && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
         && NF >= "1" && !i[$1]++ {
-            count++
+            count++;
             if (criterion == "0") {
-                if ($1 != "0.0.0.0/0" && $1 != "0.0.0.0") system("ip rule add from all to "$1"'" table ${2} prio ${3} > /dev/null 2>&1"'")
-                if (count >= ed_num) exit
+                if ($1 != "0.0.0.0/0" && $1 != "0.0.0.0" && $1 != "'"${route_local_ip}"'")
+                    system("ip rule add from all to "$1"'" table ${2} prio ${3} > /dev/null 2>&1"'");
+                if (count >= ed_num) exit;
             }
-            else if (count >= ed_num && $1 != "0.0.0.0/0" && $1 != "0.0.0.0") system("ip rule add from all to "$1"'" table ${2} prio ${3} > /dev/null 2>&1"'")
+            else if (count >= ed_num && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" && $1 != "'"${route_local_ip}"'")
+                system("ip rule add from all to "$1"'" table ${2} prio ${3} > /dev/null 2>&1"'");
         }' "${1}"
 }
 
@@ -2150,7 +2159,7 @@ lz_add_ipv4_src_to_dst_addr_list_binding_wan() {
                     dst="'"${route_static_subnet}"'";
                 else if (dst == "0.0.0.0")
                     dst="'"${route_local_ip}"'";
-                if (src != dst && (src != "'"${route_local_ip}"'" && dst != "0.0.0.0/0"))
+                if (src != dst && !(src == "'"${route_local_ip}"'" || dst == "'"${route_local_ip}"'"))
                     system("ip rule add from "src" to "dst"'" table ${2} prio ${3} > /dev/null 2>&1"'");
             }' "${1}"
     else
@@ -2198,7 +2207,7 @@ lz_add_dst_net_address_sets() {
     awk '$1 == "0.0.0.0/0" \
         && $2 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
         && $2 !~ /[3-9][0-9][0-9]/ && $2 !~ /[2][6-9][0-9]/ && $2 !~ /[2][5][6-9]/ && $2 !~ /[\/][4-9][0-9]/ && $2 !~ /[\/][3][3-9]/ \
-        && $2 != "0.0.0.0/0" \
+        && $2 != "0.0.0.0/0" && $2 != "0.0.0.0" && $2 != "'"${route_local_ip}"'" \
         && NF >= "2" && !i[$1"_"$2]++ {print "'"-! del ${2} "'"$2"'"\n-! add ${2} "'"$2"'"${NOMATCH}"'"} END{print "COMMIT"}' "${1}" \
         | ipset restore > /dev/null 2>&1
 }
@@ -2257,7 +2266,7 @@ lz_add_src_to_dst_prerouting_mark() {
                     dst="'"${route_static_subnet}"'";
                 else if (dst == "0.0.0.0")
                     dst="'"${route_local_ip}"'";
-                if (src != dst)
+                if (src != dst && !(src == "'"${route_local_ip}"'" || dst == "'"${route_local_ip}"'"))
                     system("'"iptables -t mangle -I ${2} -m state --state NEW -s "'"src" -d "dst"'" -j CONNMARK --set-xmark ${3}/${FWMARK_MASK} > /dev/null 2>&1"'");
             }' "${1}"
     else
@@ -2414,6 +2423,7 @@ lz_add_client_dest_port_src_address_sets() {
         && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" && $1 != "'"${route_local_ip}"'" \
         && $2 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
         && $2 !~ /[3-9][0-9][0-9]/ && $2 !~ /[2][6-9][0-9]/ && $2 !~ /[2][5][6-9]/ && $2 !~ /[\/][4-9][0-9]/ && $2 !~ /[\/][3][3-9]/ \
+        && $2 != "0.0.0.0" && $2 != "'"${route_local_ip}"'" \
         && NF >= "2" && !i[$1"_"$2"_"$3"_"$4]++ {print $1,$2,$3,$4}' "${1}" \
         | tr '[:A-Z:]' '[:a-z:]' \
         | awk '$3 ~ /^tcp$|^udp$|^udplite$|^sctp$/ && $4 ~ /^[1-9][0-9,:]*[0-9]$/ && NF == "4" \
@@ -2444,21 +2454,23 @@ lz_client_dest_port_policy() {
     if ! lz_get_unkonwn_ipv4_src_dst_addr_port_data_file_item "${1}"; then
         awk '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
             && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
+            && $1 != "0.0.0.0" && $1 != "'"${route_local_ip}"'" \
             && $2 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
             && $2 !~ /[3-9][0-9][0-9]/ && $2 !~ /[2][6-9][0-9]/ && $2 !~ /[2][5][6-9]/ && $2 !~ /[\/][4-9][0-9]/ && $2 !~ /[\/][3][3-9]/ \
+            && $2 != "0.0.0.0" && $2 != "'"${route_local_ip}"'" \
             && NF >= "2" && !i[$1"_"$2"_"$3"_"$4]++ {print $1,$2,$3,$4}' "${1}" \
             | tr '[:A-Z:]' '[:a-z:]' \
             | awk '$3 ~ /^tcp$|^udp$|^udplite$|^sctp$/ && $4 ~ /^[1-9][0-9,:]*[0-9]$/ && NF == "4" {
-                system("'"iptables -t mangle -A ${CUSTOM_PREROUTING_CONNMARK_CHAIN} -s "'"$1" -d "$2" -p "$3" -m multiport --dports "$4"'" -j CONNMARK --set-xmark ${2}/${FWMARK_MASK} > /dev/null 2>&1"'")
-                next
+                system("'"iptables -t mangle -A ${CUSTOM_PREROUTING_CONNMARK_CHAIN} -s "'"$1" -d "$2" -p "$3" -m multiport --dports "$4"'" -j CONNMARK --set-xmark ${2}/${FWMARK_MASK} > /dev/null 2>&1"'");
+                next;
             } \
             $3 ~ /^tcp$|^udp$|^udplite$|^sctp$/ && NF == "3" {
-                system("'"iptables -t mangle -A ${CUSTOM_PREROUTING_CONNMARK_CHAIN} -s "'"$1" -d "$2" -p "$3"'" -j CONNMARK --set-xmark ${2}/${FWMARK_MASK} > /dev/null 2>&1"'")
-                next
+                system("'"iptables -t mangle -A ${CUSTOM_PREROUTING_CONNMARK_CHAIN} -s "'"$1" -d "$2" -p "$3"'" -j CONNMARK --set-xmark ${2}/${FWMARK_MASK} > /dev/null 2>&1"'");
+                next;
             } \
             NF == "2" {
-                system("'"iptables -t mangle -A ${CUSTOM_PREROUTING_CONNMARK_CHAIN} -s "'"$1" -d "$2"'" -j CONNMARK --set-xmark ${2}/${FWMARK_MASK} > /dev/null 2>&1"'")
-                next
+                system("'"iptables -t mangle -A ${CUSTOM_PREROUTING_CONNMARK_CHAIN} -s "'"$1" -d "$2"'" -j CONNMARK --set-xmark ${2}/${FWMARK_MASK} > /dev/null 2>&1"'");
+                next;
             }'
     else
         iptables -t mangle -A "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" -j CONNMARK --set-xmark "${2}/${FWMARK_MASK}" > /dev/null 2>&1
@@ -3560,7 +3572,8 @@ lz_get_proxy_remote_node_addr_file_item_total() {
     [ -s "${1}" ] && {
         retval="$( sed -e 's/^[[:space:]]\+//g' -e '/^[#]/d' -e 's/[[:space:]]*[#].*$//g' -e '/^[[:space:]]*$/d' "${1}" \
         | tr '[:A-Z:]' '[:a-z:]' \
-        | awk -v count="0" 'NF >= 1 && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" && !i[$1]++ {count++} END{print count}' )"
+        | awk -v count="0" 'NF >= 1 && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" && $1 != "'"${route_local_ip}"'" \
+        && !i[$1]++ {count++} END{print count}' )"
     }
     echo "${retval}"
 }
@@ -3583,7 +3596,7 @@ lz_proxy_route_support() {
     fi
     PROXY_NODE_BUF="$( sed -e 's/^[[:space:]]\+//g' -e '/^[#]/d' -e 's/[[:space:]]*[#].*$//g' -e '/^[[:space:]]*$/d' "${proxy_remote_node_addr_file}" \
         | tr '[:A-Z:]' '[:a-z:]' \
-        | awk 'NF >= 1 && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" && !i[$1]++ {print $1}' )"
+        | awk 'NF >= 1 && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" && $1 != "'"${route_local_ip}"'" && !i[$1]++ {print $1}' )"
     while IFS= read -r line
     do
         if awk -v x="${line}" 'BEGIN{if (x ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ && x !~ /[3-9][0-9][0-9]/ \
