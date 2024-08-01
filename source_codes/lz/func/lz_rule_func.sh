@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v4.5.2
+# lz_rule_func.sh v4.5.3
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 #BEGIN
@@ -2159,7 +2159,7 @@ lz_add_ipv4_src_to_dst_addr_list_binding_wan() {
                     dst="'"${route_static_subnet}"'";
                 else if (dst == "0.0.0.0")
                     dst="'"${route_local_ip}"'";
-                if (src != dst && !(src == "'"${route_local_ip}"'" || dst == "'"${route_local_ip}"'"))
+                if (src != dst && src != "'"${route_local_ip}"'" && dst != "'"${route_local_ip}"'")
                     system("ip rule add from "src" to "dst"'" table ${2} prio ${3} > /dev/null 2>&1"'");
             }' "${1}"
     else
@@ -2266,7 +2266,7 @@ lz_add_src_to_dst_prerouting_mark() {
                     dst="'"${route_static_subnet}"'";
                 else if (dst == "0.0.0.0")
                     dst="'"${route_local_ip}"'";
-                if (src != dst && !(src == "'"${route_local_ip}"'" || dst == "'"${route_local_ip}"'"))
+                if (src != dst && src != "'"${route_local_ip}"'" && dst != "'"${route_local_ip}"'")
                     system("'"iptables -t mangle -I ${2} -m state --state NEW -s "'"src" -d "dst"'" -j CONNMARK --set-xmark ${3}/${FWMARK_MASK} > /dev/null 2>&1"'");
             }' "${1}"
     else
