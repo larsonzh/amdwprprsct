@@ -70,7 +70,7 @@
                     url: '/ext/lzr/LZRGlobal.html',
                     dataType: 'text',
                     success: function(response) {
-                        // v4.5.3
+                        // v4.5.4
                         retVal = (response.match(/QnkgTFog5aaZ5aaZ5ZGc77yI6Juk6J[\+]G5aKp5YS[\/]77yJ/m) != null) ? true : false;
                     }
                 });

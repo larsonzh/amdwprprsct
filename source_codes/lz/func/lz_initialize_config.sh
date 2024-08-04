@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_initialize_config.sh v4.5.3
+# lz_initialize_config.sh v4.5.4
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 初始化脚本配置
@@ -745,19 +745,32 @@ wan_1_src_to_dst_addr_port=${local_wan_1_src_to_dst_addr_port}
 ## 文件路径、名称可自定义和修改，文件路径及名称不得为空。
 ## 缺省为"${PATH_DATA}/wan_1_src_to_dst_addr_port.txt"，为空文件。
 ## 文本格式：每行各字段之间用空格隔开，一个条目一行，可多行多个条目。
+## 客户端IPv4网址/网段 IPv4目标网址/网段 通讯协议 客户端源端口号 目标端口号
 ## 客户端IPv4网址/网段 IPv4目标网址/网段 通讯协议 目标端口号
+## 客户端IPv4网址/网段 IPv4目标网址/网段 通讯协议
+## 客户端IPv4网址/网段 IPv4目标网址/网段
 ## 例如：
-## 192.168.50.101 123.123.123.121 tcp 80,443,6881:6889,25671
-## 192.168.50.0/27 123.123.123.0/24 udp 4334
-## 0.0.0.0/0 123.123.123.123 udplite 12345
-## 192.168.50.102 0.0.0.0/0 sctp
+## 192.168.50.101 123.123.123.121 tcp 80,443,6881:6889,25671 801,4431,16881:16889,225671
+## 192.168.50.102 123.123.123.122 udp all 8080
+## 192.168.50.103 123.123.123.123 tcp 8081 all
+## 192.168.50.104 123.123.123.124 udp 80,443,6881:6889,25671
+## 192.168.50.0/27 123.123.123.0/24 tcp 4334
+## 0.0.0.0/0 123.123.123.125 udplite 12345
+## 192.168.50.105 0.0.0.0/0 sctp
 ## 0.0.0.0/0 0.0.0.0/0
-## 可以用0.0.0.0/0表示所有未知IP地址，0.0.0.0和路由器本地IP地址为无效地址。
+## 可以用0.0.0.0/0表示所有未知IP地址，0.0.0.0和路由器本地IP地址为无效地址，all表示所有未知端口号。
 ## “客户端IPv4网址/网段”和“IPv4目标网址/网段”为必选项。
-## “通讯协议”及“目标端口号”为可选项。选择“目标端口号”时，“通讯协议”则为必选项。
+## “通讯协议”、“客户端源端口号”及“目标端口号”为可选项。选择“客户端源端口号”、“目标端口号”时，“通讯协议”则为必选项。
 ## 每个条目只能使用一个端口通讯协议，只能是TCP、UDP、UDPLITE、SCTP四种协议中的一个，字母英文大小写均可。
 ## 连续端口号中间用英文半角“:”冒号相隔，如：6881:6889表示6881~6889的连续端口号。
 ## 每个条目最多可设置15个不连续的目标访问端口号埠，不连续的端口号埠之间用英文半角“,”逗号相隔，不要有空格。
+## 等效设置一，例如：
+## 192.168.50.12 123.123.123.151 tcp all 80,443,6881:6889,25671
+## 192.168.50.12 123.123.123.151 tcp 80,443,6881:6889,25671
+## 等效设置二，例如：
+## 192.168.50.12 123.123.123.151 tcp all all
+## 192.168.50.12 123.123.123.151 tcp all
+## 192.168.50.12 123.123.123.151 tcp
 ## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
 wan_1_src_to_dst_addr_port_file=${local_wan_1_src_to_dst_addr_port_file}
 
@@ -776,19 +789,32 @@ wan_2_src_to_dst_addr_port=${local_wan_2_src_to_dst_addr_port}
 ## 文件路径、名称可自定义和修改，文件路径及名称不得为空。
 ## 缺省为"${PATH_DATA}/wan_2_src_to_dst_addr_port.txt"，为空文件。
 ## 文本格式：每行各字段之间用空格隔开，一个条目一行，可多行多个条目。
+## 客户端IPv4网址/网段 IPv4目标网址/网段 通讯协议 客户端源端口号 目标端口号
 ## 客户端IPv4网址/网段 IPv4目标网址/网段 通讯协议 目标端口号
+## 客户端IPv4网址/网段 IPv4目标网址/网段 通讯协议
+## 客户端IPv4网址/网段 IPv4目标网址/网段
 ## 例如：
-## 192.168.50.101 123.123.123.121 tcp 80,443,6881:6889,25671
-## 192.168.50.0/27 123.123.123.0/24 udp 4334
-## 0.0.0.0/0 123.123.123.123 udplite 12345
-## 192.168.50.102 0.0.0.0/0 sctp
+## 192.168.50.101 123.123.123.121 tcp 80,443,6881:6889,25671 801,4431,16881:16889,225671
+## 192.168.50.102 123.123.123.122 udp all 8080
+## 192.168.50.103 123.123.123.123 tcp 8081 all
+## 192.168.50.104 123.123.123.124 udp 80,443,6881:6889,25671
+## 192.168.50.0/27 123.123.123.0/24 tcp 4334
+## 0.0.0.0/0 123.123.123.125 udplite 12345
+## 192.168.50.105 0.0.0.0/0 sctp
 ## 0.0.0.0/0 0.0.0.0/0
-## 可以用0.0.0.0/0表示所有未知IP地址，0.0.0.0和路由器本地IP地址为无效地址。
+## 可以用0.0.0.0/0表示所有未知IP地址，0.0.0.0和路由器本地IP地址为无效地址，all表示所有未知端口号。
 ## “客户端IPv4网址/网段”和“IPv4目标网址/网段”为必选项。
-## “通讯协议”及“目标端口号”为可选项。选择“目标端口号”时，“通讯协议”则为必选项。
+## “通讯协议”、“客户端源端口号”及“目标端口号”为可选项。选择“客户端源端口号”、“目标端口号”时，“通讯协议”则为必选项。
 ## 每个条目只能使用一个端口通讯协议，只能是TCP、UDP、UDPLITE、SCTP四种协议中的一个，字母英文大小写均可。
 ## 连续端口号中间用英文半角“:”冒号相隔，如：6881:6889表示6881~6889的连续端口号。
 ## 每个条目最多可设置15个不连续的目标访问端口号埠，不连续的端口号埠之间用英文半角“,”逗号相隔，不要有空格。
+## 等效设置一，例如：
+## 192.168.50.12 123.123.123.151 tcp all 80,443,6881:6889,25671
+## 192.168.50.12 123.123.123.151 tcp 80,443,6881:6889,25671
+## 等效设置二，例如：
+## 192.168.50.12 123.123.123.151 tcp all all
+## 192.168.50.12 123.123.123.151 tcp all
+## 192.168.50.12 123.123.123.151 tcp
 ## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
 wan_2_src_to_dst_addr_port_file=${local_wan_2_src_to_dst_addr_port_file}
 
@@ -807,19 +833,32 @@ high_wan_1_src_to_dst_addr_port=${local_high_wan_1_src_to_dst_addr_port}
 ## 文件路径、名称可自定义和修改，文件路径及名称不得为空。
 ## 缺省为"${PATH_DATA}/high_wan_1_src_to_dst_addr_port.txt"，为空文件。
 ## 文本格式：每行各字段之间用空格隔开，一个条目一行，可多行多个条目。
+## 客户端IPv4网址/网段 IPv4目标网址/网段 通讯协议 客户端源端口号 目标端口号
 ## 客户端IPv4网址/网段 IPv4目标网址/网段 通讯协议 目标端口号
+## 客户端IPv4网址/网段 IPv4目标网址/网段 通讯协议
+## 客户端IPv4网址/网段 IPv4目标网址/网段
 ## 例如：
-## 192.168.50.101 123.123.123.121 tcp 80,443,6881:6889,25671
-## 192.168.50.0/27 123.123.123.0/24 udp 4334
-## 0.0.0.0/0 123.123.123.123 udplite 12345
-## 192.168.50.102 0.0.0.0/0 sctp
+## 192.168.50.101 123.123.123.121 tcp 80,443,6881:6889,25671 801,4431,16881:16889,225671
+## 192.168.50.102 123.123.123.122 udp all 8080
+## 192.168.50.103 123.123.123.123 tcp 8081 all
+## 192.168.50.104 123.123.123.124 udp 80,443,6881:6889,25671
+## 192.168.50.0/27 123.123.123.0/24 tcp 4334
+## 0.0.0.0/0 123.123.123.125 udplite 12345
+## 192.168.50.105 0.0.0.0/0 sctp
 ## 0.0.0.0/0 0.0.0.0/0
-## 可以用0.0.0.0/0表示所有未知IP地址，0.0.0.0和路由器本地IP地址为无效地址。
+## 可以用0.0.0.0/0表示所有未知IP地址，0.0.0.0和路由器本地IP地址为无效地址，all表示所有未知端口号。
 ## “客户端IPv4网址/网段”和“IPv4目标网址/网段”为必选项。
-## “通讯协议”及“目标端口号”为可选项。选择“目标端口号”时，“通讯协议”则为必选项。
+## “通讯协议”、“客户端源端口号”及“目标端口号”为可选项。选择“客户端源端口号”、“目标端口号”时，“通讯协议”则为必选项。
 ## 每个条目只能使用一个端口通讯协议，只能是TCP、UDP、UDPLITE、SCTP四种协议中的一个，字母英文大小写均可。
 ## 连续端口号中间用英文半角“:”冒号相隔，如：6881:6889表示6881~6889的连续端口号。
 ## 每个条目最多可设置15个不连续的目标访问端口号埠，不连续的端口号埠之间用英文半角“,”逗号相隔，不要有空格。
+## 等效设置一，例如：
+## 192.168.50.12 123.123.123.151 tcp all 80,443,6881:6889,25671
+## 192.168.50.12 123.123.123.151 tcp 80,443,6881:6889,25671
+## 等效设置二，例如：
+## 192.168.50.12 123.123.123.151 tcp all all
+## 192.168.50.12 123.123.123.151 tcp all
+## 192.168.50.12 123.123.123.151 tcp
 ## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
 high_wan_1_src_to_dst_addr_port_file=${local_high_wan_1_src_to_dst_addr_port_file}
 
@@ -1296,8 +1335,69 @@ lz_get_config_data() {
                 || key == "wan1_dest_udplite_port" \
                 || key == "wan1_dest_sctp_port") {
                 flag=1;
-                if (value ~ /[^0-9\:\,]|^[\,\:]|[\,\:]$|[\,\:][\,\:]+|[0-9]+[\:][0-9]+[\:]/)
-                    invalid=1;
+                if (value != "") {
+                    if (value !~ /^(([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)[\,])*([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)$/)
+                        invalid=1;
+                    else if (index(value, ",") > 0) {
+                        port_value=value;
+                        gsub(":", ",", port_value);
+                        split(port_value, p_arr, ",");
+                        split(value, port_arr, ",");
+                        for (idd in port_arr) {
+                            x_count=0;
+                            port_pos=index(port_arr[idd], ":");
+                            if (port_pos > 0) {
+                                if ((substr(port_arr[idd], 1, port_pos-1) + 0) > 65535 \
+                                    || (substr(port_arr[idd], port_pos+1) + 0) > 65535 \
+                                    || (substr(port_arr[idd], 1, port_pos-1) + 0) >= (substr(port_arr[idd], port_pos+1) + 0)) {
+                                    invalid=1;
+                                    break;
+                                }
+                                for (iidd in p_arr) {
+                                    if (p_arr[iidd] == substr(port_arr[idd], 1, port_pos-1))
+                                        x_count++;
+                                }
+                                if (x_count > 1) {
+                                    invalid=1;
+                                    break;
+                                }
+                                x_count=0;
+                                for (iidd in p_arr) {
+                                    if (p_arr[iidd] == substr(port_arr[idd], port_pos+1))
+                                        x_count++;
+                                }
+                                if (x_count > 1) {
+                                    invalid=1;
+                                    break;
+                                }
+                            } else {
+                                if ((port_arr[idd] + 0) > 65535) {
+                                    invalid=1;
+                                    break;
+                                }
+                                for (iidd in p_arr) {
+                                    if (p_arr[iidd] == port_arr[idd])
+                                        x_count++;
+                                }
+                                if (x_count > 1) {
+                                    invalid=1;
+                                    break;
+                                }
+                            }
+                        }
+                        delete p_arr;
+                        delete port_arr;
+                    } else {
+                        port_pos=index(value, ":");
+                        if (port_pos > 0) {
+                            if ((substr(value, 1, port_pos-1) + 0) > 65535 \
+                                || (substr(value, port_pos+1) + 0) > 65535 \
+                                || (substr(value, 1, port_pos-1) + 0) >= (substr(value, port_pos+1) + 0))
+                                invalid=1;
+                        } else if ((value + 0) > 65535)
+                            invalid=1;
+                    }
+                }
             } else if (key == "custom_data_file_1" \
                 || key == "custom_data_file_2" \
                 || key == "wan_1_domain_client_src_addr_file" \
@@ -1623,8 +1723,69 @@ lz_get_box_data() {
                 || key == "wan1_dest_udplite_port" \
                 || key == "wan1_dest_sctp_port") {
                 flag=1;
-                if (value ~ /[^0-9\:\,]|^[\,\:]|[\,\:]$|[\,\:][\,\:]+|[0-9]+[\:][0-9]+[\:]/)
-                    invalid=1;
+                if (value != "") {
+                    if (value !~ /^(([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)[\,])*([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)$/)
+                        invalid=1;
+                    else if (index(value, ",") > 0) {
+                        port_value=value;
+                        gsub(":", ",", port_value);
+                        split(port_value, p_arr, ",");
+                        split(value, port_arr, ",");
+                        for (idd in port_arr) {
+                            x_count=0;
+                            port_pos=index(port_arr[idd], ":");
+                            if (port_pos > 0) {
+                                if ((substr(port_arr[idd], 1, port_pos-1) + 0) > 65535 \
+                                    || (substr(port_arr[idd], port_pos+1) + 0) > 65535 \
+                                    || (substr(port_arr[idd], 1, port_pos-1) + 0) >= (substr(port_arr[idd], port_pos+1) + 0)) {
+                                    invalid=1;
+                                    break;
+                                }
+                                for (iidd in p_arr) {
+                                    if (p_arr[iidd] == substr(port_arr[idd], 1, port_pos-1))
+                                        x_count++;
+                                }
+                                if (x_count > 1) {
+                                    invalid=1;
+                                    break;
+                                }
+                                x_count=0;
+                                for (iidd in p_arr) {
+                                    if (p_arr[iidd] == substr(port_arr[idd], port_pos+1))
+                                        x_count++;
+                                }
+                                if (x_count > 1) {
+                                    invalid=1;
+                                    break;
+                                }
+                            } else {
+                                if ((port_arr[idd] + 0) > 65535) {
+                                    invalid=1;
+                                    break;
+                                }
+                                for (iidd in p_arr) {
+                                    if (p_arr[iidd] == port_arr[idd])
+                                        x_count++;
+                                }
+                                if (x_count > 1) {
+                                    invalid=1;
+                                    break;
+                                }
+                            }
+                        }
+                        delete p_arr;
+                        delete port_arr;
+                    } else {
+                        port_pos=index(value, ":");
+                        if (port_pos > 0) {
+                            if ((substr(value, 1, port_pos-1) + 0) > 65535 \
+                                || (substr(value, port_pos+1) + 0) > 65535 \
+                                || (substr(value, 1, port_pos-1) + 0) >= (substr(value, port_pos+1) + 0))
+                                invalid=1;
+                        } else if ((value + 0) > 65535)
+                            invalid=1;
+                    }
+                }
             } else if (key == "custom_data_file_1" \
                 || key == "custom_data_file_2" \
                 || key == "wan_1_domain_client_src_addr_file" \

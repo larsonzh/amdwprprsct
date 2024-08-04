@@ -1,5 +1,5 @@
 /*
-# lz_policy_routing.js v4.5.3
+# lz_policy_routing.js v4.5.4
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ JavaScript for Asuswrt-Merlin Router
@@ -909,19 +909,32 @@ function openOverHint(itemNum) {
         content += `<br />缺省文件名为 <b>${policySettingsArray.path}/data/wan_1_src_to_dst_addr_port.txt</b>，无有效数据条目。<br />`;
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
         content += "<br />文本格式：每行各字段之间用<b>空格</b>隔开，一个条目一行，可多行多个条目。<br />";
-        content += "<br />客户端地址&nbsp;目标地址&nbsp;通讯协议&nbsp;目标端口号<br />";
+        content += "<br />客户端地址&nbsp;目标地址&nbsp;通讯协议&nbsp;客户端源端口号&nbsp;目标端口号<br />";
+        content += "客户端地址&nbsp;目标地址&nbsp;通讯协议&nbsp;目标端口号<br />";
+        content += "客户端地址&nbsp;目标地址&nbsp;通讯协议<br />";
+        content += "客户端地址&nbsp;目标地址<br />";
         content += "<br />例如：<br />";
-        content += "192.168.50.101&nbsp;123.123.123.121&nbsp;tcp&nbsp;80,443,6881:6889,25671<br />";
-        content += "192.168.50.0/27&nbsp;123.123.123.0/24&nbsp;udp&nbsp;4334<br />";
-        content += "0.0.0.0/0&nbsp;123.123.123.123&nbsp;udplite&nbsp;12345<br />";
-        content += "192.168.50.102&nbsp;0.0.0.0/0&nbsp;sctp<br />";
+        content += "192.168.50.101&nbsp;123.123.123.121&nbsp;tcp&nbsp;80,443,6881:6889,25671&nbsp;801,4431,16881:16889,225671<br />";
+        content += "192.168.50.102&nbsp;123.123.123.122&nbsp;udp&nbsp;all&nbsp;8080<br />";
+        content += "192.168.50.103&nbsp;123.123.123.123&nbsp;tcp&nbsp;8081&nbsp;all<br />";
+        content += "192.168.50.104&nbsp;123.123.123.124&nbsp;udp&nbsp;80,443,6881:6889,25671<br />";
+        content += "192.168.50.0/27&nbsp;123.123.123.0/24&nbsp;tcp&nbsp;4334<br />";
+        content += "0.0.0.0/0&nbsp;123.123.123.125&nbsp;udplite&nbsp;12345<br />";
+        content += "192.168.50.105&nbsp;0.0.0.0/0&nbsp;sctp<br />";
         content += "0.0.0.0/0&nbsp;0.0.0.0/0<br />";
-        content += "<br />可以用 <b>0.0.0.0/0</b> 表示所有未知 IP 地址，<b>0.0.0.0</b> 和<b>路由器本地 IP 地址</b>为无效地址。<br />";
+        content += "<br />可以用 <b>0.0.0.0/0</b> 表示所有未知 IP 地址，<b>0.0.0.0</b> 和<b>路由器本地 IP 地址</b>为无效地址，<b>all</b> 表示所有未知端口号。<br />";
         content += "<br /><b>客户端地址</b>和<b>目标地址</b>为必选项。<br />";
-        content += "<br /><b>通讯协议</b>及<b>目标端口号</b>为可选项。选择<b>目标端口号</b>时，<b>通讯协议</b>则为必选项。<br />";
+        content += "<br /><b>通讯协议</b>、<b>客户端源端口号</b>及<b>目标端口号</b>为可选项。选择<b>客户端源端口号</b>、<b>目标端口号</b>时，<b>通讯协议</b>则为必选项。<br />";
         content += "<br />每个条目只能使用一个端口通讯协议，只能是 TCP、UDP、UDPLITE、SCTP 四种协议中的一个，字母英文大小写均可。<br />";
         content += "<br />连续端口号中间用英文半角 <b>:</b> 冒号相隔，如：6881:6889 表示 6881~6889 的连续端口号。<br />";
         content += "<br />每个条目最多可设置 15 个不连续的目标访问端口号埠，不连续的端口号埠之间用英文半角 <b>,</b> 逗号相隔，不要有空格。<br />";
+        content += "<br />等效设置一，例如：<br />";
+        content += "192.168.50.12&nbsp;123.123.123.151&nbsp;tcp&nbsp;all&nbsp;80,443,6881:6889,25671<br />";
+        content += "192.168.50.12&nbsp;123.123.123.151&nbsp;tcp&nbsp;80,443,6881:6889,25671<br />";
+        content += "<br />等效设置二，例如：<br />";
+        content += "192.168.50.12&nbsp;123.123.123.151&nbsp;tcp&nbsp;all&nbsp;all<br />";
+        content += "192.168.50.12&nbsp;123.123.123.151&nbsp;tcp&nbsp;all<br />";
+        content += "192.168.50.12&nbsp;123.123.123.151&nbsp;tcp<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 37) {
         mode = 1;
@@ -930,19 +943,32 @@ function openOverHint(itemNum) {
         content += `<br />缺省文件名为 <b>${policySettingsArray.path}/data/wan_2_src_to_dst_addr_port.txt</b>，无有效数据条目。<br />`;
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
         content += "<br />文本格式：每行各字段之间用<b>空格</b>隔开，一个条目一行，可多行多个条目。<br />";
-        content += "<br />客户端地址&nbsp;目标地址&nbsp;通讯协议&nbsp;目标端口号<br />";
+        content += "<br />客户端地址&nbsp;目标地址&nbsp;通讯协议&nbsp;客户端源端口号&nbsp;目标端口号<br />";
+        content += "客户端地址&nbsp;目标地址&nbsp;通讯协议&nbsp;目标端口号<br />";
+        content += "客户端地址&nbsp;目标地址&nbsp;通讯协议<br />";
+        content += "客户端地址&nbsp;目标地址<br />";
         content += "<br />例如：<br />";
-        content += "192.168.50.101&nbsp;123.123.123.121&nbsp;tcp&nbsp;80,443,6881:6889,25671<br />";
-        content += "192.168.50.0/27&nbsp;123.123.123.0/24&nbsp;udp&nbsp;4334<br />";
-        content += "0.0.0.0/0&nbsp;123.123.123.123&nbsp;udplite&nbsp;12345<br />";
-        content += "192.168.50.102&nbsp;0.0.0.0/0&nbsp;sctp<br />";
+        content += "192.168.50.101&nbsp;123.123.123.121&nbsp;tcp&nbsp;80,443,6881:6889,25671&nbsp;801,4431,16881:16889,225671<br />";
+        content += "192.168.50.102&nbsp;123.123.123.122&nbsp;udp&nbsp;all&nbsp;8080<br />";
+        content += "192.168.50.103&nbsp;123.123.123.123&nbsp;tcp&nbsp;8081&nbsp;all<br />";
+        content += "192.168.50.104&nbsp;123.123.123.124&nbsp;udp&nbsp;80,443,6881:6889,25671<br />";
+        content += "192.168.50.0/27&nbsp;123.123.123.0/24&nbsp;tcp&nbsp;4334<br />";
+        content += "0.0.0.0/0&nbsp;123.123.123.125&nbsp;udplite&nbsp;12345<br />";
+        content += "192.168.50.105&nbsp;0.0.0.0/0&nbsp;sctp<br />";
         content += "0.0.0.0/0&nbsp;0.0.0.0/0<br />";
-        content += "<br />可以用 <b>0.0.0.0/0</b> 表示所有未知 IP 地址，<b>0.0.0.0</b> 和<b>路由器本地 IP 地址</b>为无效地址。<br />";
+        content += "<br />可以用 <b>0.0.0.0/0</b> 表示所有未知 IP 地址，<b>0.0.0.0</b> 和<b>路由器本地 IP 地址</b>为无效地址，<b>all</b> 表示所有未知端口号。<br />";
         content += "<br /><b>客户端地址</b>和<b>目标地址</b>为必选项。<br />";
-        content += "<br /><b>通讯协议</b>及<b>目标端口号</b>为可选项。选择<b>目标端口号</b>时，<b>通讯协议</b>则为必选项。<br />";
+        content += "<br /><b>通讯协议</b>、<b>客户端源端口号</b>及<b>目标端口号</b>为可选项。选择<b>客户端源端口号</b>、<b>目标端口号</b>时，<b>通讯协议</b>则为必选项。<br />";
         content += "<br />每个条目只能使用一个端口通讯协议，只能是 TCP、UDP、UDPLITE、SCTP 四种协议中的一个，字母英文大小写均可。<br />";
         content += "<br />连续端口号中间用英文半角 <b>:</b> 冒号相隔，如：6881:6889 表示 6881~6889 的连续端口号。<br />";
         content += "<br />每个条目最多可设置 15 个不连续的目标访问端口号埠，不连续的端口号埠之间用英文半角 <b>,</b> 逗号相隔，不要有空格。<br />";
+        content += "<br />等效设置一，例如：<br />";
+        content += "192.168.50.12&nbsp;123.123.123.151&nbsp;tcp&nbsp;all&nbsp;80,443,6881:6889,25671<br />";
+        content += "192.168.50.12&nbsp;123.123.123.151&nbsp;tcp&nbsp;80,443,6881:6889,25671<br />";
+        content += "<br />等效设置二，例如：<br />";
+        content += "192.168.50.12&nbsp;123.123.123.151&nbsp;tcp&nbsp;all&nbsp;all<br />";
+        content += "192.168.50.12&nbsp;123.123.123.151&nbsp;tcp&nbsp;all<br />";
+        content += "192.168.50.12&nbsp;123.123.123.151&nbsp;tcp<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 38) {
         content = "<div>定义客户端高优先级方式使用指定流量出口访问预设地址的协议端口，可一次性的同时实现多种灵活、精准的流量策略。<br />";
@@ -956,19 +982,32 @@ function openOverHint(itemNum) {
         content += `<br />缺省文件名为 <b>${policySettingsArray.path}/data/high_wan_1_src_to_dst_addr_port.txt</b>，无有效数据条目。<br />`;
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
         content += "<br />文本格式：每行各字段之间用<b>空格</b>隔开，一个条目一行，可多行多个条目。<br />";
-        content += "<br />客户端地址&nbsp;目标地址&nbsp;通讯协议&nbsp;目标端口号<br />";
+        content += "<br />客户端地址&nbsp;目标地址&nbsp;通讯协议&nbsp;客户端源端口号&nbsp;目标端口号<br />";
+        content += "客户端地址&nbsp;目标地址&nbsp;通讯协议&nbsp;目标端口号<br />";
+        content += "客户端地址&nbsp;目标地址&nbsp;通讯协议<br />";
+        content += "客户端地址&nbsp;目标地址<br />";
         content += "<br />例如：<br />";
-        content += "192.168.50.101&nbsp;123.123.123.121&nbsp;tcp&nbsp;80,443,6881:6889,25671<br />";
-        content += "192.168.50.0/27&nbsp;123.123.123.0/24&nbsp;udp&nbsp;4334<br />";
-        content += "0.0.0.0/0&nbsp;123.123.123.123&nbsp;udplite&nbsp;12345<br />";
-        content += "192.168.50.102&nbsp;0.0.0.0/0&nbsp;sctp<br />";
+        content += "192.168.50.101&nbsp;123.123.123.121&nbsp;tcp&nbsp;80,443,6881:6889,25671&nbsp;801,4431,16881:16889,225671<br />";
+        content += "192.168.50.102&nbsp;123.123.123.122&nbsp;udp&nbsp;all&nbsp;8080<br />";
+        content += "192.168.50.103&nbsp;123.123.123.123&nbsp;tcp&nbsp;8081&nbsp;all<br />";
+        content += "192.168.50.104&nbsp;123.123.123.124&nbsp;udp&nbsp;80,443,6881:6889,25671<br />";
+        content += "192.168.50.0/27&nbsp;123.123.123.0/24&nbsp;tcp&nbsp;4334<br />";
+        content += "0.0.0.0/0&nbsp;123.123.123.125&nbsp;udplite&nbsp;12345<br />";
+        content += "192.168.50.105&nbsp;0.0.0.0/0&nbsp;sctp<br />";
         content += "0.0.0.0/0&nbsp;0.0.0.0/0<br />";
-        content += "<br />可以用 <b>0.0.0.0/0</b> 表示所有未知 IP 地址，<b>0.0.0.0</b> 和<b>路由器本地 IP 地址</b>为无效地址。<br />";
+        content += "<br />可以用 <b>0.0.0.0/0</b> 表示所有未知 IP 地址，<b>0.0.0.0</b> 和<b>路由器本地 IP 地址</b>为无效地址，<b>all</b> 表示所有未知端口号。<br />";
         content += "<br /><b>客户端地址</b>和<b>目标地址</b>为必选项。<br />";
-        content += "<br /><b>通讯协议</b>及<b>目标端口号</b>为可选项。选择<b>目标端口号</b>时，<b>通讯协议</b>则为必选项。<br />";
+        content += "<br /><b>通讯协议</b>、<b>客户端源端口号</b>及<b>目标端口号</b>为可选项。选择<b>客户端源端口号</b>、<b>目标端口号</b>时，<b>通讯协议</b>则为必选项。<br />";
         content += "<br />每个条目只能使用一个端口通讯协议，只能是 TCP、UDP、UDPLITE、SCTP 四种协议中的一个，字母英文大小写均可。<br />";
         content += "<br />连续端口号中间用英文半角 <b>:</b> 冒号相隔，如：6881:6889 表示 6881~6889 的连续端口号。<br />";
         content += "<br />每个条目最多可设置 15 个不连续的目标访问端口号埠，不连续的端口号埠之间用英文半角 <b>,</b> 逗号相隔，不要有空格。<br />";
+        content += "<br />等效设置一，例如：<br />";
+        content += "192.168.50.12&nbsp;123.123.123.151&nbsp;tcp&nbsp;all&nbsp;80,443,6881:6889,25671<br />";
+        content += "192.168.50.12&nbsp;123.123.123.151&nbsp;tcp&nbsp;80,443,6881:6889,25671<br />";
+        content += "<br />等效设置二，例如：<br />";
+        content += "192.168.50.12&nbsp;123.123.123.151&nbsp;tcp&nbsp;all&nbsp;all<br />";
+        content += "192.168.50.12&nbsp;123.123.123.151&nbsp;tcp&nbsp;all<br />";
+        content += "192.168.50.12&nbsp;123.123.123.151&nbsp;tcp<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 40) {
         content = "<div>列入本策略<b>客户端 IP 地址列表</b>中的设备访问外网时不受其他路由策略影响，仅由系统采用<b>链路负载均衡</b>技术在<b>首选 WAN</b> 与<b>第二 WAN</b> 二者之中按流量比例随机分配<b>链路</b>流量出口，缺点是易导致网络访问不稳定和不正常。该功能可实现一些特殊用途的应用 (如带速叠加下载，但外部影响因素较多，不保证此业务在所有情况下都能实现)。<br />";

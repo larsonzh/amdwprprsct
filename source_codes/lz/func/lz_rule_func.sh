@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v4.5.3
+# lz_rule_func.sh v4.5.4
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 #BEGIN
@@ -185,38 +185,6 @@ lz_get_unkonwn_ipv4_src_dst_addr_port_data_file_item() {
         [ -z "${retval}" ] && retval="1"
     }
     return "${retval}"
-}
-
-## 获取IPv4源网址/网段至目标网址/网段协议端口列表数据文件总有效条目数函数
-## 输入项：
-##     $1--全路径网段数据文件名
-## 返回值：
-##     总有效条目数
-lz_get_ipv4_src_dst_addr_port_data_file_item_total() {
-    local retval="0"
-    [ -s "${1}" ] && {
-        retval="$( awk '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
-            && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
-            && $1 != "0.0.0.0" && $1 != "'"${route_local_ip}"'" \
-            && $2 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
-            && $2 !~ /[3-9][0-9][0-9]/ && $2 !~ /[2][6-9][0-9]/ && $2 !~ /[2][5][6-9]/ && $2 !~ /[\/][4-9][0-9]/ && $2 !~ /[\/][3][3-9]/ \
-            && $2 != "0.0.0.0" && $2 != "'"${route_local_ip}"'" \
-            && NF >= "2" && !i[$1"_"$2"_"$3"_"$4]++ {print $1,$2,$3,$4}' "${1}" \
-            | tr '[:A-Z:]' '[:a-z:]' \
-            | awk -v count="0" '$3 ~ /^tcp$|^udp$|^udplite$|^sctp$/ && $4 ~ /^[1-9][0-9,:]*[0-9]$/ && NF == "4" {
-                count++;
-                next;
-            } \
-            $3 ~ /^tcp$|^udp$|^udplite$|^sctp$/ && NF == "3" {
-                count++;
-                next;
-            } \
-            NF == "2" {
-                count++;
-                next;
-            } END{print count}' )"
-    }
-    echo "${retval}"
 }
 
 ## 获取ISP网络运营商目标网段流量出口参数函数
@@ -2418,18 +2386,16 @@ lz_add_client_dest_port_src_address_sets() {
     local NOMATCH=""
     [ "${3}" != "0" ] && NOMATCH=" nomatch"
     ipset -q create "${2}" nethash maxelem 4294967295 #--hashsize 1024 mexleme 65536
-    awk '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
+    sed 's/[#].*$//g' "${1}" \
+        | awk '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
         && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
         && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" && $1 != "'"${route_local_ip}"'" \
         && $2 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
         && $2 !~ /[3-9][0-9][0-9]/ && $2 !~ /[2][6-9][0-9]/ && $2 !~ /[2][5][6-9]/ && $2 !~ /[\/][4-9][0-9]/ && $2 !~ /[\/][3][3-9]/ \
         && $2 != "0.0.0.0" && $2 != "'"${route_local_ip}"'" \
-        && NF >= "2" && !i[$1"_"$2"_"$3"_"$4]++ {print $1,$2,$3,$4}' "${1}" \
+        && NF >= "2" && !i[$1"_"$2"_"$3"_"$4"_"$5]++ {print $1,$2,$3,$4,$5}' \
         | tr '[:A-Z:]' '[:a-z:]' \
-        | awk '$3 ~ /^tcp$|^udp$|^udplite$|^sctp$/ && $4 ~ /^[1-9][0-9,:]*[0-9]$/ && NF == "4" \
-        {print "'"-! del ${2} "'"$1"'"\n-! add ${2} "'"$1"'"${NOMATCH}"'"; next;} \
-        $3 ~ /^tcp$|^udp$|^udplite$|^sctp$/ && NF == "3" {print "'"-! del ${2} "'"$1"'"\n-! add ${2} "'"$1"'"${NOMATCH}"'"; next;} \
-        NF == "2" {print "'"-! del ${2} "'"$1"'"\n-! add ${2} "'"$1"'"${NOMATCH}"'"; next;} \
+        | awk '($3 ~ /^(tcp|udp|udplite|sctp)$/ || NF == "2") {print "'"-! del ${2} "'"$1"'"\n-! add ${2} "'"$1"'"${NOMATCH}"'"; next;} \
         END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
 }
 
@@ -2452,19 +2418,43 @@ lz_client_dest_port_policy() {
     ##     0--成功
     ##     1--失败
     if ! lz_get_unkonwn_ipv4_src_dst_addr_port_data_file_item "${1}"; then
-        awk '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
+        sed 's/[#].*$//g' "${1}" \
+            | awk '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
             && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
             && $1 != "0.0.0.0" && $1 != "'"${route_local_ip}"'" \
             && $2 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
             && $2 !~ /[3-9][0-9][0-9]/ && $2 !~ /[2][6-9][0-9]/ && $2 !~ /[2][5][6-9]/ && $2 !~ /[\/][4-9][0-9]/ && $2 !~ /[\/][3][3-9]/ \
             && $2 != "0.0.0.0" && $2 != "'"${route_local_ip}"'" \
-            && NF >= "2" && !i[$1"_"$2"_"$3"_"$4]++ {print $1,$2,$3,$4}' "${1}" \
+            && NF >= "2" && !i[$1"_"$2"_"$3"_"$4"_"$5]++ {print $1,$2,$3,$4,$5}' \
             | tr '[:A-Z:]' '[:a-z:]' \
-            | awk '$3 ~ /^tcp$|^udp$|^udplite$|^sctp$/ && $4 ~ /^[1-9][0-9,:]*[0-9]$/ && NF == "4" {
+            | awk '$3 ~ /^(tcp|udp|udplite|sctp)$/ && $4 ~ /^(([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)[\,])*([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)$/ \
+                && $5 ~ /^(([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)[\,])*([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)$/ {
+                system("'"iptables -t mangle -A ${CUSTOM_PREROUTING_CONNMARK_CHAIN} -s "'"$1" -d "$2" -p "$3" -m multiport --sports "$4" -m multiport --dports "$5"'" -j CONNMARK --set-xmark ${2}/${FWMARK_MASK} > /dev/null 2>&1"'");
+                next;
+            } \
+            $3 ~ /^(tcp|udp|udplite|sctp)$/ && $4 == "all" \
+                && $5 ~ /^(([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)[\,])*([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)$/ {
+                system("'"iptables -t mangle -A ${CUSTOM_PREROUTING_CONNMARK_CHAIN} -s "'"$1" -d "$2" -p "$3" -m multiport --dports "$5"'" -j CONNMARK --set-xmark ${2}/${FWMARK_MASK} > /dev/null 2>&1"'");
+                next;
+            } \
+            $3 ~ /^(tcp|udp|udplite|sctp)$/ && $4 ~ /^(([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)[\,])*([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)$/ \
+                && $5 == "all" {
+                system("'"iptables -t mangle -A ${CUSTOM_PREROUTING_CONNMARK_CHAIN} -s "'"$1" -d "$2" -p "$3" -m multiport --sports "$4"'" -j CONNMARK --set-xmark ${2}/${FWMARK_MASK} > /dev/null 2>&1"'");
+                next;
+            } \
+            $3 ~ /^(tcp|udp|udplite|sctp)$/ && $4 == "all" && $5 == "all" {
+                system("'"iptables -t mangle -A ${CUSTOM_PREROUTING_CONNMARK_CHAIN} -s "'"$1" -d "$2" -p "$3"'" -j CONNMARK --set-xmark ${2}/${FWMARK_MASK} > /dev/null 2>&1"'");
+                next;
+            } \
+            $3 ~ /^(tcp|udp|udplite|sctp)$/ && $4 ~ /^(([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)[\,])*([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)$/ && NF == "4" {
                 system("'"iptables -t mangle -A ${CUSTOM_PREROUTING_CONNMARK_CHAIN} -s "'"$1" -d "$2" -p "$3" -m multiport --dports "$4"'" -j CONNMARK --set-xmark ${2}/${FWMARK_MASK} > /dev/null 2>&1"'");
                 next;
             } \
-            $3 ~ /^tcp$|^udp$|^udplite$|^sctp$/ && NF == "3" {
+            $3 ~ /^(tcp|udp|udplite|sctp)$/ && $4 == "all" && NF == "4" {
+                system("'"iptables -t mangle -A ${CUSTOM_PREROUTING_CONNMARK_CHAIN} -s "'"$1" -d "$2" -p "$3"'" -j CONNMARK --set-xmark ${2}/${FWMARK_MASK} > /dev/null 2>&1"'");
+                next;
+            } \
+            $3 ~ /^(tcp|udp|udplite|sctp)$/ && NF == "3" {
                 system("'"iptables -t mangle -A ${CUSTOM_PREROUTING_CONNMARK_CHAIN} -s "'"$1" -d "$2" -p "$3"'" -j CONNMARK --set-xmark ${2}/${FWMARK_MASK} > /dev/null 2>&1"'");
                 next;
             } \
@@ -4660,16 +4650,22 @@ lz_output_ispip_info_to_system_records() {
         echo "$(lzdate)" [$$]: "   HighSrcLst-1    Primary WAN${local_primary_wan_hd}  ${local_item_count}" | tee -ai "${SYSLOG}" 2> /dev/null
         local_exist="1"
     }
-    [ "$( lz_get_iptables_fwmark_item_total_number "${HIGH_CLIENT_DEST_PORT_FWMARK_0}" "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" )" -gt "0" ] && {
-        echo "$(lzdate)" [$$]: "   HSrcToDstPrt-1  Primary WAN         $( lz_get_ipv4_src_dst_addr_port_data_file_item_total "${high_wan_1_src_to_dst_addr_port_file}" )" | tee -ai "${SYSLOG}" 2> /dev/null
+    [ "${high_wan_1_src_to_dst_addr_port}" = "0" ] \
+        && local_item_count="$( lz_get_iptables_fwmark_item_total_number "${HIGH_CLIENT_DEST_PORT_FWMARK_0}" "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" )" \
+        && [ "${local_item_count}" -gt "0" ] && {
+        echo "$(lzdate)" [$$]: "   HSrcToDstPrt-1  Primary WAN         ${local_item_count}" | tee -ai "${SYSLOG}" 2> /dev/null
         local_exist="1"
     }
-    [ "$( lz_get_iptables_fwmark_item_total_number "${CLIENT_DEST_PORT_FWMARK_1}" "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" )" -gt "0" ] && {
-        echo "$(lzdate)" [$$]: "   SrcToDstPrt-2   Secondary WAN       $( lz_get_ipv4_src_dst_addr_port_data_file_item_total "${wan_2_src_to_dst_addr_port_file}" )" | tee -ai "${SYSLOG}" 2> /dev/null
+    [ "${wan_2_src_to_dst_addr_port}" = "0" ] \
+        && local_item_count="$( lz_get_iptables_fwmark_item_total_number "${CLIENT_DEST_PORT_FWMARK_1}" "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" )" \
+        && [ "${local_item_count}" -gt "0" ] && {
+        echo "$(lzdate)" [$$]: "   SrcToDstPrt-2   Secondary WAN       ${local_item_count}" | tee -ai "${SYSLOG}" 2> /dev/null
         local_exist="1"
     }
-    [ "$( lz_get_iptables_fwmark_item_total_number "${CLIENT_DEST_PORT_FWMARK_0}" "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" )" -gt "0" ] && {
-        echo "$(lzdate)" [$$]: "   SrcToDstPrt-1   Primary WAN         $( lz_get_ipv4_src_dst_addr_port_data_file_item_total "${wan_1_src_to_dst_addr_port_file}" )" | tee -ai "${SYSLOG}" 2> /dev/null
+    [ "${wan_1_src_to_dst_addr_port}" = "0" ] \
+        && local_item_count="$( lz_get_iptables_fwmark_item_total_number "${CLIENT_DEST_PORT_FWMARK_0}" "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" )" \
+        && [ "${local_item_count}" -gt "0" ] && {
+        echo "$(lzdate)" [$$]: "   SrcToDstPrt-1   Primary WAN         ${local_item_count}" | tee -ai "${SYSLOG}" 2> /dev/null
         local_exist="1"
     }
     [ -n "$( ipset -q -n list "${DOMAIN_SET_1}" )" ] && {
