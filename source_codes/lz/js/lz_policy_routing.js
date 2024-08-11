@@ -1,5 +1,5 @@
 /*
-# lz_policy_routing.js v4.5.4
+# lz_policy_routing.js v4.5.5
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ JavaScript for Asuswrt-Merlin Router
@@ -913,6 +913,7 @@ function openOverHint(itemNum) {
         content += "客户端地址&nbsp;目标地址&nbsp;通讯协议&nbsp;目标端口号<br />";
         content += "客户端地址&nbsp;目标地址&nbsp;通讯协议<br />";
         content += "客户端地址&nbsp;目标地址<br />";
+        content += "客户端地址<br />";
         content += "<br />例如：<br />";
         content += "192.168.50.101&nbsp;123.123.123.121&nbsp;tcp&nbsp;80,443,6881:6889,25671&nbsp;801,4431,16881:16889,225671<br />";
         content += "192.168.50.102&nbsp;123.123.123.122&nbsp;udp&nbsp;all&nbsp;8080<br />";
@@ -922,9 +923,10 @@ function openOverHint(itemNum) {
         content += "0.0.0.0/0&nbsp;123.123.123.125&nbsp;udplite&nbsp;12345<br />";
         content += "192.168.50.105&nbsp;0.0.0.0/0&nbsp;sctp<br />";
         content += "0.0.0.0/0&nbsp;0.0.0.0/0<br />";
+        content += "192.168.50.106<br />";
         content += "<br />可以用 <b>0.0.0.0/0</b> 表示所有未知 IP 地址，<b>0.0.0.0</b> 和<b>路由器本地 IP 地址</b>为无效地址，<b>all</b> 表示所有未知端口号。<br />";
-        content += "<br /><b>客户端地址</b>和<b>目标地址</b>为必选项。<br />";
-        content += "<br /><b>通讯协议</b>、<b>客户端源端口号</b>及<b>目标端口号</b>为可选项。选择<b>客户端源端口号</b>、<b>目标端口号</b>时，<b>通讯协议</b>则为必选项。<br />";
+        content += "<br /><b>客户端地址</b>为必选项。<br />";
+        content += "<br /><b>目标地址</b>、<b>通讯协议</b>、<b>客户端源端口号</b>及<b>目标端口号</b>为可选项。填写<b>通讯协议</b>时，<b>目标地址</b>则成为必选项，后续依此类推。<br />";
         content += "<br />每个条目只能使用一个端口通讯协议，只能是 TCP、UDP、UDPLITE、SCTP 四种协议中的一个，字母英文大小写均可。<br />";
         content += "<br />连续端口号中间用英文半角 <b>:</b> 冒号相隔，如：6881:6889 表示 6881~6889 的连续端口号。<br />";
         content += "<br />每个条目最多可设置 15 个不连续的目标访问端口号埠，不连续的端口号埠之间用英文半角 <b>,</b> 逗号相隔，不要有空格。<br />";
@@ -935,6 +937,9 @@ function openOverHint(itemNum) {
         content += "192.168.50.12&nbsp;123.123.123.151&nbsp;tcp&nbsp;all&nbsp;all<br />";
         content += "192.168.50.12&nbsp;123.123.123.151&nbsp;tcp&nbsp;all<br />";
         content += "192.168.50.12&nbsp;123.123.123.151&nbsp;tcp<br />";
+        content += "<br />等效设置三，例如：<br />";
+        content += "192.168.50.12&nbsp;0.0.0.0/0<br />";
+        content += "192.168.50.12<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 37) {
         mode = 1;
@@ -947,6 +952,7 @@ function openOverHint(itemNum) {
         content += "客户端地址&nbsp;目标地址&nbsp;通讯协议&nbsp;目标端口号<br />";
         content += "客户端地址&nbsp;目标地址&nbsp;通讯协议<br />";
         content += "客户端地址&nbsp;目标地址<br />";
+        content += "客户端地址<br />";
         content += "<br />例如：<br />";
         content += "192.168.50.101&nbsp;123.123.123.121&nbsp;tcp&nbsp;80,443,6881:6889,25671&nbsp;801,4431,16881:16889,225671<br />";
         content += "192.168.50.102&nbsp;123.123.123.122&nbsp;udp&nbsp;all&nbsp;8080<br />";
@@ -956,9 +962,10 @@ function openOverHint(itemNum) {
         content += "0.0.0.0/0&nbsp;123.123.123.125&nbsp;udplite&nbsp;12345<br />";
         content += "192.168.50.105&nbsp;0.0.0.0/0&nbsp;sctp<br />";
         content += "0.0.0.0/0&nbsp;0.0.0.0/0<br />";
+        content += "192.168.50.106<br />";
         content += "<br />可以用 <b>0.0.0.0/0</b> 表示所有未知 IP 地址，<b>0.0.0.0</b> 和<b>路由器本地 IP 地址</b>为无效地址，<b>all</b> 表示所有未知端口号。<br />";
-        content += "<br /><b>客户端地址</b>和<b>目标地址</b>为必选项。<br />";
-        content += "<br /><b>通讯协议</b>、<b>客户端源端口号</b>及<b>目标端口号</b>为可选项。选择<b>客户端源端口号</b>、<b>目标端口号</b>时，<b>通讯协议</b>则为必选项。<br />";
+        content += "<br /><b>客户端地址</b>为必选项。<br />";
+        content += "<br /><b>目标地址</b>、<b>通讯协议</b>、<b>客户端源端口号</b>及<b>目标端口号</b>为可选项。填写<b>通讯协议</b>时，<b>目标地址</b>则成为必选项，后续依此类推。<br />";
         content += "<br />每个条目只能使用一个端口通讯协议，只能是 TCP、UDP、UDPLITE、SCTP 四种协议中的一个，字母英文大小写均可。<br />";
         content += "<br />连续端口号中间用英文半角 <b>:</b> 冒号相隔，如：6881:6889 表示 6881~6889 的连续端口号。<br />";
         content += "<br />每个条目最多可设置 15 个不连续的目标访问端口号埠，不连续的端口号埠之间用英文半角 <b>,</b> 逗号相隔，不要有空格。<br />";
@@ -969,13 +976,16 @@ function openOverHint(itemNum) {
         content += "192.168.50.12&nbsp;123.123.123.151&nbsp;tcp&nbsp;all&nbsp;all<br />";
         content += "192.168.50.12&nbsp;123.123.123.151&nbsp;tcp&nbsp;all<br />";
         content += "192.168.50.12&nbsp;123.123.123.151&nbsp;tcp<br />";
+        content += "<br />等效设置三，例如：<br />";
+        content += "192.168.50.12&nbsp;0.0.0.0/0<br />";
+        content += "192.168.50.12<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 38) {
         content = "<div>定义客户端高优先级方式使用指定流量出口访问预设地址的协议端口，可一次性的同时实现多种灵活、精准的流量策略。<br />";
         content += "<br />仅用于 TCP、UDP、UDPLITE、SCTP 四类协议端口。<br />";
         content += "<br />功能优先级高于<b>域名地址动态访问策略</b>和<b>客户端静态直通策略</b>，低于<b>高优先级客户端静态直通策略</b>和<b>客户端至预设目标 IP 地址静态直通策略</b>。<br />";
         content += "<br /><b>策略执行优先级</b>：详见<b>基本设置&nbsp;-&nbsp;策略路由优先级</b></div>";
-} else if (itemNum == 39) {
+    } else if (itemNum == 39) {
         mode = 1;
         caption = "客户端地址至目标地址协议端口列表";
         content = "<div>文件中具体定义客户端使用<b>首选 WAN</b> 口作为流量出口高优先级访问预设地址协议端口的客户端 IP 地址和目标 IP 地址的协议端口。<br />";
@@ -986,6 +996,7 @@ function openOverHint(itemNum) {
         content += "客户端地址&nbsp;目标地址&nbsp;通讯协议&nbsp;目标端口号<br />";
         content += "客户端地址&nbsp;目标地址&nbsp;通讯协议<br />";
         content += "客户端地址&nbsp;目标地址<br />";
+        content += "客户端地址<br />";
         content += "<br />例如：<br />";
         content += "192.168.50.101&nbsp;123.123.123.121&nbsp;tcp&nbsp;80,443,6881:6889,25671&nbsp;801,4431,16881:16889,225671<br />";
         content += "192.168.50.102&nbsp;123.123.123.122&nbsp;udp&nbsp;all&nbsp;8080<br />";
@@ -995,9 +1006,10 @@ function openOverHint(itemNum) {
         content += "0.0.0.0/0&nbsp;123.123.123.125&nbsp;udplite&nbsp;12345<br />";
         content += "192.168.50.105&nbsp;0.0.0.0/0&nbsp;sctp<br />";
         content += "0.0.0.0/0&nbsp;0.0.0.0/0<br />";
+        content += "192.168.50.106<br />";
         content += "<br />可以用 <b>0.0.0.0/0</b> 表示所有未知 IP 地址，<b>0.0.0.0</b> 和<b>路由器本地 IP 地址</b>为无效地址，<b>all</b> 表示所有未知端口号。<br />";
-        content += "<br /><b>客户端地址</b>和<b>目标地址</b>为必选项。<br />";
-        content += "<br /><b>通讯协议</b>、<b>客户端源端口号</b>及<b>目标端口号</b>为可选项。选择<b>客户端源端口号</b>、<b>目标端口号</b>时，<b>通讯协议</b>则为必选项。<br />";
+        content += "<br /><b>客户端地址</b>为必选项。<br />";
+        content += "<br /><b>目标地址</b>、<b>通讯协议</b>、<b>客户端源端口号</b>及<b>目标端口号</b>为可选项。填写<b>通讯协议</b>时，<b>目标地址</b>则成为必选项，后续依此类推。<br />";
         content += "<br />每个条目只能使用一个端口通讯协议，只能是 TCP、UDP、UDPLITE、SCTP 四种协议中的一个，字母英文大小写均可。<br />";
         content += "<br />连续端口号中间用英文半角 <b>:</b> 冒号相隔，如：6881:6889 表示 6881~6889 的连续端口号。<br />";
         content += "<br />每个条目最多可设置 15 个不连续的目标访问端口号埠，不连续的端口号埠之间用英文半角 <b>,</b> 逗号相隔，不要有空格。<br />";
@@ -1008,6 +1020,9 @@ function openOverHint(itemNum) {
         content += "192.168.50.12&nbsp;123.123.123.151&nbsp;tcp&nbsp;all&nbsp;all<br />";
         content += "192.168.50.12&nbsp;123.123.123.151&nbsp;tcp&nbsp;all<br />";
         content += "192.168.50.12&nbsp;123.123.123.151&nbsp;tcp<br />";
+        content += "<br />等效设置三，例如：<br />";
+        content += "192.168.50.12&nbsp;0.0.0.0/0<br />";
+        content += "192.168.50.12<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 40) {
         content = "<div>列入本策略<b>客户端 IP 地址列表</b>中的设备访问外网时不受其他路由策略影响，仅由系统采用<b>链路负载均衡</b>技术在<b>首选 WAN</b> 与<b>第二 WAN</b> 二者之中按流量比例随机分配<b>链路</b>流量出口，缺点是易导致网络访问不稳定和不正常。该功能可实现一些特殊用途的应用 (如带速叠加下载，但外部影响因素较多，不保证此业务在所有情况下都能实现)。<br />";

@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_status.sh v4.5.4
+# lz_rule_status.sh v4.5.5
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 显示脚本运行状态脚本
@@ -125,6 +125,63 @@ lz_unset_isp_wan_port_status_variable() {
     done
 }
 
+## 打印IPv4地址数据列表函数
+## 输入项：
+##     $1--全路径网段数据文件名
+## 返回值：
+##     IPv4地址数据列表
+lz_print_ipv4_address_list_status() {
+    sed -e 's/^[[:space:]][[:space:]]*//g' -e 's/[#].*$//g' -e 's/[[:space:]][[:space:]]*/ /g' -e 's/[[:space:]][[:space:]]*$//g' \
+        -e 's/^\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}\)[[:space:]].*$/\1/' \
+        -e "s#\(^\|[[:space:]]\)${status_route_local_subnet}\([[:space:]]\|$\)#${status_route_static_subnet}#g" \
+        -e '/^\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}$/!d' \
+        -e '/[3-9][0-9][0-9]\|[2][6-9][0-9]\|[2][5][6-9]\|[\/][4-9][0-9]\|[\/][3][3-9]/d' \
+        -e "/\(^\|[[:space:]]\)\(0[\.]0[\.]0[\.]0\|${status_route_local_ip}\)\([[:space:]]\|$\)/d" "${1}"
+}
+
+## 打印有效的IPv4地址数据列表状态函数
+## 输入项：
+##     $1--全路径网段数据文件名
+## 返回值：
+##     IPv4地址数据列表（不含0.0.0.0/0地址）
+lz_print_valid_ipv4_address_list_status() {
+    sed -e 's/^[[:space:]][[:space:]]*//g' -e 's/[#].*$//g' -e 's/[[:space:]][[:space:]]*/ /g' -e 's/[[:space:]][[:space:]]*$//g' \
+        -e 's/^\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}\)[[:space:]].*$/\1/' \
+        -e "s#\(^\|[[:space:]]\)${status_route_local_subnet}\([[:space:]]\|$\)#${status_route_static_subnet}#g" \
+        -e '/^\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}$/!d' \
+        -e '/[3-9][0-9][0-9]\|[2][6-9][0-9]\|[2][5][6-9]\|[\/][4-9][0-9]\|[\/][3][3-9]/d' \
+        -e "/\(^\|[[:space:]]\)\(0[\.]0[\.]0[\.]0[\/]0\|0[\.]0[\.]0[\.]0\|${status_route_local_ip}\)\([[:space:]]\|$\)/d" "${1}"
+}
+
+## 打印IPv4源地址至目标地址数据列表状态函数
+## 输入项：
+##     $1--全路径网段数据文件名
+## 返回值：
+##     IPv4源地址至目标地址数据列表
+lz_print_src_to_dst_ipv4_address_list_status() {
+    sed -e 's/^[[:space:]][[:space:]]*//g' -e 's/[#].*$//g' -e 's/[[:space:]][[:space:]]*/ /g' -e 's/[[:space:]][[:space:]]*$//g' \
+        -e 's/^\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}\)[[:space:]]\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}\)[[:space:]].*$/\1 \4/' \
+        -e "s#\(^\|[[:space:]]\)${status_route_local_subnet}\([[:space:]]\|$\)#${status_route_static_subnet}#g" \
+        -e '/^\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}[[:space:]]\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}$/!d' \
+        -e '/[3-9][0-9][0-9]\|[2][6-9][0-9]\|[2][5][6-9]\|[\/][4-9][0-9]\|[\/][3][3-9]/d' \
+        -e "/\(^\|[[:space:]]\)\(0[\.]0[\.]0[\.]0\|${status_route_local_ip}\)\([[:space:]]\|$\)/d" "${1}"
+}
+
+## 打印IPv4源地址至目标地址协议端口数据列表状态函数
+## 输入项：
+##     $1--全路径网段数据文件名
+## 返回值：
+##     IPv4源地址至目标地址协议端口数据列表
+lz_print_src_to_dst_port_ip_list_status() {
+    local local_regex='^[[:space:]]*(([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1})([[:space:]][[:space:]]*(([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1})([[:space:]][[:space:]]*(tcp|udp|udplite|sctp)([[:space:]][[:space:]]*((([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)[\,])*([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)|all)([[:space:]][[:space:]]*((([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)[\,])*([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)|all)){0,1}){0,1}){0,1}){0,1}$'
+    grep -E "${local_regex}" "${1}" \
+        | tr '[:A-Z:]' '[:a-z:]' \
+        | sed -e 's/^[[:space:]][[:space:]]*//g' -e 's/[#].*$//g' -e 's/[[:space:]][[:space:]]*/ /g' -e 's/[[:space:]][[:space:]]*$//g' \
+            -e "s#\(^\|[[:space:]]\)${status_route_local_subnet}\([[:space:]]\|$\)#${status_route_static_subnet}#g" \
+            -e "/\(^\|[[:space:]]\)\(0[\.]0[\.]0[\.]0\|${status_route_local_ip}\)\([[:space:]]\|$\)/d" \
+            -e '/^\([^[:space:]][^[:space:]]*[[:space:]]\)\{0,1\}[^[:space:]]*\([3-9][0-9][0-9]\|[2][6-9][0-9]\|[2][5][6-9]\|[\/][4-9][0-9]\|[\/][3][3-9]\)[^[:space:]]*\([[:space:]]\|$\)/d'
+}
+
 ## 获取IPv4源网址/网段列表数据文件总有效条目数状态函数
 ## 输入项：
 ##     $1--全路径网段数据文件名
@@ -132,12 +189,14 @@ lz_unset_isp_wan_port_status_variable() {
 ##     总有效条目数
 lz_get_ipv4_data_file_item_total_status() {
     local retval="0"
-    [ -f "${1}" ] && {
-        retval="$( awk -v count="0" '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
-            && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
-            && $1 != "0.0.0.0" && $1 != "'"${status_route_local_ip}"'" \
-            && NF >= "1" && !i[$1]++ {count++} END{print count}' "${1}" )"
-    }
+    [ -s "${1}" ] && retval="$( lz_print_ipv4_address_list_status "${1}" | awk 'NF >= "1" && !i[$1]++ {
+        if ($1 != "0.0.0.0/0")
+            count++;
+        else {
+            count=1;
+            exit;
+        }
+    } END{print count}' )"
     echo "${retval}"
 }
 
@@ -149,10 +208,11 @@ lz_get_ipv4_data_file_item_total_status() {
 lz_get_proxy_remote_node_addr_file_item_total_status() {
     local retval="0"
     [ -s "${1}" ] && {
-        retval="$( sed -e 's/^[[:space:]]\+//g' -e '/^[#]/d' -e 's/[[:space:]]*[#].*$//g' -e '/^[[:space:]]*$/d' "${1}" \
-        | tr '[:A-Z:]' '[:a-z:]' \
-        | awk -v count="0" 'NF >= "1" && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" && $1 != "'"${status_route_local_ip}"'" \
-        && !i[$1]++ {count++} END{print count}' )"
+        retval="$( sed -e 's/^[[:space:]]\+//g' -e '/^[#]/d' -e 's/[[:space:]]*[#].*$//g' -e '/^[[:space:]]*$/d' \
+            -e "s#\(^\|[[:space:]][[:space:]]*\)${status_route_local_subnet}\([[:space:]][[:space:]]*\|$\)#${status_route_static_subnet}#g" "${1}" \
+            | tr '[:A-Z:]' '[:a-z:]' \
+            | awk -v count="0" 'NF >= "1" && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" && $1 != "'"${status_route_local_ip}"'" \
+            && !i[$1]++ {count++} END{print count}' )"
     }
     echo "${retval}"
 }
@@ -164,12 +224,7 @@ lz_get_proxy_remote_node_addr_file_item_total_status() {
 ##     总有效条目数
 lz_get_ipv4_data_file_valid_item_total_status() {
     local retval="0"
-    [ -f "${1}" ] && {
-        retval="$( awk -v count="0" '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
-            && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
-            && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" && $1 != "'"${status_route_local_ip}"'" \
-            && NF >= "1" && !i[$1]++ {count++} END{print count}' "${1}" )"
-    }
+    [ -s "${1}" ] && retval="$( lz_print_valid_ipv4_address_list_status "${1}" | awk -v count="0" 'NF >= "1" && !i[$1]++ {count++} END{print count}' )"
     echo "${retval}"
 }
 
@@ -180,15 +235,14 @@ lz_get_ipv4_data_file_valid_item_total_status() {
 ##     总有效条目数
 lz_get_ipv4_src_to_dst_data_file_item_total_status() {
     local retval="0"
-    [ -f "${1}" ] && {
-        retval="$( awk -v count="0" '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
-            && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
-            && $1 != "0.0.0.0" && $1 != "'"${status_route_local_ip}"'" \
-            && $2 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
-            && $2 !~ /[3-9][0-9][0-9]/ && $2 !~ /[2][6-9][0-9]/ && $2 !~ /[2][5][6-9]/ && $2 !~ /[\/][4-9][0-9]/ && $2 !~ /[\/][3][3-9]/ \
-            && $2 != "0.0.0.0" && $2 != "'"${status_route_local_ip}"'" \
-            && NF >= "2" && !i[$1"_"$2]++ {count++} END{print count}' "${1}" )"
-    }
+    [ -s "${1}" ] && retval="$( lz_print_src_to_dst_ipv4_address_list_status "${1}" \
+        | awk -v count="0" 'NF >= "2" && !i[$1"_"$2]++ {
+            if ($1 == "0.0.0.0/0" && $2 == "0.0.0.0/0") {
+                count=1;
+                exit;
+            } else
+                count++;
+        } END{print count}' )"
     echo "${retval}"
 }
 
@@ -199,11 +253,8 @@ lz_get_ipv4_src_to_dst_data_file_item_total_status() {
 ##     总有效条目数
 lz_get_custom_hosts_file_item_total_status() {
     local retval="0"
-    [ -s "${1}" ] && {
-        retval="$( awk -v count="0" '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ \
-            && $2 ~ /^[[:alnum:]_\.\-]+$/ && !i[$2]++ {count++} END{print count}' "${1}" )"
-        
-    }
+    [ -s "${1}" ] && retval="$( sed 's/[#].*$//g' "${1}" \
+        | awk -v count="0" '$1 ~ /^[[:alnum:]_\.\-]+$/ && $2 ~ /^[[:alnum:]_\.\-]+$/ && !i[$2]++ {count++} END{print count}' )"
     echo "${retval}"
 }
 
@@ -214,7 +265,7 @@ lz_get_custom_hosts_file_item_total_status() {
 ##     总有效条目数
 lz_get_domain_data_file_item_total_status() {
     local retval="0"
-    [ -f "${1}" ] && {
+    [ -s "${1}" ] && {
         retval="$( sed -e "s/\'//g" -e 's/\"//g' -e 's/[[:space:]]\+/ /g' -e 's/^[[:space:]]*//g' -e '/^[#]/d' -e 's/[#].*$//g' \
                 -e 's/^\([^[:space:]]*\).*$/\1/g' -e 's/^[^[:space:]]*[\:][\/][\/]//g' -e 's/^[^[:space:]]\{0,6\}[\:]//g' \
                 -e 's/[\/].*$//g' -e 's/[[:space:]].*$//g' -e '/^[\.]/d' -e '/^[[:space:]]*$/d' "${1}" 2> /dev/null \
@@ -232,8 +283,8 @@ lz_get_domain_data_file_item_total_status() {
 ##     1--失败
 lz_get_unkonwn_ipv4_src_addr_data_file_item_status() {
     local retval="1"
-    [ -f "${1}" ] && {
-        retval="$( awk '$1 == "0.0.0.0/0" && NF >= "1" {print "0"; exit}' "${1}" )"
+    [ -s "${1}" ] && {
+        retval="$( lz_print_ipv4_address_list_status "${1}" | awk 'NF >= "1" && $1 == "0.0.0.0/0" {print "0"; exit}' )"
         [ -z "${retval}" ] && retval="1"
     }
     return "${retval}"
@@ -247,8 +298,8 @@ lz_get_unkonwn_ipv4_src_addr_data_file_item_status() {
 ##     1--失败
 lz_get_unkonwn_ipv4_src_dst_addr_data_file_item_status() {
     local retval="1"
-    [ -f "${1}" ] && {
-        retval="$( awk '$1 == "0.0.0.0/0" && $2 == "0.0.0.0/0" && NF >= "2" {print "0"; exit}' "${1}" )"
+    [ -s "${1}" ] && {
+        retval="$( lz_print_src_to_dst_ipv4_address_list_status "${1}" | awk 'NF >= "2" && $1 == "0.0.0.0/0" && $2 == "0.0.0.0/0" {print "0"; exit}' )"
         [ -z "${retval}" ] && retval="1"
     }
     return "${retval}"
@@ -262,8 +313,9 @@ lz_get_unkonwn_ipv4_src_dst_addr_data_file_item_status() {
 ##     1--失败
 lz_get_unkonwn_ipv4_src_dst_addr_port_data_file_item_status() {
     local retval="1"
-    [ -f "${1}" ] && {
-        retval="$( awk '$1 == "0.0.0.0/0" && $2 == "0.0.0.0/0" && NF == "2" {print "0"; exit}' "${1}" )"
+    [ -s "${1}" ] && {
+        retval="$( lz_print_src_to_dst_port_ip_list_status "${1}" | awk ' NF == "1" && $1 == "0.0.0.0/0" {print "0"; exit} \
+            NF == "2" && $1 == "0.0.0.0/0" && $2 == "0.0.0.0/0" {print "0"; exit}' )"
         [ -z "${retval}" ] && retval="1"
     }
     return "${retval}"
@@ -276,7 +328,7 @@ lz_get_unkonwn_ipv4_src_dst_addr_port_data_file_item_status() {
 ## 返回值：
 ##     条目数
 lz_get_iptables_fwmark_item_total_number_status() {
-    local retval="$( iptables -t mangle -L "${2}" 2> /dev/null | grep CONNMARK | grep -ci "${1}" )"
+    local retval="$( iptables -t mangle -L "${2}" 2> /dev/null | grep -ci "CONNMARK[[:space:]][[:space:]]*set[[:space:]][[:space:]]*${1}$" )"
     echo "${retval}"
 }
 
@@ -332,7 +384,11 @@ lz_set_parameter_status_variable() {
     status_policy_mode=
     status_route_hardware_type=
     status_route_os_name=
-    status_route_local_ip="$( ip -o -4 address list | awk '$2 == "br0" {print $4}' | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,3}){0,1}' | cut -d "/" -f1 )"
+    status_route_static_subnet="$( ip -o -4 address list | awk '$2 == "br0" {print $4}' | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,3}){0,1}' )"
+    status_route_local_ip="${status_route_static_subnet%/*}"
+    status_route_local_subnet=""
+    [ -n "${status_route_static_subnet}" ] && status_route_local_subnet="${status_route_static_subnet%.*}.0"
+    [ "${status_route_static_subnet}" != "${status_route_static_subnet##*/}" ] && status_route_local_subnet="${status_route_local_subnet}/${status_route_static_subnet##*/}"
     status_ip_rule_exist=0
     status_adjust_traffic_policy="5"
 
@@ -360,6 +416,8 @@ lz_unset_parameter_status_variable() {
     unset status_route_hardware_type
     unset status_route_os_name
     unset status_route_local_ip
+    unset status_route_static_subnet
+    unset status_route_local_subnet
     unset status_ip_rule_exist
     unset status_adjust_traffic_policy
 }
@@ -940,15 +998,17 @@ lz_get_route_status_info() {
                         local_firmware_version="${local_firmware_version}.${local_firmware_buildno}"
                     else
                         if [ "$( echo "${local_firmware_version}" | sed 's/[^0-9]//g' )" = "$( echo "${local_firmware_webs_state_info_beta}" | sed 's/\(^[0-9]*\).*$/\1/g' )" ]; then
-                            local_firmware_webs_state_info_beta="$( echo "${local_firmware_webs_state_info_beta}" | sed 's/^[0-9]*[^0-9]*\([0-9].*$\)/\1/g' )"
+                            local_firmware_version="${local_firmware_webs_state_info_beta}"
+                        else
+                            local_firmware_version="${local_firmware_version}.${local_firmware_webs_state_info_beta}"
                         fi
-                        local_firmware_version="${local_firmware_version}.${local_firmware_webs_state_info_beta}"
                     fi
                 else
                     if [ "$( echo "${local_firmware_version}" | sed 's/[^0-9]//g' )" = "$( echo "${local_firmware_webs_state_info}" | sed 's/\(^[0-9]*\).*$/\1/g' )" ]; then
-                        local_firmware_webs_state_info="$( echo "${local_firmware_webs_state_info}" | sed 's/^[0-9]*[^0-9]*\([0-9].*$\)/\1/g' )"
+                        local_firmware_version="${local_firmware_webs_state_info}"
+                    else
+                        local_firmware_version="${local_firmware_version}.${local_firmware_webs_state_info}"
                     fi
-                    local_firmware_version="${local_firmware_version}.${local_firmware_webs_state_info}"
                 fi
                 echo "$(lzdate)" [$$]: "   Firmware Version: ${local_firmware_version}" | tee -ai "${STATUS_LOG}" 2> /dev/null
             }
@@ -1306,16 +1366,14 @@ lz_show_vpn_support_status() {
 ##     $3--0:正匹配数据，非0：反匹配（nomatch）数据
 ## 返回值：
 ##     网址/网段数据集--全局变量
-lz_add_net_address_status_sets() {
-    if [ ! -f "${1}" ] || [ -z "${2}" ]; then return; fi;
+lz_add_net_address_sets_status() {
+    if [ ! -s "${1}" ] || [ -z "${2}" ]; then return; fi;
     local NOMATCH=""
     [ "${3}" != "0" ] && NOMATCH=" nomatch"
     ipset -q create "${2}" nethash maxelem 4294967295 #--hashsize 1024 mexleme 65536
-    awk '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
-        && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
-        && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" && $1 != "'"${status_route_local_ip}"'" \
-        && NF >= "1" && !i[$1]++ {print "'"-! del ${2} "'"$1"'"\n-! add ${2} "'"$1"'"${NOMATCH}"'"} END{print "COMMIT"}' "${1}" \
-        | ipset restore > /dev/null 2>&1
+    lz_print_valid_ipv4_address_list_status "${1}" | awk 'NF >= "1" \
+        && !i[$1]++ {print "'"-! del ${2} "'"$1"'"\n-! add ${2} "'"$1"'"${NOMATCH}"'"} \
+        END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
 }
 
 ## 获取路由器WAN出口IPv4公网IP地址状态函数
@@ -1373,7 +1431,7 @@ lz_get_wan_isp_info_staus() {
             ##     $3--0:正匹配数据，非0：反匹配（nomatch）数据
             ## 返回值：
             ##     网址/网段数据集--全局变量
-            lz_add_net_address_status_sets "$( lz_get_isp_data_filename_status "${local_index}" )" "lz_ispip_tmp_${local_index}" "0"
+            lz_add_net_address_sets_status "$( lz_get_isp_data_filename_status "${local_index}" )" "lz_ispip_tmp_${local_index}" "0"
         }
         local_index="$(( local_index + 1 ))"
     done
@@ -1829,38 +1887,38 @@ lz_output_ispip_status_info() {
 ##     全局常量及变量
 ## 返回值：无
 lz_output_dport_policy_info_status() {
-    ! iptables -t mangle -L PREROUTING | grep -q "${STATUS_CUSTOM_PREROUTING_CHAIN}" && return
-    ! iptables -t mangle -L "${STATUS_CUSTOM_PREROUTING_CHAIN}" | grep -q "${STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN}" && return
+    ! iptables -t mangle -L PREROUTING 2> /dev/null | grep -qw "${STATUS_CUSTOM_PREROUTING_CHAIN}" && return
+    ! iptables -t mangle -L "${STATUS_CUSTOM_PREROUTING_CHAIN}" 2> /dev/null | grep -qw "${STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN}" && return
     local local_item_exist="0"
-    local local_dports="$( iptables -t mangle -L "${STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN}" -v -n --line-numbers | grep "MARK set ${STATUS_DEST_PORT_FWMARK_0}" | grep "tcp" | awk -F "dports " '{print $2}' | awk '{print $1}' )"
+    local local_dports="$( iptables -t mangle -L "${STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN}" | grep -i "CONNMARK[[:space:]][[:space:]]*set[[:space:]][[:space:]]*${STATUS_DEST_PORT_FWMARK_0}$" | grep -w "tcp" | awk -F "dports " '{print $2}' | awk '{print $1}' )"
     [ -n "${local_dports}" ] && local_item_exist="1" && {
         echo "$(lzdate)" [$$]: "   Primary WAN     TCP:${local_dports}" | tee -ai "${STATUS_LOG}" 2> /dev/null
     }
-    local_dports="$( iptables -t mangle -L "${STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN}" -v -n --line-numbers | grep "MARK set ${STATUS_DEST_PORT_FWMARK_0}" | grep "udp " | awk -F "dports " '{print $2}' | awk '{print $1}' )"
+    local_dports="$( iptables -t mangle -L "${STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN}" | grep -i "CONNMARK[[:space:]][[:space:]]*set[[:space:]][[:space:]]*${STATUS_DEST_PORT_FWMARK_0}$" | grep -w "udp" | awk -F "dports " '{print $2}' | awk '{print $1}' )"
     [ -n "${local_dports}" ] && local_item_exist="1" && {
         echo "$(lzdate)" [$$]: "   Primary WAN     UDP:${local_dports}" | tee -ai "${STATUS_LOG}" 2> /dev/null
     }
-    local_dports="$( iptables -t mangle -L "${STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN}" -v -n --line-numbers | grep "MARK set ${STATUS_DEST_PORT_FWMARK_0}" | grep "udplite" | awk -F "dports " '{print $2}' | awk '{print $1}' )"
+    local_dports="$( iptables -t mangle -L "${STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN}" | grep -i "CONNMARK[[:space:]][[:space:]]*set[[:space:]][[:space:]]*${STATUS_DEST_PORT_FWMARK_0}$" | grep -w "udplite" | awk -F "dports " '{print $2}' | awk '{print $1}' )"
     [ -n "${local_dports}" ] && local_item_exist="1" && {
         echo "$(lzdate)" [$$]: "   Primary WAN     UDPLITE:${local_dports}" | tee -ai "${STATUS_LOG}" 2> /dev/null
     }
-    local_dports="$( iptables -t mangle -L "${STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN}" -v -n --line-numbers | grep "MARK set ${STATUS_DEST_PORT_FWMARK_0}" | grep "sctp" | awk -F "dports " '{print $2}' | awk '{print $1}' )"
+    local_dports="$( iptables -t mangle -L "${STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN}" | grep -i "CONNMARK[[:space:]][[:space:]]*set[[:space:]][[:space:]]*${STATUS_DEST_PORT_FWMARK_0}$" | grep -w "sctp" | awk -F "dports " '{print $2}' | awk '{print $1}' )"
     [ -n "${local_dports}" ] && local_item_exist="1" && {
         echo "$(lzdate)" [$$]: "   Primary WAN     SCTP:${local_dports}" | tee -ai "${STATUS_LOG}" 2> /dev/null
     }
-    local_dports="$( iptables -t mangle -L "${STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN}" -v -n --line-numbers | grep "MARK set ${STATUS_DEST_PORT_FWMARK_1}" | grep "tcp" | awk -F "dports " '{print $2}' | awk '{print $1}' )"
+    local_dports="$( iptables -t mangle -L "${STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN}" | grep -i "CONNMARK[[:space:]][[:space:]]*set[[:space:]][[:space:]]*${STATUS_DEST_PORT_FWMARK_1}$" | grep -w "tcp" | awk -F "dports " '{print $2}' | awk '{print $1}' )"
     [ -n "${local_dports}" ] && local_item_exist="1" && {
         echo "$(lzdate)" [$$]: "   Secondary WAN   TCP:${local_dports}" | tee -ai "${STATUS_LOG}" 2> /dev/null
     }
-    local_dports="$( iptables -t mangle -L "${STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN}" -v -n --line-numbers | grep "MARK set ${STATUS_DEST_PORT_FWMARK_1}" | grep "udp " | awk -F "dports " '{print $2}' | awk '{print $1}' )"
+    local_dports="$( iptables -t mangle -L "${STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN}" | grep -i "CONNMARK[[:space:]][[:space:]]*set[[:space:]][[:space:]]*${STATUS_DEST_PORT_FWMARK_1}$" | grep -w "udp" | awk -F "dports " '{print $2}' | awk '{print $1}' )"
     [ -n "${local_dports}" ] && local_item_exist="1" && {
         echo "$(lzdate)" [$$]: "   Secondary WAN   UDP:${local_dports}" | tee -ai "${STATUS_LOG}" 2> /dev/null
     }
-    local_dports="$( iptables -t mangle -L "${STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN}" -v -n --line-numbers | grep "MARK set ${STATUS_DEST_PORT_FWMARK_1}" | grep "udplite" | awk -F "dports " '{print $2}' | awk '{print $1}' )"
+    local_dports="$( iptables -t mangle -L "${STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN}" | grep -i "CONNMARK[[:space:]][[:space:]]*set[[:space:]][[:space:]]*${STATUS_DEST_PORT_FWMARK_1}$" | grep -w "udplite" | awk -F "dports " '{print $2}' | awk '{print $1}' )"
     [ -n "${local_dports}" ] && local_item_exist="1" && {
         echo "$(lzdate)" [$$]: "   Secondary WAN   UDPLITE:${local_dports}" | tee -ai "${STATUS_LOG}" 2> /dev/null
     }
-    local_dports="$( iptables -t mangle -L "${STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN}" -v -n --line-numbers | grep "MARK set ${STATUS_DEST_PORT_FWMARK_1}" | grep "sctp" | awk -F "dports " '{print $2}' | awk '{print $1}' )"
+    local_dports="$( iptables -t mangle -L "${STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN}" | grep -i "CONNMARK[[:space:]][[:space:]]*set[[:space:]][[:space:]]*${STATUS_DEST_PORT_FWMARK_1}$" | grep -w "sctp" | awk -F "dports " '{print $2}' | awk '{print $1}' )"
     [ -n "${local_dports}" ] && local_item_exist="1" && {
         echo "$(lzdate)" [$$]: "   Secondary WAN   SCTP:${local_dports}" | tee -ai "${STATUS_LOG}" 2> /dev/null
     }

@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_address_query.sh v4.5.4
+# lz_rule_address_query.sh v4.5.5
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 网址信息查询脚本
@@ -82,19 +82,71 @@ lz_aq_unset_isp_wan_port_variable() {
     done
 }
 
+## 打印IPv4地址数据列表函数
+## 输入项：
+##     $1--全路径网段数据文件名
+## 返回值：
+##     IPv4地址数据列表
+lz_aq_print_ipv4_address_list() {
+    sed -e 's/^[[:space:]][[:space:]]*//g' -e 's/[#].*$//g' -e 's/[[:space:]][[:space:]]*/ /g' -e 's/[[:space:]][[:space:]]*$//g' \
+        -e 's/^\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}\)[[:space:]].*$/\1/' \
+        -e "s#\(^\|[[:space:]]\)${aq_route_local_subnet}\([[:space:]]\|$\)#${aq_route_static_subnet}#g" \
+        -e '/^\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}$/!d' \
+        -e '/[3-9][0-9][0-9]\|[2][6-9][0-9]\|[2][5][6-9]\|[\/][4-9][0-9]\|[\/][3][3-9]/d' \
+        -e "/\(^\|[[:space:]]\)\(0[\.]0[\.]0[\.]0\|${aq_route_local_ip}\)\([[:space:]]\|$\)/d" "${1}"
+}
+
+## 打印IPv4源地址至目标地址数据列表函数
+## 输入项：
+##     $1--全路径网段数据文件名
+## 返回值：
+##     IPv4源地址至目标地址数据列表
+lz_aq_print_valid_ipv4_address_list() {
+    sed -e 's/^[[:space:]][[:space:]]*//g' -e 's/[#].*$//g' -e 's/[[:space:]][[:space:]]*/ /g' -e 's/[[:space:]][[:space:]]*$//g' \
+        -e 's/^\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}\)[[:space:]].*$/\1/' \
+        -e "s#\(^\|[[:space:]]\)${aq_route_local_subnet}\([[:space:]]\|$\)#${aq_route_static_subnet}#g" \
+        -e '/^\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}$/!d' \
+        -e '/[3-9][0-9][0-9]\|[2][6-9][0-9]\|[2][5][6-9]\|[\/][4-9][0-9]\|[\/][3][3-9]/d' \
+        -e "/\(^\|[[:space:]]\)\(0[\.]0[\.]0[\.]0[\/]0\|0[\.]0[\.]0[\.]0\|${aq_route_local_ip}\)\([[:space:]]\|$\)/d" "${1}"
+}
+
+## 打印IPv4源地址至目标地址协议端口数据列表函数
+## 输入项：
+##     $1--全路径网段数据文件名
+## 返回值：
+##     IPv4源地址至目标地址协议端口数据列表
+lz_aq_print_src_to_dst_ipv4_address_list() {
+    sed -e 's/^[[:space:]][[:space:]]*//g' -e 's/[#].*$//g' -e 's/[[:space:]][[:space:]]*/ /g' -e 's/[[:space:]][[:space:]]*$//g' \
+        -e 's/^\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}\)[[:space:]]\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}\)[[:space:]].*$/\1 \4/' \
+        -e "s#\(^\|[[:space:]]\)${aq_route_local_subnet}\([[:space:]]\|$\)#${aq_route_static_subnet}#g" \
+        -e '/^\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}[[:space:]]\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}$/!d' \
+        -e '/[3-9][0-9][0-9]\|[2][6-9][0-9]\|[2][5][6-9]\|[\/][4-9][0-9]\|[\/][3][3-9]/d' \
+        -e "/\(^\|[[:space:]]\)\(0[\.]0[\.]0[\.]0\|${aq_route_local_ip}\)\([[:space:]]\|$\)/d" "${1}"
+}
+
+## 打印IPv4源地址至目标地址协议端口数据列表函数
+## 输入项：
+##     $1--全路径网段数据文件名
+## 返回值：
+##     IPv4源地址至目标地址协议端口数据列表
+lz_aq_print_src_to_dst_port_ipv4_address_list() {
+    local local_regex='^[[:space:]]*(([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1})([[:space:]][[:space:]]*(([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1})([[:space:]][[:space:]]*(tcp|udp|udplite|sctp)([[:space:]][[:space:]]*((([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)[\,])*([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)|all)([[:space:]][[:space:]]*((([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)[\,])*([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)|all)){0,1}){0,1}){0,1}){0,1}$'
+    grep -E "${local_regex}" "${1}" \
+        | tr '[:A-Z:]' '[:a-z:]' \
+        | sed -e 's/^[[:space:]][[:space:]]*//g' -e 's/[#].*$//g' -e 's/[[:space:]][[:space:]]*/ /g' -e 's/[[:space:]][[:space:]]*$//g' \
+            -e "s#\(^\|[[:space:]]\)${aq_route_local_subnet}\([[:space:]]\|$\)#${aq_route_static_subnet}#g" \
+            -e "/\(^\|[[:space:]]\)\(0[\.]0[\.]0[\.]0\|${aq_route_local_ip}\)\([[:space:]]\|$\)/d" \
+            -e '/^\([^[:space:]][^[:space:]]*[[:space:]]\)\{0,1\}[^[:space:]]*\([3-9][0-9][0-9]\|[2][6-9][0-9]\|[2][5][6-9]\|[\/][4-9][0-9]\|[\/][3][3-9]\)[^[:space:]]*\([[:space:]]\|$\)/d'
+}
+
 ## 获取IPv4源网址/网段列表数据文件总有效条目数函数
 ## 输入项：
 ##     $1--全路径网段数据文件名
 ## 返回值：
 ##     总有效条目数
-lz_aq_get_ipv4_data_file_item_total() {
+lz_aq_get_ipv4_data_file_valid_item_total() {
     local retval="0"
-    [ -f "${1}" ] && {
-        retval="$( awk -v count="0" '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
-            && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
-            && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" && $1 != "'"${aq_route_local_ip}"'" \
-            && NF >= "1" && !i[$1]++ {count++} END{print count}' "${1}" )"
-    }
+    [ -s "${1}" ] && retval="$( lz_aq_print_valid_ipv4_address_list "${1}" | awk -v count="0" 'NF >= "1" && !i[$1]++ {count++} END{print count}' )"
     echo "${retval}"
 }
 
@@ -106,8 +158,8 @@ lz_aq_get_ipv4_data_file_item_total() {
 ##     1--失败
 lz_aq_get_unkonwn_ipv4_src_addr_data_file_item() {
     local retval="1"
-    [ -f "${1}" ] && {
-        retval="$( awk '$1 == "0.0.0.0/0" && NF >= "1" {print "0"; exit}' "${1}" )"
+    [ -s "${1}" ] && {
+        retval="$( lz_aq_print_ipv4_address_list "${1}" | awk 'NF >= "1" && $1 == "0.0.0.0/0" {print "0"; exit}' )"
         [ -z "${retval}" ] && retval="1"
     }
     return "${retval}"
@@ -121,8 +173,8 @@ lz_aq_get_unkonwn_ipv4_src_addr_data_file_item() {
 ##     1--失败
 lz_aq_get_unkonwn_ipv4_src_dst_addr_data_file_item() {
     local retval="1"
-    [ -f "${1}" ] && {
-        retval="$( awk '$1 == "0.0.0.0/0" && $2 == "0.0.0.0/0" && NF >= "2" {print "0"; exit}' "${1}" )"
+    [ -s "${1}" ] && {
+        retval="$( lz_aq_print_src_to_dst_ipv4_address_list "${1}" | awk 'NF >= "2" && $1 == "0.0.0.0/0" && $2 == "0.0.0.0/0" {print "0"; exit}' )"
         [ -z "${retval}" ] && retval="1"
     }
     return "${retval}"
@@ -136,8 +188,9 @@ lz_aq_get_unkonwn_ipv4_src_dst_addr_data_file_item() {
 ##     1--失败
 lz_aq_get_unkonwn_ipv4_src_dst_addr_port_data_file_item() {
     local retval="1"
-    [ -f "${1}" ] && {
-        retval="$( awk '$1 == "0.0.0.0/0" && $2 == "0.0.0.0/0" && NF == "2" {print "0"; exit}' "${1}" )"
+    [ -s "${1}" ] && {
+        retval="$( lz_aq_print_src_to_dst_port_ipv4_address_list "${1}" | awk ' NF == "1" && $1 == "0.0.0.0/0" {print "0"; exit} \
+            NF == "2" && $1 == "0.0.0.0/0" && $2 == "0.0.0.0/0" {print "0"; exit}' )"
         [ -z "${retval}" ] && retval="1"
     }
     return "${retval}"
@@ -151,15 +204,13 @@ lz_aq_get_unkonwn_ipv4_src_dst_addr_port_data_file_item() {
 ## 返回值：
 ##     网址/网段数据集--全局变量
 lz_aq_add_net_address_sets() {
-    if [ ! -f "${1}" ] || [ -z "${2}" ]; then return; fi;
+    if [ ! -s "${1}" ] || [ -z "${2}" ]; then return; fi;
     local NOMATCH=""
     [ "${3}" != "0" ] && NOMATCH=" nomatch"
     ipset -q create "${2}" nethash maxelem 4294967295 #--hashsize 1024 mexleme 65536
-    awk '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
-        && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
-        && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" && $1 != "'"${aq_route_local_ip}"'" \
-        && NF >= "1" && !i[$1]++ {print "'"-! del ${2} "'"$1"'"\n-! add ${2} "'"$1"'"${NOMATCH}"'"} END{print "COMMIT"}' "${1}" \
-        | ipset restore > /dev/null 2>&1
+    lz_aq_print_valid_ipv4_address_list "${1}" | awk 'NF >= "1" \
+        && !i[$1]++ {print "'"-! del ${2} "'"$1"'"\n-! add ${2} "'"$1"'"${NOMATCH}"'"} \
+        END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
 }
 
 ## 创建或加载网段均分出口数据集函数
@@ -172,7 +223,7 @@ lz_aq_add_net_address_sets() {
 ## 返回值：
 ##     网址/网段数据集--全局变量
 lz_aq_add_ed_net_address_sets() {
-    if [ ! -f "${1}" ] || [ -z "${2}" ]; then return; fi;
+    if [ ! -s "${1}" ] || [ -z "${2}" ]; then return; fi;
     local local_ed_total="$( echo "${4}" | grep -Eo '[0-9][0-9]*' )"
     [ -z "${local_ed_total}" ] && return
     [ "${local_ed_total}" -le "0" ] && return
@@ -182,19 +233,16 @@ lz_aq_add_ed_net_address_sets() {
     [ "${3}" != "0" ] && NOMATCH=" nomatch"
     ipset -q create "${2}" nethash maxelem 4294967295 #--hashsize 1024 mexleme 65536
     [ "${5}" != "0" ] && local_ed_num="$(( local_ed_num + 1 ))"
-    awk -v count="0" -v criterion="${5}" -v ed_num="${local_ed_num}" '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
-        && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
-        && NF >= "1" && !i[$1]++ {
+    lz_aq_print_valid_ipv4_address_list "${1}" | awk -v count="0" -v criterion="${5}" -v ed_num="${local_ed_num}" 'NF >= "1" \
+        && !i[$1]++ {
             count++;
             if (criterion == "0") {
-                if ($1 != "0.0.0.0/0" && $1 != "0.0.0.0" && $1 != "'"${aq_route_local_ip}"'")
-                    print "'"-! del ${2} "'"$1"'"\n-! add ${2} "'"$1"'"${NOMATCH}"'";
+                print "'"-! del ${2} "'"$1"'"\n-! add ${2} "'"$1"'"${NOMATCH}"'";
                 if (count >= ed_num) exit;
             }
-            else if (count >= ed_num && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" && $1 != "'"${aq_route_local_ip}"'")
+            else if (count >= ed_num)
                 print "'"-! del ${2} "'"$1"'"\n-! add ${2} "'"$1"'"${NOMATCH}"'";
-        } END{print "COMMIT"}' "${1}" \
-        | ipset restore > /dev/null 2>&1
+        } END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
 }
 
 ## 创建或加载源网址/网段至目标网址/网段列表数据中未指明源网址/网段的目标网址/网段至数据集函数
@@ -205,16 +253,15 @@ lz_aq_add_ed_net_address_sets() {
 ## 返回值：
 ##     网址/网段数据集--全局变量
 lz_aq_add_dst_net_address_sets() {
-    if [ ! -f "${1}" ] || [ -z "${2}" ]; then return; fi;
+    if [ ! -s "${1}" ] || [ -z "${2}" ]; then return; fi;
     local NOMATCH=""
     [ "${3}" != "0" ] && NOMATCH=" nomatch"
     ipset -q create "${2}" nethash maxelem 4294967295 #--hashsize 1024 mexleme 65536
-    awk '$1 == "0.0.0.0/0" \
-        && $2 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
-        && $2 !~ /[3-9][0-9][0-9]/ && $2 !~ /[2][6-9][0-9]/ && $2 !~ /[2][5][6-9]/ && $2 !~ /[\/][4-9][0-9]/ && $2 !~ /[\/][3][3-9]/ \
+    lz_aq_print_src_to_dst_ipv4_address_list "${1}" | awk 'NF >= "2" \
+        && $1 == "0.0.0.0/0" \
         && $2 != "0.0.0.0/0" \
-        && NF >= "2" && !i[$1"_"$2]++ {print "'"-! del ${2} "'"$2"'"\n-! add ${2} "'"$2"'"${NOMATCH}"'"} END{print "COMMIT"}' "${1}" \
-        | ipset restore > /dev/null 2>&1
+        && !i[$1"_"$2]++ {print "'"-! del ${2} "'"$2"'"\n-! add ${2} "'"$2"'"${NOMATCH}"'"} \
+        END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
 }
 
 ## 创建或加载客户端IPv4网址/网段至预设IPv4目标网址/网段协议端口动态分流条目列表数据中未指明源网址/网段的非协议端口目标网址/网段至数据集函数
@@ -225,17 +272,18 @@ lz_aq_add_dst_net_address_sets() {
 ## 返回值：
 ##     网址/网段数据集--全局变量
 lz_aq_add_client_dest_port_net_address_sets() {
-    if [ ! -f "${1}" ] || [ -z "${2}" ]; then return; fi;
+    if [ ! -s "${1}" ] || [ -z "${2}" ]; then return; fi;
     local NOMATCH=""
     [ "${3}" != "0" ] && NOMATCH=" nomatch"
     ipset -q create "${2}" nethash maxelem 4294967295 #--hashsize 1024 mexleme 65536
-    awk '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
-        && $1 == "0.0.0.0/0" \
-        && $2 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
-        && $2 !~ /[3-9][0-9][0-9]/ && $2 !~ /[2][6-9][0-9]/ && $2 !~ /[2][5][6-9]/ && $2 !~ /[\/][4-9][0-9]/ && $2 !~ /[\/][3][3-9]/ \
-        && $2 != "0.0.0.0/0" \
-        && NF == "2" && !i[$1"_"$2]++ {print "'"-! del ${2} "'"$1"'"\n-! add ${2} "'"$1"'"${NOMATCH}"'"} END{print "COMMIT"}' "${1}" \
-        | ipset restore > /dev/null 2>&1
+    lz_aq_print_src_to_dst_port_ipv4_address_list "${1}" \
+        | awk 'NF == "2" \
+        && $1 != "0.0.0.0/0" \
+        && !i[$1"_"$2"_"$3"_"$4"_"$5]++ {
+            print "'"-! del ${2} "'"$1"'"\n-! add ${2} "'"$1"'"${NOMATCH}"'";
+            next;
+        } \
+        END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
 }
 
 ## 获取IPSET数据集条目数函数
@@ -529,7 +577,7 @@ lz_aq_get_isp_data_filename() {
 ## 返回值：
 ##     条目数
 lz_aq_get_isp_data_item_total() {
-    lz_aq_get_ipv4_data_file_item_total "$( lz_aq_get_isp_data_filename "${1}" )"
+    lz_aq_get_ipv4_data_file_valid_item_total "$( lz_aq_get_isp_data_filename "${1}" )"
 }
 
 ## 设置ISP网络运营商CIDR网段数据条目数变量函数
@@ -585,6 +633,11 @@ lz_aq_get_route_local_address_info() {
     aq_route_local_ip="$( echo "${local_route_local_info}" | awk 'NR==2 {print $2}' | awk -F: '{print $2}' )"
     aq_route_local_ip_cidr_mask="$( echo "${local_route_local_info}" | awk 'NR==2 {print $4}' | awk -F: '{print $2}' )"
     [ -n "$aq_route_local_ip_cidr_mask" ] && aq_route_local_ip_cidr_mask="$( lz_aq_netmask2cdr "${aq_route_local_ip_cidr_mask}" )"
+
+    aq_route_static_subnet="$( ip -o -4 address list | awk '$2 == "br0" {print $4}' | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,3}){0,1}' )"
+    aq_route_local_subnet=""
+    [ -n "${aq_route_static_subnet}" ] && aq_route_local_subnet="${aq_route_static_subnet%.*}.0"
+    [ "${aq_route_static_subnet}" != "${aq_route_static_subnet##*/}" ] && aq_route_local_subnet="${aq_route_local_subnet}/${aq_route_static_subnet##*/}"
 }
 
 ## 设置网址信息查询用变量函数
@@ -594,6 +647,8 @@ lz_set_aq_parameter_variable() {
 
     aq_route_local_ip=
     aq_route_local_ip_cidr_mask=
+    aq_route_static_subnet=
+    aq_route_local_subnet=
     aq_client_full_traffic_wan="0"
     aq_static_wan_port=
 
@@ -627,6 +682,8 @@ lz_unset_aq_parameter_variable() {
 
     unset aq_route_local_ip
     unset aq_route_local_ip_cidr_mask
+    unset aq_route_static_subnet
+    unset aq_route_local_subnet
     unset aq_client_full_traffic_wan
     unset aq_static_wan_port
 }
@@ -851,11 +908,11 @@ lz_aq_get_static_policy_wan_port() {
         done
         local custom_total="0"
         { [ "${aq_custom_data_wan_port_1}" = "0" ] || [ "${aq_custom_data_wan_port_1}" = "1" ]; } \
-            && custom_total="$( lz_aq_get_ipv4_data_file_item_total "${aq_custom_data_file_1}" )"
+            && custom_total="$( lz_aq_get_ipv4_data_file_valid_item_total "${aq_custom_data_file_1}" )"
         [ "${aq_custom_data_wan_port_1}" = "0" ] && local_wan1_isp_addr_total="$(( local_wan1_isp_addr_total + custom_total ))"
         [ "${aq_custom_data_wan_port_1}" = "1" ] && local_wan2_isp_addr_total="$(( local_wan2_isp_addr_total + custom_total ))"
         { [ "${aq_custom_data_wan_port_2}" = "0" ] || [ "${aq_custom_data_wan_port_2}" = "1" ]; } \
-            && custom_total="$( lz_aq_get_ipv4_data_file_item_total "${aq_custom_data_file_2}" )"
+            && custom_total="$( lz_aq_get_ipv4_data_file_valid_item_total "${aq_custom_data_file_2}" )"
         [ "${aq_custom_data_wan_port_2}" = "0" ] && local_wan1_isp_addr_total="$(( local_wan1_isp_addr_total + custom_total ))"
         [ "${aq_custom_data_wan_port_2}" = "1" ] && local_wan2_isp_addr_total="$(( local_wan2_isp_addr_total + custom_total ))"
         [ "${local_wan1_isp_addr_total}" -lt "${local_wan2_isp_addr_total}" ] && static_wan_port="1" || static_wan_port="0"

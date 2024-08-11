@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v4.5.4
+# lz_rule_func.sh v4.5.5
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 #BEGIN
@@ -52,6 +52,63 @@ lz_create_project_status_id() {
     ipset -q add "${PROJECT_STATUS_SET}" "${PROJECT_START_ID}"
 }
 
+## 打印IPv4地址数据列表函数
+## 输入项：
+##     $1--全路径网段数据文件名
+## 返回值：
+##     IPv4地址数据列表
+lz_print_ipv4_address_list() {
+    sed -e 's/^[[:space:]][[:space:]]*//g' -e 's/[#].*$//g' -e 's/[[:space:]][[:space:]]*/ /g' -e 's/[[:space:]][[:space:]]*$//g' \
+        -e 's/^\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}\)[[:space:]].*$/\1/' \
+        -e "s#\(^\|[[:space:]]\)${route_local_subnet}\([[:space:]]\|$\)#${route_static_subnet}#g" \
+        -e '/^\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}$/!d' \
+        -e '/[3-9][0-9][0-9]\|[2][6-9][0-9]\|[2][5][6-9]\|[\/][4-9][0-9]\|[\/][3][3-9]/d' \
+        -e "/\(^\|[[:space:]]\)\(0[\.]0[\.]0[\.]0\|${route_local_ip}\)\([[:space:]]\|$\)/d" "${1}"
+}
+
+## 打印有效的IPv4地址数据列表函数
+## 输入项：
+##     $1--全路径网段数据文件名
+## 返回值：
+##     IPv4地址数据列表（不含0.0.0.0/0地址）
+lz_print_valid_ipv4_address_list() {
+    sed -e 's/^[[:space:]][[:space:]]*//g' -e 's/[#].*$//g' -e 's/[[:space:]][[:space:]]*/ /g' -e 's/[[:space:]][[:space:]]*$//g' \
+        -e 's/^\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}\)[[:space:]].*$/\1/' \
+        -e "s#\(^\|[[:space:]]\)${route_local_subnet}\([[:space:]]\|$\)#${route_static_subnet}#g" \
+        -e '/^\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}$/!d' \
+        -e '/[3-9][0-9][0-9]\|[2][6-9][0-9]\|[2][5][6-9]\|[\/][4-9][0-9]\|[\/][3][3-9]/d' \
+        -e "/\(^\|[[:space:]]\)\(0[\.]0[\.]0[\.]0[\/]0\|0[\.]0[\.]0[\.]0\|${route_local_ip}\)\([[:space:]]\|$\)/d" "${1}"
+}
+
+## 打印IPv4源地址至目标地址数据列表函数
+## 输入项：
+##     $1--全路径网段数据文件名
+## 返回值：
+##     IPv4源地址至目标地址数据列表
+lz_print_src_to_dst_ipv4_address_list() {
+    sed -e 's/^[[:space:]][[:space:]]*//g' -e 's/[#].*$//g' -e 's/[[:space:]][[:space:]]*/ /g' -e 's/[[:space:]][[:space:]]*$//g' \
+        -e 's/^\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}\)[[:space:]]\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}\)[[:space:]].*$/\1 \4/' \
+        -e "s#\(^\|[[:space:]]\)${route_local_subnet}\([[:space:]]\|$\)#${route_static_subnet}#g" \
+        -e '/^\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}[[:space:]]\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}$/!d' \
+        -e '/[3-9][0-9][0-9]\|[2][6-9][0-9]\|[2][5][6-9]\|[\/][4-9][0-9]\|[\/][3][3-9]/d' \
+        -e "/\(^\|[[:space:]]\)\(0[\.]0[\.]0[\.]0\|${route_local_ip}\)\([[:space:]]\|$\)/d" "${1}"
+}
+
+## 打印IPv4源地址至目标地址协议端口数据列表函数
+## 输入项：
+##     $1--全路径网段数据文件名
+## 返回值：
+##     IPv4源地址至目标地址协议端口数据列表
+lz_print_src_to_dst_port_ipv4_address_list() {
+    local local_regex='^[[:space:]]*(([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1})([[:space:]][[:space:]]*(([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1})([[:space:]][[:space:]]*(tcp|udp|udplite|sctp)([[:space:]][[:space:]]*((([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)[\,])*([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)|all)([[:space:]][[:space:]]*((([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)[\,])*([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)|all)){0,1}){0,1}){0,1}){0,1}$'
+    grep -E "${local_regex}" "${1}" \
+        | tr '[:A-Z:]' '[:a-z:]' \
+        | sed -e 's/^[[:space:]][[:space:]]*//g' -e 's/[#].*$//g' -e 's/[[:space:]][[:space:]]*/ /g' -e 's/[[:space:]][[:space:]]*$//g' \
+            -e "s#\(^\|[[:space:]]\)${route_local_subnet}\([[:space:]]\|$\)#${route_static_subnet}#g" \
+            -e "/\(^\|[[:space:]]\)\(0[\.]0[\.]0[\.]0\|${route_local_ip}\)\([[:space:]]\|$\)/d" \
+            -e '/^\([^[:space:]][^[:space:]]*[[:space:]]\)\{0,1\}[^[:space:]]*\([3-9][0-9][0-9]\|[2][6-9][0-9]\|[2][5][6-9]\|[\/][4-9][0-9]\|[\/][3][3-9]\)[^[:space:]]*\([[:space:]]\|$\)/d'
+}
+
 ## 获取IPv4源网址/网段列表数据文件总有效条目数函数
 ## 输入项：
 ##     $1--全路径网段数据文件名
@@ -59,11 +116,14 @@ lz_create_project_status_id() {
 ##     总有效条目数
 lz_get_ipv4_data_file_item_total() {
     local retval="0"
-    [ -s "${1}" ] && {
-        retval="$( awk -v count="0" '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
-            && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
-            && NF >= "1" && !i[$1]++ {count++} END{print count}' "${1}" )"
-    }
+    [ -s "${1}" ] && retval="$( lz_print_ipv4_address_list "${1}" | awk 'NF >= "1" && !i[$1]++ {
+        if ($1 != "0.0.0.0/0")
+            count++;
+        else {
+            count=1;
+            exit;
+        }
+    } END{print count}' )"
     echo "${retval}"
 }
 
@@ -74,12 +134,7 @@ lz_get_ipv4_data_file_item_total() {
 ##     总有效条目数
 lz_get_ipv4_data_file_valid_item_total() {
     local retval="0"
-    [ -s "${1}" ] && {
-        retval="$( awk -v count="0" '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
-            && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
-            && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" && $1 != "'"${route_local_ip}"'" \
-            && NF >= "1" && !i[$1]++ {count++} END{print count}' "${1}" )"
-    }
+    [ -s "${1}" ] && retval="$( lz_print_valid_ipv4_address_list "${1}" | awk -v count="0" 'NF >= "1" && !i[$1]++ {count++} END{print count}' )"
     echo "${retval}"
 }
 
@@ -90,15 +145,14 @@ lz_get_ipv4_data_file_valid_item_total() {
 ##     总有效条目数
 lz_get_ipv4_src_to_dst_data_file_item_total() {
     local retval="0"
-    [ -s "${1}" ] && {
-        retval="$( awk -v count="0" '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
-            && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
-            && $1 != "0.0.0.0" && $1 != "'"${route_local_ip}"'" \
-            && $2 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
-            && $2 !~ /[3-9][0-9][0-9]/ && $2 !~ /[2][6-9][0-9]/ && $2 !~ /[2][5][6-9]/ && $2 !~ /[\/][4-9][0-9]/ && $2 !~ /[\/][3][3-9]/ \
-            && $2 != "0.0.0.0" && $2 != "'"${route_local_ip}"'" \
-            && NF >= "2" && !i[$1"_"$2]++ {count++} END{print count}' "${1}" )"
-    }
+    [ -s "${1}" ] && retval="$( lz_print_src_to_dst_ipv4_address_list "${1}" \
+        | awk -v count="0" 'NF >= "2" && !i[$1"_"$2]++ {
+            if ($1 == "0.0.0.0/0" && $2 == "0.0.0.0/0") {
+                count=1;
+                exit;
+            } else
+                count++;
+        } END{print count}' )"
     echo "${retval}"
 }
 
@@ -109,7 +163,8 @@ lz_get_ipv4_src_to_dst_data_file_item_total() {
 ##     总有效条目数
 lz_get_custom_hosts_file_item_total() {
     local retval="0"
-    [ -s "${1}" ] && retval="$( awk -v count="0" '$1 ~ /^[[:alnum:]_\.\-]+$/ && $2 ~ /^[[:alnum:]_\.\-]+$/ && !i[$2]++ {count++} END{print count}' "${1}" )"
+    [ -s "${1}" ] && retval="$( sed 's/[#].*$//g' "${1}" \
+        | awk -v count="0" '$1 ~ /^[[:alnum:]_\.\-]+$/ && $2 ~ /^[[:alnum:]_\.\-]+$/ && !i[$2]++ {count++} END{print count}' )"
     echo "${retval}"
 }
 
@@ -151,7 +206,7 @@ lz_get_domain_data_file_item_total() {
 lz_get_unkonwn_ipv4_src_addr_data_file_item() {
     local retval="1"
     [ -s "${1}" ] && {
-        retval="$( awk '$1 == "0.0.0.0/0" && NF >= "1" {print "0"; exit}' "${1}" )"
+        retval="$( lz_print_ipv4_address_list "${1}" | awk 'NF >= "1" && $1 == "0.0.0.0/0" {print "0"; exit}' )"
         [ -z "${retval}" ] && retval="1"
     }
     return "${retval}"
@@ -166,7 +221,7 @@ lz_get_unkonwn_ipv4_src_addr_data_file_item() {
 lz_get_unkonwn_ipv4_src_dst_addr_data_file_item() {
     local retval="1"
     [ -s "${1}" ] && {
-        retval="$( awk '$1 == "0.0.0.0/0" && $2 == "0.0.0.0/0" && NF >= "2" {print "0"; exit}' "${1}" )"
+        retval="$( lz_print_src_to_dst_ipv4_address_list "${1}" | awk 'NF >= "2" && $1 == "0.0.0.0/0" && $2 == "0.0.0.0/0" {print "0"; exit}' )"
         [ -z "${retval}" ] && retval="1"
     }
     return "${retval}"
@@ -181,7 +236,8 @@ lz_get_unkonwn_ipv4_src_dst_addr_data_file_item() {
 lz_get_unkonwn_ipv4_src_dst_addr_port_data_file_item() {
     local retval="1"
     [ -s "${1}" ] && {
-        retval="$( awk '$1 == "0.0.0.0/0" && $2 == "0.0.0.0/0" && NF == "2" {print "0"; exit}' "${1}" )"
+        retval="$( lz_print_src_to_dst_port_ipv4_address_list "${1}" | awk ' NF == "1" && $1 == "0.0.0.0/0" {print "0"; exit} \
+            NF == "2" && $1 == "0.0.0.0/0" && $2 == "0.0.0.0/0" {print "0"; exit}' )"
         [ -z "${retval}" ] && retval="1"
     }
     return "${retval}"
@@ -628,15 +684,17 @@ lz_get_route_info() {
                         local_firmware_version="${local_firmware_version}.${local_firmware_buildno}"
                     else
                         if [ "$( echo "${local_firmware_version}" | sed 's/[^0-9]//g' )" = "$( echo "${local_firmware_webs_state_info_beta}" | sed 's/\(^[0-9]*\).*$/\1/g' )" ]; then
-                            local_firmware_webs_state_info_beta="$( echo "${local_firmware_webs_state_info_beta}" | sed 's/^[0-9]*[^0-9]*\([0-9].*$\)/\1/g' )"
+                            local_firmware_version="${local_firmware_webs_state_info_beta}"
+                        else
+                            local_firmware_version="${local_firmware_version}.${local_firmware_webs_state_info_beta}"
                         fi
-                        local_firmware_version="${local_firmware_version}.${local_firmware_webs_state_info_beta}"
                     fi
                 else
                     if [ "$( echo "${local_firmware_version}" | sed 's/[^0-9]//g' )" = "$( echo "${local_firmware_webs_state_info}" | sed 's/\(^[0-9]*\).*$/\1/g' )" ]; then
-                        local_firmware_webs_state_info="$( echo "${local_firmware_webs_state_info}" | sed 's/^[0-9]*[^0-9]*\([0-9].*$\)/\1/g' )"
+                        local_firmware_version="${local_firmware_webs_state_info}"
+                    else
+                        local_firmware_version="${local_firmware_version}.${local_firmware_webs_state_info}"
                     fi
-                    local_firmware_version="${local_firmware_version}.${local_firmware_webs_state_info}"
                 fi
                 echo "$(lzdate)" [$$]: "   Firmware Version: ${local_firmware_version}" | tee -ai "${SYSLOG}" 2> /dev/null
             }
@@ -739,7 +797,8 @@ lz_get_route_info() {
     fi
 
     ## 输出显示路由器NVRAM使用情况
-    local local_nvram_usage="$( nvram show 2>&1 | grep -Eio "size: [0-9]+ bytes [\(][0-9]+ left[\)]" | awk '{print $2" \/ "substr($4,2)+$2,$3}' | sed -n 1p )"
+    local local_nvram_usage="$( nvram show 2>&1 | grep -Eio "size: [0-9]+ bytes [\(][0-9]+ left[\)]" \
+        | awk '{print $2" \/ "substr($4,2)+$2,$3}' | sed -n 1p )"
     if [ -n "${local_nvram_usage}" ]; then
         echo "$(lzdate)" [$$]: "   NVRAM usage: ${local_nvram_usage}" | tee -ai "${SYSLOG}" 2> /dev/null
     fi
@@ -872,11 +931,12 @@ lz_sys_load_balance_control() {
     ## 的数据包进行分流控制的高优先级规则：
     ##     150:	from all fwmark 0x80000000/0xf0000000 lookup wan0
     ##     150:	from all fwmark 0x90000000/0xf0000000 lookup wan1
-    if iptables -t mangle -L PREROUTING 2> /dev/null | grep -q balance; then
+    if iptables -t mangle -L PREROUTING 2> /dev/null | grep -qw 'balance' \
+        && iptables -t mangle -L balance 2> /dev/null | grep -qw balance; then
         balance_chain_existing="1"
         ## 删除路由前mangle表balance负载均衡规则链中脚本曾经插入的规则（避免系统原生负载均衡影响分流）
         local local_number="$( iptables -t mangle -L balance -v -n --line-numbers 2> /dev/null \
-            | grep -Ew "${BALANCE_GUARD_IP_SET}|${BALANCE_IP_SET}|${LOCAL_IP_SET}|${BALANCE_DST_IP_SET}|${ISPIP_ALL_CN_SET}|${NO_BALANCE_DST_IP_SET}|${ISPIP_SET_0}|${ISPIP_SET_1}|lz_balace_ipsets|${FOREIGN_FWMARK}/${FOREIGN_FWMARK}|${HOST_FOREIGN_FWMARK}/${HOST_FOREIGN_FWMARK}|${FWMARK0}/${FWMARK0}|${HOST_FWMARK0}/${HOST_FWMARK0}|${FWMARK1}/${FWMARK1}|${HOST_FWMARK1}/${HOST_FWMARK1}|${BALANCE_JUMP_FWMARK}/${BALANCE_JUMP_FWMARK}|${BALANCE_JUMP_FWMARK}/${FWMARK_MASK}|${HIGH_CLIENT_DEST_PORT_FWMARK_0}/${HIGH_CLIENT_DEST_PORT_FWMARK_0}|${CLIENT_DEST_PORT_FWMARK_0}/${CLIENT_DEST_PORT_FWMARK_0}|${DEST_PORT_FWMARK_0}/${DEST_PORT_FWMARK_0}|${CLIENT_DEST_PORT_FWMARK_1}/${CLIENT_DEST_PORT_FWMARK_1}|${DEST_PORT_FWMARK_1}/${DEST_PORT_FWMARK_1}|${SRC_DST_FWMARK}" \
+            | grep -Ew "${BALANCE_GUARD_IP_SET}|${BALANCE_IP_SET}|${LOCAL_IP_SET}|${BLACK_CLT_SRC_SET}|${BALANCE_DST_IP_SET}|${ISPIP_ALL_CN_SET}|${NO_BALANCE_DST_IP_SET}|${ISPIP_SET_0}|${ISPIP_SET_1}|lz_balace_ipsets|${FOREIGN_FWMARK}/${FOREIGN_FWMARK}|${HOST_FOREIGN_FWMARK}/${HOST_FOREIGN_FWMARK}|${FWMARK0}/${FWMARK0}|${HOST_FWMARK0}/${HOST_FWMARK0}|${FWMARK1}/${FWMARK1}|${HOST_FWMARK1}/${HOST_FWMARK1}|${BALANCE_JUMP_FWMARK}/${BALANCE_JUMP_FWMARK}|${BALANCE_JUMP_FWMARK}/${FWMARK_MASK}|${HIGH_CLIENT_DEST_PORT_FWMARK_0}/${HIGH_CLIENT_DEST_PORT_FWMARK_0}|${CLIENT_DEST_PORT_FWMARK_0}/${CLIENT_DEST_PORT_FWMARK_0}|${DEST_PORT_FWMARK_0}/${DEST_PORT_FWMARK_0}|${CLIENT_DEST_PORT_FWMARK_1}/${CLIENT_DEST_PORT_FWMARK_1}|${DEST_PORT_FWMARK_1}/${DEST_PORT_FWMARK_1}|${SRC_DST_FWMARK}" \
             | cut -d " " -f 1 | grep -o '^[0-9]*$' | sort -nr )"
         local local_item_no=
         for local_item_no in ${local_number}
@@ -987,7 +1047,7 @@ lz_delete_ip_rule_output_syslog() {
 ## 返回值：
 ##     条目数
 lz_get_iptables_fwmark_item_total_number() {
-    local retval="$( iptables -t mangle -L "${2}" 2> /dev/null | grep "CONNMARK" | grep -ci "${1}" )"
+    local retval="$( iptables -t mangle -L "${2}" 2> /dev/null | grep -ci "CONNMARK[[:space:]][[:space:]]*set[[:space:]][[:space:]]*${1}$" )"
     echo "${retval}"
 }
 
@@ -997,11 +1057,11 @@ lz_get_iptables_fwmark_item_total_number() {
 ## 返回值：无
 lz_delete_iptables_fwmark() {
     local local_number=
-    for local_number in $( iptables -t mangle -L PREROUTING -v -n --line-numbers 2> /dev/null | grep "MARK set ${1}" | cut -d " " -f 1 | sort -nr )
+    for local_number in $( iptables -t mangle -L PREROUTING -v -n --line-numbers 2> /dev/null | grep -i "MARK[[:space:]][[:space:]]*set[[:space:]][[:space:]]*${1}$" | cut -d " " -f 1 | sort -nr )
     do
         iptables -t mangle -D PREROUTING "${local_number}" > /dev/null 2>&1
     done
-    for local_number in $( iptables -t mangle -L OUTPUT -v -n --line-numbers 2> /dev/null | grep "MARK set ${1}" | cut -d " " -f 1 | sort -nr )
+    for local_number in $( iptables -t mangle -L OUTPUT -v -n --line-numbers 2> /dev/null | grep -i "MARK[[:space:]][[:space:]]*set[[:space:]][[:space:]]*${1}$" | cut -d " " -f 1 | sort -nr )
     do
         iptables -t mangle -D OUTPUT "${local_number}" > /dev/null 2>&1
     done
@@ -1017,31 +1077,12 @@ lz_delete_iptables_custom_forward_chain() {
         [ "$( cat "/proc/sys/net/ipv4/ip_forward" )" != "1" ] && echo "1" > "/proc/sys/net/ipv4/ip_forward"
     }
     local local_number=
-    for local_number in $( iptables -L FORWARD -v -n --line-numbers 2> /dev/null | grep "${1}" | cut -d " " -f 1 | sort -nr )
+    for local_number in $( iptables -L FORWARD -v -n --line-numbers 2> /dev/null | grep -wi "${1}" | cut -d " " -f 1 | sort -nr )
     do
         iptables -D FORWARD "${local_number}" > /dev/null 2>&1
     done
     iptables -F "${1}" > /dev/null 2>&1
     iptables -X "${1}" > /dev/null 2>&1
-}
-
-## 删除路由前mangle表自定义规则子链函数
-## 输入项：
-##     $1--自定义规则链名称
-##     $2--自定义规则子链名称
-## 返回值：无
-lz_delete_iptables_custom_prerouting_sub_chain() {
-    [ -z "${1}" ] && return
-    local local_custom_number="$( iptables -t mangle -L PREROUTING -v -n --line-numbers 2> /dev/null | grep "${1}" | cut -d " " -f 1 | sort -nr )"
-    local local_number=
-    if [ -n "${local_custom_number}" ] && [ -n "${2}" ]; then
-        for local_number in $( iptables -t mangle -L "${1}" -v -n --line-numbers 2> /dev/null | grep "${2}" | cut -d " " -f 1 | sort -nr )
-        do
-            iptables -t mangle -D "${1}" "${local_number}" > /dev/null 2>&1
-        done
-        iptables -t mangle -F "${2}" > /dev/null 2>&1
-        iptables -t mangle -X "${2}" > /dev/null 2>&1
-    fi
 }
 
 ## 删除路由前mangle表自定义规则链函数
@@ -1051,10 +1092,10 @@ lz_delete_iptables_custom_prerouting_sub_chain() {
 ## 返回值：无
 lz_delete_iptables_custom_prerouting_chain() {
     [ -z "${1}" ] && return
-    local local_custom_number="$( iptables -t mangle -L PREROUTING -v -n --line-numbers 2> /dev/null | grep "${1}" | cut -d " " -f 1 | sort -nr )"
+    local local_custom_number="$( iptables -t mangle -L PREROUTING -v -n --line-numbers 2> /dev/null | grep -wi "${1}" | cut -d " " -f 1 | sort -nr )"
     local local_number=
     if [ -n "${local_custom_number}" ] && [ -n "${2}" ]; then
-        for local_number in $( iptables -t mangle -L "${1}" -v -n --line-numbers 2> /dev/null | grep "${2}" | cut -d " " -f 1 | sort -nr )
+        for local_number in $( iptables -t mangle -L "${1}" -v -n --line-numbers 2> /dev/null | grep -wi "${2}" | cut -d " " -f 1 | sort -nr )
         do
             iptables -t mangle -D "${1}" "${local_number}" > /dev/null 2>&1
         done
@@ -1076,10 +1117,10 @@ lz_delete_iptables_custom_prerouting_chain() {
 ## 返回值：无
 lz_delete_iptables_custom_output_chain() {
     [ -z "${1}" ] && return
-    local local_custom_number="$( iptables -t mangle -L OUTPUT -v -n --line-numbers 2> /dev/null | grep "${1}" | cut -d " " -f 1 | sort -nr )"
+    local local_custom_number="$( iptables -t mangle -L OUTPUT -v -n --line-numbers 2> /dev/null | grep -wi "${1}" | cut -d " " -f 1 | sort -nr )"
     local local_number=
     if [ -n "${local_custom_number}" ] && [ -n "${2}" ]; then
-        for local_number in $( iptables -t mangle -L "${1}" -v -n --line-numbers 2> /dev/null | grep "${2}" | cut -d " " -f 1 | sort -nr )
+        for local_number in $( iptables -t mangle -L "${1}" -v -n --line-numbers 2> /dev/null | grep -wi "${2}" | cut -d " " -f 1 | sort -nr )
         do
             iptables -t mangle -D "${1}" "${local_number}" > /dev/null 2>&1
         done
@@ -1140,8 +1181,8 @@ lz_clear_iptables_fwmark() {
 lz_get_netfilter_key_used() {
     [ "$( lz_get_iptables_fwmark_item_total_number "${FOREIGN_FWMARK}" "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" )" -gt "0" ] && return "0"
     [ "$( lz_get_iptables_fwmark_item_total_number "${FWMARK0}" "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" )" -gt "0" ] && return "0"
-    [ "$( lz_get_iptables_fwmark_item_total_number "${DEST_PORT_FWMARK_0}" "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" )" -gt "0" ] && return "0"
     [ "$( lz_get_iptables_fwmark_item_total_number "${FWMARK1}" "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" )" -gt "0" ] && return "0"
+    [ "$( lz_get_iptables_fwmark_item_total_number "${DEST_PORT_FWMARK_0}" "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" )" -gt "0" ] && return "0"
     [ "$( lz_get_iptables_fwmark_item_total_number "${DEST_PORT_FWMARK_1}" "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" )" -gt "0" ] && return "0"
     return "1"
 }
@@ -1294,14 +1335,14 @@ lz_set_hnd_bcmmcast_if() {
     [ "${2}" != "0" ] && [ "${2}" != "1" ] && [ "${2}" != "2" ] && return "${retval}"
     [ "${3}" != "0" ] && [ "${3}" != "1" ] && [ "${3}" != "2" ] && return "${retval}"
     [ -n "${1}" ] && {
-        bcmmcastctl show -i "${1}" 2> /dev/null | grep -q MLD && {
+        bcmmcastctl show -i "${1}" 2> /dev/null | grep -qw MLD && {
             if [ "${2}" = "0" ] || [ "${2}" = "2" ]; then
                 bcmmcastctl rate -i "${1}" -p 2 -r 0  > /dev/null 2>&1
                 bcmmcastctl mode -i "${1}" -p 2 -m "${3}" > /dev/null 2>&1 && retval="$(( retval + 1 ))"
             fi
 
         }
-        bcmmcastctl show -i "${1}" 2> /dev/null | grep -q IGMP && {
+        bcmmcastctl show -i "${1}" 2> /dev/null | grep -qw IGMP && {
             if [ "${2}" = "0" ] || [ "${2}" = "1" ]; then
                 bcmmcastctl rate -i "${1}" -p 1 -r 0  > /dev/null 2>&1
                 bcmmcastctl mode -i "${1}" -p 1 -m "${3}" > /dev/null 2>&1 && retval="$(( retval + 1 ))"
@@ -1649,12 +1690,14 @@ lz_load_custom_hosts_file() {
             mkdir -p "${PATH_DNSMASQ_DOMAIN_CONF}" > /dev/null 2>&1
             chmod -R 775 "${PATH_DNSMASQ_DOMAIN_CONF}"/* > /dev/null 2>&1
         fi
-        awk '$1 ~ /^[[:alnum:]_\.\-]+$/ && $2 ~ /^[[:alnum:]_\.\-]+$/ && !i[$2]++ {
-            if ($1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/)
-                print "address=/"$2"/"$1
-            else
-                print "cname="$2","$1
-        }' "${custom_hosts_file}" > "${PATH_DNSMASQ_DOMAIN_CONF}/${CUSTOM_HOSTS_CONF}"
+        sed -e 's/[#].*$//g' \
+            -e "s#\(^\|[[:space:]][[:space:]]*\)${route_local_subnet}\([[:space:]][[:space:]]*\|$\)#${route_static_subnet}#g" "${custom_hosts_file}" \
+            | awk '$1 ~ /^[[:alnum:]_\.\-]+$/ && $2 ~ /^[[:alnum:]_\.\-]+$/ && !i[$2]++ {
+                if ($1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/)
+                    print "address=/"$2"/"$1
+                else
+                    print "cname="$2","$1
+            }' > "${PATH_DNSMASQ_DOMAIN_CONF}/${CUSTOM_HOSTS_CONF}"
         if [ ! -s "${DNSMASQ_CONF_ADD}" ]; then
             echo "conf-dir=${PATH_DNSMASQ_DOMAIN_CONF}" >> "${DNSMASQ_CONF_ADD}" 2> /dev/null
         elif ! grep -q "^conf-dir=${PATH_DNSMASQ_DOMAIN_CONF//"/"/[\/]}$" "${DNSMASQ_CONF_ADD}"; then
@@ -1963,15 +2006,13 @@ lz_create_update_ispip_data_file() {
 ## 返回值：
 ##     网址/网段数据集--全局变量
 lz_add_net_address_sets() {
-    if [ ! -f "${1}" ] || [ -z "${2}" ]; then return; fi;
+    if [ ! -s "${1}" ] || [ -z "${2}" ]; then return; fi;
     local NOMATCH=""
     [ "${3}" != "0" ] && NOMATCH=" nomatch"
     ipset -q create "${2}" nethash maxelem 4294967295 #--hashsize 1024 mexleme 65536
-    awk '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
-        && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
-        && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" && $1 != "'"${route_local_ip}"'" \
-        && NF >= "1" && !i[$1]++ {print "'"-! del ${2} "'"$1"'"\n-! add ${2} "'"$1"'"${NOMATCH}"'"} END{print "COMMIT"}' "${1}" \
-        | ipset restore > /dev/null 2>&1
+    lz_print_valid_ipv4_address_list "${1}" | awk 'NF >= "1" \
+        && !i[$1]++ {print "'"-! del ${2} "'"$1"'"\n-! add ${2} "'"$1"'"${NOMATCH}"'"} \
+        END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
 }
 
 ## 创建或加载网段均分出口数据集函数
@@ -1984,7 +2025,7 @@ lz_add_net_address_sets() {
 ## 返回值：
 ##     网址/网段数据集--全局变量
 lz_add_ed_net_address_sets() {
-    if [ ! -f "${1}" ] || [ -z "${2}" ]; then return; fi;
+    if [ ! -s "${1}" ] || [ -z "${2}" ]; then return; fi;
     local local_ed_total="$( echo "${4}" | grep -Eo '[0-9][0-9]*' )"
     [ -z "${local_ed_total}" ] && return
     [ "${local_ed_total}" -le "0" ] && return
@@ -1994,19 +2035,16 @@ lz_add_ed_net_address_sets() {
     [ "${3}" != "0" ] && NOMATCH=" nomatch"
     ipset -q create "${2}" nethash maxelem 4294967295 #--hashsize 1024 mexleme 65536
     [ "${5}" != "0" ] && local_ed_num="$(( local_ed_num + 1 ))"
-    awk -v count="0" -v criterion="${5}" -v ed_num="${local_ed_num}" '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
-        && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
-        && NF >= "1" && !i[$1]++ {
+    lz_print_valid_ipv4_address_list "${1}" | awk -v count="0" -v criterion="${5}" -v ed_num="${local_ed_num}" 'NF >= "1" \
+        && !i[$1]++ {
             count++;
             if (criterion == "0") {
-                if ($1 != "0.0.0.0/0" && $1 != "0.0.0.0" && $1 != "'"${route_local_ip}"'")
-                    print "'"-! del ${2} "'"$1"'"\n-! add ${2} "'"$1"'"${NOMATCH}"'";
+                print "'"-! del ${2} "'"$1"'"\n-! add ${2} "'"$1"'"${NOMATCH}"'";
                 if (count >= ed_num) exit;
             }
-            else if (count >= ed_num && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" && $1 != "'"${route_local_ip}"'")
+            else if (count >= ed_num)
                 print "'"-! del ${2} "'"$1"'"\n-! add ${2} "'"$1"'"${NOMATCH}"'";
-        } END{print "COMMIT"}' "${1}" \
-        | ipset restore > /dev/null 2>&1
+        } END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
 }
 
 ## IPv4源网址/网段列表数据命令绑定路由器外网出口函数
@@ -2018,7 +2056,7 @@ lz_add_ed_net_address_sets() {
 ##     全局变量
 ## 返回值：无
 lz_add_ipv4_src_addr_list_binding_wan() {
-    if [ ! -f "${1}" ] || [ -z "${2}" ]; then return; fi;
+    if [ ! -s "${1}" ] || [ -z "${2}" ]; then return; fi;
     if [ "${4}" = "0" ]; then
         ## 获取IPv4源网址/网段列表数据文件未知IP地址的客户端项
         ## 输入项：
@@ -2027,28 +2065,20 @@ lz_add_ipv4_src_addr_list_binding_wan() {
         ##     0--成功
         ##     1--失败
         if ! lz_get_unkonwn_ipv4_src_addr_data_file_item "${1}"; then
-            awk '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
-                && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
-                && NF >= "1" && !i[$1]++ {
-                    src=$1;
-                    if (src == "'"${route_local_subnet}"'")
-                        src="'"${route_static_subnet}"'";
-                    if (src != "0.0.0.0" && src != "'"${route_local_ip}"'")
-                        system("ip rule add from "src"'" table ${2} prio ${3} > /dev/null 2>&1"'");
-                }' "${1}"
+            lz_print_valid_ipv4_address_list "${1}" | awk 'NF >= "1" \
+                && !i[$1]++ {system("ip rule add from "$1"'" table ${2} prio ${3} > /dev/null 2>&1"'")}'
         else
             if [ -n "${route_static_subnet}" ]; then
-                ! ip rule add not from "0.0.0.0" table "${2}" prio "${3}" > /dev/null 2>&1 && ip rule add from "${route_static_subnet}" table "${2}" prio "${3}" > /dev/null 2>&1
+                ! ip rule add not from "0.0.0.0" table "${2}" prio "${3}" > /dev/null 2>&1 \
+                    && ip rule add from "${route_static_subnet}" table "${2}" prio "${3}" > /dev/null 2>&1
             else
                 ip rule add from all table "${2}" prio "${3}" > /dev/null 2>&1
             fi
             command_from_all_executed="1"
         fi
     else
-        awk '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
-            && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
-            && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" && $1 != "'"${route_local_ip}"'" \
-            && NF >= "1" && !i[$1]++ {system("ip rule add from "$1"'" table ${2} prio ${3} > /dev/null 2>&1"'")}' "${1}"
+        lz_print_valid_ipv4_address_list "${1}" | awk 'NF >= "1" \
+            && !i[$1]++ {system("ip rule add from "$1"'" table ${2} prio ${3} > /dev/null 2>&1"'")}'
     fi
 }
 
@@ -2059,11 +2089,9 @@ lz_add_ipv4_src_addr_list_binding_wan() {
 ##     $3--策略规则优先级
 ## 返回值：无
 lz_add_ipv4_dst_addr_list_binding_wan() {
-    if [ ! -f "${1}" ] || [ -z "${2}" ]; then return; fi;
-    awk '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
-        && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
-        && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" && $1 != "'"${route_local_ip}"'" \
-        && NF >= "1" && !i[$1]++ {system("ip rule add from all to "$1"'" table ${2} prio ${3} > /dev/null 2>&1"'")}' "${1}"
+    if [ ! -s "${1}" ] || [ -z "${2}" ]; then return; fi;
+    lz_print_valid_ipv4_address_list "${1}" | awk 'NF >= "1" \
+        && !i[$1]++ {system("ip rule add from all to "$1"'" table ${2} prio ${3} > /dev/null 2>&1"'")}'
 }
 
 ## IPv4目标网址/网段列表数据均分出口命令绑定路由器外网出口函数
@@ -2075,25 +2103,23 @@ lz_add_ipv4_dst_addr_list_binding_wan() {
 ##     $5--0：使用上半部分数据，非0：使用下半部分数据
 ## 返回值：无
 lz_add_ed_ipv4_dst_addr_list_binding_wan() {
-    if [ ! -f "${1}" ] || [ -z "${2}" ]; then return; fi;
+    if [ ! -s "${1}" ] || [ -z "${2}" ]; then return; fi;
     local local_ed_total="$( echo "${4}" | grep -Eo '[0-9][0-9]*' )"
     [ -z "${local_ed_total}" ] && return
     [ "${local_ed_total}" -le "0" ] && return
     local local_ed_num="$(( local_ed_total / 2 + local_ed_total % 2 ))"
     [ "${local_ed_num}" = "${local_ed_total}" ] && [ "${5}" != "0" ] && return
     [ "${5}" != "0" ] && local_ed_num="$(( local_ed_num + 1 ))"
-    awk -v count="0" -v criterion="${5}" -v ed_num="${local_ed_num}" '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
-        && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
-        && NF >= "1" && !i[$1]++ {
+    lz_print_valid_ipv4_address_list "${1}" \
+        | awk -v count="0" -v criterion="${5}" -v ed_num="${local_ed_num}" 'NF >= "1" \
+        && !i[$1]++ {
             count++;
             if (criterion == "0") {
-                if ($1 != "0.0.0.0/0" && $1 != "0.0.0.0" && $1 != "'"${route_local_ip}"'")
-                    system("ip rule add from all to "$1"'" table ${2} prio ${3} > /dev/null 2>&1"'");
-                if (count >= ed_num) exit;
-            }
-            else if (count >= ed_num && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" && $1 != "'"${route_local_ip}"'")
                 system("ip rule add from all to "$1"'" table ${2} prio ${3} > /dev/null 2>&1"'");
-        }' "${1}"
+                if (count >= ed_num) exit;
+            } else if (count >= ed_num)
+                system("ip rule add from all to "$1"'" table ${2} prio ${3} > /dev/null 2>&1"'");
+        }'
 }
 
 ## IPv4源网址/网段至目标网址/网段列表数据命令绑定路由器外网出口函数
@@ -2104,7 +2130,7 @@ lz_add_ed_ipv4_dst_addr_list_binding_wan() {
 ##     全局变量
 ## 返回值：无
 lz_add_ipv4_src_to_dst_addr_list_binding_wan() {
-    if [ ! -f "${1}" ] || [ -z "${2}" ]; then return; fi;
+    if [ ! -s "${1}" ] || [ -z "${2}" ]; then return; fi;
     ## 获取IPv4源网址/网段至目标网址/网段列表数据文件客户端与目标地址均为未知IP地址项
     ## 输入项：
     ##     $1--全路径网段数据文件名
@@ -2112,27 +2138,12 @@ lz_add_ipv4_src_to_dst_addr_list_binding_wan() {
     ##     0--成功
     ##     1--失败
     if ! lz_get_unkonwn_ipv4_src_dst_addr_data_file_item "${1}"; then
-        awk '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
-            && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
-            && $2 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
-            && $2 !~ /[3-9][0-9][0-9]/ && $2 !~ /[2][6-9][0-9]/ && $2 !~ /[2][5][6-9]/ && $2 !~ /[\/][4-9][0-9]/ && $2 !~ /[\/][3][3-9]/ \
-            && NF >= "2" && !i[$1"_"$2]++ {
-                src=$1;
-                dst=$2;
-                if (src == "'"${route_local_subnet}"'")
-                    src="'"${route_static_subnet}"'";
-                else if (src == "0.0.0.0")
-                    src="'"${route_local_ip}"'";
-                if (dst == "'"${route_local_subnet}"'")
-                    dst="'"${route_static_subnet}"'";
-                else if (dst == "0.0.0.0")
-                    dst="'"${route_local_ip}"'";
-                if (src != dst && src != "'"${route_local_ip}"'" && dst != "'"${route_local_ip}"'")
-                    system("ip rule add from "src" to "dst"'" table ${2} prio ${3} > /dev/null 2>&1"'");
-            }' "${1}"
+        lz_print_src_to_dst_ipv4_address_list "${1}" | awk 'NF >= "2" && $1 != $2 \
+            && !i[$1"_"$2]++ {system("ip rule add from "$1" to "$2"'" table ${2} prio ${3} > /dev/null 2>&1"'")}'
     else
         if [ -n "${route_static_subnet}" ]; then
-            ! ip rule add not from "0.0.0.0" table "${2}" prio "${3}" > /dev/null 2>&1 && ip rule add from "${route_static_subnet}" table "${2}" prio "${3}" > /dev/null 2>&1
+            ! ip rule add not from "0.0.0.0" table "${2}" prio "${3}" > /dev/null 2>&1 \
+                && ip rule add from "${route_static_subnet}" table "${2}" prio "${3}" > /dev/null 2>&1
         else
             ip rule add from all table "${2}" prio "${3}" > /dev/null 2>&1
         fi
@@ -2148,16 +2159,15 @@ lz_add_ipv4_src_to_dst_addr_list_binding_wan() {
 ## 返回值：
 ##     网址/网段数据集--全局变量
 lz_add_src_net_address_sets() {
-    if [ ! -f "${1}" ] || [ -z "${2}" ]; then return; fi;
+    if [ ! -s "${1}" ] || [ -z "${2}" ]; then return; fi;
     local NOMATCH=""
     [ "${3}" != "0" ] && NOMATCH=" nomatch"
     ipset -q create "${2}" nethash maxelem 4294967295 #--hashsize 1024 mexleme 65536
-    awk '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
-        && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
-        && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" && $1 != "'"${route_local_ip}"'" \
+    lz_print_src_to_dst_ipv4_address_list "${1}" | awk 'NF >= "2" \
         && $2 == "0.0.0.0/0" \
-        && NF >= "2" && !i[$1"_"$2]++ {print "'"-! del ${2} "'"$1"'"\n-! add ${2} "'"$1"'"${NOMATCH}"'"} END{print "COMMIT"}' "${1}" \
-        | ipset restore > /dev/null 2>&1
+        && $1 != "0.0.0.0/0" \
+        && !i[$1"_"$2]++ {print "'"-! del ${2} "'"$1"'"\n-! add ${2} "'"$1"'"${NOMATCH}"'"} \
+        END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
 }
 
 ## 创建或加载源网址/网段至目标网址/网段列表数据中未指明源网址/网段的目标网址/网段至数据集函数
@@ -2168,35 +2178,35 @@ lz_add_src_net_address_sets() {
 ## 返回值：
 ##     网址/网段数据集--全局变量
 lz_add_dst_net_address_sets() {
-    if [ ! -f "${1}" ] || [ -z "${2}" ]; then return; fi;
+    if [ ! -s "${1}" ] || [ -z "${2}" ]; then return; fi;
     local NOMATCH=""
     [ "${3}" != "0" ] && NOMATCH=" nomatch"
     ipset -q create "${2}" nethash maxelem 4294967295 #--hashsize 1024 mexleme 65536
-    awk '$1 == "0.0.0.0/0" \
-        && $2 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
-        && $2 !~ /[3-9][0-9][0-9]/ && $2 !~ /[2][6-9][0-9]/ && $2 !~ /[2][5][6-9]/ && $2 !~ /[\/][4-9][0-9]/ && $2 !~ /[\/][3][3-9]/ \
-        && $2 != "0.0.0.0/0" && $2 != "0.0.0.0" && $2 != "'"${route_local_ip}"'" \
-        && NF >= "2" && !i[$1"_"$2]++ {print "'"-! del ${2} "'"$2"'"\n-! add ${2} "'"$2"'"${NOMATCH}"'"} END{print "COMMIT"}' "${1}" \
-        | ipset restore > /dev/null 2>&1
+    lz_print_src_to_dst_ipv4_address_list "${1}" | awk 'NF >= "2" \
+        && $1 == "0.0.0.0/0" \
+        && $2 != "0.0.0.0/0" \
+        && !i[$1"_"$2]++ {print "'"-! del ${2} "'"$2"'"\n-! add ${2} "'"$2"'"${NOMATCH}"'"} \
+        END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
 }
 
-## 获取IPv4源网址/网段至目标网址/网段列表数据文件中已指明源网址/网段和目标网址/网段的总有效条目数函数
+## 创建或加载源网址/网段至目标网址/网段列表数据中已明确源网址/网段和目标网址/网段条目中的源网址/网段至数据集函数
 ## 输入项：
 ##     $1--全路径网段数据文件名
+##     $2--网段数据集名称
+##     $3--0:正匹配数据，非0：反匹配（nomatch）数据
 ## 返回值：
-##     总有效条目数
-lz_get_ipv4_defined_src_to_dst_data_file_item_total() {
-    local retval="0"
-    [ -s "${1}" ] && {
-        retval="$( awk -v count="0" '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
-            && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
-            && $1 != "0.0.0.0/0" \
-            && $2 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
-            && $2 !~ /[3-9][0-9][0-9]/ && $2 !~ /[2][6-9][0-9]/ && $2 !~ /[2][5][6-9]/ && $2 !~ /[\/][4-9][0-9]/ && $2 !~ /[\/][3][3-9]/ \
-            && $2 != "0.0.0.0/0" \
-            && NF >= "2" && !i[$1"_"$2]++ {count++; next;} $1 == "0.0.0.0/0" && $2 == "0.0.0.0/0" {count++; next;} END{print count}' "${1}" )"
-    }
-    echo "${retval}"
+##     网址/网段数据集--全局变量
+lz_add_src_to_dst_net_src_address_sets() {
+    if [ ! -s "${1}" ] || [ -z "${2}" ]; then return; fi;
+    local NOMATCH=""
+    [ "${3}" != "0" ] && NOMATCH=" nomatch"
+    ipset -q create "${2}" nethash maxelem 4294967295 #--hashsize 1024 mexleme 65536
+    lz_print_src_to_dst_ipv4_address_list "${1}" | awk 'NF >= "2" \
+        && $1 != $2 \
+        && $1 != "0.0.0.0/0" \
+        && $2 != "0.0.0.0/0" \
+        && !i[$1"_"$2]++ {print "'"-! del ${2} "'"$1"'"\n-! add ${2} "'"$1"'"${NOMATCH}"'"} \
+        END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
 }
 
 ## 加载已明确定义源网址/网段至目标网址/网段列表条目数据至路由前mangle表自定义链防火墙规则数据标记函数
@@ -2208,7 +2218,7 @@ lz_get_ipv4_defined_src_to_dst_data_file_item_total() {
 ## 返回值：
 ##     路由前mangle表自定义链防火墙规则
 lz_add_src_to_dst_prerouting_mark() {
-    if [ ! -f "${1}" ] || [ -z "${2}" ] || [ -z "${3}" ]; then return; fi;
+    if [ ! -s "${1}" ] || [ -z "${2}" ] || [ -z "${3}" ]; then return; fi;
     ## 获取IPv4源网址/网段至目标网址/网段列表数据文件客户端与目标地址均为未知IP地址项
     ## 输入项：
     ##     $1--全路径网段数据文件名
@@ -2216,29 +2226,41 @@ lz_add_src_to_dst_prerouting_mark() {
     ##     0--成功
     ##     1--失败
     if ! lz_get_unkonwn_ipv4_src_dst_addr_data_file_item "${1}"; then
-        awk '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
-            && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
+        lz_print_src_to_dst_ipv4_address_list "${1}" | awk 'NF >= "2" \
+            && $1 != $2 \
             && $1 != "0.0.0.0/0" \
-            && $2 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
-            && $2 !~ /[3-9][0-9][0-9]/ && $2 !~ /[2][6-9][0-9]/ && $2 !~ /[2][5][6-9]/ && $2 !~ /[\/][4-9][0-9]/ && $2 !~ /[\/][3][3-9]/ \
             && $2 != "0.0.0.0/0" \
-            && NF >= "2" && !i[$1"_"$2]++ \
-            {
-                src=$1;
-                dst=$2;
-                if (src == "'"${route_local_subnet}"'")
-                    src="'"${route_static_subnet}"'";
-                else if (src == "0.0.0.0")
-                    src="'"${route_local_ip}"'";
-                if (dst == "'"${route_local_subnet}"'")
-                    dst="'"${route_static_subnet}"'";
-                else if (dst == "0.0.0.0")
-                    dst="'"${route_local_ip}"'";
-                if (src != dst && src != "'"${route_local_ip}"'" && dst != "'"${route_local_ip}"'")
-                    system("'"iptables -t mangle -I ${2} -m state --state NEW -s "'"src" -d "dst"'" -j CONNMARK --set-xmark ${3}/${FWMARK_MASK} > /dev/null 2>&1"'");
-            }' "${1}"
+            && !i[$1"_"$2]++ \
+            {system("'"iptables -t mangle -I ${2} -m state --state NEW -s "'"$1" -d "$2"'" -j CONNMARK --set-xmark ${3}/${FWMARK_MASK} > /dev/null 2>&1"'")}'
     else
         iptables -t mangle -I "${2}" -m state --state NEW -j CONNMARK --set-xmark "${3}/${FWMARK_MASK}" > /dev/null 2>&1
+    fi
+}
+
+## 加载已明确定义源网址/网段至目标网址/网段列表条目数据至路由前mangle表自定义链防火墙返回规则函数
+## 输入项：
+##     $1--全路径网段数据文件名
+##     $2--路由前mangle表自定义链名称
+##     全局常量
+## 返回值：
+##     路由前mangle表自定义链防火墙规则
+lz_add_src_to_dst_prerouting_return() {
+    if [ ! -s "${1}" ] || [ -z "${2}" ]; then return; fi;
+    ## 获取IPv4源网址/网段至目标网址/网段列表数据文件客户端与目标地址均为未知IP地址项
+    ## 输入项：
+    ##     $1--全路径网段数据文件名
+    ## 返回值：
+    ##     0--成功
+    ##     1--失败
+    if ! lz_get_unkonwn_ipv4_src_dst_addr_data_file_item "${1}"; then
+        lz_print_src_to_dst_ipv4_address_list "${1}" | awk 'NF >= "2" \
+            && $1 != $2 \
+            && $1 != "0.0.0.0/0" \
+            && $2 != "0.0.0.0/0" \
+            && !i[$1"_"$2]++ \
+            {system("'"iptables -t mangle -I ${2} -m state --state NEW -s "'"$1" -d "$2"'" -j RETURN > /dev/null 2>&1"'")}'
+    else
+        iptables -t mangle -I "${2}" -m state --state NEW -j RETURN > /dev/null 2>&1
     fi
 }
 
@@ -2320,27 +2342,21 @@ lz_get_ipset_total_number() {
 lz_high_client_src_addr_binding_wan() {
     ## 第二WAN口客户端及源网址/网段高优先级绑定列表
     ## 动静模式时均在balance链中通过识别客户端地址，阻止负载均衡为其分配网络出口
-    if [ "${high_wan_2_client_src_addr}" = "0" ]; then
-        if [ "$( lz_get_ipv4_data_file_item_total "${high_wan_2_client_src_addr_file}" )" -gt "0" ]; then
-            ## 转为命令绑定方式
-            ## IPv4源网址/网段列表数据命令绑定路由器外网出口
-            ## 输入项：
-            ##     $1--全路径网段数据文件名
-            ##     $2--WAN口路由表ID号
-            ##     $3--策略规则优先级
-            ##     $4--排除未知IP地址项（0--不排除；非0--排除）
-            ##     全局变量
-            ## 返回值：无
-            lz_add_ipv4_src_addr_list_binding_wan "${high_wan_2_client_src_addr_file}" "${WAN1}" "${IP_RULE_PRIO_HIGH_WAN_2_CLIENT_SRC_ADDR}" "0"
-        fi
-    fi
+    ## 转为命令绑定方式
+    ## IPv4源网址/网段列表数据命令绑定路由器外网出口
+    ## 输入项：
+    ##     $1--全路径网段数据文件名
+    ##     $2--WAN口路由表ID号
+    ##     $3--策略规则优先级
+    ##     $4--排除未知IP地址项（0--不排除；非0--排除）
+    ##     全局变量
+    ## 返回值：无
+    [ "${high_wan_2_client_src_addr}" = "0" ] \
+        && lz_add_ipv4_src_addr_list_binding_wan "${high_wan_2_client_src_addr_file}" "${WAN1}" "${IP_RULE_PRIO_HIGH_WAN_2_CLIENT_SRC_ADDR}" "0"
     ## 第一WAN口客户端及源网址/网段高优先级绑定列表
     ## 动静模式时均在balance链中通过识别客户端地址，阻止负载均衡为其分配网络出口
-    if [ "${high_wan_1_client_src_addr}" = "0" ]; then
-        if [ "$( lz_get_ipv4_data_file_item_total "${high_wan_1_client_src_addr_file}" )" -gt "0" ]; then
-            lz_add_ipv4_src_addr_list_binding_wan "${high_wan_1_client_src_addr_file}" "${WAN0}" "${IP_RULE_PRIO_HIGH_WAN_1_CLIENT_SRC_ADDR}" "0"
-        fi
-    fi
+    [ "${high_wan_1_client_src_addr}" = "0" ] \
+        && lz_add_ipv4_src_addr_list_binding_wan "${high_wan_1_client_src_addr_file}" "${WAN0}" "${IP_RULE_PRIO_HIGH_WAN_1_CLIENT_SRC_ADDR}" "0"
 }
 
 ## 定义策略分流报文数据包标记流量出口函数
@@ -2382,20 +2398,41 @@ lz_define_netfilter_fwmark_flow_export() {
 ## 返回值：
 ##     网址/网段数据集--全局变量
 lz_add_client_dest_port_src_address_sets() {
-    if [ ! -f "${1}" ] || [ -z "${2}" ]; then return; fi;
+    if [ ! -s "${1}" ] || [ -z "${2}" ]; then return; fi;
     local NOMATCH=""
     [ "${3}" != "0" ] && NOMATCH=" nomatch"
     ipset -q create "${2}" nethash maxelem 4294967295 #--hashsize 1024 mexleme 65536
-    sed 's/[#].*$//g' "${1}" \
-        | awk '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
-        && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
-        && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" && $1 != "'"${route_local_ip}"'" \
-        && $2 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
-        && $2 !~ /[3-9][0-9][0-9]/ && $2 !~ /[2][6-9][0-9]/ && $2 !~ /[2][5][6-9]/ && $2 !~ /[\/][4-9][0-9]/ && $2 !~ /[\/][3][3-9]/ \
-        && $2 != "0.0.0.0" && $2 != "'"${route_local_ip}"'" \
-        && NF >= "2" && !i[$1"_"$2"_"$3"_"$4"_"$5]++ {print $1,$2,$3,$4,$5}' \
-        | tr '[:A-Z:]' '[:a-z:]' \
-        | awk '($3 ~ /^(tcp|udp|udplite|sctp)$/ || NF == "2") {print "'"-! del ${2} "'"$1"'"\n-! add ${2} "'"$1"'"${NOMATCH}"'"; next;} \
+    lz_print_src_to_dst_port_ipv4_address_list "${1}" \
+        | awk 'NF >= "5" \
+        && $1 != "0.0.0.0/0" \
+        && !i[$1"_"$2"_"$3"_"$4"_"$5]++ {
+            print "'"-! del ${2} "'"$1"'"\n-! add ${2} "'"$1"'"${NOMATCH}"'";
+            next;
+        } \
+        NF == "4" \
+        && $1 != "0.0.0.0/0" \
+        && !i[$1"_"$2"_"$3"_"$4"_"$5]++ {
+            print "'"-! del ${2} "'"$1"'"\n-! add ${2} "'"$1"'"${NOMATCH}"'";
+            next;
+        } \
+        NF == "3" \
+        && $1 != "0.0.0.0/0" \
+        && !i[$1"_"$2"_"$3"_"$4"_"$5]++ {
+            print "'"-! del ${2} "'"$1"'"\n-! add ${2} "'"$1"'"${NOMATCH}"'";
+            next;
+        } \
+        NF == "2" \
+        && $1 != "0.0.0.0/0" \
+        && !i[$1"_"$2"_"$3"_"$4"_"$5]++ {
+            print "'"-! del ${2} "'"$1"'"\n-! add ${2} "'"$1"'"${NOMATCH}"'";
+            next;
+        } \
+        NF == "1" \
+        && $1 != "0.0.0.0/0" \
+        && !i[$1"_"$2"_"$3"_"$4"_"$5]++ {
+            print "'"-! del ${2} "'"$1"'"\n-! add ${2} "'"$1"'"${NOMATCH}"'";
+            next;
+        } \
         END{print "COMMIT"}' | ipset restore > /dev/null 2>&1
 }
 
@@ -2410,7 +2447,7 @@ lz_add_client_dest_port_src_address_sets() {
 ##     全局常量及变量
 ## 返回值：无
 lz_client_dest_port_policy() {
-    [ ! -f "${1}" ] && return
+    [ ! -s "${1}" ] && return
     ## 获取IPv4源网址/网段至目标网址/网段协议端口列表数据中文件客户端与目标地址均为未知IP地址且无协议端口项
     ## 输入项：
     ##     $1--全路径网段数据文件名
@@ -2418,48 +2455,40 @@ lz_client_dest_port_policy() {
     ##     0--成功
     ##     1--失败
     if ! lz_get_unkonwn_ipv4_src_dst_addr_port_data_file_item "${1}"; then
-        sed 's/[#].*$//g' "${1}" \
-            | awk '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
-            && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
-            && $1 != "0.0.0.0" && $1 != "'"${route_local_ip}"'" \
-            && $2 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
-            && $2 !~ /[3-9][0-9][0-9]/ && $2 !~ /[2][6-9][0-9]/ && $2 !~ /[2][5][6-9]/ && $2 !~ /[\/][4-9][0-9]/ && $2 !~ /[\/][3][3-9]/ \
-            && $2 != "0.0.0.0" && $2 != "'"${route_local_ip}"'" \
-            && NF >= "2" && !i[$1"_"$2"_"$3"_"$4"_"$5]++ {print $1,$2,$3,$4,$5}' \
-            | tr '[:A-Z:]' '[:a-z:]' \
-            | awk '$3 ~ /^(tcp|udp|udplite|sctp)$/ && $4 ~ /^(([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)[\,])*([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)$/ \
-                && $5 ~ /^(([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)[\,])*([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)$/ {
-                system("'"iptables -t mangle -A ${CUSTOM_PREROUTING_CONNMARK_CHAIN} -s "'"$1" -d "$2" -p "$3" -m multiport --sports "$4" -m multiport --dports "$5"'" -j CONNMARK --set-xmark ${2}/${FWMARK_MASK} > /dev/null 2>&1"'");
+        lz_print_src_to_dst_port_ipv4_address_list "${1}" \
+            | awk 'NF >= "5" \
+            && !i[$1"_"$2"_"$3"_"$4"_"$5]++ {
+                if ($4 != "all" && $5 != "all")
+                    system("'"iptables -t mangle -A ${CUSTOM_PREROUTING_CONNMARK_CHAIN} -s "'"$1" -d "$2" -p "$3" -m multiport --sports "$4" -m multiport --dports "$5"'" -j CONNMARK --set-xmark ${2}/${FWMARK_MASK} > /dev/null 2>&1"'");
+                else if ($4 == "all" && $5 != "all")
+                    system("'"iptables -t mangle -A ${CUSTOM_PREROUTING_CONNMARK_CHAIN} -s "'"$1" -d "$2" -p "$3" -m multiport --dports "$5"'" -j CONNMARK --set-xmark ${2}/${FWMARK_MASK} > /dev/null 2>&1"'");
+                else if ($4 != "all" && $5 == "all")
+                    system("'"iptables -t mangle -A ${CUSTOM_PREROUTING_CONNMARK_CHAIN} -s "'"$1" -d "$2" -p "$3" -m multiport --sports "$4"'" -j CONNMARK --set-xmark ${2}/${FWMARK_MASK} > /dev/null 2>&1"'");
+                else
+                    system("'"iptables -t mangle -A ${CUSTOM_PREROUTING_CONNMARK_CHAIN} -s "'"$1" -d "$2" -p "$3"'" -j CONNMARK --set-xmark ${2}/${FWMARK_MASK} > /dev/null 2>&1"'");
                 next;
             } \
-            $3 ~ /^(tcp|udp|udplite|sctp)$/ && $4 == "all" \
-                && $5 ~ /^(([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)[\,])*([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)$/ {
-                system("'"iptables -t mangle -A ${CUSTOM_PREROUTING_CONNMARK_CHAIN} -s "'"$1" -d "$2" -p "$3" -m multiport --dports "$5"'" -j CONNMARK --set-xmark ${2}/${FWMARK_MASK} > /dev/null 2>&1"'");
+            NF == "4" \
+            && !i[$1"_"$2"_"$3"_"$4"_"$5]++ {
+                if ($4 != "all")
+                    system("'"iptables -t mangle -A ${CUSTOM_PREROUTING_CONNMARK_CHAIN} -s "'"$1" -d "$2" -p "$3" -m multiport --dports "$4"'" -j CONNMARK --set-xmark ${2}/${FWMARK_MASK} > /dev/null 2>&1"'");
+                else
+                    system("'"iptables -t mangle -A ${CUSTOM_PREROUTING_CONNMARK_CHAIN} -s "'"$1" -d "$2" -p "$3"'" -j CONNMARK --set-xmark ${2}/${FWMARK_MASK} > /dev/null 2>&1"'");
                 next;
             } \
-            $3 ~ /^(tcp|udp|udplite|sctp)$/ && $4 ~ /^(([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)[\,])*([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)$/ \
-                && $5 == "all" {
-                system("'"iptables -t mangle -A ${CUSTOM_PREROUTING_CONNMARK_CHAIN} -s "'"$1" -d "$2" -p "$3" -m multiport --sports "$4"'" -j CONNMARK --set-xmark ${2}/${FWMARK_MASK} > /dev/null 2>&1"'");
-                next;
-            } \
-            $3 ~ /^(tcp|udp|udplite|sctp)$/ && $4 == "all" && $5 == "all" {
+            NF == "3" \
+            && !i[$1"_"$2"_"$3"_"$4"_"$5]++ {
                 system("'"iptables -t mangle -A ${CUSTOM_PREROUTING_CONNMARK_CHAIN} -s "'"$1" -d "$2" -p "$3"'" -j CONNMARK --set-xmark ${2}/${FWMARK_MASK} > /dev/null 2>&1"'");
                 next;
             } \
-            $3 ~ /^(tcp|udp|udplite|sctp)$/ && $4 ~ /^(([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)[\,])*([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)$/ && NF == "4" {
-                system("'"iptables -t mangle -A ${CUSTOM_PREROUTING_CONNMARK_CHAIN} -s "'"$1" -d "$2" -p "$3" -m multiport --dports "$4"'" -j CONNMARK --set-xmark ${2}/${FWMARK_MASK} > /dev/null 2>&1"'");
-                next;
-            } \
-            $3 ~ /^(tcp|udp|udplite|sctp)$/ && $4 == "all" && NF == "4" {
-                system("'"iptables -t mangle -A ${CUSTOM_PREROUTING_CONNMARK_CHAIN} -s "'"$1" -d "$2" -p "$3"'" -j CONNMARK --set-xmark ${2}/${FWMARK_MASK} > /dev/null 2>&1"'");
-                next;
-            } \
-            $3 ~ /^(tcp|udp|udplite|sctp)$/ && NF == "3" {
-                system("'"iptables -t mangle -A ${CUSTOM_PREROUTING_CONNMARK_CHAIN} -s "'"$1" -d "$2" -p "$3"'" -j CONNMARK --set-xmark ${2}/${FWMARK_MASK} > /dev/null 2>&1"'");
-                next;
-            } \
-            NF == "2" {
+            NF == "2" \
+            && !i[$1"_"$2"_"$3"_"$4"_"$5]++ {
                 system("'"iptables -t mangle -A ${CUSTOM_PREROUTING_CONNMARK_CHAIN} -s "'"$1" -d "$2"'" -j CONNMARK --set-xmark ${2}/${FWMARK_MASK} > /dev/null 2>&1"'");
+                next;
+            } \
+            NF == "1" \
+            && !i[$1"_"$2"_"$3"_"$4"_"$5]++ {
+                system("'"iptables -t mangle -A ${CUSTOM_PREROUTING_CONNMARK_CHAIN} -s "'"$1"'" -j CONNMARK --set-xmark ${2}/${FWMARK_MASK} > /dev/null 2>&1"'");
                 next;
             }'
     else
@@ -2501,16 +2530,16 @@ lz_dest_port_policy() {
         local_pppoe_ifname="$( nvram get "wan1_pppoe_ifname" | grep -o 'ppp[0-9]*' | sed -n 1p )"
         local_ifname="$( nvram get "wan1_ifname" | grep -Eo 'eth[0-9]*|vlan[0-9]*' | sed -n 1p )"
     fi
-    echo "${1}" | grep -q '[0-9]' && \
+    echo "${1}" | grep -Eq '^(([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)[\,])*([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)$' && \
         iptables -t mangle -A "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" -p tcp -m multiport --dport "${1}" -j CONNMARK --set-xmark "${5}/${FWMARK_MASK}" > /dev/null 2>&1
 
-    echo "${2}" | grep -q '[0-9]' && \
+    echo "${2}" | grep -Eq '^(([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)[\,])*([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)$' && \
         iptables -t mangle -A "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" -p udp -m multiport --dport "${2}" -j CONNMARK --set-xmark "${5}/${FWMARK_MASK}" > /dev/null 2>&1
 
-    echo "${3}" | grep -q '[0-9]' && \
+    echo "${3}" | grep -Eq '^(([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)[\,])*([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)$' && \
         iptables -t mangle -A "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" -p udplite -m multiport --dport "${3}" -j CONNMARK --set-xmark "${5}/${FWMARK_MASK}" > /dev/null 2>&1
 
-    echo "${4}" | grep -q '[0-9]' && \
+    echo "${4}" | grep -Eq '^(([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)[\,])*([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)$' && \
         iptables -t mangle -A "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" -p sctp -m multiport --dport "${4}" -j CONNMARK --set-xmark "${5}/${FWMARK_MASK}" > /dev/null 2>&1
     ## 定义策略分流报文数据包标记流量出口
     ## 输入项：
@@ -2531,43 +2560,57 @@ lz_dest_port_policy() {
 ##     全局变量及常量
 ## 返回值：无
 lz_add_src_to_dst_netfilter_mark() {
-    ## 加载排除标记绑定第一WAN口的用户自定义源网址/网段至目标网址/网段列表中指明源网址/网段和目标网址/网段条目
-    if [ "${wan_1_src_to_dst_addr}" = "0" ]; then
-        [ "$( lz_get_ipv4_defined_src_to_dst_data_file_item_total "${wan_1_src_to_dst_addr_file}" )" -gt "0" ] && {
-            ## 加载已明确定义源网址/网段至目标网址/网段列表条目数据至路由前mangle表自定义链防火墙规则数据标记
-            ## 输入项：
-            ##     $1--全路径网段数据文件名
-            ##     $2--路由前mangle表自定义链名称
-            ##     $3--报文数据包标记
-            ##     全局常量
-            ## 返回值：
-            ##     路由前mangle表自定义链防火墙规则
-            lz_add_src_to_dst_prerouting_mark "${wan_1_src_to_dst_addr_file}" "${CUSTOM_PREROUTING_CHAIN}" "${SRC_DST_FWMARK}"
-        }
-    fi
-    ## 加载排除标记绑定第二WAN口的用户自定义源网址/网段至目标网址/网段列表中指明源网址/网段和目标网址/网段条目
-    if [ "${wan_2_src_to_dst_addr}" = "0" ]; then
-        [ "$( lz_get_ipv4_defined_src_to_dst_data_file_item_total "${wan_2_src_to_dst_addr_file}" )" -gt "0" ] && {
-            lz_add_src_to_dst_prerouting_mark "${wan_2_src_to_dst_addr_file}" "${CUSTOM_PREROUTING_CHAIN}" "${SRC_DST_FWMARK}"
-        }
-    fi
-    ## 加载排除标记高优先级绑定第一WAN口的用户自定义源网址/网段至目标网址/网段列表中指明源网址/网段和目标网址/网段条目
-    if [ "${high_wan_1_src_to_dst_addr}" = "0" ]; then
-        [ "$( lz_get_ipv4_defined_src_to_dst_data_file_item_total "${high_wan_1_src_to_dst_addr_file}" )" -gt "0" ] && {
-            lz_add_src_to_dst_prerouting_mark "${high_wan_1_src_to_dst_addr_file}" "${CUSTOM_PREROUTING_CHAIN}" "${SRC_DST_FWMARK}"
-        }
-    fi
-    if iptables -t mangle -L "${CUSTOM_PREROUTING_CHAIN}" 2> /dev/null | grep -q "${SRC_DST_FWMARK}"; then
-        iptables -t mangle -A "${CUSTOM_PREROUTING_CHAIN}" -m connmark --mark "${SRC_DST_FWMARK}/${SRC_DST_FWMARK}" -j CONNMARK --restore-mark --nfmask "${FWMARK_MASK}" --ctmask "${FWMARK_MASK}" > /dev/null 2>&1
-        iptables -t mangle -A "${CUSTOM_PREROUTING_CHAIN}" -m connmark --mark "${SRC_DST_FWMARK}/${SRC_DST_FWMARK}" -j RETURN > /dev/null 2>&1
-        ## 加载已明确定义源网址/网段至目标网址/网段列表条目数据至路由内输出mangle表自定义链防火墙规则数据标记
+    if [ "${usage_mode}" = "0" ]; then
+        ## 加载排除标记绑定第一WAN口的用户自定义源网址/网段至目标网址/网段列表中指明源网址/网段和目标网址/网段条目
+        ## 加载已明确定义源网址/网段至目标网址/网段列表条目数据至路由前mangle表自定义链防火墙规则数据标记
         ## 输入项：
-        ##     $1--内输出mangle表自定义链名称
-        ##     $2--报文数据包标记
+        ##     $1--全路径网段数据文件名
+        ##     $2--路由前mangle表自定义链名称
+        ##     $3--报文数据包标记
         ##     全局常量
         ## 返回值：
-        ##     路由内输出mangle表自定义链防火墙规则
-        lz_add_src_to_dst_output_mark "${CUSTOM_OUTPUT_CHAIN}" "${SRC_DST_FWMARK}"
+        ##     路由前mangle表自定义链防火墙规则
+        [ "${wan_1_src_to_dst_addr}" = "0" ] \
+            && lz_add_src_to_dst_prerouting_mark "${wan_1_src_to_dst_addr_file}" "${CUSTOM_PREROUTING_CHAIN}" "${SRC_DST_FWMARK}"
+        ## 加载排除标记绑定第二WAN口的用户自定义源网址/网段至目标网址/网段列表中指明源网址/网段和目标网址/网段条目
+        [ "${wan_2_src_to_dst_addr}" = "0" ] \
+            && lz_add_src_to_dst_prerouting_mark "${wan_2_src_to_dst_addr_file}" "${CUSTOM_PREROUTING_CHAIN}" "${SRC_DST_FWMARK}"
+        ## 加载排除标记高优先级绑定第一WAN口的用户自定义源网址/网段至目标网址/网段列表中指明源网址/网段和目标网址/网段条目
+        [ "${high_wan_1_src_to_dst_addr}" = "0" ] \
+            && lz_add_src_to_dst_prerouting_mark "${high_wan_1_src_to_dst_addr_file}" "${CUSTOM_PREROUTING_CHAIN}" "${SRC_DST_FWMARK}"
+        local local_item_no="$( iptables -t mangle -L "${CUSTOM_PREROUTING_CHAIN}" -v -n --line-numbers 2> /dev/null \
+            | grep -i "CONNMARK[[:space:]][[:space:]]*set[[:space:]][[:space:]]*${SRC_DST_FWMARK}$" | cut -d " " -f 1 \
+            | sort -nr \
+            | sed -n 1p )"
+        if [ -n "${local_item_no}" ]; then
+            iptables -t mangle -I "${CUSTOM_PREROUTING_CHAIN}" "$(( local_item_no + 1 ))" -m connmark --mark "${SRC_DST_FWMARK}/${SRC_DST_FWMARK}" -j CONNMARK --restore-mark --nfmask "${FWMARK_MASK}" --ctmask "${FWMARK_MASK}" > /dev/null 2>&1
+            iptables -t mangle -I "${CUSTOM_PREROUTING_CHAIN}" "$(( local_item_no + 2 ))" -m connmark --mark "${SRC_DST_FWMARK}/${SRC_DST_FWMARK}" -j RETURN > /dev/null 2>&1
+            ## 加载已明确定义源网址/网段至目标网址/网段列表条目数据至路由内输出mangle表自定义链防火墙规则数据标记
+            ## 输入项：
+            ##     $1--内输出mangle表自定义链名称
+            ##     $2--报文数据包标记
+            ##     全局常量
+            ## 返回值：
+            ##     路由内输出mangle表自定义链防火墙规则
+            lz_add_src_to_dst_output_mark "${CUSTOM_OUTPUT_CHAIN}" "${SRC_DST_FWMARK}"
+        fi
+    else
+        ## 加载排除标记绑定第一WAN口的用户自定义源网址/网段至目标网址/网段列表中指明源网址/网段和目标网址/网段条目
+        ## 加载已明确定义源网址/网段至目标网址/网段列表条目数据至路由前mangle表自定义链防火墙返回规则
+        ## 输入项：
+        ##     $1--全路径网段数据文件名
+        ##     $2--路由前mangle表自定义链名称
+        ##     全局常量
+        ## 返回值：
+        ##     路由前mangle表自定义链防火墙规则
+        [ "${wan_1_src_to_dst_addr}" = "0" ] \
+            && lz_add_src_to_dst_prerouting_return "${wan_1_src_to_dst_addr_file}" "${CUSTOM_PREROUTING_CHAIN}"
+        ## 加载排除标记绑定第二WAN口的用户自定义源网址/网段至目标网址/网段列表中指明源网址/网段和目标网址/网段条目
+        [ "${wan_2_src_to_dst_addr}" = "0" ] \
+            && lz_add_src_to_dst_prerouting_return "${wan_2_src_to_dst_addr_file}" "${CUSTOM_PREROUTING_CHAIN}"
+        ## 加载排除标记高优先级绑定第一WAN口的用户自定义源网址/网段至目标网址/网段列表中指明源网址/网段和目标网址/网段条目
+        [ "${high_wan_1_src_to_dst_addr}" = "0" ] \
+            && lz_add_src_to_dst_prerouting_return "${high_wan_1_src_to_dst_addr_file}" "${CUSTOM_PREROUTING_CHAIN}"
     fi
 }
 
@@ -2585,7 +2628,7 @@ lz_create_domain_wan_set() {
     local retval="1" DOMAIN_BUF="" line=""
     while true
     do
-        if [ "${1}" != "0" ] || [ ! -f "${2}" ] || [ -z "${3}" ] || [ -z "${4%/*}" ] || [ -z "${5}" ]; then break; fi;
+        if [ "${1}" != "0" ] || [ ! -s "${2}" ] || [ -z "${3}" ] || [ -z "${4%/*}" ] || [ -z "${5}" ]; then break; fi;
         ## 获取WAN口域名地址条目列表数据文件总有效条目数
         ## 输入项：
         ##     $1--WAN口域名地址条目列表数据文件名
@@ -2605,7 +2648,7 @@ lz_create_domain_wan_set() {
         ## 返回值：
         ##     域名地址条目列表
         lz_get_domain_list "${2}" | awk 'NF >= "1" && !i[$1]++ {print "ipset\=\/"$1"'"\/${3}"'"}' > "${4}" 2> /dev/null
-        if [ ! -f "${4}" ]; then
+        if [ ! -s "${4}" ]; then
             ipset -q destroy "${3}"
             break
         fi
@@ -2846,7 +2889,7 @@ lz_setup_native_isp_policy() {
 ## 返回值：无
 lz_setup_custom_data_policy() {
     if [ "${2}" -lt "0" ] || [ "${2}" -gt "2" ]; then return; fi;
-    [ "$( lz_get_ipv4_data_file_item_total "${1}" )" -le "0" ] && return
+    [ "$( lz_get_ipv4_data_file_valid_item_total "${1}" )" -le "0" ] && return
     if [ "${usage_mode}" = "0" ]; then
         ## 创建或加载网段出口数据集
         ## 输入项：
@@ -2907,110 +2950,81 @@ lz_initialize_ip_data_policy() {
     [ "${limit_client_download_speed}" = "0" ] && \
         lz_hash_speed_limited "${CUSTOM_FORWARD_CHAIN}" "${HASH_FORWARD_NAME}" "${route_local_subnet}" "10000"
 
-    if [ "${balance_chain_existing}" = "1" ]; then
-        ## 创建负载均衡门卫目标网址/网段数据集--阻止对访问该地址的网络流量进行负载均衡
-        ipset -q create "${BALANCE_GUARD_IP_SET}" nethash maxelem 4294967295 #--hashsize 1024 mexleme 65536
-        ipset -q flush "${BALANCE_GUARD_IP_SET}"
-        ipset -q add "${BALANCE_GUARD_IP_SET}" "${route_local_subnet}"
-        ## 创建不需要负载均衡的本地内网设备源网址/网段数据集
-        ipset -q create "${BALANCE_IP_SET}" nethash maxelem 4294967295 #--hashsize 1024 mexleme 65536
-        ipset -q flush "${BALANCE_IP_SET}"
-        if [ "${usage_mode}" != "0" ]; then
-            ## 静态分流模式：模式1、模式2
-            ipset -q add "${BALANCE_IP_SET}" "${route_local_subnet}"
-        else
-            ## 动态分流模式：模式3
-            ipset -q add "${BALANCE_IP_SET}" "${route_local_ip}"
-        fi
-    fi
+    ## 创建负载均衡门卫目标网址/网段数据集--阻止对访问该地址的网络流量进行负载均衡
+    ipset -q create "${BALANCE_GUARD_IP_SET}" nethash maxelem 4294967295 #--hashsize 1024 mexleme 65536
+    ipset -q flush "${BALANCE_GUARD_IP_SET}"
+    ipset -q add "${BALANCE_GUARD_IP_SET}" "${route_local_subnet}"
+    ## 创建所有本地内网设备源网址/网段数据集（含以反向方式加载的需要负载均衡的设备地址）
+    ipset -q create "${BALANCE_IP_SET}" nethash maxelem 4294967295 #--hashsize 1024 mexleme 65536
+    ipset -q flush "${BALANCE_IP_SET}"
+    ## 静态分流模式：模式1、模式2
+    [ "${usage_mode}" != "0" ] && ipset -q add "${BALANCE_IP_SET}" "${route_local_subnet}"
     ## 创建本地内网网址/网段数据集（仅用于动态分流模式，加入所有不进行netfilter目标访问网址/网段过滤的客户端源地址）
     ipset -q create "${LOCAL_IP_SET}" nethash maxelem 4294967295 #--hashsize 1024 mexleme 65536
     ipset -q flush "${LOCAL_IP_SET}"
     ## 加载不受目标网址/网段匹配访问控制的本地客户端网址
-    if [ "$( lz_get_ipv4_data_file_valid_item_total "${local_ipsets_file}" )" -gt "0" ]; then
-        ## 创建或加载网段出口数据集
-        ## 输入项：
-        ##     $1--全路径网段数据文件名
-        ##     $2--网段数据集名称
-        ##     $3--0:正匹配数据，非0：反匹配（nomatch）数据
-        ## 返回值：
-        ##     网址/网段数据集--全局变量
-        [ "${usage_mode}" = "0" ] && lz_add_net_address_sets "${local_ipsets_file}" "${LOCAL_IP_SET}" "0"
-        ## 创建本地黑名单负载均衡客户端网址/网段数据集
-        lz_add_net_address_sets "${local_ipsets_file}" "${BLACK_CLT_SRC_SET}" "0"
-        [ "${balance_chain_existing}" = "1" ] && {
-            lz_add_net_address_sets "${local_ipsets_file}" "${BALANCE_GUARD_IP_SET}" "0"
-            lz_add_net_address_sets "${local_ipsets_file}" "${BALANCE_IP_SET}" "1"
-        }
-    fi
-    if [ "${usage_mode}" = "0" ]; then
-        ## 加载第一WAN口域名地址动态分流客户端IPv4网址/网段条目列表数据至负载均衡门卫目标网址/网段数据集
-        [ "${wan_1_domain}" = "0" ] && [ "${balance_chain_existing}" = "1" ] \
-            && [ "$( lz_get_ipv4_data_file_item_total "${wan_1_domain_client_src_addr_file}" )" -gt "0" ] \
-            && lz_add_net_address_sets "${wan_1_domain_client_src_addr_file}" "${BALANCE_GUARD_IP_SET}" "0"
-        ## 加载第二WAN口域名地址动态分流客户端IPv4网址/网段条目列表数据至负载均衡门卫目标网址/网段数据集
-        [ "${wan_2_domain}" = "0" ] && [ "${balance_chain_existing}" = "1" ] \
-            && [ "$( lz_get_ipv4_data_file_item_total "${wan_2_domain_client_src_addr_file}" )" -gt "0" ] \
-            && lz_add_net_address_sets "${wan_2_domain_client_src_addr_file}" "${BALANCE_GUARD_IP_SET}" "0"
-        ## 第一WAN口客户端IPv4网址/网段至预设IPv4目标网址/网段协议端口动态分流条目列表中的的源网址/网段数据至负载均衡门卫目标网址/网段数据集
-        ## 创建或加载客户端IPv4网址/网段至预设IPv4目标网址/网段协议端口动态分流条目列表数据中的源网址/网段至数据集
-        ## 输入项：
-        ##     $1--全路径网段数据文件名
-        ##     $2--网段数据集名称
-        ##     $3--0:正匹配数据，非0：反匹配（nomatch）数据
-        ## 返回值：
-        ##     网址/网段数据集--全局变量
-        [ "${wan_1_src_to_dst_addr_port}" = "0" ] && [ "${balance_chain_existing}" = "1" ] \
-            && [ "$( lz_get_ipv4_src_to_dst_data_file_item_total "${wan_1_src_to_dst_addr_port_file}" )" -gt "0" ] \
-            && lz_add_client_dest_port_src_address_sets "${wan_1_src_to_dst_addr_port_file}" "${BALANCE_GUARD_IP_SET}" "0"
-        ## 第二WAN口客户端IPv4网址/网段至预设IPv4目标网址/网段协议端口动态分流条目列表中的的源网址/网段数据至负载均衡门卫目标网址/网段数据集
-        [ "${wan_2_src_to_dst_addr_port}" = "0" ] && [ "${balance_chain_existing}" = "1" ] \
-            && [ "$( lz_get_ipv4_src_to_dst_data_file_item_total "${wan_2_src_to_dst_addr_port_file}" )" -gt "0" ] \
-            && lz_add_client_dest_port_src_address_sets "${wan_2_src_to_dst_addr_port_file}" "${BALANCE_GUARD_IP_SET}" "0"
-        ## 第一WAN口高优先级客户端IPv4网址/网段至预设IPv4目标网址/网段协议端口动态分流条目列表中的的源网址/网段数据至负载均衡门卫目标网址/网段数据集
-        [ "${high_wan_1_src_to_dst_addr_port}" = "0" ] && [ "${balance_chain_existing}" = "1" ] \
-            && [ "$( lz_get_ipv4_src_to_dst_data_file_item_total "${high_wan_1_src_to_dst_addr_port_file}" )" -gt "0" ] \
-            && lz_add_client_dest_port_src_address_sets "${high_wan_1_src_to_dst_addr_port_file}" "${BALANCE_GUARD_IP_SET}" "0"
-    fi
+    ## 创建或加载网段出口数据集
+    ## 输入项：
+    ##     $1--全路径网段数据文件名
+    ##     $2--网段数据集名称
+    ##     $3--0:正匹配数据，非0：反匹配（nomatch）数据
+    ## 返回值：
+    ##     网址/网段数据集--全局变量
+    lz_add_net_address_sets "${local_ipsets_file}" "${LOCAL_IP_SET}" "0"
+    ## 创建本地黑名单负载均衡客户端网址/网段数据集
+    ipset -q create "${BLACK_CLT_SRC_SET}" nethash maxelem 4294967295 #--hashsize 1024 mexleme 65536
+    ipset -q flush "${BLACK_CLT_SRC_SET}"
+    lz_add_net_address_sets "${local_ipsets_file}" "${BLACK_CLT_SRC_SET}" "0"
+    lz_add_net_address_sets "${local_ipsets_file}" "${BALANCE_GUARD_IP_SET}" "0"
+    lz_add_net_address_sets "${local_ipsets_file}" "${BALANCE_IP_SET}" "1"
+    ## 加载第一WAN口域名地址动态分流客户端IPv4网址/网段条目列表数据至负载均衡门卫目标网址/网段数据集
+    [ "${wan_1_domain}" = "0" ] \
+        && lz_add_net_address_sets "${wan_1_domain_client_src_addr_file}" "${BALANCE_GUARD_IP_SET}" "0"
+    ## 加载第二WAN口域名地址动态分流客户端IPv4网址/网段条目列表数据至负载均衡门卫目标网址/网段数据集
+    [ "${wan_2_domain}" = "0" ] \
+        && lz_add_net_address_sets "${wan_2_domain_client_src_addr_file}" "${BALANCE_GUARD_IP_SET}" "0"
+    ## 第一WAN口客户端IPv4网址/网段至预设IPv4目标网址/网段协议端口动态分流条目列表中的的源网址/网段数据至负载均衡门卫目标网址/网段数据集
+    ## 创建或加载客户端IPv4网址/网段至预设IPv4目标网址/网段协议端口动态分流条目列表数据中的源网址/网段至数据集
+    ## 输入项：
+    ##     $1--全路径网段数据文件名
+    ##     $2--网段数据集名称
+    ##     $3--0:正匹配数据，非0：反匹配（nomatch）数据
+    ## 返回值：
+    ##     网址/网段数据集--全局变量
+    [ "${wan_1_src_to_dst_addr_port}" = "0" ] \
+        && lz_add_client_dest_port_src_address_sets "${wan_1_src_to_dst_addr_port_file}" "${BALANCE_GUARD_IP_SET}" "0"
+    ## 第二WAN口客户端IPv4网址/网段至预设IPv4目标网址/网段协议端口动态分流条目列表中的的源网址/网段数据至负载均衡门卫目标网址/网段数据集
+    [ "${wan_2_src_to_dst_addr_port}" = "0" ] \
+        && lz_add_client_dest_port_src_address_sets "${wan_2_src_to_dst_addr_port_file}" "${BALANCE_GUARD_IP_SET}" "0"
+    ## 第一WAN口高优先级客户端IPv4网址/网段至预设IPv4目标网址/网段协议端口动态分流条目列表中的的源网址/网段数据至负载均衡门卫目标网址/网段数据集
+    [ "${high_wan_1_src_to_dst_addr_port}" = "0" ] \
+        && lz_add_client_dest_port_src_address_sets "${high_wan_1_src_to_dst_addr_port_file}" "${BALANCE_GUARD_IP_SET}" "0"
     ## 加载排除绑定第一WAN口的客户端及源网址/网段列表数据
-    if [ "${wan_1_client_src_addr}" = "0" ] \
-        && [ "$( lz_get_ipv4_data_file_item_total "${wan_1_client_src_addr_file}" )" -gt "0" ]; then
-        [ "${usage_mode}" = "0" ] && lz_add_net_address_sets "${wan_1_client_src_addr_file}" "${LOCAL_IP_SET}" "0"
-        if [ "${balance_chain_existing}" = "1" ]; then
-            lz_add_net_address_sets "${wan_1_client_src_addr_file}" "${BALANCE_IP_SET}" "0"
-            lz_add_net_address_sets "${wan_1_client_src_addr_file}" "${BALANCE_GUARD_IP_SET}" "0"
-        fi
+    if [ "${wan_1_client_src_addr}" = "0" ]; then
+        lz_add_net_address_sets "${wan_1_client_src_addr_file}" "${LOCAL_IP_SET}" "0"
+        lz_add_net_address_sets "${wan_1_client_src_addr_file}" "${BALANCE_IP_SET}" "0"
+        lz_add_net_address_sets "${wan_1_client_src_addr_file}" "${BALANCE_GUARD_IP_SET}" "0"
     fi
     ## 加载排除绑定第二WAN口的客户端及源网址/网段列表数据
-    if [ "${wan_2_client_src_addr}" = "0" ] \
-        && [ "$( lz_get_ipv4_data_file_item_total "${wan_2_client_src_addr_file}" )" -gt "0" ]; then
-        [ "${usage_mode}" = "0" ] && lz_add_net_address_sets "${wan_2_client_src_addr_file}" "${LOCAL_IP_SET}" "0"
-        if [ "${balance_chain_existing}" = "1" ]; then
-            lz_add_net_address_sets "${wan_2_client_src_addr_file}" "${BALANCE_IP_SET}" "0"
-            lz_add_net_address_sets "${wan_2_client_src_addr_file}" "${BALANCE_GUARD_IP_SET}" "0"
-        fi
+    if [ "${wan_2_client_src_addr}" = "0" ]; then
+        lz_add_net_address_sets "${wan_2_client_src_addr_file}" "${LOCAL_IP_SET}" "0"
+        lz_add_net_address_sets "${wan_2_client_src_addr_file}" "${BALANCE_IP_SET}" "0"
+        lz_add_net_address_sets "${wan_2_client_src_addr_file}" "${BALANCE_GUARD_IP_SET}" "0"
     fi
     ## 加载排除高优先级绑定第一WAN口的客户端及源网址/网段列表数据
-    if [ "${high_wan_1_client_src_addr}" = "0" ] \
-        && [ "$( lz_get_ipv4_data_file_item_total "${high_wan_1_client_src_addr_file}" )" -gt "0" ]; then
-        [ "${usage_mode}" = "0" ] && lz_add_net_address_sets "${high_wan_1_client_src_addr_file}" "${LOCAL_IP_SET}" "0"
-        if [ "${balance_chain_existing}" = "1" ]; then
-            lz_add_net_address_sets "${high_wan_1_client_src_addr_file}" "${BALANCE_IP_SET}" "0"
-            lz_add_net_address_sets "${high_wan_1_client_src_addr_file}" "${BALANCE_GUARD_IP_SET}" "0"
-        fi
+    if [ "${high_wan_1_client_src_addr}" = "0" ]; then
+        lz_add_net_address_sets "${high_wan_1_client_src_addr_file}" "${LOCAL_IP_SET}" "0"
+        lz_add_net_address_sets "${high_wan_1_client_src_addr_file}" "${BALANCE_IP_SET}" "0"
+        lz_add_net_address_sets "${high_wan_1_client_src_addr_file}" "${BALANCE_GUARD_IP_SET}" "0"
     fi
     ## 加载排除高优先级绑定第二WAN口的客户端及源网址/网段列表数据
-    if [ "${high_wan_2_client_src_addr}" = "0" ] \
-        && [ "$( lz_get_ipv4_data_file_item_total "${high_wan_2_client_src_addr_file}" )" -gt "0" ]; then
-        [ "${usage_mode}" = "0" ] && lz_add_net_address_sets "${high_wan_2_client_src_addr_file}" "${LOCAL_IP_SET}" "0"
-        if [ "${balance_chain_existing}" = "1" ]; then
-            lz_add_net_address_sets "${high_wan_2_client_src_addr_file}" "${BALANCE_IP_SET}" "0"
-            lz_add_net_address_sets "${high_wan_2_client_src_addr_file}" "${BALANCE_GUARD_IP_SET}" "0"
-        fi
+    if [ "${high_wan_2_client_src_addr}" = "0" ]; then
+        lz_add_net_address_sets "${high_wan_2_client_src_addr_file}" "${LOCAL_IP_SET}" "0"
+        lz_add_net_address_sets "${high_wan_2_client_src_addr_file}" "${BALANCE_IP_SET}" "0"
+        lz_add_net_address_sets "${high_wan_2_client_src_addr_file}" "${BALANCE_GUARD_IP_SET}" "0"
     fi
     ## 加载排除绑定第一WAN口的用户自定义源网址/网段至目标网址/网段列表中未指明目标网址/网段的源网址/网段数据
-    if [ "${wan_1_src_to_dst_addr}" = "0" ] \
-        && [ "$( lz_get_ipv4_src_to_dst_data_file_item_total "${wan_1_src_to_dst_addr_file}" )" -gt "0" ]; then
+    if [ "${wan_1_src_to_dst_addr}" = "0" ]; then
         ## 创建或加载源网址/网段至目标网址/网段列表数据中未指明目标网址/网段的源网址/网段至数据集
         ## 输入项：
         ##     $1--全路径网段数据文件名
@@ -3018,29 +3032,31 @@ lz_initialize_ip_data_policy() {
         ##     $3--0:正匹配数据，非0：反匹配（nomatch）数据
         ## 返回值：
         ##     网址/网段数据集--全局变量
-        [ "${usage_mode}" = "0" ] && lz_add_src_net_address_sets "${wan_1_src_to_dst_addr_file}" "${LOCAL_IP_SET}" "0"
-        if [ "${balance_chain_existing}" = "1" ]; then
-            lz_add_src_net_address_sets "${wan_1_src_to_dst_addr_file}" "${BALANCE_IP_SET}" "0"
-            lz_add_src_net_address_sets "${wan_1_src_to_dst_addr_file}" "${BALANCE_GUARD_IP_SET}" "0"
-        fi
+        lz_add_src_net_address_sets "${wan_1_src_to_dst_addr_file}" "${LOCAL_IP_SET}" "0"
+        lz_add_src_net_address_sets "${wan_1_src_to_dst_addr_file}" "${BALANCE_IP_SET}" "0"
+        lz_add_src_net_address_sets "${wan_1_src_to_dst_addr_file}" "${BALANCE_GUARD_IP_SET}" "0"
+        ## 创建或加载源网址/网段至目标网址/网段列表数据中已明确源网址/网段和目标网址/网段条目中的源网址/网段至数据集
+        ## 输入项：
+        ##     $1--全路径网段数据文件名
+        ##     $2--网段数据集名称
+        ##     $3--0:正匹配数据，非0：反匹配（nomatch）数据
+        ## 返回值：
+        ##     网址/网段数据集--全局变量
+        lz_add_src_to_dst_net_src_address_sets "${wan_1_src_to_dst_addr_file}" "${BALANCE_GUARD_IP_SET}" "0"
     fi
     ## 加载排除绑定第二WAN口的用户自定义源网址/网段至目标网址/网段列表中未指明目标网址/网段的源网址/网段数据
-    if [ "${wan_2_src_to_dst_addr}" = "0" ] \
-        && [ "$( lz_get_ipv4_src_to_dst_data_file_item_total "${wan_2_src_to_dst_addr_file}" )" -gt "0" ]; then
-        [ "${usage_mode}" = "0" ] && lz_add_src_net_address_sets "${wan_2_src_to_dst_addr_file}" "${LOCAL_IP_SET}" "0"
-        if [ "${balance_chain_existing}" = "1" ]; then
-            lz_add_src_net_address_sets "${wan_2_src_to_dst_addr_file}" "${BALANCE_IP_SET}" "0"
-            lz_add_src_net_address_sets "${wan_2_src_to_dst_addr_file}" "${BALANCE_GUARD_IP_SET}" "0"
-        fi
+    if [ "${wan_2_src_to_dst_addr}" = "0" ]; then
+        lz_add_src_net_address_sets "${wan_2_src_to_dst_addr_file}" "${LOCAL_IP_SET}" "0"
+        lz_add_src_net_address_sets "${wan_2_src_to_dst_addr_file}" "${BALANCE_IP_SET}" "0"
+        lz_add_src_net_address_sets "${wan_2_src_to_dst_addr_file}" "${BALANCE_GUARD_IP_SET}" "0"
+        lz_add_src_to_dst_net_src_address_sets "${wan_2_src_to_dst_addr_file}" "${BALANCE_GUARD_IP_SET}" "0"
     fi
     ## 加载排除高优先级绑定第一WAN口的用户自定义源网址/网段至目标网址/网段列表中未指明目标网址/网段的源网址/网段数据
-    if [ "${high_wan_1_src_to_dst_addr}" = "0" ] \
-        && [ "$( lz_get_ipv4_src_to_dst_data_file_item_total "${high_wan_1_src_to_dst_addr_file}" )" -gt "0" ]; then
-        [ "${usage_mode}" = "0" ] && lz_add_src_net_address_sets "${high_wan_1_src_to_dst_addr_file}" "${LOCAL_IP_SET}" "0"
-        if [ "${balance_chain_existing}" = "1" ]; then
-            lz_add_src_net_address_sets "${high_wan_1_src_to_dst_addr_file}" "${BALANCE_IP_SET}" "0"
-            lz_add_src_net_address_sets "${high_wan_1_src_to_dst_addr_file}" "${BALANCE_GUARD_IP_SET}" "0"
-        fi
+    if [ "${high_wan_1_src_to_dst_addr}" = "0" ]; then
+        lz_add_src_net_address_sets "${high_wan_1_src_to_dst_addr_file}" "${LOCAL_IP_SET}" "0"
+        lz_add_src_net_address_sets "${high_wan_1_src_to_dst_addr_file}" "${BALANCE_IP_SET}" "0"
+        lz_add_src_net_address_sets "${high_wan_1_src_to_dst_addr_file}" "${BALANCE_GUARD_IP_SET}" "0"
+        lz_add_src_to_dst_net_src_address_sets "${high_wan_1_src_to_dst_addr_file}" "${BALANCE_GUARD_IP_SET}" "0"
     fi
 
     ## 创建内输出mangle表自定义规则链
@@ -3055,9 +3071,7 @@ lz_initialize_ip_data_policy() {
     local local_lan_ifname="$( nvram get "lan_ifname" | awk '{print $1}' | sed -n 1p )"
     [ -z "${local_lan_ifname}" ] && local_lan_ifname="br0"
     iptables -t mangle -A "${CUSTOM_PREROUTING_CHAIN}" -m state --state NEW -j "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" > /dev/null 2>&1
-    local BLACK_CLT_SRC_SET_STR=""
-    [ "$( lz_get_ipset_total_number "${BLACK_CLT_SRC_SET}" )" -gt "0" ] && BLACK_CLT_SRC_SET_STR="-m set ! ${MATCH_SET} ${BLACK_CLT_SRC_SET} src"
-    eval "iptables -t mangle -I PREROUTING -i ${local_lan_ifname} ${BLACK_CLT_SRC_SET_STR} -j ${CUSTOM_PREROUTING_CHAIN} > /dev/null 2>&1"
+    eval "iptables -t mangle -I PREROUTING -i ${local_lan_ifname} -m set ! ${MATCH_SET} ${BLACK_CLT_SRC_SET} src -j ${CUSTOM_PREROUTING_CHAIN} > /dev/null 2>&1"
 
     ## 加载已明确定义源网址/网段至目标网址/网段列表条目至NetFilter防火墙规则进行数据标记
     ## 输入项：
@@ -3119,15 +3133,15 @@ lz_initialize_ip_data_policy() {
     ##     $4--排除未知IP地址项（0--不排除；非0--排除）
     ##     全局变量
     ## 返回值：无
-    [ "${wan_2_client_src_addr}" = "0" ] && [ "$( lz_get_ipv4_data_file_item_total "${wan_2_client_src_addr_file}" )" -gt "0" ] \
+    [ "${wan_2_client_src_addr}" = "0" ] \
         && lz_add_ipv4_src_addr_list_binding_wan "${wan_2_client_src_addr_file}" "${WAN1}" "${IP_RULE_PRIO_WAN_2_CLIENT_SRC_ADDR}" "0"
 
     ## 第一WAN口客户端及源网址/网段绑定列表
     ## 动静模式时均在balance链中通过识别客户端地址，阻止负载均衡为其分配网络出口
-    [ "${wan_1_client_src_addr}" = "0" ] && [ "$( lz_get_ipv4_data_file_item_total "${wan_1_client_src_addr_file}" )" -gt "0" ] \
+    [ "${wan_1_client_src_addr}" = "0" ] \
         && lz_add_ipv4_src_addr_list_binding_wan "${wan_1_client_src_addr_file}" "${WAN0}" "${IP_RULE_PRIO_WAN_1_CLIENT_SRC_ADDR}" "0"
 
-    ## 阻止对本地内网网址/网段数据集中源地址发出的流量分流（仅用于动态分流模式，所有不进行netfilter目标访问网址/网段过滤的客户端源地址）
+    ## 阻止对本地内网网址/网段数据集中源地址发出的流量分流（用于所有不进行netfilter目标访问网址/网段过滤的客户端源地址）
     eval "iptables -t mangle -A ${CUSTOM_PREROUTING_CONNMARK_CHAIN} -m set ${MATCH_SET} ${LOCAL_IP_SET} src -j RETURN > /dev/null 2>&1"
 
     ## 端口分流
@@ -3205,7 +3219,7 @@ lz_initialize_ip_data_policy() {
             local_index="1"
             until [ "${local_index}" -gt "${ISP_TOTAL}" ]
             do
-                    ## 合并全中国地区所有ISP运营商数据集
+                ## 合并全中国地区所有ISP运营商数据集
                 [ "$( lz_get_isp_data_item_total_variable "${local_index}" )" -gt "0" ] \
                     && lz_add_net_address_sets "$( lz_get_isp_data_filename "${local_index}" )" "${ISPIP_ALL_CN_SET}" "0"
                 local_index="$(( local_index + 1 ))"
@@ -3259,7 +3273,7 @@ lz_initialize_ip_data_policy() {
         lz_add_dst_net_address_sets "${wan_1_src_to_dst_addr_file}" "${ISPIP_SET_1}" "1"
 
         ## 模式3动态分流时，需将静态路由的本目标网址/网段添加进NO_BALANCE_DST_IP_SET数据集，以在balance链中阻止负载均衡为其网络连接分配出口
-        [ "${balance_chain_existing}" = "1" ] && lz_add_dst_net_address_sets "${wan_1_src_to_dst_addr_file}" "${NO_BALANCE_DST_IP_SET}" "0"
+        lz_add_dst_net_address_sets "${wan_1_src_to_dst_addr_file}" "${NO_BALANCE_DST_IP_SET}" "0"
     fi
 
     ## 排除绑定第二WAN口的用户自定义源网址/网段至目标网址/网段列表中未指明源网址/网段的目标网址/网段数据
@@ -3273,7 +3287,7 @@ lz_initialize_ip_data_policy() {
         lz_add_dst_net_address_sets "${wan_2_src_to_dst_addr_file}" "${ISPIP_SET_1}" "1"
 
         ## 模式3动态分流时，需将静态路由的本目标网址/网段添加进NO_BALANCE_DST_IP_SET数据集，以在balance链中阻止负载均衡为其网络连接分配出口
-        [ "${balance_chain_existing}" = "1" ] && lz_add_dst_net_address_sets "${wan_2_src_to_dst_addr_file}" "${NO_BALANCE_DST_IP_SET}" "0"
+        lz_add_dst_net_address_sets "${wan_2_src_to_dst_addr_file}" "${NO_BALANCE_DST_IP_SET}" "0"
     fi
 
     ## 排除高优先级绑定第一WAN口的用户自定义源网址/网段至目标网址/网段列表中未指明源网址/网段的目标网址/网段数据
@@ -3287,7 +3301,7 @@ lz_initialize_ip_data_policy() {
         lz_add_dst_net_address_sets "${high_wan_1_src_to_dst_addr_file}" "${ISPIP_SET_1}" "1"
 
         ## 模式3动态分流时，需将静态路由的本目标网址/网段添加进NO_BALANCE_DST_IP_SET数据集，以在balance链中阻止负载均衡为其网络连接分配出口
-        [ "${balance_chain_existing}" = "1" ] && lz_add_dst_net_address_sets "${high_wan_1_src_to_dst_addr_file}" "${NO_BALANCE_DST_IP_SET}" "0"
+        lz_add_dst_net_address_sets "${high_wan_1_src_to_dst_addr_file}" "${NO_BALANCE_DST_IP_SET}" "0"
     fi
 
     ## 获取WAN口的DNS解析服务器网址
@@ -3459,45 +3473,43 @@ lz_initialize_ip_data_policy() {
         done
     fi
 
-    if [ "${balance_chain_existing}" = "1" ]; then
-        ## 阻止访问DNS地址负载均衡
-        [ -n "${local_ifip_wan0_dns1}" ] && ipset -q add "${BALANCE_GUARD_IP_SET}" "${local_ifip_wan0_dns1}"
-        [ -n "${local_ifip_wan0_dns2}" ] && ipset -q add "${BALANCE_GUARD_IP_SET}" "${local_ifip_wan0_dns2}"
-        [ -n "${local_ifip_wan1_dns1}" ] && ipset -q add "${BALANCE_GUARD_IP_SET}" "${local_ifip_wan1_dns1}"
-        [ -n "${local_ifip_wan1_dns2}" ] && ipset -q add "${BALANCE_GUARD_IP_SET}" "${local_ifip_wan1_dns2}"
-        ## 阻止访问WAN口外网IPv4网络地址负载均衡
-        for local_wan_ip in $( ip -o -4 addr list | awk '/ppp/ {print $4}' )
-        do
-            ipset -q add "${BALANCE_GUARD_IP_SET}" "${local_wan_ip}"
-        done
-        ## 阻止访问WAN口外网IPv4网关地址负载均衡
-        for local_wan_ip in $( ip -o -4 addr list | awk '/ppp/ {print $6}' )
-        do
-            ipset -q add "${BALANCE_GUARD_IP_SET}" "${local_wan_ip}"
-        done
-        ## 阻止访问第一WAN口内网地址负载均衡
+    ## 阻止访问DNS地址负载均衡
+    [ -n "${local_ifip_wan0_dns1}" ] && ipset -q add "${BALANCE_GUARD_IP_SET}" "${local_ifip_wan0_dns1}"
+    [ -n "${local_ifip_wan0_dns2}" ] && ipset -q add "${BALANCE_GUARD_IP_SET}" "${local_ifip_wan0_dns2}"
+    [ -n "${local_ifip_wan1_dns1}" ] && ipset -q add "${BALANCE_GUARD_IP_SET}" "${local_ifip_wan1_dns1}"
+    [ -n "${local_ifip_wan1_dns2}" ] && ipset -q add "${BALANCE_GUARD_IP_SET}" "${local_ifip_wan1_dns2}"
+    ## 阻止访问WAN口外网IPv4网络地址负载均衡
+    for local_wan_ip in $( ip -o -4 addr list | awk '/ppp/ {print $4}' )
+    do
+        ipset -q add "${BALANCE_GUARD_IP_SET}" "${local_wan_ip}"
+    done
+    ## 阻止访问WAN口外网IPv4网关地址负载均衡
+    for local_wan_ip in $( ip -o -4 addr list | awk '/ppp/ {print $6}' )
+    do
+        ipset -q add "${BALANCE_GUARD_IP_SET}" "${local_wan_ip}"
+    done
+    ## 阻止访问第一WAN口内网地址负载均衡
+    for local_wan_ip in $( ip -o -4 addr list | grep "$( nvram get "wan0_ifname" | sed 's/ /\n/g' | sed -n 1p )" | awk '{print $4}' )
+    do
+        ipset -q add "${BALANCE_GUARD_IP_SET}" "${local_wan_ip}"
+    done
+    ## 阻止访问第二WAN口内网地址负载均衡
+    for local_wan_ip in $( ip -o -4 addr list | grep "$( nvram get "wan1_ifname" | sed 's/ /\n/g' | sed -n 1p )" | awk '{print $4}' )
+    do
+        ipset -q add "${BALANCE_GUARD_IP_SET}" "${local_wan_ip}"
+    done
+    if [ "${usage_mode}" != "0" ]; then
+        ## 静态分流模式：模式1、模式2
+        ## 阻止对源网址为第一WAN口内网地址的设备负载均衡
         for local_wan_ip in $( ip -o -4 addr list | grep "$( nvram get "wan0_ifname" | sed 's/ /\n/g' | sed -n 1p )" | awk '{print $4}' )
         do
-            ipset -q add "${BALANCE_GUARD_IP_SET}" "${local_wan_ip}"
+            ipset -q add "${BALANCE_IP_SET}" "${local_wan_ip}"
         done
-        ## 阻止访问第二WAN口内网地址负载均衡
+        ## 阻止对源网址为第二WAN口内网地址的设备负载均衡
         for local_wan_ip in $( ip -o -4 addr list | grep "$( nvram get "wan1_ifname" | sed 's/ /\n/g' | sed -n 1p )" | awk '{print $4}' )
         do
-            ipset -q add "${BALANCE_GUARD_IP_SET}" "${local_wan_ip}"
+            ipset -q add "${BALANCE_IP_SET}" "${local_wan_ip}"
         done
-        if [ "${usage_mode}" != "0" ]; then
-            ## 静态分流模式：模式1、模式2
-            ## 阻止对源网址为第一WAN口内网地址的设备负载均衡
-            for local_wan_ip in $( ip -o -4 addr list | grep "$( nvram get "wan0_ifname" | sed 's/ /\n/g' | sed -n 1p )" | awk '{print $4}' )
-            do
-                ipset -q add "${BALANCE_IP_SET}" "${local_wan_ip}"
-            done
-            ## 阻止对源网址为第二WAN口内网地址的设备负载均衡
-            for local_wan_ip in $( ip -o -4 addr list | grep "$( nvram get "wan1_ifname" | sed 's/ /\n/g' | sed -n 1p )" | awk '{print $4}' )
-            do
-                ipset -q add "${BALANCE_IP_SET}" "${local_wan_ip}"
-            done
-        fi
     fi
 
     ## 检测是否启用NetFilter网络防火墙地址过滤匹配标记核心功能
@@ -3509,7 +3521,7 @@ lz_initialize_ip_data_policy() {
     if iptables -t mangle -L PREROUTING 2> /dev/null | grep -qw "${CUSTOM_PREROUTING_CHAIN}" \
         && iptables -t mangle -L "${CUSTOM_PREROUTING_CHAIN}" 2> /dev/null | grep -qw "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" \
         && iptables -t mangle -L "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" 2> /dev/null | grep -qw "${LOCAL_IP_SET}"; then
-        ## 删除已执行的阻止对本地内网网址/网段数据集中源地址发出的流量分流（仅用于动态分流模式，所有不进行netfilter目标访问网址/网段过滤的客户端源地址）命令
+        ## 删除已执行的阻止对本地内网网址/网段数据集中源地址发出的流量分流（用于所有不进行netfilter目标访问网址/网段过滤的客户端源地址）
         ! lz_get_netfilter_key_used && eval "iptables -t mangle -D ${CUSTOM_PREROUTING_CONNMARK_CHAIN} -m set ${MATCH_SET} ${LOCAL_IP_SET} src -j RETURN > /dev/null 2>&1"
     fi
 
@@ -3520,27 +3532,18 @@ lz_initialize_ip_data_policy() {
     ##     0--已启用
     ##     1--未启用
     if ! lz_get_netfilter_used; then
-        if iptables -t mangle -L "${CUSTOM_PREROUTING_CHAIN}" 2> /dev/null | grep -q "${SRC_DST_FWMARK}"; then
-            ## 删除路由前mangle表自定义规则子链
-            ## 输入项：
-            ##     $1--自定义规则链名称
-            ##     $2--自定义规则子链名称
-            ## 返回值：无
-            lz_delete_iptables_custom_prerouting_sub_chain "${CUSTOM_PREROUTING_CHAIN}" "${CUSTOM_PREROUTING_CONNMARK_CHAIN}"
-        else
-            ## 删除路由前mangle表自定义规则链
-            ## 输入项：
-            ##     $1--自定义规则链名称
-            ##     $2--自定义规则子链名称
-            ## 返回值：无
-            lz_delete_iptables_custom_prerouting_chain "${CUSTOM_PREROUTING_CHAIN}" "${CUSTOM_PREROUTING_CONNMARK_CHAIN}"
-            ## 删除内输出mangle表自定义规则链
-            ## 输入项：
-            ##     $1--自定义规则链名称
-            ##     $2--自定义规则子链名称
-            ## 返回值：无
-            lz_delete_iptables_custom_output_chain "${CUSTOM_OUTPUT_CHAIN}" "${CUSTOM_OUTPUT_CONNMARK_CHAIN}"
-        fi
+        ## 删除路由前mangle表自定义规则链
+        ## 输入项：
+        ##     $1--自定义规则链名称
+        ##     $2--自定义规则子链名称
+        ## 返回值：无
+        lz_delete_iptables_custom_prerouting_chain "${CUSTOM_PREROUTING_CHAIN}" "${CUSTOM_PREROUTING_CONNMARK_CHAIN}"
+        ## 删除内输出mangle表自定义规则链
+        ## 输入项：
+        ##     $1--自定义规则链名称
+        ##     $2--自定义规则子链名称
+        ## 返回值：无
+        lz_delete_iptables_custom_output_chain "${CUSTOM_OUTPUT_CHAIN}" "${CUSTOM_OUTPUT_CONNMARK_CHAIN}"
     fi
 
     if [ "${network_packets_checksum}" != "0" ]; then
@@ -3560,9 +3563,10 @@ lz_initialize_ip_data_policy() {
 lz_get_proxy_remote_node_addr_file_item_total() {
     local retval="0"
     [ -s "${1}" ] && {
-        retval="$( sed -e 's/^[[:space:]]\+//g' -e '/^[#]/d' -e 's/[[:space:]]*[#].*$//g' -e '/^[[:space:]]*$/d' "${1}" \
+        retval="$( sed -e 's/^[[:space:]]\+//g' -e '/^[#]/d' -e 's/[[:space:]]*[#].*$//g' -e '/^[[:space:]]*$/d' \
+            -e "s#\(^\|[[:space:]][[:space:]]*\)${route_local_subnet}\([[:space:]][[:space:]]*\|$\)#${route_static_subnet}#g" "${1}" \
         | tr '[:A-Z:]' '[:a-z:]' \
-        | awk -v count="0" 'NF >= 1 && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" && $1 != "'"${route_local_ip}"'" \
+        | awk -v count="0" 'NF >= "1" && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" && $1 != "'"${route_local_ip}"'" \
         && !i[$1]++ {count++} END{print count}' )"
     }
     echo "${retval}"
@@ -3584,7 +3588,8 @@ lz_proxy_route_support() {
                 print "pre_dns_enable=\"0\""
         }' )"
     fi
-    PROXY_NODE_BUF="$( sed -e 's/^[[:space:]]\+//g' -e '/^[#]/d' -e 's/[[:space:]]*[#].*$//g' -e '/^[[:space:]]*$/d' "${proxy_remote_node_addr_file}" \
+    PROXY_NODE_BUF="$( sed -e 's/^[[:space:]]\+//g' -e '/^[#]/d' -e 's/[[:space:]]*[#].*$//g' -e '/^[[:space:]]*$/d' \
+        -e "s#\(^\|[[:space:]][[:space:]]*\)${route_local_subnet}\([[:space:]][[:space:]]*\|$\)#${route_static_subnet}#g" "${proxy_remote_node_addr_file}" \
         | tr '[:A-Z:]' '[:a-z:]' \
         | awk 'NF >= 1 && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" && $1 != "'"${route_local_ip}"'" && !i[$1]++ {print $1}' )"
     while IFS= read -r line
@@ -3596,7 +3601,7 @@ lz_proxy_route_support() {
         else
             if [ "${dn_pre_resolved}" = "0" ]; then
                 nslookup "${line}" 2> /dev/null | awk 'NR > 4 && $3 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ && $3 != "0.0.0.0" \
-                        {system("ip rule add from 0.0.0.0 to "$3"'" table ${wan_no} prio ${IP_RULE_PRIO_TOPEST} > /dev/null 2>&1; ip rule add from "'"$3"'" to 0.0.0.0 table ${wan_no} prio ${IP_RULE_PRIO_TOPEST} > /dev/null 2>&1"'")}'
+                    {system("ip rule add from 0.0.0.0 to "$3"'" table ${wan_no} prio ${IP_RULE_PRIO_TOPEST} > /dev/null 2>&1; ip rule add from "'"$3"'" to 0.0.0.0 table ${wan_no} prio ${IP_RULE_PRIO_TOPEST} > /dev/null 2>&1"'")}'
             elif [ "${dn_pre_resolved}" = "1" ]; then
                 [ "${pre_dns_enable}" = "0" ] \
                     && nslookup "${line}" "${pre_dns}" 2> /dev/null | awk 'NR > 4 && $3 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ && $3 != "0.0.0.0" \
@@ -3831,16 +3836,16 @@ lz_create_openvpn_event_command() {
 #!/bin/sh
 EOF_OVPN_SCRIPTS_A
     fi
-    if ! grep -m 1 '^.*$' "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}" | grep -q "#!/bin/sh"; then
+    if ! grep -m 1 '^.*$' "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}" | grep -qw "#!/bin/sh"; then
         if [ "$( grep -c '^.*$' "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}" )" = "0" ]; then
             echo "#!/bin/sh" >> "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}"
-        elif grep '^.*$' "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}" | grep -q "#!/bin/sh"; then
+        elif grep '^.*$' "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}" | grep -qw "#!/bin/sh"; then
             sed -i -e '/!\/bin\/sh/d' -e '1i #!\/bin\/sh' "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}"
         else
             sed -i '1i #!\/bin\/sh' "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}"
         fi
     else
-        ! grep -m 1 '^.*$' "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}" | grep -q "^#!/bin/sh" \
+        ! grep -m 1 '^.*$' "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}" | grep -qw "^#!/bin/sh" \
             && sed -i 'l1 s:^.*\(#!/bin/sh.*$\):\1/g' "${PATH_INTERFACE}/${OPENVPN_EVENT_INTERFACE_NAME}"
     fi
 
@@ -4755,38 +4760,38 @@ lz_output_ispip_info_to_system_records() {
 ##     全局常量及变量
 ## 返回值：无
 lz_output_dport_policy_info_to_system_records() {
-    ! iptables -t mangle -L PREROUTING | grep -q "${CUSTOM_PREROUTING_CHAIN}" && return
-    ! iptables -t mangle -L "${CUSTOM_PREROUTING_CHAIN}" | grep -q "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" && return
+    ! iptables -t mangle -L PREROUTING 2> /dev/null | grep -qw "${CUSTOM_PREROUTING_CHAIN}" && return
+    ! iptables -t mangle -L "${CUSTOM_PREROUTING_CHAIN}" 2> /dev/null | grep -qw "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" && return
     local local_item_exist="0"
-    local local_dports="$( iptables -t mangle -L "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" -v -n --line-numbers | grep "MARK set ${DEST_PORT_FWMARK_0}" | grep "tcp" | awk -F "dports " '{print $2}' | awk '{print $1}' )"
+    local local_dports="$( iptables -t mangle -L "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" | grep -i "CONNMARK[[:space:]][[:space:]]*set[[:space:]][[:space:]]*${DEST_PORT_FWMARK_0}$" | grep -w "tcp" | awk -F "dports " '{print $2}' | awk '{print $1}' )"
     [ -n "${local_dports}" ] && local_item_exist="1" && {
         echo "$(lzdate)" [$$]: "   Primary WAN     TCP:${local_dports}" | tee -ai "${SYSLOG}" 2> /dev/null
     }
-    local_dports=$( iptables -t mangle -L "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" -v -n --line-numbers | grep "MARK set ${DEST_PORT_FWMARK_0}" | grep "udp " | awk -F "dports " '{print $2}' | awk '{print $1}' )
+    local_dports=$( iptables -t mangle -L "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" | grep -i "CONNMARK[[:space:]][[:space:]]*set[[:space:]][[:space:]]*${DEST_PORT_FWMARK_0}$" | grep -w "udp" | awk -F "dports " '{print $2}' | awk '{print $1}' )
     [ -n "${local_dports}" ] && local_item_exist="1" && {
         echo "$(lzdate)" [$$]: "   Primary WAN     UDP:${local_dports}" | tee -ai "${SYSLOG}" 2> /dev/null
     }
-    local_dports=$( iptables -t mangle -L "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" -v -n --line-numbers | grep "MARK set ${DEST_PORT_FWMARK_0}" | grep udplite | awk -F "dports " '{print $2}' | awk '{print $1}' )
+    local_dports=$( iptables -t mangle -L "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" | grep -i "CONNMARK[[:space:]][[:space:]]*set[[:space:]][[:space:]]*${DEST_PORT_FWMARK_0}$" | grep -w "udplite" | awk -F "dports " '{print $2}' | awk '{print $1}' )
     [ -n "${local_dports}" ] && local_item_exist="1" && {
         echo "$(lzdate)" [$$]: "   Primary WAN     UDPLITE:${local_dports}" | tee -ai "${SYSLOG}" 2> /dev/null
     }
-    local_dports=$( iptables -t mangle -L "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" -v -n --line-numbers | grep "MARK set ${DEST_PORT_FWMARK_0}" | grep sctp | awk -F "dports " '{print $2}' | awk '{print $1}' )
+    local_dports=$( iptables -t mangle -L "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" | grep -i "CONNMARK[[:space:]][[:space:]]*set[[:space:]][[:space:]]*${DEST_PORT_FWMARK_0}$" | grep -w "sctp" | awk -F "dports " '{print $2}' | awk '{print $1}' )
     [ -n "${local_dports}" ] && local_item_exist="1" && {
         echo "$(lzdate)" [$$]: "   Primary WAN     SCTP:${local_dports}" | tee -ai "${SYSLOG}" 2> /dev/null
     }
-    local_dports=$( iptables -t mangle -L "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" -v -n --line-numbers | grep "MARK set ${DEST_PORT_FWMARK_1}" | grep tcp | awk -F "dports " '{print $2}' | awk '{print $1}' )
+    local_dports=$( iptables -t mangle -L "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" | grep -i "CONNMARK[[:space:]][[:space:]]*set[[:space:]][[:space:]]*${DEST_PORT_FWMARK_1}$" | grep -w "tcp" | awk -F "dports " '{print $2}' | awk '{print $1}' )
     [ -n "${local_dports}" ] && local_item_exist="1" && {
         echo "$(lzdate)" [$$]: "   Secondary WAN   TCP:${local_dports}" | tee -ai "${SYSLOG}" 2> /dev/null
     }
-    local_dports=$( iptables -t mangle -L "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" -v -n --line-numbers | grep "MARK set ${DEST_PORT_FWMARK_1}" | grep "udp " | awk -F "dports " '{print $2}' | awk '{print $1}' )
+    local_dports=$( iptables -t mangle -L "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" | grep -i "CONNMARK[[:space:]][[:space:]]*set[[:space:]][[:space:]]*${DEST_PORT_FWMARK_1}$" | grep -w "udp" | awk -F "dports " '{print $2}' | awk '{print $1}' )
     [ -n "${local_dports}" ] && local_item_exist="1" && {
         echo "$(lzdate)" [$$]: "   Secondary WAN   UDP:${local_dports}" | tee -ai "${SYSLOG}" 2> /dev/null
     }
-    local_dports=$( iptables -t mangle -L "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" -v -n --line-numbers | grep "MARK set ${DEST_PORT_FWMARK_1}" | grep udplite | awk -F "dports " '{print $2}' | awk '{print $1}' )
+    local_dports=$( iptables -t mangle -L "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" | grep -i "CONNMARK[[:space:]][[:space:]]*set[[:space:]][[:space:]]*${DEST_PORT_FWMARK_1}$" | grep -w "udplite" | awk -F "dports " '{print $2}' | awk '{print $1}' )
     [ -n "${local_dports}" ] && local_item_exist="1" && {
         echo "$(lzdate)" [$$]: "   Secondary WAN   UDPLITE:${local_dports}" | tee -ai "${SYSLOG}" 2> /dev/null
     }
-    local_dports=$( iptables -t mangle -L "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" -v -n --line-numbers | grep "MARK set ${DEST_PORT_FWMARK_1}" | grep sctp | awk -F "dports " '{print $2}' | awk '{print $1}' )
+    local_dports=$( iptables -t mangle -L "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" | grep -i "CONNMARK[[:space:]][[:space:]]*set[[:space:]][[:space:]]*${DEST_PORT_FWMARK_1}$" | grep -w "sctp" | awk -F "dports " '{print $2}' | awk '{print $1}' )
     [ -n "${local_dports}" ] && local_item_exist="1" && {
         echo "$(lzdate)" [$$]: "   Secondary WAN   SCTP:${local_dports}" | tee -ai "${SYSLOG}" 2> /dev/null
     }
@@ -4849,16 +4854,9 @@ EOF
 ##     $3--IP规则优先级
 ## 返回值：无
 lz_add_dual_ip_rules() {
-    if [ ! -f "${1}" ] || [ -z "${2}" ]; then return; fi;
-    awk '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
-        && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
-        && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" && $1 != "'"${route_local_ip}"'" \
-        && NF >= "1" && !i[$1]++ {
-            box=$1;
-            if (box == "'"${route_local_subnet}"'")
-                box="'"${route_static_subnet}"'";
-            system("ip rule add from "box"'" table ${2} prio ${3} > /dev/null 2>&1; ip rule add from all to "'"box"'" table ${2} prio ${3} > /dev/null 2>&1;"'");
-        }' "${1}"
+    if [ ! -s "${1}" ] || [ -z "${2}" ]; then return; fi;
+    lz_print_valid_ipv4_address_list "${1}" | awk 'NF >= "1" && !i[$1]++ \
+        {system("ip rule add from "$1"'" table ${2} prio ${3} > /dev/null 2>&1; ip rule add from all to "'"$1"'" table ${2} prio ${3} > /dev/null 2>&1;"'")}'
 }
 
 ## 获取IPv4网址/网段地址列表文件中的列表数据函数
@@ -4868,12 +4866,7 @@ lz_add_dual_ip_rules() {
 ##     数据列表
 lz_get_ipv4_list_from_data_file() {
     local retval=""
-    [ -s "${1}" ] && {
-        retval="$( awk '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
-            && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
-            && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" && $1 != "'"${route_local_ip}"'" \
-            && NF >= "1" && !i[$1]++ {print $1}' "${1}" )"
-    }
+    [ -s "${1}" ] && retval="$( lz_print_valid_ipv4_address_list "${1}" | awk 'NF >= "1" && !i[$1]++ {print $1}' )"
     echo "${retval}"
 }
 
@@ -4885,14 +4878,12 @@ lz_get_ipv4_list_from_data_file() {
 ##     $4--IP规则优先级
 ## 返回值：无
 lz_add_src_to_dst_sets_ip_rules() {
-    if [ -z "${1}" ] || [ ! -f "${2}" ]; then return; fi;
-    { [ "${1}" = "0.0.0.0/0" ] || [ "${1}" = "0.0.0.0" ]; } && return
+    if [ -z "${1}" ] || [ ! -s "${2}" ]; then return; fi;
+    { [ "${1}" = "0.0.0.0/0" ] || [ "${1}" = "0.0.0.0" ] || [ "${1}" = "${route_local_ip}" ]; } && return
     local box_addr="${1}"
     [ "${box_addr}" = "${route_local_subnet}" ] && box_addr="${route_static_subnet}"
-    awk '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
-        && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
-        && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" && $1 != "'"${route_local_ip}"'" \
-        && NF >= "1" && !i[$1]++ {system("'"ip rule add from ${box_addr} to "'"$1"'" table ${3} prio ${4} > /dev/null 2>&1"'")}' "${2}"
+    z_print_valid_ip_list "${2}" | awk 'NF >= "1" && $1 != "'"${box_addr}"'" \
+        && !i[$1]++ {system("'"ip rule add from ${box_addr} to "'"$1"'" table ${3} prio ${4} > /dev/null 2>&1"'")}'
 }
 
 ## 添加从源地址列表到目标地址访问网络路径规则函数
@@ -4903,14 +4894,13 @@ lz_add_src_to_dst_sets_ip_rules() {
 ##     $4--IP规则优先级
 ## 返回值：无
 lz_add_src_sets_to_dst_ip_rules() {
-    if [ ! -f "${1}" ] || [ -z "${2}" ]; then return; fi;
-    { [ "${2}" = "0.0.0.0/0" ] || [ "${2}" = "0.0.0.0" ]; } && return
+    if [ ! -s "${1}" ] || [ -z "${2}" ]; then return; fi;
+    { [ "${2}" = "0.0.0.0/0" ] || [ "${2}" = "0.0.0.0" ] || [ "${2}" = "${route_local_ip}" ]; } && return
     local box_addr="${2}"
     [ "${box_addr}" = "${route_local_subnet}" ] && box_addr="${route_static_subnet}"
-    awk '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ \
-        && $1 !~ /[3-9][0-9][0-9]/ && $1 !~ /[2][6-9][0-9]/ && $1 !~ /[2][5][6-9]/ && $1 !~ /[\/][4-9][0-9]/ && $1 !~ /[\/][3][3-9]/ \
-        && $1 != "0.0.0.0/0" && $1 != "0.0.0.0" && $1 != "'"${route_local_ip}"'" \
-        && NF >= "1" && !i[$1]++ {system("ip rule add from "$1"'" to ${box_addr} table ${3} prio ${4} > /dev/null 2>&1"'")}' "${1}"
+    z_print_valid_ip_list "${1}" | awk 'NF >= "1" \
+        && $1 != "'"${box_addr}"'" \
+        && !i[$1]++ {system("ip rule add from "$1"'" to ${box_addr} table ${3} prio ${4} > /dev/null 2>&1"'")}'
 }
 
 ## 启动IPTV机顶盒服务函数
@@ -4989,7 +4979,7 @@ lz_start_iptv_box_services() {
     ## 刷新路由器路由表缓存
     ip route flush cache > /dev/null 2>&1
 
-    if ! ip rule show  | grep -q "^${IP_RULE_PRIO_IPTV}:"; then
+    if ! ip rule show  | grep -qw "^${IP_RULE_PRIO_IPTV}:"; then
         ## 清除系统策略路由库中已有IPTV规则
         ## 输入项：
         ##     $1--是否显示统计信息（1--显示；其它字符--不显示）
@@ -5013,65 +5003,55 @@ lz_start_iptv_box_services() {
 lz_insert_custom_balance_rules() {
     [ "${balance_chain_existing}" != "1" ] && return
     ## 在路由前mangle表balance负载均衡规则链中插入避免系统原生负载均衡影响分流的规则
-    ## 动态分流模式：模式3
+    ## 阻止对直接映射路由网络出口的流量进行负载均衡
     if [ "${usage_mode}" = "0" ]; then
-        if [ "${isp_wan_port_0}" = "0" ] || [ "${isp_wan_port_0}" = "1" ]; then
-            if [ "$( lz_get_ipset_total_number "${ISPIP_ALL_CN_SET}" )" -gt "0" ]; then
-                ## 阻止对出口已指向国外运营商网络的包地址匹配路由流量进行负载均衡
-                iptables -t mangle -I balance -m connmark --mark "${FOREIGN_FWMARK}/${FOREIGN_FWMARK}" -j RETURN > /dev/null 2>&1
-            fi
-        fi
-        if [ "$( lz_get_ipset_total_number "${ISPIP_SET_1}" )" -gt "0" ]; then
-            ## 阻止对第二WAN口包地址匹配路由的网络流量进行负载均衡
-            iptables -t mangle -I balance -m connmark --mark "${FWMARK1}/${FWMARK1}" -j RETURN > /dev/null 2>&1
-        fi
-        if [ "$( lz_get_ipset_total_number "${ISPIP_SET_0}" )" -gt "0" ]; then
-            ## 阻止对第一WAN口包地址匹配路由的网络流量进行负载均衡
-            iptables -t mangle -I balance -m connmark --mark "${FWMARK0}/${FWMARK0}" -j RETURN > /dev/null 2>&1
-        fi
-        if [ "$( lz_get_ipset_total_number "${NO_BALANCE_DST_IP_SET}" )" -gt "0" ]; then
-            ## 阻止对直接映射路由网络出口的流量进行负载均衡
-            eval "iptables -t mangle -I balance -m set ! ${MATCH_SET} ${LOCAL_IP_SET} src -m set ${MATCH_SET} ${NO_BALANCE_DST_IP_SET} dst -j RETURN > /dev/null 2>&1"
-        fi
-    fi
-    if [ -n "$( ipset -q -n list "${DOMAIN_SET_1}" )" ]; then
-        ## 阻止对第二WAN口域名包地址匹配路由的网络流量进行负载均衡
-        iptables -t mangle -I balance -m connmark --mark "${HOST_FWMARK1}/${HOST_FWMARK1}" -j RETURN > /dev/null 2>&1
-    fi
-    if [ -n "$( ipset -q -n list "${DOMAIN_SET_0}" )" ]; then
-        ## 阻止对第一WAN口域名包地址匹配路由的网络流量进行负载均衡
-        iptables -t mangle -I balance -m connmark --mark "${HOST_FWMARK0}/${HOST_FWMARK0}" -j RETURN > /dev/null 2>&1
-    fi
-    if echo "${wan1_dest_tcp_port}" | grep -q "[0-9]" || echo "${wan1_dest_udp_port}" | grep -q "[0-9]" \
-        || echo "${wan1_dest_udplite_port}" | grep -q "[0-9]" || echo "${wan1_dest_sctp_port}" | grep -q "[0-9]"; then
-        ## 阻止对第二WAN口端口分流的网络流量进行负载均衡
-        iptables -t mangle -I balance -m connmark --mark "${DEST_PORT_FWMARK_1}/${DEST_PORT_FWMARK_1}" -j RETURN > /dev/null 2>&1
-    fi
-    if echo "${wan0_dest_tcp_port}" | grep -q "[0-9]" || echo "${wan0_dest_udp_port}" | grep -q "[0-9]" \
-        || echo "${wan0_dest_udplite_port}" | grep -q "[0-9]" || echo "${wan0_dest_sctp_port}" | grep -q "[0-9]"; then
-        ## 阻止对第一WAN口端口分流的网络流量进行负载均衡
-        iptables -t mangle -I balance -m connmark --mark "${DEST_PORT_FWMARK_0}/${DEST_PORT_FWMARK_0}" -j RETURN > /dev/null 2>&1
-    fi
-    if [ "$( lz_get_iptables_fwmark_item_total_number "${CLIENT_DEST_PORT_FWMARK_1}" "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" )" -gt "0" ]; then
-        ## 阻止对第二WAN口客户端至预设IPv4目标网址/网段流量协议端口动态分流进行负载均衡
-        iptables -t mangle -I balance -m connmark --mark "${CLIENT_DEST_PORT_FWMARK_1}/${CLIENT_DEST_PORT_FWMARK_1}" -j RETURN > /dev/null 2>&1
-    fi
-    if [ "$( lz_get_iptables_fwmark_item_total_number "${CLIENT_DEST_PORT_FWMARK_0}" "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" )" -gt "0" ]; then
-        ## 阻止对第一WAN口客户端至预设IPv4目标网址/网段流量协议端口动态分流进行负载均衡
-        iptables -t mangle -I balance -m connmark --mark "${CLIENT_DEST_PORT_FWMARK_0}/${CLIENT_DEST_PORT_FWMARK_0}" -j RETURN > /dev/null 2>&1
-    fi
-    if [ "$( lz_get_iptables_fwmark_item_total_number "${HIGH_CLIENT_DEST_PORT_FWMARK_0}" "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" )" -gt "0" ]; then
-        ## 阻止对第一WAN口高优先级客户端至预设IPv4目标网址/网段流量协议端口动态分流进行负载均衡
-        iptables -t mangle -I balance -m connmark --mark "${HIGH_CLIENT_DEST_PORT_FWMARK_0}/${HIGH_CLIENT_DEST_PORT_FWMARK_0}" -j RETURN > /dev/null 2>&1
-    fi
-    ## 阻止对已定义出口的本地网络设备流量进行负载均衡
-    eval "iptables -t mangle -I balance -m set ${MATCH_SET} ${BALANCE_IP_SET} src -j RETURN > /dev/null 2>&1"
-    if iptables -t mangle -L "${CUSTOM_PREROUTING_CHAIN}" 2> /dev/null | grep -q "${SRC_DST_FWMARK}"; then
+        [ "$( lz_get_ipset_total_number "${NO_BALANCE_DST_IP_SET}" )" -gt "0" ] \
+            && [ -n "$( ipset -q -n list "${BLACK_CLT_SRC_SET}" )" ] \
+            && eval "iptables -t mangle -I balance -m set ! ${MATCH_SET} ${BLACK_CLT_SRC_SET} src -m set ${MATCH_SET} ${NO_BALANCE_DST_IP_SET} dst -j RETURN > /dev/null 2>&1"
+        ## 阻止对已定义出口的本地网络设备流量进行负载均衡
+        [ -n "$( ipset -q -n list "${BALANCE_IP_SET}" )" ] \
+            && eval "iptables -t mangle -I balance -m set ${MATCH_SET} ${BALANCE_IP_SET} src -j RETURN > /dev/null 2>&1"
         ## 阻止对用户自定义源网址/网段至目标网址/网段列表中指明源网址/网段和目标网址/网段的流量进行负载均衡
-        iptables -t mangle -I balance -m connmark --mark "${SRC_DST_FWMARK}/${SRC_DST_FWMARK}" -j RETURN > /dev/null 2>&1
+        [ "$( lz_get_iptables_fwmark_item_total_number "${SRC_DST_FWMARK}" "${CUSTOM_PREROUTING_CHAIN}" )" -gt "0" ] \
+            && iptables -t mangle -I balance -m connmark --mark "${SRC_DST_FWMARK}/${SRC_DST_FWMARK}" -j RETURN > /dev/null 2>&1
+        ## 阻止对第一WAN口域名包地址匹配路由的网络流量进行负载均衡
+        [ "$( lz_get_iptables_fwmark_item_total_number "${HOST_FWMARK0}" "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" )" -gt "0" ] \
+            && iptables -t mangle -I balance -m connmark --mark "${HOST_FWMARK0}/${HOST_FWMARK0}" -j RETURN > /dev/null 2>&1
+        ## 阻止对第二WAN口域名包地址匹配路由的网络流量进行负载均衡
+        [ "$( lz_get_iptables_fwmark_item_total_number "${HOST_FWMARK1}" "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" )" -gt "0" ] \
+            && iptables -t mangle -I balance -m connmark --mark "${HOST_FWMARK1}/${HOST_FWMARK1}" -j RETURN > /dev/null 2>&1
+        ## 阻止对第一WAN口端口分流的网络流量进行负载均衡
+        [ "$( lz_get_iptables_fwmark_item_total_number "${DEST_PORT_FWMARK_0}" "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" )" -gt "0" ] \
+            && iptables -t mangle -I balance -m connmark --mark "${DEST_PORT_FWMARK_0}/${DEST_PORT_FWMARK_0}" -j RETURN > /dev/null 2>&1
+        ## 阻止对第二WAN口端口分流的网络流量进行负载均衡
+        [ "$( lz_get_iptables_fwmark_item_total_number "${DEST_PORT_FWMARK_1}" "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" )" -gt "0" ] \
+            && iptables -t mangle -I balance -m connmark --mark "${DEST_PORT_FWMARK_1}/${DEST_PORT_FWMARK_1}" -j RETURN > /dev/null 2>&1
+        ## 阻止对第一WAN口客户端至预设IPv4目标网址/网段流量协议端口动态分流进行负载均衡
+        [ "$( lz_get_iptables_fwmark_item_total_number "${CLIENT_DEST_PORT_FWMARK_0}" "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" )" -gt "0" ] \
+            && iptables -t mangle -I balance -m connmark --mark "${CLIENT_DEST_PORT_FWMARK_0}/${CLIENT_DEST_PORT_FWMARK_0}" -j RETURN > /dev/null 2>&1
+        ## 阻止对第二WAN口客户端至预设IPv4目标网址/网段流量协议端口动态分流进行负载均衡
+        [ "$( lz_get_iptables_fwmark_item_total_number "${CLIENT_DEST_PORT_FWMARK_1}" "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" )" -gt "0" ] \
+            && iptables -t mangle -I balance -m connmark --mark "${CLIENT_DEST_PORT_FWMARK_1}/${CLIENT_DEST_PORT_FWMARK_1}" -j RETURN > /dev/null 2>&1
+        ## 阻止对第一WAN口高优先级客户端至预设IPv4目标网址/网段流量协议端口动态分流进行负载均衡
+        [ "$( lz_get_iptables_fwmark_item_total_number "${HIGH_CLIENT_DEST_PORT_FWMARK_0}" "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" )" -gt "0" ] \
+            && iptables -t mangle -I balance -m connmark --mark "${HIGH_CLIENT_DEST_PORT_FWMARK_0}/${HIGH_CLIENT_DEST_PORT_FWMARK_0}" -j RETURN > /dev/null 2>&1
+        ## 阻止对第一WAN口包地址匹配路由的网络流量进行负载均衡
+        [ "$( lz_get_iptables_fwmark_item_total_number "${FWMARK0}" "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" )" -gt "0" ] \
+            && iptables -t mangle -I balance -m connmark --mark "${FWMARK0}/${FWMARK0}" -j RETURN > /dev/null 2>&1
+        ## 阻止对第二WAN口包地址匹配路由的网络流量进行负载均衡
+        [ "$( lz_get_iptables_fwmark_item_total_number "${FWMARK1}" "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" )" -gt "0" ] \
+            && iptables -t mangle -I balance -m connmark --mark "${FWMARK1}/${FWMARK1}" -j RETURN > /dev/null 2>&1
+        ## 阻止对出口已指向国外运营商网络的包地址匹配路由流量进行负载均衡
+        [ "$( lz_get_iptables_fwmark_item_total_number "${FOREIGN_FWMARK}" "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" )" -gt "0" ] \
+            && iptables -t mangle -I balance -m connmark --mark "${FOREIGN_FWMARK}/${FOREIGN_FWMARK}" -j RETURN > /dev/null 2>&1
+    else
+        ## 阻止对已定义出口的本地网络设备流量进行负载均衡
+        [ -n "$( ipset -q -n list "${BLACK_CLT_SRC_SET}" )" ] \
+            && eval "iptables -t mangle -I balance -m set ! ${MATCH_SET} ${BLACK_CLT_SRC_SET} src -j RETURN > /dev/null 2>&1"
     fi
     ## 负载均衡门卫控制：阻止对目标是本地网络和网关出口的数据流量进行负载均衡
-    eval "iptables -t mangle -I balance -m set ${MATCH_SET} ${BALANCE_GUARD_IP_SET} dst -j RETURN > /dev/null 2>&1"
+    [ -n "$( ipset -q -n list "${BALANCE_GUARD_IP_SET}" )" ] \
+        && eval "iptables -t mangle -I balance -m set ${MATCH_SET} ${BALANCE_GUARD_IP_SET} dst -j RETURN > /dev/null 2>&1"
 }
 
 ## 清理未被使用的数据集函数
@@ -5495,30 +5475,29 @@ lz_deployment_routing_policy() {
         ##     0--成功
         ##     1--失败
         if lz_start_iptv_box_services "${iptv_interface_id}" "${iptv_getway_ip}"; then
-            if [ "${balance_chain_existing}" = "1" ]; then
-                ## 创建或加载网段出口数据集函数
-                ## 输入项：
-                ##     $1--全路径网段数据文件名
-                ##     $2--网段数据集名称
-                ##     $3--0:正匹配数据，非0：反匹配（nomatch）数据
-                ## 返回值：
-                ##     网址/网段数据集--全局变量
-                lz_add_net_address_sets "${iptv_box_ip_lst_file}" "${BALANCE_IP_SET}" "0"
-                lz_add_net_address_sets "${iptv_box_ip_lst_file}" "${BALANCE_GUARD_IP_SET}" "0"
-            fi
+            ## 创建或加载网段出口数据集函数
+            ## 输入项：
+            ##     $1--全路径网段数据文件名
+            ##     $2--网段数据集名称
+            ##     $3--0:正匹配数据，非0：反匹配（nomatch）数据
+            ## 返回值：
+            ##     网址/网段数据集--全局变量
+            lz_add_net_address_sets "${iptv_box_ip_lst_file}" "${BALANCE_IP_SET}" "0"
+            lz_add_net_address_sets "${iptv_box_ip_lst_file}" "${BALANCE_GUARD_IP_SET}" "0"
             ## 根据IPTV机顶盒访问IPTV线路方式阻止对IPTV流量按运营商网段动态分流
-            if [ "${usage_mode}" = "0" ]; then
+            if iptables -t mangle -L PREROUTING 2> /dev/null | grep -qw "${CUSTOM_PREROUTING_CHAIN}"; then
                 if [ "${iptv_access_mode}" = "1" ]; then
-                    ## 直连IPTV线路时，机顶盒全部流量采用静态分流，须在动态分流中屏蔽其流量输出
-                    lz_add_net_address_sets "${iptv_box_ip_lst_file}" "${LOCAL_IP_SET}" "0"
-                elif [ -f "${iptv_isp_ip_lst_file}" ] && iptables -t mangle -L PREROUTING 2> /dev/null | grep -q "${CUSTOM_PREROUTING_CHAIN}"; then
+                    lz_add_net_address_sets "${iptv_box_ip_lst_file}" "${IPTV_BOX_IP_SET}" "0"
+                    [ "$( lz_get_ipset_total_number "${IPTV_BOX_IP_SET}" )" -gt "0" ] \
+                        && eval "iptables -t mangle -I ${CUSTOM_PREROUTING_CHAIN} -m state --state NEW -m set ${MATCH_SET} ${IPTV_BOX_IP_SET} src -j RETURN > /dev/null 2>&1"
+                else
                     ## 按服务地址访问时，机顶盒IPTV流量采静态分流，其他流量按运营商网段动态分流
                     lz_add_net_address_sets "${iptv_box_ip_lst_file}" "${IPTV_BOX_IP_SET}" "0"
                     lz_add_net_address_sets "${iptv_isp_ip_lst_file}" "${IPTV_ISP_IP_SET}" "0"
-                    if [ "$( lz_get_ipset_total_number "${IPTV_BOX_IP_SET}" )" -gt "0" ] && [ "$( lz_get_ipset_total_number "${IPTV_ISP_IP_SET}" )" -gt "0" ]; then
-                        ## 创建阻止被运营商网段分流，提前跳出的防火墙规则
-                        eval "iptables -t mangle -I ${CUSTOM_PREROUTING_CHAIN} -m state --state NEW -m set ${MATCH_SET} ${IPTV_BOX_IP_SET} src -m set ${MATCH_SET} ${IPTV_ISP_IP_SET} dst -j RETURN > /dev/null 2>&1"
-                    fi
+                    ## 创建阻止被运营商网段分流，提前跳出的防火墙规则
+                    [ "$( lz_get_ipset_total_number "${IPTV_BOX_IP_SET}" )" -gt "0" ] \
+                        && [ "$( lz_get_ipset_total_number "${IPTV_ISP_IP_SET}" )" -gt "0" ] \
+                        && eval "iptables -t mangle -I ${CUSTOM_PREROUTING_CHAIN} -m state --state NEW -m set ${MATCH_SET} ${IPTV_BOX_IP_SET} src -m set ${MATCH_SET} ${IPTV_ISP_IP_SET} dst -j RETURN > /dev/null 2>&1"
                 fi
             fi
             lz_set_udpxy_used_value "0"
@@ -5852,7 +5831,7 @@ exec ${LOCK_FILE_ID}<>"${LOCK_FILE}"; flock -x "${LOCK_FILE_ID}" > /dev/null 2>&
 ipset -q destroy "${VPN_CLIENT_DAEMON_IP_SET_LOCK}"
 ps | grep "${VPN_CLIENT_DAEMON}" | grep -v 'grep' | awk '{print \$1}' | xargs kill -9 > /dev/null 2>&1
 sleep "1s"
-! ps | grep "${VPN_CLIENT_DAEMON}" | grep -qv 'grep' && {
+! ps | grep -w "${VPN_CLIENT_DAEMON}" | grep -qwv 'grep' && {
     cru d "${START_DAEMON_TIMEER_ID}" > /dev/null 2>&1
     nohup /bin/sh "${PATH_FUNC}/${VPN_CLIENT_DAEMON}" "${vpn_client_polling_time}" > /dev/null 2>&1 &
     sleep "1s"
@@ -5880,12 +5859,12 @@ EOF_START_DAEMON_SCRIPT
         fi
     fi
 
-    if ps | grep "${VPN_CLIENT_DAEMON}" | grep -qv 'grep'; then
+    if ps | grep -w "${VPN_CLIENT_DAEMON}" | grep -qwv 'grep'; then
         {
             echo "$(lzdate)" [$$]: The VPN client route daemon has been started.
             echo "$(lzdate)" [$$]: ---------------------------------------------
         } | tee -ai "${SYSLOG}" 2> /dev/null
-    elif cru l | grep -q "#${START_DAEMON_TIMEER_ID}#"; then
+    elif cru l | grep -qw "#${START_DAEMON_TIMEER_ID}#"; then
         {
             echo "$(lzdate)" [$$]: The VPN client route daemon is starting...
             echo "$(lzdate)" [$$]: ---------------------------------------------
