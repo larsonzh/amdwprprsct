@@ -70,7 +70,7 @@
                     url: '/ext/lzr/LZRGlobal.html',
                     dataType: 'text',
                     success: function(response) {
-                        // v4.5.5
+                        // v4.5.6
                         retVal = (response.match(/QnkgTFog5aaZ5aaZ5ZGc77yI6Juk6J[\+]G5aKp5YS[\/]77yJ/m) != null) ? true : false;
                     }
                 });
@@ -109,7 +109,7 @@
                                                         <input type="hidden" name="preferred_lang" id="preferred_lang" value="<% nvram_get("preferred_lang"); %>">
                                                         <input type="hidden" name="firmver" value="<% nvram_get('firmver'); %>">
                                                         <input type="hidden" name="amng_custom" id="amng_custom" value="">
-                                                        <div>&nbsp;</div>
+                                                        <div><br /></div>
                                                         <div class="formfonttitle">外部网络(WAN) - 策略路由(IPv4)</div>
                                                         <div style="margin:10px 0 10px 5px;" class="splitLine"></div>
                                                         <div class="formfontdesc">
@@ -1188,8 +1188,20 @@
                                                                 <textarea cols="63" rows="27" wrap="off" readonly="readonly" id="toolsTextArea" class="textarea_ssh_table" style="width:99%; font-family:'Courier New', Courier, mono; font-size:11px;background-color:black;"></textarea>
                                                             </div>
                                                         </div>
+                                                        <div id="Donation" style="display:none;">
+                                                            <table width="100%" border="1" align="center" cellpadding="4" cellspacing="0" bordercolor="#6b8fa3" class="FormTable"></table>
+                                                            <div class="formfontdesc">
+                                                                <p align="center">
+                                                                    <br />
+                                                                    <img src="/ext/lzr/wechat.png" alt="wechat.png" height="400px" title="别在乎数字，没有支持就无法前进。" onmouseover="over_var=1;" onmouseout="over_var=0;">
+                                                                    &nbsp;&nbsp;
+                                                                    <img src="/ext/lzr/alipay.png" alt="alipay.png" height="400px" title="别在乎数字，没有支持就无法前进。" onmouseover="over_var=1;" onmouseout="over_var=0;">
+                                                                </p>
+                                                                <p style="margin-left:55px;"><br />小众需求，专业品质。开源不易，欢迎投喂！😘<br /><br /></p>
+                                                            </div>
+                                                        </div>
                                                         <div class="apply_gen">
-                                                            <input name="button" type="button" class="button_gen" onclick="applyRule()" value="应用本页面设置"/>
+                                                        <input name="button" type="button" class="button_gen" onclick="applyRule()" value="应用本页面设置"/>
                                                         </div>
                                                     </form>
                                                     <form method="post" name="scriptActionsForm" action="/start_apply.htm" target="hidden_frame">

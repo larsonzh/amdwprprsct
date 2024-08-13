@@ -1,5 +1,5 @@
 /*
-# lz_policy_routing.js v4.5.5
+# lz_policy_routing.js v4.5.6
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ JavaScript for Asuswrt-Merlin Router
@@ -448,7 +448,16 @@ function checkDNSIPaddrField(ptr) {
     checkIPaddress(ptr);
 }
 
-let divLabelArray = { "Basic" : [ "基础", "0", "0", "basicConfig" ], "Advanced" : [ "高级", "1", "0", "advancedConfig" ], "Runtime" : [ "运行", "2", "0", "runtimeConfig" ], "IPTV" : [ "IPTV", "3", "0", "iPTVConfig" ], "InsertScript" : [ "外置脚本", "4", "0", "insertScriptConfig" ], "Tools" : [ "工具", "5", "0", "scriptTools" ] };
+let divLabelArray = { 
+    "Basic" : [ "基础", "0", "0", "basicConfig" ], 
+    "Advanced" : [ "高级", "1", "0", "advancedConfig" ], 
+    "Runtime" : [ "运行", "2", "0", "runtimeConfig" ], 
+    "IPTV" : [ "IPTV", "3", "0", "iPTVConfig" ], 
+    "InsertScript" : [ "外置脚本", "4", "0", "insertScriptConfig" ], 
+    "Tools" : [ "工具", "5", "0", "scriptTools" ], 
+    "Donation" : [ "捐助", "6", "0", "Donation" ] 
+};
+
 function inithideDivPage() {
     for (let key in divLabelArray) {
         if (divLabelArray.hasOwnProperty(key)) {
@@ -485,14 +494,14 @@ function genSwitchMenu(_arrayList, _currentItem) {
         let right_css = "border-top-right-radius:8px;border-bottom-right-radius:8px;";
         let gen_pressed_content = function(_itemArray, _cssMode) {
             let pressed_code = "";
-            pressed_code += "<div style='width:110px;height:30px;float:left;" + _cssMode + "' class='block_filter_pressed'>";
+            pressed_code += "<div style='width:100px;height:30px;float:left;" + _cssMode + "' class='block_filter_pressed'>";
             pressed_code += "<div style='text-align:center;padding-top:5px;font-size:14px'>" + _itemArray[0] + "</div>";
             pressed_code += "</div>";
             return pressed_code;
         };
         let gen_not_pressed_content = function(_itemArray, _cssMode) {
             let not_pressed_code = "";
-            not_pressed_code += "<div style='cursor:pointer;width:110px;height:30px;float:left;" + _cssMode + "' onclick='switchDivPage(" + _itemArray[1] + ");' class='block_filter'>";
+            not_pressed_code += "<div style='cursor:pointer;width:100px;height:30px;float:left;" + _cssMode + "' onclick='switchDivPage(" + _itemArray[1] + ");' class='block_filter'>";
             not_pressed_code += "<div class='block_filter_name'>" + _itemArray[0] + "</div>";
             not_pressed_code += "</div>";
             return not_pressed_code;

@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_service.sh v4.5.5
+# lz_rule_service.sh v4.5.6
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 服务接口脚本
@@ -127,6 +127,13 @@ case "${2}" in
                         iptables -t mangle -L LZOUTPUT -v -n --line-numbers 2> /dev/null
                     } >> "${PATH_LZ}/tmp/iptables.log"
                     count="$(( count + 1 ))"
+                    if iptables -t mangle -L LZOUTPUT 2> /dev/null | grep -qw "^LZOPCNMK"; then
+                        {
+                            printf "\n"
+                            iptables -t mangle -L LZOPCNMK -v -n --line-numbers 2> /dev/null
+                        } >> "${PATH_LZ}/tmp/iptables.log"
+                        count="$(( count + 1 ))"
+                    fi
                 fi
             fi
             if iptables -L FORWARD 2> /dev/null | grep -q "^Chain FORWARD" \

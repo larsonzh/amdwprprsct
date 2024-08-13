@@ -1,5 +1,5 @@
 #!/bin/sh
-# install.sh v4.5.5
+# install.sh v4.5.6
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ RULE script for Asuswrt-Merlin Router
@@ -11,7 +11,7 @@
 
 #BEGIN
 
-LZ_VERSION=v4.5.5
+LZ_VERSION=v4.5.6
 TIMEOUT=10
 CURRENT_PATH="${0%/*}"
 [ "${CURRENT_PATH:0:1}" != '/' ] && CURRENT_PATH="$( pwd )${CURRENT_PATH#*.}"
@@ -308,10 +308,12 @@ lz_mount_web_ui() {
         chmod -R 775 "${PATH_WEB_LZR}"/* > /dev/null 2>&1
         rm -f "${PATH_WEB_LZR}/"* > /dev/null 2>&1
         ln -s "${PATH_JS}/lz_policy_routing.js" "${PATH_WEB_LZR}/lz_policy_routing.js" > /dev/null 2>&1
-        ln -s "${PATH_IMAGES}/favicon.png" "${PATH_WEB_LZR}/favicon.png" > /dev/null 2>&1
-        ln -s "${PATH_IMAGES}/InternetScan.gif" "${PATH_WEB_LZR}/InternetScan.gif" > /dev/null 2>&1
+        ln -s "${PATH_IMAGES}/alipay.png" "${PATH_WEB_LZR}/alipay.png" > /dev/null 2>&1
         ln -s "${PATH_IMAGES}/arrow-down.gif" "${PATH_WEB_LZR}/arrow-down.gif" > /dev/null 2>&1
         ln -s "${PATH_IMAGES}/arrow-top.gif" "${PATH_WEB_LZR}/arrow-top.gif" > /dev/null 2>&1
+        ln -s "${PATH_IMAGES}/favicon.png" "${PATH_WEB_LZR}/favicon.png" > /dev/null 2>&1
+        ln -s "${PATH_IMAGES}/InternetScan.gif" "${PATH_WEB_LZR}/InternetScan.gif" > /dev/null 2>&1
+        ln -s "${PATH_IMAGES}/wechat.png" "${PATH_WEB_LZR}/wechat.png" > /dev/null 2>&1
         ln -s "/jffs/scripts/firewall-start" "${PATH_WEB_LZR}/LZRState.html" > /dev/null 2>&1
         ln -s "/jffs/scripts/service-event" "${PATH_WEB_LZR}/LZRService.html" > /dev/null 2>&1
         ln -s "/jffs/scripts/openvpn-event" "${PATH_WEB_LZR}/LZROpenvpn.html" > /dev/null 2>&1

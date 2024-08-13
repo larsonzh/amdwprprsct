@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_status.sh v4.5.5
+# lz_rule_status.sh v4.5.6
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 显示脚本运行状态脚本
@@ -172,7 +172,7 @@ lz_print_src_to_dst_ipv4_address_list_status() {
 ##     $1--全路径网段数据文件名
 ## 返回值：
 ##     IPv4源地址至目标地址协议端口数据列表
-lz_print_src_to_dst_port_ip_list_status() {
+lz_print_src_to_dst_port_ipv4_address_list_status() {
     local local_regex='^[[:space:]]*(([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1})([[:space:]][[:space:]]*(([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1})([[:space:]][[:space:]]*(tcp|udp|udplite|sctp)([[:space:]][[:space:]]*((([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)[\,])*([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)|all)([[:space:]][[:space:]]*((([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)[\,])*([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)|all)){0,1}){0,1}){0,1}){0,1}$'
     grep -E "${local_regex}" "${1}" \
         | tr '[:A-Z:]' '[:a-z:]' \
@@ -314,7 +314,7 @@ lz_get_unkonwn_ipv4_src_dst_addr_data_file_item_status() {
 lz_get_unkonwn_ipv4_src_dst_addr_port_data_file_item_status() {
     local retval="1"
     [ -s "${1}" ] && {
-        retval="$( lz_print_src_to_dst_port_ip_list_status "${1}" | awk ' NF == "1" && $1 == "0.0.0.0/0" {print "0"; exit} \
+        retval="$( lz_print_src_to_dst_port_ipv4_address_list_status "${1}" | awk ' NF == "1" && $1 == "0.0.0.0/0" {print "0"; exit} \
             NF == "2" && $1 == "0.0.0.0/0" && $2 == "0.0.0.0/0" {print "0"; exit}' )"
         [ -z "${retval}" ] && retval="1"
     }
@@ -1787,23 +1787,44 @@ lz_output_ispip_status_info() {
         echo "$(lzdate)" [$$]: "   HighSrcLst-1    Primary WAN${local_primary_wan_hd}  ${local_item_count}" | tee -ai "${STATUS_LOG}" 2> /dev/null
         local_exist="1"
     }
-    [ "${status_high_wan_1_src_to_dst_addr_port}" = "0" ] \
-        && local_item_count="$( lz_get_iptables_fwmark_item_total_number_status "${STATUS_HIGH_CLIENT_DEST_PORT_FWMARK_0}" "${STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN}" )" \
-        && [ "${local_item_count}" -gt "0" ] && {
-        echo "$(lzdate)" [$$]: "   HSrcToDstPrt-1  Primary WAN         ${local_item_count}" | tee -ai "${STATUS_LOG}" 2> /dev/null
-        local_exist="1"
+    [ "${status_high_wan_1_src_to_dst_addr_port}" = "0" ] && {
+        local_hd="       "
+        if lz_get_unkonwn_ipv4_src_dst_addr_port_data_file_item_status "${status_high_wan_1_src_to_dst_addr_port_file}"; then
+            local_item_count="1"
+            local_hd="${local_primary_wan_hd}"
+        else
+            local_item_count="$( lz_get_iptables_fwmark_item_total_number_status "${STATUS_HIGH_CLIENT_DEST_PORT_FWMARK_0}" "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" )"
+        fi
+        [ "${local_item_count}" -gt "0" ] && {
+            echo "$(lzdate)" [$$]: "   HSrcToDstPrt-1  Primary WAN${local_hd}  ${local_item_count}" | tee -ai "${STATUS_LOG}" 2> /dev/null
+            local_exist="1"
+        }
     }
-    [ "${status_wan_2_src_to_dst_addr_port}" = "0" ] \
-        && local_item_count="$( lz_get_iptables_fwmark_item_total_number_status "${STATUS_CLIENT_DEST_PORT_FWMARK_1}" "${STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN}" )" \
-        && [ "${local_item_count}" -gt "0" ] && {
-        echo "$(lzdate)" [$$]: "   SrcToDstPrt-2   Secondary WAN       ${local_item_count}" | tee -ai "${STATUS_LOG}" 2> /dev/null
-        local_exist="1"
+    [ "${status_wan_2_src_to_dst_addr_port}" = "0" ] && {
+        local_hd="     "
+        if lz_get_unkonwn_ipv4_src_dst_addr_port_data_file_item_status "${status_wan_2_src_to_dst_addr_port_file}"; then
+            local_item_count="1"
+            local_hd="${local_secondary_wan_hd}"
+        else
+            local_item_count="$( lz_get_iptables_fwmark_item_total_number_status "${STATUS_CLIENT_DEST_PORT_FWMARK_1}" "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" )"
+        fi
+        [ "${local_item_count}" -gt "0" ] && {
+            echo "$(lzdate)" [$$]: "   SrcToDstPrt-2   Secondary WAN${local_hd}  ${local_item_count}" | tee -ai "${STATUS_LOG}" 2> /dev/null
+            local_exist="1"
+        }
     }
-    [ "${status_wan_1_src_to_dst_addr_port}" = "0" ] \
-        && local_item_count="$( lz_get_iptables_fwmark_item_total_number_status "${STATUS_CLIENT_DEST_PORT_FWMARK_0}" "${STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN}" )" \
-        && [ "${local_item_count}" -gt "0" ] && {
-        echo "$(lzdate)" [$$]: "   SrcToDstPrt-1   Primary WAN         ${local_item_count}" | tee -ai "${STATUS_LOG}" 2> /dev/null
-        local_exist="1"
+    [ "${status_wan_1_src_to_dst_addr_port}" = "0" ] && {
+        local_hd="       "
+        if lz_get_unkonwn_ipv4_src_dst_addr_port_data_file_item_status "${status_wan_1_src_to_dst_addr_port_file}"; then
+            local_item_count="1"
+            local_hd="${local_primary_wan_hd}"
+        else
+            local_item_count="$( lz_get_iptables_fwmark_item_total_number_status "${CLIENT_DEST_PORT_FWMARK_0}" "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" )"
+        fi
+        [ "${local_item_count}" -gt "0" ] && {
+            echo "$(lzdate)" [$$]: "   SrcToDstPrt-1   Primary WAN${local_hd}  ${local_item_count}" | tee -ai "${STATUS_LOG}" 2> /dev/null
+            local_exist="1"
+        }
     }
     [ -n "$( ipset -q -n list "${STATUS_DOMAIN_SET_1}" )" ] && {
         echo -e "$(lzdate)" [$$]: "   DomainNmLst-2   Secondary WAN       $( lz_get_ipv4_data_file_item_total_status "${status_wan_2_domain_client_src_addr_file}" )\t$( lz_get_domain_data_file_item_total_status "${status_wan_2_domain_file}" )" | tee -ai "${STATUS_LOG}" 2> /dev/null
