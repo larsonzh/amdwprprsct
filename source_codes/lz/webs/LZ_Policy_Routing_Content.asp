@@ -70,7 +70,7 @@
                     url: '/ext/lzr/LZRGlobal.html',
                     dataType: 'text',
                     success: function(response) {
-                        // v4.5.6
+                        // v4.5.7
                         retVal = (response.match(/QnkgTFog5aaZ5aaZ5ZGc77yI6Juk6J[\+]G5aKp5YS[\/]77yJ/m) != null) ? true : false;
                     }
                 });
@@ -1192,16 +1192,20 @@
                                                             <table width="100%" border="1" align="center" cellpadding="4" cellspacing="0" bordercolor="#6b8fa3" class="FormTable"></table>
                                                             <div class="formfontdesc">
                                                                 <p align="center">
-                                                                    <br />
-                                                                    <img src="/ext/lzr/wechat.png" alt="wechat.png" height="400px" title="别在乎数字，没有支持就无法前进。" onmouseover="over_var=1;" onmouseout="over_var=0;">
-                                                                    &nbsp;&nbsp;
-                                                                    <img src="/ext/lzr/alipay.png" alt="alipay.png" height="400px" title="别在乎数字，没有支持就无法前进。" onmouseover="over_var=1;" onmouseout="over_var=0;">
+                                                                    <br /><br />
+                                                                    <a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(102);">
+                                                                        <img src="/ext/lzr/wechat.png" alt="wechat.png" height="360px" title="攒钱买盒饭。" onmouseover="over_var=1;" onmouseout="over_var=0;">
+                                                                    </a>
+                                                                    <span style="margin-left:40px;"></span>
+                                                                    <a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(103);">
+                                                                        <img src="/ext/lzr/alipay.png" alt="alipay.png" height="360px" title="海外孤品，清仓捡漏。" onmouseover="over_var=1;" onmouseout="over_var=0;">
+                                                                    </a>
                                                                 </p>
                                                                 <p style="margin-left:55px;"><br />小众需求，专业品质。开源不易，欢迎投喂！😘<br /><br /></p>
                                                             </div>
                                                         </div>
-                                                        <div class="apply_gen">
-                                                        <input name="button" type="button" class="button_gen" onclick="applyRule()" value="应用本页面设置"/>
+                                                        <div class="apply_gen" title="启动/重启/保存。" onmouseover="over_var=1;" onmouseout="over_var=0;">
+                                                            <input name="button" type="button" class="button_gen" onclick="applyRule()" value="应用本页面设置"/>
                                                         </div>
                                                     </form>
                                                     <form method="post" name="scriptActionsForm" action="/start_apply.htm" target="hidden_frame">

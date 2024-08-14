@@ -1,5 +1,5 @@
 /*
-# lz_policy_routing.js v4.5.6
+# lz_policy_routing.js v4.5.7
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ JavaScript for Asuswrt-Merlin Router
@@ -1365,11 +1365,20 @@ function openOverHint(itemNum) {
         content += "<br /></div>";
     } else if (itemNum == 101) {
         content = "<div>前往<b>系统记录 - 一般记录文件</b>查询<b>策略路由</b>打开/关闭过程中的工作状态信息。</div>";
+    } else if (itemNum == 102) {
+        mode = 2;
+        content = "<div>海外孤品，清仓捡漏。</div>";
+    } else if (itemNum == 103) {
+        mode = 2;
+        content = "<div>攒钱买盒饭。</div>";
     }
     if (content != "") {
-        if (mode != 0) {
+        if (mode == 1) {
             setMouseOut(1);
             return overlib(content, OFFSETX, -160, LEFT, DELAY, 400, WIDTH, 600, STICKY, CAPTION, caption);
+        } else if (mode == 2) {
+            setMouseOut(0);
+            return overlib(content, OFFSETX, -160, HAUTO);
         } else {
             setMouseOut(0);
             return overlib(content, HAUTO, VAUTO);
