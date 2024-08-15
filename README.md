@@ -78,9 +78,15 @@ Asuswrt-Merlin dual WAN port router policy routing service configuration tool
 
 ### 六、应用界面
 
-| ![lz_rule](/images/lz_rule.jpg) | ![lz_rule_rog](/images/lz_rule_rog.jpg) |
+| ![Basic](/images/Basic.PNG) | ![Advanced](/images/Advanced.PNG) |
 |--------------------------------------------------|--------------------------------------------------|
-| ![lz_rule_status](/images/lz_rule_status.jpg) | ![lz_rule_tools](/images/lz_rule_tools.jpg) |
+| ![Runtime](/images/Runtime.PNG) | ![IPTV](/images/IPTV.PNG) |
+|--------------------------------------------------|--------------------------------------------------|
+| ![InsertScript](/images/InsertScript.PNG) | ![lz_rule_rog](/images/lz_rule_rog.jpg) |
+|--------------------------------------------------|--------------------------------------------------|
+| ![Tools_1](/images/Tools_1.PNG) | ![Tools_2](/images/Tools_2.PNG) |
+|--------------------------------------------------|--------------------------------------------------|
+| ![Donation](/images/Donation.PNG) |--------------------------------------------------|
 
 ### 七、相关资料
 - [华硕改版固件路由器双线路双拨策略分流方案教程（入门必读）](/华硕改版固件路由器双线路双拨策略分流方案教程.pdf)
