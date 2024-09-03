@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_define_global_variables.sh v4.5.7
+# lz_define_global_variables.sh v4.5.8
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 # QnkgTFog5aaZ5aaZ5ZGc77yI6Juk6J+G5aKp5YS/77yJ（首次运行标识，切勿修改）
 
@@ -430,6 +430,9 @@ route_local_ip="${route_static_subnet%/*}"
 route_local_subnet=""
 [ -n "${route_static_subnet}" ] && route_local_subnet="${route_static_subnet%.*}.0"
 [ "${route_static_subnet}" != "${route_static_subnet##*/}" ] && route_local_subnet="${route_local_subnet}/${route_static_subnet##*/}"
+
+## 静态分流模式整体通道推送命令是否执行（0--未执行；1--已执行）
+command_from_all_executed="0"
 
 ## 系统负载均衡防火墙过滤规则链是否存在（384固件使用）
 balance_chain_existing=0

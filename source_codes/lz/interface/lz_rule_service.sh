@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_service.sh v4.5.7
+# lz_rule_service.sh v4.5.8
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 服务接口脚本
@@ -50,112 +50,94 @@ case "${2}" in
         "${PATH_LZ}/lz_rule.sh" "status" &
     ;;
     LZRouting)
-        show_routings() {
+        print_routings() {
             {
                 printf "%s [%s]: \n\n--- Main Routing Table ----\n" "$( date +"%F %T")" "${$}"
                 ip route show table main
-            } > "${PATH_LZ}/tmp/routing.log"
-            count="1"
-            if ip route show | grep -qw nexthop; then
-                {
+                count="1"
+                if ip route show | grep -qw nexthop; then
                     printf "\n--- Subrouting Table wan0 ----\n"
                     ip route show table wan0
                     printf "\n--- Subrouting Table wan1 ----\n"
                     ip route show table wan1
-                } >> "${PATH_LZ}/tmp/routing.log"
-                count="$(( count + 2 ))"
-            fi
-            if [ -n "$( ip route show table 888 )" ]; then
-                {
+                    count="$(( count + 2 ))"
+                fi
+                if [ -n "$( ip route show table 888 )" ]; then
                     printf "\n--- IPTV Routing Table 888 ----\n"
                     ip route show table 888
-                } >> "${PATH_LZ}/tmp/routing.log"
-                count="$(( count + 1 ))"
-            fi
-            printf "\nTotal: %s\n" "${count}" >> "${PATH_LZ}/tmp/routing.log"
+                    count="$(( count + 1 ))"
+                fi
+                printf "\nTotal: %s\n" "${count}"
+            } > "${PATH_LZ}/tmp/routing.log"
         }
-        show_routings &
+        print_routings &
     ;;
     LZRtRules)
-        show_rules() {
+        print_rules() {
             ip rule show | awk -v pid="[${$}]:" 'BEGIN{system("printf \"%s %s \n\n\" \"$( date +\"%F %T\")\" "pid)} \
                 {print $0} END{printf "\nTotal: %s\n", NR}' > "${PATH_LZ}/tmp/rules.log"
         }
-        show_rules &
+        print_rules &
     ;;
     LZIptables)
-        show_iptables() {
-            printf "%s [%s]: \n" "$( date +"%F %T")" "${$}" > "${PATH_LZ}/tmp/iptables.log"
-            count="0"
-            if iptables -t mangle -L PREROUTING 2> /dev/null | grep -q "^Chain PREROUTING"; then
-                {
+        print_iptables() {
+            {
+                printf "%s [%s]: \n" "$( date +"%F %T")" "${$}"
+                count="0"
+                if iptables -t mangle -L PREROUTING 2> /dev/null | grep -q "^Chain PREROUTING"; then
                     printf "\n"
                     iptables -t mangle -L PREROUTING -v -n --line-numbers 2> /dev/null
-                } >> "${PATH_LZ}/tmp/iptables.log"
-                count="$(( count + 1 ))"
-                if iptables -t mangle -L PREROUTING 2> /dev/null | grep -qw "^LZPRTING"; then
-                    {
+                    count="$(( count + 1 ))"
+                    if iptables -t mangle -L PREROUTING 2> /dev/null | grep -qw "^LZPRTING"; then
                         printf "\n"
                         iptables -t mangle -L LZPRTING -v -n --line-numbers 2> /dev/null
-                    } >> "${PATH_LZ}/tmp/iptables.log"
-                    count="$(( count + 1 ))"
-                    if iptables -t mangle -L LZPRTING 2> /dev/null | grep -qw "^LZPRCNMK"; then
-                        {
+                        count="$(( count + 1 ))"
+                        if iptables -t mangle -L LZPRTING 2> /dev/null | grep -qw "^LZPRCNMK"; then
                             printf "\n"
                             iptables -t mangle -L LZPRCNMK -v -n --line-numbers 2> /dev/null
-                        } >> "${PATH_LZ}/tmp/iptables.log"
-                        count="$(( count + 1 ))"
+                            count="$(( count + 1 ))"
+                        fi
                     fi
-                fi
-                if iptables -t mangle -L PREROUTING 2> /dev/null | grep -qw "^balance"; then
-                    {
+                    if iptables -t mangle -L PREROUTING 2> /dev/null | grep -qw "^balance"; then
                         printf "\n"
                         iptables -t mangle -L balance -v -n --line-numbers 2> /dev/null
-                    } >> "${PATH_LZ}/tmp/iptables.log"
-                    count="$(( count + 1 ))"
-                fi
-            fi
-            if iptables -t mangle -L OUTPUT 2> /dev/null | grep -q "^Chain OUTPUT"; then
-                {
-                    printf "\n"
-                    iptables -t mangle -L OUTPUT -v -n --line-numbers 2> /dev/null
-                } >> "${PATH_LZ}/tmp/iptables.log"
-                count="$(( count + 1 ))"
-                if iptables -t mangle -L OUTPUT 2> /dev/null | grep -qw "^LZOUTPUT"; then
-                    {
-                        printf "\n"
-                        iptables -t mangle -L LZOUTPUT -v -n --line-numbers 2> /dev/null
-                    } >> "${PATH_LZ}/tmp/iptables.log"
-                    count="$(( count + 1 ))"
-                    if iptables -t mangle -L LZOUTPUT 2> /dev/null | grep -qw "^LZOPCNMK"; then
-                        {
-                            printf "\n"
-                            iptables -t mangle -L LZOPCNMK -v -n --line-numbers 2> /dev/null
-                        } >> "${PATH_LZ}/tmp/iptables.log"
                         count="$(( count + 1 ))"
                     fi
                 fi
-            fi
-            if iptables -L FORWARD 2> /dev/null | grep -q "^Chain FORWARD" \
-                && iptables -L FORWARD 2> /dev/null | grep -qw "^LZHASHFORWARD"; then
-                {
+                if iptables -t mangle -L OUTPUT 2> /dev/null | grep -q "^Chain OUTPUT"; then
+                    printf "\n"
+                    iptables -t mangle -L OUTPUT -v -n --line-numbers 2> /dev/null
+                    count="$(( count + 1 ))"
+                    if iptables -t mangle -L OUTPUT 2> /dev/null | grep -qw "^LZOUTPUT"; then
+                        printf "\n"
+                        iptables -t mangle -L LZOUTPUT -v -n --line-numbers 2> /dev/null
+                        count="$(( count + 1 ))"
+                        if iptables -t mangle -L LZOUTPUT 2> /dev/null | grep -qw "^LZOPCNMK"; then
+                            printf "\n"
+                            iptables -t mangle -L LZOPCNMK -v -n --line-numbers 2> /dev/null
+                            count="$(( count + 1 ))"
+                        fi
+                    fi
+                fi
+                if iptables -L FORWARD 2> /dev/null | grep -q "^Chain FORWARD" \
+                    && iptables -L FORWARD 2> /dev/null | grep -qw "^LZHASHFORWARD"; then
                     printf "\n"
                     iptables -L FORWARD -v -n --line-numbers 2> /dev/null
                     printf "\n"
                     iptables -L LZHASHFORWARD -v -n --line-numbers 2> /dev/null
-                } >> "${PATH_LZ}/tmp/iptables.log"
-                count="$(( count + 2 ))"
-            fi
-            printf "\nTotal: %s\n" "${count}" >> "${PATH_LZ}/tmp/iptables.log"
+                    count="$(( count + 2 ))"
+                fi
+                printf "\nTotal: %s\n" "${count}"
+            } > "${PATH_LZ}/tmp/iptables.log"
         }
-        show_iptables &
+        print_iptables &
     ;;
     LZCrontab)
-        show_crontab() {
+        print_crontab() {
             crontab -l | awk -v pid="[${$}]:" 'BEGIN{system("printf \"%s %s \n\n\" \"$( date +\"%F %T\")\" "pid)} \
                 {print $0} END{printf "\nTotal: %s\n", NR}' > "${PATH_LZ}/tmp/crontab.log"
         }
-        show_crontab &
+        print_crontab &
     ;;
     LZUpdate)
         [ -s "${PATH_LZ}/lz_update_ispip_data.sh" ] && "${PATH_LZ}/lz_update_ispip_data.sh" &
@@ -251,7 +233,296 @@ case "${2}" in
         [ -s "${PATH_LZ}/uninstall.sh" ] && "${PATH_LZ}/uninstall.sh" "y" &
     ;;
     *)
-        [ "${2%%_*}" = "LZAddress" ] \
-            && "${PATH_LZ}/lz_rule.sh" "address" "$( echo "${2}" | cut -f 2 -d '_' )" "$( echo "${2}" | cut -f 3 -d '_' )" &
+        if [ "${2%%_*}" = "LZAddress" ]; then
+            "${PATH_LZ}/lz_rule.sh" "address" "$( echo "${2}" | cut -f 2 -d '_' )" "$( echo "${2}" | cut -f 3 -d '_' )" &
+        elif [ "${2%%_*}" = "LZRTList" ]; then
+            list_prio="$( echo "${2}" | cut -f 2 -d '_' )"
+            case "${list_prio}" in
+                24990|24991)
+                    print_custom_data_rt_list() {
+                        {
+                            printf "%s [%s]: \n\n" "$( date +"%F %T")" "${$}"
+                            local channel="1"
+                            [ "${1}" = "24990" ] && channel="2"
+                            local custom_data_wan_port=5
+                            local custom_data_file=""
+                            local configFile="${PATH_LZ}/configs/lz_rule_config.box"
+                            [ ! -s "${configFile}" ] && configFile="${PATH_LZ}/configs/lz_rule_config.sh"
+                            eval "$( awk -F "=" '$0 ~ "'"^[[:space:]]*(lz_config_){0,1}custom_data_(wan_port_|file_)${channel}[=]"'" {
+                                    key=$1;
+                                    gsub(/^[[:space:]]*(lz_config_){0,1}/, "", key);
+                                    gsub(/_[12]$/, "", key);
+                                    value=$2;
+                                    gsub(/[[:space:]#].*$/, "", value);
+                                    print key,value;
+                                }' "${configFile}" 2> /dev/null \
+                                | awk '!i[$1]++ {
+                                    print $1"="$2;
+                                }' )"
+                            if [ "${custom_data_wan_port}" -lt "0" ] || [ "${custom_data_wan_port}" -gt "2" ] \
+                                || [ -z "${custom_data_file}" ] || [ ! -s "${custom_data_file}" ]; then
+                                printf "Total: 0\n"
+                            else
+                                local route_static_subnet="$( ip -o -4 address list | awk '$2 == "br0" {print $4}' | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,3}){0,1}' )"
+                                local route_local_ip="${route_static_subnet%/*}"
+                                local route_local_subnet=""
+                                [ -n "${route_static_subnet}" ] && route_local_subnet="${route_static_subnet%.*}.0"
+                                [ "${route_static_subnet}" != "${route_static_subnet##*/}" ] && route_local_subnet="${route_local_subnet}/${route_static_subnet##*/}"
+                                sed -e 's/^[[:space:]][[:space:]]*//g' -e 's/[#].*$//g' -e 's/[[:space:]][[:space:]]*/ /g' -e 's/[[:space:]][[:space:]]*$//g' \
+                                    -e 's/^\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}\)[[:space:]].*$/\1/' \
+                                    -e "s#\(^\|[[:space:]]\)${route_local_subnet}\([[:space:]]\|$\)#${route_static_subnet}#g" \
+                                    -e '/^\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}$/!d' \
+                                    -e '/[3-9][0-9][0-9]\|[2][6-9][0-9]\|[2][5][6-9]\|[\/][4-9][0-9]\|[\/][3][3-9]/d' \
+                                    -e "/\(^\|[[:space:]]\)\(0[\.]0[\.]0[\.]0\|0[\.]0[\.]0[\.]0[\/]0\|${route_local_ip}\)\([[:space:]]\|$\)/d" "${custom_data_file}" \
+                                    | awk -v count="0" 'NF == "1" && !i[$1]++ {print $1; count++;} \
+                                    END{if (count > "0") printf "\n"; printf "Total: %s\n", count;}'
+                            fi
+                        } > "${PATH_LZ}/tmp/rtlist.log"
+                    }
+                    print_custom_data_rt_list "${list_prio}" &
+                ;;
+                24976|24977)
+                    list_fwmark="$( echo "${2}" | cut -f 3 -d '_' )"
+                    list_func="$( echo "${2}" | cut -f 4 -d '_' )"
+                    list_channel="$( echo "${2}" | cut -f 5 -d '_' )"
+                    case "${list_fwmark}" in
+                        0x8181|0x9191)
+                            if [ "${list_func}" = "c" ] && { [ "${list_channel}" = "0" ] || [ "${list_channel}" = "1" ]; }; then
+                                print_domain_src_rt_list() {
+                                    {
+                                        printf "%s [%s]: \n\n" "$( date +"%F %T")" "${$}"
+                                        if ! ip rule show | grep -qE "^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*all[[:space:]]*fwmark[[:space:]]*${2}[[:space:]]*lookup"; then
+                                            printf "Total: 0\n"
+                                        else
+                                            ipset -q list "lz_dn_de_src_addr_${3}" \
+                                                | awk -v count="0" '/^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ {print $1; count++;} \
+                                                END{if (count > "0") printf "\nTotal: %s\n", count; else printf "0.0.0.0/0\n\nTotal: 1\n";}'
+                                        fi
+                                    } > "${PATH_LZ}/tmp/rtlist.log"
+                                }
+                                print_domain_src_rt_list "${list_prio}" "${list_fwmark}" "${list_channel}" &
+                            elif [ "${list_func}" = "d" ] && { [ "${list_channel}" = "0" ] || [ "${list_channel}" = "1" ]; }; then
+                                print_domain_rt_list() {
+                                    {
+                                        printf "%s [%s]: \n\n" "$( date +"%F %T")" "${$}"
+                                        if ! ip rule show | grep -qE "^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*all[[:space:]]*fwmark[[:space:]]*${2}[[:space:]]*lookup"; then
+                                            printf "Total: 0\n"
+                                        else
+                                            local index="${3}"
+                                            index="$(( index + 1 ))"
+                                            if [ ! -s "${PATH_LZ}/tmp/dnsmasq/lz_wan${index}_domain.conf" ]; then
+                                                printf "Total: 0\n"
+                                            else
+                                                sed -e "/^[[:space:]]*ipset=\/[^\/][^\/]*\/lz_domain_${3}[[:space:]]*$/!d" \
+                                                    -e "s/^[[:space:]]*ipset=\/\([^\/][^\/]*\)\/lz_domain_${3}[[:space:]]*$/\1/" "${PATH_LZ}/tmp/dnsmasq/lz_wan${index}_domain.conf" \
+                                                    | awk -v count="0" 'NF == "1" && !i[$1]++ {print $1; count++;} \
+                                                    END{if (count > "0") printf "\n"; printf "Total: %s\n", count;}'
+                                            fi
+                                        fi
+                                    } > "${PATH_LZ}/tmp/rtlist.log"
+                                }
+                                print_domain_rt_list "${list_prio}" "${list_fwmark}" "${list_channel}" &
+                            fi
+                        ;;
+                        *)
+                        ;;
+                    esac
+                ;;
+                24964|24965|24966)
+                    print_src_to_dst_rt_list() {
+                        ip rule show | sed -n "/^[[:space:]]*${1}:/{
+                            s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*all[[:space:]]*to[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}\)[[:space:]].*$/0.0.0.0\/0 \1/;
+                            s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}\)[[:space:]]*to[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}\)[[:space:]].*$/\1 \4/;
+                            s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}\)[[:space:]]*lookup.*$/\1 0.0.0.0\/0/;
+                            s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*all[[:space:]]*lookup.*$/0.0.0.0\/0 0.0.0.0\/0/;
+                            s/^[[:space:]]*${1}:[[:space:]]*not[[:space:]]*from[[:space:]]*0[\.]0[\.]0[\.]0[[:space:]]*lookup.*$/0.0.0.0\/0 0.0.0.0\/0/;
+                            /^\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}[[:space:]]\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}$/!d;
+                            p
+                        }" \
+                        | awk -v count="0" -v pid="[${$}]:" 'BEGIN{system("printf \"%s %s \n\n\" \"$( date +\"%F %T\")\" "pid)} \
+                        NF == "2" {print $1,$2; count++;} \
+                        END{if (count > "0") printf "\n"; printf "Total: %s\n", count;}' OFS="\t" > "${PATH_LZ}/tmp/rtlist.log"
+                    }
+                    print_src_to_dst_rt_list "${list_prio}" &
+                ;;
+                24969|24970|24978|24979)
+                    print_client_src_rt_list() {
+                        ip rule show | sed -n "/^[[:space:]]*${1}:/{
+                            s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}\)[[:space:]]*lookup.*$/\1/;
+                            s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*all[[:space:]]*lookup.*$/0.0.0.0\/0/;
+                            s/^[[:space:]]*${1}:[[:space:]]*not[[:space:]]*from[[:space:]]*0[\.]0[\.]0[\.]0[[:space:]]*lookup.*$/0.0.0.0\/0/;
+                            /^\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}$/!d;
+                            p
+                        }" \
+                        | awk -v count="0" -v pid="[${$}]:" 'BEGIN{system("printf \"%s %s \n\n\" \"$( date +\"%F %T\")\" "pid)} \
+                        NF == "1" {print $0; count++;} \
+                        END{if (count > "0") printf "\n"; printf "Total: %s\n", count;}' > "${PATH_LZ}/tmp/rtlist.log"
+                    }
+                    print_client_src_rt_list "${list_prio}" &
+                ;;
+                24973|24974|24975)
+                    list_fwmark="$( echo "${2}" | cut -f 3 -d '_' )"
+                    case "${list_fwmark}" in
+                        0x1717|0x2121|0x3131)
+                            print_src_to_dst_port_rt_list() {
+                                {
+                                    if ip rule show | grep -qE "^[[:space:]]*${1}:[[:space:]]*(not[[:space:]]*from[[:space:]]*0[\.]0[\.]0[\.]0|from[[:space:]]*all)[[:space:]]*lookup"; then
+                                        printf "%s [%s]: \n\n0.0.0.0/0\t0.0.0.0/0\n\nTotal: 1\n" "$( date +"%F %T")" "${$}"
+                                    elif ip rule show | grep -q "^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*all[[:space:]]*fwmark[[:space:]]*${2}[[:space:]]*lookup"; then
+                                        iptables -t mangle -L LZPRCNMK -n 2> /dev/null \
+                                            | sed -n "/CONNMARK[[:space:]]*set[[:space:]]*${2}$/p" \
+                                            | sed -e 's/^.*[[:space:]]\(tcp\|udp\|udplite\|sctp\|dccp\)[^[:alpha:]].*[[:space:]]\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}\)[[:space:]][[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}\)[[:space:]].*sports[[:space:]][[:space:]]*\([^[:space:]][^[:space:]]*\)[[:space:]].*dports[[:space:]][[:space:]]*\([^[:space:]][^[:space:]]*\)[[:space:]].*$/\2 \5 \1 \8 \9/g' \
+                                            -e 's/^.*[[:space:]]\(tcp\|udp\|udplite\|sctp\|dccp\)[^[:alpha:]].*[[:space:]]\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}\)[[:space:]][[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}\)[[:space:]].*sports[[:space:]][[:space:]]*\([^[:space:]][^[:space:]]*\)[[:space:]].*$/\2 \5 \1 \8 any/g' \
+                                            -e 's/^.*[[:space:]]\(tcp\|udp\|udplite\|sctp\|dccp\)[^[:alpha:]].*[[:space:]]\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}\)[[:space:]][[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}\)[[:space:]].*dports[[:space:]][[:space:]]*\([^[:space:]][^[:space:]]*\)[[:space:]].*$/\2 \5 \1 any \8/g' \
+                                            -e 's/^.*[[:space:]]\(tcp\|udp\|udplite\|sctp\|dccp\)[^[:alpha:]].*[[:space:]]\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}\)[[:space:]][[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}\)[[:space:]].*$/\2 \5 \1/g' \
+                                            -e 's/^.*[[:space:]]\(all\)[^[:alpha:]].*[[:space:]]\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}\)[[:space:]][[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}\)[[:space:]].*$/\2 \5/g' \
+                                            -e '/CONNMARK/d' \
+                                            | awk -v count="0" -v pid="[${$}]:" 'BEGIN{system("printf \"%s %s \n\n\" \"$( date +\"%F %T\")\" "pid)} \
+                                            NF >= "2" {print $1,$2,$3,$4,$5; count++;} \
+                                            END{if (count > "0") printf "\n"; printf "Total: %s\n", count;}' OFS="\t"
+                                    else
+                                        printf "%s [%s]: \n\nTotal: 0\n" "$( date +"%F %T")" "${$}"
+                                    fi
+                                } > "${PATH_LZ}/tmp/rtlist.log"
+                            }
+                            print_src_to_dst_port_rt_list "${list_prio}" "${list_fwmark}" &
+                        ;;
+                        *)
+                        ;;
+                    esac
+                ;;
+                24962)
+                    print_client_black_rt_list() {
+                        {
+                            printf "%s [%s]: \n\n" "$( date +"%F %T")" "${$}"
+                            local count="0"
+                            eval "$( ip rule show | sed -n "/^[[:space:]]*${1}:/{
+                                    s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}\)[[:space:]]*lookup.*$/\1/;
+                                    /^\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}$/!d;
+                                    s/^.*$/echo &/;
+                                    p
+                                }" \
+                                | awk -v count="0" 'NF == "2" {print $0; count++;} END{print "count="count;}' )"
+                            if [ "${count}" -gt "0" ]; then
+                                printf "\nTotal: %s\n" "${count}"
+                            else
+                                ipset -q list "lz_clt_black_lst" \
+                                    | awk -v count="0" '/^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}$/ {print $1; count++;} \
+                                    END{if (count > "0") printf "\n"; printf "Total: %s\n", count;}'
+                            fi
+                        } > "${PATH_LZ}/tmp/rtlist.log"
+                    }
+                    print_client_black_rt_list "${list_prio}" &
+                ;;
+                24960)
+                    print_proxy_remote_node_rt_list() {
+                        {
+                            ip rule show | sed -n "/^[[:space:]]*${1}:/{
+                                s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*0[\.]0[\.]0[\.]0[[:space:]]*to[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}\)[[:space:]]*lookup.*$/\1/;
+                                /^\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}$/!d;
+                                p
+                            }" \
+                            | awk -v count="0" -v pid="[${$}]:" 'BEGIN{system("printf \"%s %s \n\n\" \"$( date +\"%F %T\")\" "pid)} \
+                                NF == "1" {print $1; count++;} END{if (count > "0") printf "\n"; printf "Total: %s\n", count;}'
+                        } > "${PATH_LZ}/tmp/rtlist.log"
+                    }
+                    print_proxy_remote_node_rt_list "${list_prio}" &
+                ;;
+                hosts)
+                    print_custom_hosts_rt_list() {
+                        {
+                            printf "%s [%s]: \n\n" "$( date +"%F %T")" "${$}"
+                            if [ ! -s "${PATH_LZ}/tmp/dnsmasq/lz_hosts.conf" ]; then
+                                printf "Total: 0\n"
+                            else
+                                sed -e "/^[[:space:]]*address=\/[[:alnum:]_\.\-][[:alnum:]_\.\-]*\/[[:alnum:]_\.\-][[:alnum:]_\.\-]*[[:space:]]*$/!d" \
+                                    -e "s/^[[:space:]]*address=\/\([[:alnum:]_\.\-][[:alnum:]_\.\-]*\)\/\([[:alnum:]_\.\-][[:alnum:]_\.\-]*\)[[:space:]]*$/\2 \1/" "${PATH_LZ}/tmp/dnsmasq/lz_hosts.conf" \
+                                    | awk -v count="0" 'NF == "2" && !i[$1_$2]++ {print $1,$2; count++;} \
+                                    END{if (count > "0") printf "\n"; printf "Total: %s\n", count;}' OFS="\t"
+                            fi
+                        } > "${PATH_LZ}/tmp/rtlist.log"
+                    }
+                    print_custom_hosts_rt_list &
+                ;;
+                888)
+                    list_func="$( echo "${2}" | cut -f 3 -d '_' )"
+                    case "${list_func}" in
+                        box)
+                            print_box_ip_rt_list() {
+                                {
+                                    printf "%s [%s]: \n\n" "$( date +"%F %T")" "${$}"
+                                    local total1=0 total2=0
+                                    eval "$( ip rule show | sed -n "/^[[:space:]]*${1}:/{
+                                        s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}\)[[:space:]]*lookup.*$/\1/;
+                                        s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*all[[:space:]]*to[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}\)[[:space:]]*lookup.*$/\1/;
+                                        s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}\)[[:space:]]*to[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}\)[[:space:]]*lookup.*$/\1 \4/;
+                                        /^\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}\|\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}[[:space:]]*\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}\)$/!d;
+                                        p
+                                    }" \
+                                    | awk -v count1=0 -v count2=0 'NF == "1" {count1++; next;} NF == "2" {count2++; next;} END{print "total1="count1/2"; total2="count2/2;}' )"
+                                    ip rule show | sed -n "/^[[:space:]]*${1}:/{
+                                        s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}\)[[:space:]]*lookup.*$/\1/;
+                                        s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*all[[:space:]]*to[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}\)[[:space:]]*lookup.*$/\1/;
+                                        s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}\)[[:space:]]*to[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}\)[[:space:]]*lookup.*$/\1 \4/;
+                                        /^\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}\|\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}[[:space:]]*\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}\)$/!d;
+                                        p
+                                    }" \
+                                    | awk -v count=0 'NF == "1" && "'"${total1}"'" != "0" {
+                                        print $1;
+                                        next;
+                                    } \
+                                    NF == "2" && "'"${total1}"'" == "0" && "'"${total2}"'" != "0" {
+                                        count++;
+                                        if (count <= ("'"${total2}"'" + 0))
+                                            print $1;
+                                        next;
+                                    }' \
+                                    | awk -v count="0" 'NF == "1" && !i[$1]++ {print $1; count++;} \
+                                    END{if (count > "0") printf "\n"; printf "Total: %s\n", count;}'
+                                } > "${PATH_LZ}/tmp/rtlist.log"
+                            }
+                            print_box_ip_rt_list "${list_prio}" &
+                        ;;
+                        isp)
+                            print_isp_ip_rt_list() {
+                                {
+                                    printf "%s [%s]: \n\n" "$( date +"%F %T")" "${$}"
+                                    local total=0
+                                    eval "$( ip rule show | sed -n "/^[[:space:]]*${1}:/{
+                                        s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}\)[[:space:]]*lookup.*$/\1/;
+                                        s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*all[[:space:]]*to[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}\)[[:space:]]*lookup.*$/\1/;
+                                        s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}\)[[:space:]]*to[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}\)[[:space:]]*lookup.*$/\1 \4/;
+                                        /^\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}\|\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}[[:space:]]*\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}\)$/!d;
+                                        p
+                                    }" \
+                                    | awk -v count=0 'NF == "2" {count++;} END{print "total="count/2;}' )"
+                                    ip rule show | sed -n "/^[[:space:]]*${1}:/{
+                                        s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}\)[[:space:]]*lookup.*$/\1/;
+                                        s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*all[[:space:]]*to[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}\)[[:space:]]*lookup.*$/\1/;
+                                        s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}\)[[:space:]]*to[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}\)[[:space:]]*lookup.*$/\1 \4/;
+                                        /^\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}\|\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}[[:space:]]*\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\{0,1\}\)$/!d;
+                                        p
+                                    }" \
+                                    | awk -v count=0 'NF == "2" && "'"${total}"'" != "0" {
+                                        count++;
+                                        if (count <= ("'"${total}"'" + 0))
+                                            print $2;
+                                        else
+                                            exit;
+                                    }' \
+                                    | awk -v count="0" 'NF == "1" && !i[$1]++ {print $1; count++;} \
+                                    END{if (count > "0") printf "\n"; printf "Total: %s\n", count;}'
+                                } > "${PATH_LZ}/tmp/rtlist.log"
+                            }
+                            print_isp_ip_rt_list "${list_prio}" &
+                        ;;
+                        *)
+                        ;;
+                    esac
+                ;;
+                *)
+                ;;
+            esac
+        fi
     ;;
 esac

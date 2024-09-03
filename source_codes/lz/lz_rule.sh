@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule.sh v4.5.7
+# lz_rule.sh v4.5.8
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # 本软件采用CIDR（无类别域间路由，Classless Inter-Domain Routing）技术，是一个在Internet上创建附加地
@@ -86,7 +86,7 @@
 ## -------------全局数据定义及初始化-------------------
 
 ## 版本号
-LZ_VERSION=v4.5.7
+LZ_VERSION=v4.5.8
 
 ## 运行状态查询命令
 SHOW_STATUS="status"
@@ -168,6 +168,9 @@ OPENVPN_EVENT_NAME="openvpn-event"
 
 ## Open虚拟专网事件触发接口文件名
 OPENVPN_EVENT_INTERFACE_NAME="lz_openvpn_event.sh"
+
+## 地址列表有效地址条目显示命令执行记录文件名
+RT_LIST_LOG="${PATH_TMP}/rtlist.log"
 
 ## 运行状态记录文件名
 STATUS_LOG="${PATH_TMP}/status.log"
@@ -446,6 +449,7 @@ lz_project_file_management() {
     [ ! -d "${PATH_TMP}" ] && mkdir -p "${PATH_TMP}" > /dev/null 2>&1
     chmod -R 775 "${PATH_LZ}"/* > /dev/null 2>&1
 
+    touch "${RT_LIST_LOG}" 2> /dev/null
     touch "${STATUS_LOG}" 2> /dev/null
     touch "${ADDRESS_LOG}" 2> /dev/null
     touch "${ROUTING_LOG}" 2> /dev/null
@@ -997,6 +1001,7 @@ lz_mount_web_ui() {
         ln -s "${PATH_CONFIGS}/lz_rule_config.sh" "${PATH_WEB_LZR}/LZRConfig.html" > /dev/null 2>&1
         ln -s "${PATH_CONFIGS}/lz_rule_config.box" "${PATH_WEB_LZR}/LZRBKData.html" > /dev/null 2>&1
         ln -s "${PATH_FUNC}/lz_define_global_variables.sh" "${PATH_WEB_LZR}/LZRGlobal.html" > /dev/null 2>&1
+        ln -s "${RT_LIST_LOG}" "${PATH_WEB_LZR}/LZRList.html" > /dev/null 2>&1
         ln -s "${STATUS_LOG}" "${PATH_WEB_LZR}/LZRStatus.html" > /dev/null 2>&1
         ln -s "${ADDRESS_LOG}" "${PATH_WEB_LZR}/LZRAddress.html" > /dev/null 2>&1
         ln -s "${ROUTING_LOG}" "${PATH_WEB_LZR}/LZRRouting.html" > /dev/null 2>&1
@@ -1612,6 +1617,7 @@ if lz_project_file_management "${1}"; then
         [ ! -s "${PATH_LZ}/${UPDATE_FILENAME}" ] && restart_rule="1"
         start_isp_data_update="1"
     else
+        echo > "${RT_LIST_LOG}" 2> /dev/null
         echo > "${STATUS_LOG}" 2> /dev/null
         echo > "${ADDRESS_LOG}" 2> /dev/null
         echo > "${ROUTING_LOG}" 2> /dev/null

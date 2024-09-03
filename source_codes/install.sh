@@ -1,5 +1,5 @@
 #!/bin/sh
-# install.sh v4.5.7
+# install.sh v4.5.8
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ RULE script for Asuswrt-Merlin Router
@@ -11,7 +11,7 @@
 
 #BEGIN
 
-LZ_VERSION=v4.5.7
+LZ_VERSION=v4.5.8
 TIMEOUT=10
 CURRENT_PATH="${0%/*}"
 [ "${CURRENT_PATH:0:1}" != '/' ] && CURRENT_PATH="$( pwd )${CURRENT_PATH#*.}"
@@ -323,6 +323,7 @@ lz_mount_web_ui() {
         ln -s "${PATH_CONFIGS}/lz_rule_config.sh" "${PATH_WEB_LZR}/LZRConfig.html" > /dev/null 2>&1
         ln -s "${PATH_CONFIGS}/lz_rule_config.box" "${PATH_WEB_LZR}/LZRBKData.html" > /dev/null 2>&1
         ln -s "${PATH_FUNC}/lz_define_global_variables.sh" "${PATH_WEB_LZR}/LZRGlobal.html" > /dev/null 2>&1
+        ln -s "${PATH_TMP}/rtlist.log" "${PATH_WEB_LZR}/LZRList.html" > /dev/null 2>&1
         ln -s "${PATH_TMP}/status.log" "${PATH_WEB_LZR}/LZRStatus.html" > /dev/null 2>&1
         ln -s "${PATH_TMP}/address.log" "${PATH_WEB_LZR}/LZRAddress.html" > /dev/null 2>&1
         ln -s "${PATH_TMP}/routing.log" "${PATH_WEB_LZR}/LZRRouting.html" > /dev/null 2>&1

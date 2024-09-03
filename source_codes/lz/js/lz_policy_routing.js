@@ -1,5 +1,5 @@
 /*
-# lz_policy_routing.js v4.5.7
+# lz_policy_routing.js v4.5.8
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ JavaScript for Asuswrt-Merlin Router
@@ -543,6 +543,7 @@ function switchDivPage(index) {
         height = 0;
     else if (key == "Tools")
         hideCNT("0");
+    closeRTIPList();
     divLabelArray[key][2] = "1";
 }
 
@@ -1312,10 +1313,10 @@ function openOverHint(itemNum) {
         content += "<br />若查询的是自定义域名地址，<b>DNS 服务器</b>地址请设置为路由器主机<b>内网 IP 地址</b>或 <b>0.0.0.0</b>。</div>";
     } else if (itemNum == 89) {
         content = "<div>此功能用于将指定<b>域名</b>解析到特定的 <b>IP 地址</b>上，可实现本地网络的 DNS 劫持；还支持实现关联已有域名的自定义别名。<br />";
-        content += "<br /><b>自定义域名地址解析文件</b>中所定义的<b>域名</b>被访问时将跳转到指定的 <b>IP 地址</b>，作用与主机上的 <b>hosts</b> 文件相同。<br />";
+        content += "<br /><b>自定义域名地址解析列表</b>文件中所定义的<b>域名</b>被访问时将跳转到指定的 <b>IP 地址</b>，作用与主机上的 <b>hosts</b> 文件相同。<br />";
         content += "<br />仅对以 DHCP 方式自动连接路由器，或 DNS 指向路由器主机本地地址的<b>客户端</b>内的网络流量有效。若客户端内软件使用其他 DNS 服务器解析网络访问地址，则本功能无效。<br />";
         content += "<br />缺省为<b>停用</b>。<br />";
-        content += `<br />缺省<b>自定义域名地址解析文件</b>名为 <b>${policySettingsArray.path}/data/custom_hosts.txt</b>，无有效数据条目。<br />`;
+        content += `<br />缺省<b>自定义域名地址解析列表</b>文件名为 <b>${policySettingsArray.path}/data/custom_hosts.txt</b>，无有效数据条目。<br />`;
         content += "<br />文件路径、名称可自定义和修改，文件路径及名称不得为空。<br />";
         content += "<br />文本格式：每行由目标 <b>IP 地址/域名</b>和自定义<b>域名/别名</b>两个字段组成，字段之间用<b>空格</b>隔开，一个条目一行，可多行多个条目。<br />";
         content += "<br />例如：<br />";
@@ -1460,32 +1461,33 @@ function getStatus() {
             if (xhr.status == 404) {
                 height = 0;
                 statusEnable = false;
-                $("#loadingStatusIcon").hide();
-                $("#statusButton").fadeIn(500);
-                document.getElementById("statusButton").disabled = false;
+                if (document.getElementById("statusButton").disabled) {
+                    $("#loadingStatusIcon").hide();
+                    $("#statusButton").fadeIn(500);
+                    document.getElementById("statusButton").disabled = false;
+                }
             } else
                 setTimeout(getStatus, 1000);
         },
         success: function(response) {
             h = $("#statusArea").scrollTop();
             if (divLabelArray["Runtime"][2] == "1" && !(height > 0 && h < height)) {
-                let _log = '';
                 let infoString = htmlEnDeCode.htmlEncode(response.toString());
-                let _string = infoString.split('\n');
-                for (let i = 0; i < _string.length; i++) {
-                    _log += _string[i] + '\n';
-                    if (_string[i] != "" 
-                        && !document.getElementById("statusButton").disabled) {
+                if (infoString.search(/^[\s]*$/) < 0) {
+                    if (infoString.search(/[\]][\:]($|[\n])/) >= 0) {
+                        if (document.getElementById("statusButton").disabled) {
+                            $("#loadingStatusIcon").hide();
+                            $("#statusButton").show();
+                            document.getElementById("statusButton").disabled = false;
+                        }
+                    } else if (!document.getElementById("statusButton").disabled) {
                         document.getElementById("statusButton").disabled = true;
                         $("#statusButton").hide();
                         $("#loadingStatusIcon").show();
-                    } else if (_string[i].search(/[\]][\:]$/) > 20) {
-                        $("#loadingStatusIcon").hide();
-                        $("#statusButton").show();
-                        document.getElementById("statusButton").disabled = false;
                     }
-                }
-                document.getElementById("statusArea").innerHTML = _log;
+                } else
+                    infoString = "";
+                document.getElementById("statusArea").innerHTML = infoString;
                 $("#statusArea").animate({ scrollTop: 9999999 }, "slow");
                 setTimeout('height = $("#statusArea").scrollTop();', 500);
             }
@@ -1499,9 +1501,11 @@ function queryStatus() {
         alert("上一个任务正在进行中，请稍后再试。");
         return;
     }
-    document.getElementById("statusButton").disabled = true;
-    $("#statusButton").hide();
-    $("#loadingStatusIcon").fadeIn(300);
+    if (!document.getElementById("statusButton").disabled) {
+        document.getElementById("statusButton").disabled = true;
+        $("#statusButton").hide();
+        $("#loadingStatusIcon").fadeIn(300);
+    }
     document.getElementById("statusArea").innerHTML = "";
     height = 0;
     document.scriptActionsForm.action_script.value = 'start_LZStatus';
@@ -1514,6 +1518,8 @@ function queryStatus() {
 }
 
 function disabledToolsButton(_timeVal) {
+    if (document.getElementById("toolsButton").disabled)
+        return;
     document.getElementById("toolsButton").disabled = true;
     $("#toolsButton").hide();
     if (_timeVal != undefined)
@@ -1523,6 +1529,8 @@ function disabledToolsButton(_timeVal) {
 }
 
 function enabledToolsButton(_timeVal) {
+    if (!document.getElementById("toolsButton").disabled)
+        return;
     $("#loadingToolsIcon").hide();
     if (_timeVal != undefined)
         $("#toolsButton").fadeIn(_timeVal);
@@ -1531,214 +1539,52 @@ function enabledToolsButton(_timeVal) {
     document.getElementById("toolsButton").disabled = false;
 }
 
-let addressHeight = 0;
-let addressEnable = true;
-function getAddressInfo() {
-    let h = 0;
-    $.ajax({
-        async: true,
-        url: '/ext/lzr/LZRAddress.html',
-        dataType: 'text',
-        error: function(xhr) {
-            if (xhr.status == 404) {
-                addressEnable = false;
-                enabledToolsButton();
-            } else
-                setTimeout(getAddressInfo, 1000);
-        },
-        success: function(response) {
-            h = $("#toolsTextArea").scrollTop();
-            if (divLabelArray["Tools"][2] == "1" 
-                && document.getElementById("cmdMethod").value == "0" 
-                && !(addressHeight > 0 && h < addressHeight)) {
-                let _log = '';
-                let infoString = htmlEnDeCode.htmlEncode(response.toString());
-                let _string = infoString.split('\n');
-                for (let i = 0; i < _string.length; i++) {
-                    _log += _string[i] + '\n';
-                    if (_string[i] != "" 
-                        && !document.getElementById("toolsButton").disabled)
-                        disabledToolsButton();
-                    else if (_string[i].search(/[\]][\:]$/) > 20)
-                        enabledToolsButton();
-                }
-                document.getElementById("toolsTextArea").innerHTML = _log;
-                $("#toolsTextArea").animate({ scrollTop: 9999999 }, "slow");
-                setTimeout('addressHeight = $("#toolsTextArea").scrollTop();', 500);
-            }
-            setTimeout(getAddressInfo, 3000);
-        }
-    });
-}
+let toolsCMDArray = {
+    "Address" : ["LZRAddress.html", "0", true, /[\]][\:]($|[\n])/, "LZAddress"], 
+    "Routing" : ["LZRRouting.html", "1", true, /(^|[\n])Total[\:]/, "LZRouting"], 
+    "Rules" : ["LZRRules.html", "2", true, /(^|[\n])Total[\:]/, "LZRtRules"], 
+    "Iptables" : ["LZRIptables.html", "3", true, /(^|[\n])Total[\:]/, "LZIptables"], 
+    "Crontab" : ["LZRCrontab.html", "4", true, /(^|[\n])Total[\:]/, "LZCrontab"], 
+    "Unlock" : ["LZRUnlock.html", "11", true, /[\]][\:]($|[\n])/, "LZUnlock"]
+};
 
-let routingHeight = 0;
-let routingEnable = true;
-function getRoutingTableInfo() {
+let toolsInfoHeight = 0;
+function getToolsInfo(id) {
     let h = 0;
     $.ajax({
         async: true,
-        url: '/ext/lzr/LZRRouting.html',
+        url: '/ext/lzr/' + toolsCMDArray[id][0],
         dataType: 'text',
         error: function(xhr) {
-            if (xhr.status == 404) {
-                routingEnable = false;
+            if (xhr.status == 404 
+                && id != "" 
+                && toolsCMDArray.hasOwnProperty(id)) {
+                toolsCMDArray[id][2] = false;
+                toolsInfoHeight = 0;
                 enabledToolsButton();
             } else
-                setTimeout(getRoutingTableInfo, 1000);
+                setTimeout(getToolsInfo, 1000, id);
         },
         success: function(response) {
             h = $("#toolsTextArea").scrollTop();
             if (divLabelArray["Tools"][2] == "1" 
-                && document.getElementById("cmdMethod").value == "1" 
-                && !(routingHeight > 0 && h < routingHeight)) {
-                let _log = '';
+                && id != "" 
+                && toolsCMDArray.hasOwnProperty(id) 
+                && document.getElementById("cmdMethod").value == toolsCMDArray[id][1] 
+                && !(toolsInfoHeight > 0 && h < toolsInfoHeight)) {
                 let infoString = htmlEnDeCode.htmlEncode(response.toString());
-                let _string = infoString.split('\n');
-                for (let i = 0; i < _string.length; i++) {
-                    _log += _string[i] + '\n';
-                    if (_string[i] != "" 
-                        && !document.getElementById("toolsButton").disabled)
-                        disabledToolsButton();
-                    else if (_string[i].search(/^Total[\:]/) == 0)
+                if (infoString.search(/^[\s]*$/) < 0) {
+                    if (infoString.search(toolsCMDArray[id][3]) >= 0)
                         enabledToolsButton();
-                }
-                document.getElementById("toolsTextArea").innerHTML = _log;
-                $("#toolsTextArea").animate({ scrollTop: 9999999 }, "slow");
-                if (document.getElementById("toolsButton").disabled)
-                    setTimeout('routingHeight = $("#toolsTextArea").scrollTop();', 500);
-                else
-                    routingHeight = 9999999;
-            }
-            setTimeout(getRoutingTableInfo, 3000);
-        }
-    });
-}
-
-let rulesHeight = 0;
-let rulesEnable = true;
-function getRulesInfo() {
-    let h = 0;
-    $.ajax({
-        async: true,
-        url: '/ext/lzr/LZRRules.html',
-        dataType: 'text',
-        error: function(xhr) {
-            if (xhr.status == 404) {
-                rulesEnable = false;
-                enabledToolsButton();
-            } else
-                setTimeout(getRulesInfo, 1000);
-        },
-        success: function(response) {
-            h = $("#toolsTextArea").scrollTop();
-            if (divLabelArray["Tools"][2] == "1" 
-                && document.getElementById("cmdMethod").value == "2" 
-                && !(rulesHeight > 0 && h < rulesHeight)) {
-                let _log = '';
-                let infoString = htmlEnDeCode.htmlEncode(response.toString());
-                let _string = infoString.split('\n');
-                for (let i = 0; i < _string.length; i++) {
-                    _log += _string[i] + '\n';
-                    if (_string[i] != "" 
-                        && !document.getElementById("toolsButton").disabled)
+                    else
                         disabledToolsButton();
-                    else if (_string[i].search(/^Total[\:]/) == 0)
-                        enabledToolsButton();
-                }
-                document.getElementById("toolsTextArea").innerHTML = _log;
+                } else
+                    infoString = "";
+                document.getElementById("toolsTextArea").innerHTML = infoString;
                 $("#toolsTextArea").animate({ scrollTop: 9999999 }, "slow");
-                if (document.getElementById("toolsButton").disabled)
-                    setTimeout('rulesHeight = $("#toolsTextArea").scrollTop();', 500);
-                else
-                    rulesHeight = 9999999;
+                setTimeout('toolsInfoHeight = $("#toolsTextArea").scrollTop();', 500);
             }
-            setTimeout(getRulesInfo, 3000);
-        }
-    });
-}
-
-let iptablesHeight = 0;
-let iptablesEnable = true;
-function getIptablesInfo() {
-    let h = 0;
-    $.ajax({
-        async: true,
-        url: '/ext/lzr/LZRIptables.html',
-        dataType: 'text',
-        error: function(xhr) {
-            if (xhr.status == 404) {
-                iptablesEnable = false;
-                enabledToolsButton();
-            } else
-                setTimeout(getIptablesInfo, 1000);
-        },
-        success: function(response) {
-            h = $("#toolsTextArea").scrollTop();
-            if (divLabelArray["Tools"][2] == "1" 
-                && document.getElementById("cmdMethod").value == "3" 
-                && !(iptablesHeight > 0 && h < iptablesHeight)) {
-                let _log = '';
-                let infoString = htmlEnDeCode.htmlEncode(response.toString());
-                let _string = infoString.split('\n');
-                for (let i = 0; i < _string.length; i++) {
-                    _log += _string[i] + '\n';
-                    if (_string[i] != "" 
-                        && !document.getElementById("toolsButton").disabled)
-                        disabledToolsButton();
-                    else if (_string[i].search(/^Total[\:]/) == 0)
-                        enabledToolsButton();
-                }
-                document.getElementById("toolsTextArea").innerHTML = _log;
-                $("#toolsTextArea").animate({ scrollTop: 9999999 }, "slow");
-                if (document.getElementById("toolsButton").disabled)
-                    setTimeout('iptablesHeight = $("#toolsTextArea").scrollTop();', 500);
-                else
-                iptablesHeight = 9999999;
-            }
-            setTimeout(getIptablesInfo, 3000);
-        }
-    });
-}
-
-let crontabHeight = 0;
-let crontabEnable = true;
-function getCrontabInfo() {
-    let h = 0;
-    $.ajax({
-        async: true,
-        url: '/ext/lzr/LZRCrontab.html',
-        dataType: 'text',
-        error: function(xhr) {
-            if (xhr.status == 404) {
-                crontabEnable = false;
-                enabledToolsButton();
-            } else
-                setTimeout(getCrontabInfo, 1000);
-        },
-        success: function(response) {
-            h = $("#toolsTextArea").scrollTop();
-            if (divLabelArray["Tools"][2] == "1" 
-                && document.getElementById("cmdMethod").value == "4" 
-                && !(crontabHeight > 0 && h < crontabHeight)) {
-                let _log = '';
-                let infoString = htmlEnDeCode.htmlEncode(response.toString());
-                let _string = infoString.split('\n');
-                for (let i = 0; i < _string.length; i++) {
-                    _log += _string[i] + '\n';
-                    if (_string[i] != "" 
-                        && !document.getElementById("toolsButton").disabled)
-                        disabledToolsButton();
-                    else if (_string[i].search(/^Total[\:]/) == 0)
-                        enabledToolsButton();
-                }
-                document.getElementById("toolsTextArea").innerHTML = _log;
-                $("#toolsTextArea").animate({ scrollTop: 9999999 }, "slow");
-                if (document.getElementById("toolsButton").disabled)
-                    setTimeout('crontabHeight = $("#toolsTextArea").scrollTop();', 500);
-                else
-                    crontabHeight = 9999999;
-            }
-            setTimeout(getCrontabInfo, 3000);
+            setTimeout(getToolsInfo, 3000, id);
         }
     });
 }
@@ -1757,58 +1603,14 @@ function getEventInterfaceInfo(filename, index) {
         success: function(response) {
             if (divLabelArray["Tools"][2] == "1" 
                 && document.getElementById("cmdMethod").value == index) {
-                let _log = '';
                 let infoString = htmlEnDeCode.htmlEncode(response.toString());
-                let _string = infoString.split('\n');
-                for (let i = 0; i < _string.length; i++) {
-                    _log += _string[i] + '\n';
-                    if (_string[i] != "" 
-                        && !document.getElementById("toolsButton").disabled)
-                        disabledToolsButton();
-                }
-                document.getElementById("toolsTextArea").innerHTML = _log;
+                if (infoString.search(/^[\s]*$/) < 0)
+                    disabledToolsButton();
+                else
+                    infoString = "";
+                document.getElementById("toolsTextArea").innerHTML = infoString;
                 enabledToolsButton();
             }
-        }
-    });
-}
-
-let unlockHeight = 0;
-let unlockEnable = true;
-function getUnlockInfo() {
-    let h = 0;
-    $.ajax({
-        async: true,
-        url: '/ext/lzr/LZRUnlock.html',
-        dataType: 'text',
-        error: function(xhr) {
-            if (xhr.status == 404) {
-                unlockEnable = false;
-                enabledToolsButton();
-            } else
-                setTimeout(getUnlockInfo, 1000);
-        },
-        success: function(response) {
-            h = $("#toolsTextArea").scrollTop();
-            if (divLabelArray["Tools"][2] == "1" 
-                && document.getElementById("cmdMethod").value == "11" 
-                && !(unlockHeight > 0 && h < unlockHeight)) {
-                let _log = '';
-                let infoString = htmlEnDeCode.htmlEncode(response.toString());
-                let _string = infoString.split('\n');
-                for (let i = 0; i < _string.length; i++) {
-                    _log += _string[i] + '\n';
-                    if (_string[i] != "" 
-                        && !document.getElementById("toolsButton").disabled)
-                        disabledToolsButton();
-                    else if (_string[i].search(/[\]][\:]$/) > 20)
-                        enabledToolsButton();
-                }
-                document.getElementById("toolsTextArea").innerHTML = _log;
-                $("#toolsTextArea").animate({ scrollTop: 9999999 }, "slow");
-                setTimeout('unlockHeight = $("#toolsTextArea").scrollTop();', 500);
-            }
-            setTimeout(getUnlockInfo, 3000);
         }
     });
 }
@@ -1853,83 +1655,25 @@ function pullLANIPList(obj) {
         hideClients_Block();
 }
 
-function showRouting() {
+function printToolsInfo(id) {
+    if (!toolsCMDArray.hasOwnProperty(id))
+        return;
     document.getElementById("toolsTextArea").innerHTML = "";
-    routingHeight = 0;
-    document.scriptActionsForm.action_script.value = 'start_LZRouting';
+    toolsInfoHeight = 0;
+    document.scriptActionsForm.action_script.value = 'start_' + toolsCMDArray[id][4];
     document.scriptActionsForm.action_wait.value = "0";
     document.scriptActionsForm.submit();
-    if (!routingEnable) {
-        routingEnable = true;
-        setTimeout(getRoutingTableInfo, 100);
+    if (!toolsCMDArray[id][2]) {
+        toolsCMDArray[id][2] = true;
+        setTimeout(getToolsInfo, 100, id);
     }
 }
 
-function showRules() {
+function printEventInterfaceInfo(filename, index) {
     document.getElementById("toolsTextArea").innerHTML = "";
-    rulesHeight = 0;
-    document.scriptActionsForm.action_script.value = 'start_LZRtRules';
-    document.scriptActionsForm.action_wait.value = "0";
-    document.scriptActionsForm.submit();
-    if (!rulesEnable) {
-        rulesEnable = true;
-        setTimeout(getRulesInfo, 100);
-    }
+    setTimeout(getEventInterfaceInfo, 500, filename, index);
 }
 
-function showIptables() {
-    document.getElementById("toolsTextArea").innerHTML = "";
-    iptablesHeight = 0;
-    document.scriptActionsForm.action_script.value = 'start_LZIptables';
-    document.scriptActionsForm.action_wait.value = "0";
-    document.scriptActionsForm.submit();
-    if (!iptablesEnable) {
-        iptablesEnable = true;
-        setTimeout(getIptablesInfo, 100);
-    }
-}
-
-function showCrontab() {
-    document.getElementById("toolsTextArea").innerHTML = "";
-    crontabHeight = 0;
-    document.scriptActionsForm.action_script.value = 'start_LZCrontab';
-    document.scriptActionsForm.action_wait.value = "0";
-    document.scriptActionsForm.submit();
-    if (!crontabEnable) {
-        crontabEnable = true;
-        setTimeout(getCrontabInfo, 100);
-    }
-}
-
-function showFirewallStart() {
-    document.getElementById("toolsTextArea").innerHTML = "";
-    setTimeout(getEventInterfaceInfo, 500, "LZRState.html", "5");
-}
-
-function showServiceEvent() {
-    document.getElementById("toolsTextArea").innerHTML = "";
-    setTimeout(getEventInterfaceInfo, 500, "LZRService.html", "6");
-}
-
-function showOpenVPNEvent() {
-    document.getElementById("toolsTextArea").innerHTML = "";
-    setTimeout(getEventInterfaceInfo, 500, "LZROpenvpn.html", "7");
-}
-
-function showPostMount() {
-    document.getElementById("toolsTextArea").innerHTML = "";
-    setTimeout(getEventInterfaceInfo, 500, "LZRPostMount.html", "8");
-}
-
-function showDNSmasq() {
-    document.getElementById("toolsTextArea").innerHTML = "";
-    setTimeout(getEventInterfaceInfo, 500, "LZRDNSmasq.html", "9");
-}
-
-let routingShowed = false;
-let rulesShowed = false;
-let iptablesShowed = false;
-let crontabShowed = false;
 function hideCNT(_val) {
     document.getElementById("toolsTextArea").innerHTML = "";
     let val = parseInt(_val);
@@ -1938,12 +1682,11 @@ function hideCNT(_val) {
         document.getElementById("cmdMethod").value = _val;
         document.getElementById("destIPCNT_tr").style.display = "";
         document.getElementById("dnsIPAddressCNT_tr").style.display = "";
-        if (document.getElementById("toolsButton").disabled)
-            enabledToolsButton();
-        addressHeight = 0;
-        if (!addressEnable) {
-            addressEnable = true;
-            setTimeout(getAddressInfo, 100);
+        enabledToolsButton();
+       toolsInfoHeight = 0;
+        if (!toolsCMDArray["Address"][2]) {
+            toolsCMDArray["Address"][2] = true;
+            setTimeout(getToolsInfo, 100, "Address");
         }
     } else if (val >= 1 && val <= 13) {
         document.getElementById("cmdMethod").value = _val;
@@ -1952,65 +1695,55 @@ function hideCNT(_val) {
         let operable = !isInstance();
         if (val >= 1 && val <= 9) {
             $("#toolsButton").val("刷新命令");
-            if (!operable && val >= 1 && val < 5) {
-                if (document.getElementById("toolsButton").disabled)
-                    enabledToolsButton();
-            } else
+            if (!operable && val >= 1 && val < 5)
+                enabledToolsButton();
+            else
                 disabledToolsButton();
         } else {
             $("#toolsButton").val("执行命令");
-            if (document.getElementById("toolsButton").disabled)
-                enabledToolsButton();
+            enabledToolsButton();
         }
         switch (val) {
             case 1:
-                routingHeight = 0;
-                if (operable && !routingShowed) {
-                    showRouting();
-                    routingShowed = true;
-                }
+               toolsInfoHeight = 0;
+                if (operable)
+                    printToolsInfo("Routing");
                 break;
             case 2:
-                rulesHeight = 0;
-                if (operable && !rulesShowed) {
-                    showRules();
-                    rulesShowed = true;
-                }
+               toolsInfoHeight = 0;
+                if (operable)
+                    printToolsInfo("Rules");
                 break;
             case 3:
-                iptablesHeight = 0;
-                if (operable && !iptablesShowed) {
-                    showIptables();
-                    iptablesShowed = true;
-                }
+               toolsInfoHeight = 0;
+                if (operable)
+                    printToolsInfo("Iptables");
                 break;
             case 4:
-                crontabHeight = 0;
-                if (operable && !crontabShowed) {
-                    showCrontab();
-                    crontabShowed = true;
-                }
+               toolsInfoHeight = 0;
+                if (operable)
+                    printToolsInfo("Crontab");
                 break;
             case 5:
-                showFirewallStart();
+                printEventInterfaceInfo("LZRState.html", "5");
                 break;
             case 6:
-                showServiceEvent();
+                printEventInterfaceInfo("LZRService.html", "6");
                 break;
             case 7:
-                showOpenVPNEvent();
+                printEventInterfaceInfo("LZROpenvpn.html", "7");
                 break;
             case 8:
-                showPostMount();
+                printEventInterfaceInfo("LZRPostMount.html", "8");
                 break;
             case 9:
-                showDNSmasq();
+                printEventInterfaceInfo("LZRDNSmasq.html", "9");
                 break;
             case 11:
-                unlockHeight = 0;
-                if (!unlockEnable) {
-                    unlockEnable = true;
-                    setTimeout(getUnlockInfo, 100);
+               toolsInfoHeight = 0;
+                if (!toolsCMDArray["Unlock"][2]) {
+                    toolsCMDArray["Unlock"][2] = true;
+                    setTimeout(getToolsInfo, 100, "Unlock");
                 }
                 break;
             default:
@@ -2039,41 +1772,41 @@ function toolsCommand() {
             let dnsIPAddressVal = document.getElementById("dnsIPAddress").value;
             disabledToolsButton();
             document.getElementById("toolsTextArea").innerHTML = "";
-            addressHeight = 0;
-            document.scriptActionsForm.action_script.value = "start_LZAddress_" + destIPVal + "_" + dnsIPAddressVal + "_";
+            toolsInfoHeight = 0;
+            document.scriptActionsForm.action_script.value = "start_" + toolsCMDArray["Address"][4] + "_" + destIPVal + "_" + dnsIPAddressVal + "_";
             document.scriptActionsForm.action_wait.value = "0";
             document.scriptActionsForm.submit();
-            if (!addressEnable) {
-                addressEnable = true;
-                setTimeout(getAddressInfo, 100);
+            if (!toolsCMDArray["Address"][2]) {
+                toolsCMDArray["Address"][2] = true;
+                setTimeout(getToolsInfo, 100, "Address");
             }
             break;
         case 1:
-            showRouting();
+            printToolsInfo("Routing");
             break;
         case 2:
-            showRules();
+            printToolsInfo("Rules");
             break;
         case 3:
-            showIptables();
+            printToolsInfo("Iptables");
             break;
         case 4:
-            showCrontab();
+            printToolsInfo("Crontab");
             break;
         case 5:
-            showFirewallStart();
+            printEventInterfaceInfo("LZRState.html", "5");
             break;
         case 6:
-            showServiceEvent();
+            printEventInterfaceInfo("LZRService.html", "6");
             break;
         case 7:
-            showOpenVPNEvent();
+            printEventInterfaceInfo("LZROpenvpn.html", "7");
             break;
         case 8:
-            showPostMount();
+            printEventInterfaceInfo("LZRPostMount.html", "8");
             break;
         case 9:
-            showDNSmasq();
+            printEventInterfaceInfo("LZRDNSmasq.html", "9");
             break;
         case 10:
             disabledToolsButton();
@@ -2092,15 +1825,7 @@ function toolsCommand() {
             if (!confirm("「解除程序运行锁」后会造成同步运行安全机制失效，需重新启动「策略路由」才可恢复。\n\n确定要执行此操作吗？"))
                 break;
             disabledToolsButton();
-            document.getElementById("toolsTextArea").innerHTML = "";
-            unlockHeight = 0;
-            document.scriptActionsForm.action_script.value = 'start_LZUnlock';
-            document.scriptActionsForm.action_wait.value = "0";
-            document.scriptActionsForm.submit();
-            if (!unlockEnable) {
-                unlockEnable = true;
-                setTimeout(getUnlockInfo, 100);
-            }
+            printToolsInfo("Unlock");
             break;
         case 12:
             if (!confirm("「恢复缺省配置」将不可恢复的清除用户所有已配置数据。\n\n确定要执行此操作吗？"))
@@ -2126,16 +1851,215 @@ function toolsCommand() {
     }
 }
 
+let ipListDialogIDArray = {
+    "custom_data_wan_port_1_list" : ["24991", "Advanced"], 
+    "custom_data_wan_port_2_list" : ["24990", "Advanced"], 
+    "wan_1_domain_list" : ["24977_0x9191_c_0", "Advanced"], 
+    "wan_1_domain_addr_list" : ["24977_0x9191_d_0", "Advanced"], 
+    "wan_2_domain_list" : ["24976_0x8181_c_1", "Advanced"], 
+    "wan_2_domain_addr_list" : ["24976_0x8181_d_1", "Advanced"], 
+    "wan_1_client_src_addr_list" : ["24979", "Advanced"], 
+    "wan_2_client_src_addr_list" : ["24978", "Advanced"], 
+    "high_wan_1_client_src_addr_list" : ["24970", "Advanced"], 
+    "high_wan_2_client_src_addr_list" : ["24969", "Advanced"], 
+    "wan_1_src_to_dst_addr_list" : ["24966", "Advanced"], 
+    "wan_2_src_to_dst_addr_list" : ["24965", "Advanced"], 
+    "high_wan_1_src_to_dst_addr_list" : ["24964", "Advanced"], 
+    "wan_1_src_to_dst_addr_port_list" : ["24975_0x3131", "Advanced"], 
+    "wan_2_src_to_dst_addr_port_list" : ["24974_0x2121", "Advanced"], 
+    "high_wan_1_src_to_dst_addr_port_list" : ["24973_0x1717", "Advanced"], 
+    "local_ipsets_list" : ["24962", "Advanced"], 
+    "proxy_remote_node_addr_list" : ["24960", "Advanced"], 
+    "custom_hosts_list" : ["hosts", "Runtime"], 
+    "iptv_box_ip_list" : ["888_box", "IPTV"], 
+    "iptv_isp_ip_list" : ["888_isp", "IPTV"]
+};
+
+function initRTIPListDialog() {
+    let code = "";
+    for (let key in ipListDialogIDArray) {
+        if (ipListDialogIDArray.hasOwnProperty(key) 
+            && document.getElementById(key) != null 
+            && document.getElementById(key + "_status") != null) {
+            code = '<div id="'+ key + '_title" style="margin-top:8px; text-align:center;"></div>';
+            code += '<textarea cols="63" rows="27" wrap="off" readonly="readonly" id="' + key + '_area" class="textarea_ssh_table" ';
+            code += 'style="margin-top:8px; margin-left:1%; width:97%; margin-bottom:8px; font-family:\'Courier New\', Courier, mono; font-size:11px; background-color:black;">';
+            code += '</textarea>';
+            code += '<div style="padding-bottom:10px; width:100%; text-align:center;">';
+            code += '<input name="close_' + key + '" id="close_' + key + '" class="button_gen" type="button" onclick="closeRTIPList();" value="关闭">';
+            code += '<img id="loading_' + key + '_Icon" style="display:none;" src="/ext/lzr/InternetScan.gif">';
+            code += '</div>';
+            document.getElementById(key).innerHTML = code;
+            document.getElementById(key + "_status").style = "margin-left:27px; text-decoration:underline; cursor:pointer;";
+            document.getElementById(key + "_status").setAttribute('onclick', 'openRTIPList(this);');
+            document.getElementById(key + "_status").title = "显示列表中当前正在运行的有效地址条目。";
+            document.getElementById(key + "_status").setAttribute('onmouseover', 'over_var=1;');
+            document.getElementById(key + "_status").setAttribute('onmouseout', 'over_var=0;');
+            document.getElementById(key + "_status").innerHTML = "状态";
+            let str1 = "";
+            let str2 = " - ";
+            let str3 = "";
+            if (document.getElementById(key + "_channel") != null)
+                str1 = $("#" + key + "_channel").html();
+            else if (key == "wan_1_domain_addr_list" && document.getElementById("wan_1_domain_list_channel") != null)
+                str1 = $("#wan_1_domain_list_channel").html();
+            else if (key == "wan_2_domain_addr_list" && document.getElementById("wan_2_domain_list_channel") != null)
+                str1 = $("#wan_2_domain_list_channel").html();
+            if (document.getElementById(key + "_name") != null)
+                str3 = $("#" + key + "_name").html();
+            if (str1 == "" || str3 == "")
+                str2 = "";
+            if (document.getElementById(key + "_title") != null)
+                $("#" + key + "_title").html(str1 + str2 + str3);
+        }
+    }
+}
+
+function disabledRtListCloseButton(id) {
+    if (id == "" 
+        || !ipListDialogIDArray.hasOwnProperty(id) 
+        || document.getElementById(id) == null 
+        || document.getElementById(id + "_area") == null 
+        || document.getElementById("close_" + id) == null
+        || document.getElementById("loading_" + id + "_Icon") == null)
+        return;
+    if (!document.getElementById("close_" + id).disabled) {
+        document.getElementById("close_" + id).disabled = true;
+        $("#close_" + id).hide();
+        $("#loading_" + id + "_Icon").show();
+    }
+}
+
+function enabledRtListCloseButton(id) {
+    if (id == "" 
+        || !ipListDialogIDArray.hasOwnProperty(id) 
+        || document.getElementById(id) == null 
+        || document.getElementById(id + "_area") == null 
+        || document.getElementById("close_" + id) == null
+        || document.getElementById("loading_" + id + "_Icon") == null)
+        return;
+    if (document.getElementById("close_" + id).disabled) {
+        $("#loading_" + id + "_Icon").hide();
+        $("#close_" + id).show();
+        document.getElementById("close_" + id).disabled = false;
+    }
+}
+
+let rtListInfoHeight = 0;
+let rtListInfoEnable = true;
+function getRtListInfo() {
+    let id = ipListID;
+    let h = 0;
+    $.ajax({
+        async: true,
+        url: '/ext/lzr/LZRList.html',
+        dataType: 'text',
+        error: function(xhr) {
+            if (xhr.status == 404) {
+                rtListInfoEnable = false;
+                rtListInfoHeight = 0;
+                enabledRtListCloseButton(id);
+            } else
+                setTimeout(getRtListInfo, 1000);
+        },
+        success: function(response) {
+            if (id != "" 
+                && ipListDialogIDArray.hasOwnProperty(id) 
+                && document.getElementById(id) != null 
+                && document.getElementById(id + "_area") != null) {
+                h = $("#" + id + "_area").scrollTop();
+                if (divLabelArray[ipListDialogIDArray[id][1]][2] == "1" 
+                    && !(rtListInfoHeight > 0 && h < rtListInfoHeight)) {
+                    let infoString = htmlEnDeCode.htmlEncode(response.toString());
+                    if (infoString.search(/^[\s]*$/) < 0) {
+                        if (infoString.search(/(^|[\n])Total[\:]/) >= 0)
+                            enabledRtListCloseButton(id);
+                        else
+                            disabledRtListCloseButton(id);
+                    } else
+                        infoString = "";
+                    document.getElementById(id + "_area").innerHTML = infoString;
+                    $("#" + id + "_area").animate({ scrollTop: 9999999 }, "slow");
+                    setTimeout('rtListInfoHeight = $("#' + id + '_area").scrollTop();', 500);
+                }
+            }
+            setTimeout(getRtListInfo, 3000);
+        }
+    });
+}
+
+let ipListID="";
+function closeRTIPList() {
+    if (ipListID == "")
+        return;
+    if (document.getElementById(ipListID) != null) {
+        $("#" + ipListID).fadeOut(500);
+        if ($("#" + ipListID).css("display") != "none")
+            $("#" + ipListID).css("display", "none");
+    }
+    if (document.getElementById(ipListID + "_area") != null)
+        document.getElementById(ipListID + "_area").innerHTML = "";
+    enabledRtListCloseButton(ipListID);
+    rtListInfoHeight = 0;
+    ipListID="";
+}
+
+function openRTIPList(ptr) {
+    if (isInstance()) {
+        alert("上一个任务正在进行中，请稍后再试。");
+        return;
+    }
+    closeRTIPList();
+    if (ptr == null) return;
+    ipListID = ptr.id.replace(/_status$/, "");
+    if (!ipListDialogIDArray.hasOwnProperty(ipListID))
+        return;
+    if (document.getElementById(ipListID + "_area") != null) {
+        document.getElementById(ipListID + "_area").style = "margin-top:8px; margin-left:1%; width:97%; margin-bottom:8px; font-family:'Courier New', Courier, mono; font-size:11px; background-color:black;";
+        document.getElementById(ipListID + "_area").innerHTML = "";
+    }
+    if (document.getElementById(ipListID) != null) {
+        $("#" + ipListID).css("position", "absolute");
+        $("#" + ipListID).css("-webkit-border-radius", "5px");
+        $("#" + ipListID).css("-moz-border-radius", "5px");
+        $("#" + ipListID).css("border-radius", "5px");
+        $("#" + ipListID).css("z-index", "500");
+        $("#" + ipListID).css("background-color", "#2B373B");
+        $("#" + ipListID).css("margin-left", "15%");
+        $("#" + ipListID).css("margin-top", "10px");
+        $("#" + ipListID).css("width", "600px");
+        $("#" + ipListID).css("box-shadow", "3px 3px 10px #000");
+        $("#" + ipListID).fadeIn(500);
+        disabledRtListCloseButton(ipListID);
+        rtListInfoHeight = 0;
+        document.scriptActionsForm.action_script.value = 'start_LZRTList_' + ipListDialogIDArray[ipListID][0];
+        document.scriptActionsForm.action_wait.value = "0";
+        document.scriptActionsForm.submit();
+        if (!rtListInfoEnable) {
+            rtListInfoEnable = true;
+            setTimeout(getRtListInfo, 100);
+        }
+    }
+}
+
 function initAjaxTextArea() {
+    for (let key in ipListDialogIDArray) {
+        if (ipListDialogIDArray.hasOwnProperty(key) 
+            && document.getElementById(key) != null 
+            && document.getElementById(key + "_area") != null 
+            && document.getElementById("close_" + key) != null
+            && document.getElementById("loading_" + key + "_Icon") != null) {
+            document.getElementById(key + "_area").scrollTop = 9999999; //make Scroll_y bottom
+        }
+    }
+    setTimeout(getRtListInfo, 100);
     document.getElementById('statusArea').scrollTop = 9999999; //make Scroll_y bottom
     setTimeout(getStatus, 100);
     document.getElementById('toolsTextArea').scrollTop = 9999999; //make Scroll_y bottom
-    setTimeout(getAddressInfo, 100);
-    setTimeout(getRoutingTableInfo, 100);
-    setTimeout(getRulesInfo, 100);
-    setTimeout(getIptablesInfo, 100);
-    setTimeout(getCrontabInfo, 100);
-    setTimeout(getUnlockInfo, 100);
+    for (let key in toolsCMDArray) {
+        if (toolsCMDArray.hasOwnProperty(key))
+            setTimeout(getToolsInfo, 100, key);
+    }
 }
 
 function detectVersion() {
@@ -2167,14 +2091,26 @@ function initial() {
     initControls();
     inithideDivPage();
     initSwitchDivPage();
+    initRTIPListDialog();
     showLANIPList();
-    document.body.addEventListener("click", function(_evt) {control_dropdown_client_block("ClientList_Block_PC", "pull_arrow", _evt);});
+    document.body.addEventListener("click", function(_evt) {
+        if (ipListID != "" 
+            && ipListDialogIDArray.hasOwnProperty(ipListID) 
+            && document.getElementById(ipListID) != null 
+            && document.getElementById(ipListID + "_status") != null 
+            && !document.getElementById(ipListID).contains(_evt.target) 
+            && !document.getElementById(ipListID + "_status").contains(_evt.target)) {
+            closeRTIPList();
+            return;
+        }
+        control_dropdown_client_block("ClientList_Block_PC", "pull_arrow", _evt);
+    });
     initAjaxTextArea();
     if (restart)
         saveSettings(false);
     else
         setTimeout(detectVersion, 100);
-    }
+}
 
 $(document).ready(function() {
     $("#lzr_producid").click(function() {
