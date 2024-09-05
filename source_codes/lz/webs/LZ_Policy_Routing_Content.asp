@@ -83,7 +83,7 @@
                     url: '/ext/lzr/LZRGlobal.html',
                     dataType: 'text',
                     success: function(response) {
-                        // v4.5.8
+                        // v4.5.9
                         retVal = (response.match(/QnkgTFog5aaZ5aaZ5ZGc77yI6Juk6J[\+]G5aKp5YS[\/]77yJ/m) != null) ? true : false;
                     }
                 });
@@ -447,381 +447,8 @@
                                                             </table>
                                                         </div>
                                                         <div id="advancedConfig" style="display:none;">
-                                                            <table width="100%" border="1" align="center" cellpadding="4" cellspacing="0" bordercolor="#6b8fa3" class="FormTable">
-                                                                <thead>
-                                                                    <tr>
-                                                                        <td colspan="2">
-                                                                            <a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(14);">自定义目标 IP 地址访问策略</a>
-                                                                            <div id="custom_data_wan_port_1_list" class="content_ip_list"></div>
-                                                                            <div id="custom_data_wan_port_2_list" class="content_ip_list"></div>
-                                                                        </td>
-                                                                    </tr>
-                                                                </thead>
-                                                                <tr>
-                                                                    <th><a id="custom_data_wan_port_1_list_channel" class="hintstyle" href="javascript:void(0);" onClick="openOverHint(15);">自定义策略 - 1</a></th>
-                                                                    <td>
-                                                                        <select id="lzr_custom_data_wan_port_1" name="lzr_custom_data_wan_port_1" class="input_option" style="margin-left:2px;">
-                                                                            <option value="0">首选 WAN</option>
-                                                                            <option value="1">第二 WAN</option>
-                                                                            <option value="2">负载均衡</option>
-                                                                            <option value="5" selected>停用</option>
-                                                                        </select>
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <th><a id="custom_data_wan_port_1_list_name" class="hintstyle" style="margin-left:27px;" href="javascript:void(0);" onClick="openOverHint(16);">目标 IP 地址列表</a></th>
-                                                                    <td>
-                                                                        <input id="lzr_custom_data_file_1" type="text" maxlength="255" class="input_32_table" name="lzr_custom_data_file_1" value="/jffs/scripts/lz/data/custom_data_1.txt" onchange="checkTextField(this);" autocorrect="off" autocapitalize="off">
-                                                                        <span id="custom_data_wan_port_1_list_status"></span>
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <th><a id="custom_data_wan_port_2_list_channel" class="hintstyle" href="javascript:void(0);" onClick="openOverHint(17);">自定义策略 - 2</a></th>
-                                                                    <td>
-                                                                        <select id="lzr_custom_data_wan_port_2" name="lzr_custom_data_wan_port_2" class="input_option" style="margin-left:2px;">
-                                                                            <option value="0">首选 WAN</option>
-                                                                            <option value="1">第二 WAN</option>
-                                                                            <option value="2">负载均衡</option>
-                                                                            <option value="5" selected>停用</option>
-                                                                        </select>
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <th><a id="custom_data_wan_port_2_list_name" class="hintstyle" style="margin-left:27px;" href="javascript:void(0);" onClick="openOverHint(81);">目标 IP 地址列表</a></th>
-                                                                    <td>
-                                                                        <input id="lzr_custom_data_file_2" type="text" maxlength="255" class="input_32_table" name="lzr_custom_data_file_2" value="/jffs/scripts/lz/data/custom_data_2.txt" onchange="checkTextField(this);" autocorrect="off" autocapitalize="off">
-                                                                        <span id="custom_data_wan_port_2_list_status"></span>
-                                                                    </td>
-                                                                </tr>
-                                                            </table>
-                                                            <table width="100%" border="1" align="center" cellpadding="4" cellspacing="0" bordercolor="#6b8fa3" class="FormTable">
-                                                                <thead>
-                                                                    <tr>
-                                                                        <td colspan="2">
-                                                                            <a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(18);">域名地址动态访问策略</a>
-                                                                            <div id="wan_1_domain_list" class="content_ip_list"></div>
-                                                                            <div id="wan_1_domain_addr_list" class="content_ip_list"></div>
-                                                                            <div id="wan_2_domain_list" class="content_ip_list"></div>
-                                                                            <div id="wan_2_domain_addr_list" class="content_ip_list"></div>
-                                                                        </td>
-                                                                    </tr>
-                                                                </thead>
-                                                                <tr>
-                                                                    <th><a id="wan_1_domain_list_channel" class="hintstyle" href="javascript:void(0);" onClick="openOverHint(82);">首选 WAN</a></th>
-                                                                    <td colspan="4">
-                                                                        <input type="radio" value="0" name="lzr_wan_1_domain" class="content_input_fd">启用
-                                                                        <input type="radio" value="5" name="lzr_wan_1_domain" class="content_input_fd">停用
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <th><a id="wan_1_domain_list_name" class="hintstyle" style="margin-left:27px;" href="javascript:void(0);" onClick="openOverHint(19);">客户端 IP 地址列表</a></th>
-                                                                    <td>
-                                                                        <input id="lzr_wan_1_domain_client_src_addr_file" type="text" maxlength="255" class="input_32_table" name="lzr_wan_1_domain_client_src_addr_file" value="/jffs/scripts/lz/data/wan_1_domain_client_src_addr.txt" onchange="checkTextField(this);" autocorrect="off" autocapitalize="off">
-                                                                        <span id="wan_1_domain_list_status"></span>
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <th><a id="wan_1_domain_addr_list_name" class="hintstyle" style="margin-left:27px;" href="javascript:void(0);" onClick="openOverHint(20);">域名地址列表</a></th>
-                                                                    <td>
-                                                                        <input id="lzr_wan_1_domain_file" type="text" maxlength="255" class="input_32_table" name="lzr_wan_1_domain_file" value="/jffs/scripts/lz/data/wan_1_domain.txt" onchange="checkTextField(this);" autocorrect="off" autocapitalize="off">
-                                                                        <span id="wan_1_domain_addr_list_status"></span>
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <th><a id="wan_2_domain_list_channel" class="hintstyle" href="javascript:void(0);" onClick="openOverHint(82);">第二 WAN</a></th>
-                                                                    <td colspan="4">
-                                                                        <input type="radio" value="0" name="lzr_wan_2_domain" class="content_input_fd">启用
-                                                                        <input type="radio" value="5" name="lzr_wan_2_domain" class="content_input_fd">停用
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <th><a id="wan_2_domain_list_name" class="hintstyle" style="margin-left:27px;" href="javascript:void(0);" onClick="openOverHint(21);">客户端 IP 地址列表</a></th>
-                                                                    <td>
-                                                                        <input id="lzr_wan_2_domain_client_src_addr_file" type="text" maxlength="255" class="input_32_table" name="lzr_wan_2_domain_client_src_addr_file" value="/jffs/scripts/lz/data/wan_2_domain_client_src_addr.txt" onchange="checkTextField(this);" autocorrect="off" autocapitalize="off">
-                                                                        <span id="wan_2_domain_list_status"></span>
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <th><a id="wan_2_domain_addr_list_name" class="hintstyle" style="margin-left:27px;" href="javascript:void(0);" onClick="openOverHint(22);">域名地址列表</a></th>
-                                                                    <td>
-                                                                        <input id="lzr_wan_2_domain_file" type="text" maxlength="255" class="input_32_table" name="lzr_wan_2_domain_file" value="/jffs/scripts/lz/data/wan_2_domain.txt" onchange="checkTextField(this);" autocorrect="off" autocapitalize="off">
-                                                                        <span id="wan_2_domain_addr_list_status"></span>
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(51);">域名解析后 IP 地址缓存时间<br />(0--永久; 1~2147483秒)</a></th>
-                                                                    <td>
-                                                                        <input type="number" min="0" max="2147483" maxlength="7" class="input_15_table" id="lzr_dn_cache_time" name="lzr_dn_cache_time" value="864000" onkeypress="return validator.isNumber(this, event);" onchange="checkNumberField(this, 864000)" autocorrect="off" autocapitalize="off">
-                                                                    </td>
-                                                                </tr>
-                                                            </table>
-                                                            <table width="100%" border="1" align="center" cellpadding="4" cellspacing="0" bordercolor="#6b8fa3" class="FormTable">
-                                                                <thead>
-                                                                    <tr>
-                                                                        <td colspan="2">
-                                                                            <a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(23);">客户端静态直通策略</a>
-                                                                            <div id="wan_1_client_src_addr_list" class="content_ip_list"></div>
-                                                                            <div id="wan_2_client_src_addr_list" class="content_ip_list"></div>
-                                                                        </td>
-                                                                    </tr>
-                                                                </thead>
-                                                                <tr>
-                                                                    <th><a id="wan_1_client_src_addr_list_channel" class="hintstyle" href="javascript:void(0);" onClick="openOverHint(82);">首选 WAN</a></th>
-                                                                    <td colspan="4">
-                                                                        <input type="radio" value="0" name="lzr_wan_1_client_src_addr" class="content_input_fd">启用
-                                                                        <input type="radio" value="5" name="lzr_wan_1_client_src_addr" class="content_input_fd">停用
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <th><a id="wan_1_client_src_addr_list_name" class="hintstyle" style="margin-left:27px;" href="javascript:void(0);" onClick="openOverHint(24);">客户端 IP 地址列表</a></th>
-                                                                    <td>
-                                                                        <input id="lzr_wan_1_client_src_addr_file" type="text" maxlength="255" class="input_32_table" name="lzr_wan_1_client_src_addr_file" value="/jffs/scripts/lz/data/wan_1_client_src_addr.txt" onchange="checkTextField(this);" autocorrect="off" autocapitalize="off">
-                                                                        <span id="wan_1_client_src_addr_list_status"></span>
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <th><a id="wan_2_client_src_addr_list_channel" class="hintstyle" href="javascript:void(0);" onClick="openOverHint(82);">第二 WAN</a></th>
-                                                                    <td colspan="4">
-                                                                        <input type="radio" value="0" name="lzr_wan_2_client_src_addr" class="content_input_fd">启用
-                                                                        <input type="radio" value="5" name="lzr_wan_2_client_src_addr" class="content_input_fd">停用
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <th><a id="wan_2_client_src_addr_list_name" class="hintstyle" style="margin-left:27px;" href="javascript:void(0);" onClick="openOverHint(25);">客户端 IP 地址列表</a></th>
-                                                                    <td>
-                                                                        <input id="lzr_wan_2_client_src_addr_file" type="text" maxlength="255" class="input_32_table" name="lzr_wan_2_client_src_addr_file" value="/jffs/scripts/lz/data/wan_2_client_src_addr.txt" onchange="checkTextField(this);" autocorrect="off" autocapitalize="off">
-                                                                        <span id="wan_2_client_src_addr_list_status"></span>
-                                                                    </td>
-                                                                </tr>
-                                                            </table>
-                                                            <table width="100%" border="1" align="center" cellpadding="4" cellspacing="0" bordercolor="#6b8fa3" class="FormTable">
-                                                                <thead>
-                                                                    <tr>
-                                                                        <td colspan="2">
-                                                                            <a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(26);">高优先级客户端静态直通策略</a>
-                                                                            <div id="high_wan_1_client_src_addr_list" class="content_ip_list"></div>
-                                                                            <div id="high_wan_2_client_src_addr_list" class="content_ip_list"></div>
-                                                                        </td>
-                                                                    </tr>
-                                                                </thead>
-                                                                <tr>
-                                                                    <th><a id="high_wan_1_client_src_addr_list_channel" class="hintstyle" href="javascript:void(0);" onClick="openOverHint(82);">首选 WAN</a></th>
-                                                                    <td colspan="4">
-                                                                        <input type="radio" value="0" name="lzr_high_wan_1_client_src_addr" class="content_input_fd">启用
-                                                                        <input type="radio" value="5" name="lzr_high_wan_1_client_src_addr" class="content_input_fd">停用
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <th><a id="high_wan_1_client_src_addr_list_name" class="hintstyle" style="margin-left:27px;" href="javascript:void(0);" onClick="openOverHint(27);">客户端 IP 地址列表</a></th>
-                                                                    <td>
-                                                                        <input id="lzr_high_wan_1_client_src_addr_file" type="text" maxlength="255" class="input_32_table" name="lzr_high_wan_1_client_src_addr_file" value="/jffs/scripts/lz/data/high_wan_1_client_src_addr.txt" onchange="checkTextField(this);" autocorrect="off" autocapitalize="off">
-                                                                        <span id="high_wan_1_client_src_addr_list_status"></span>
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <th><a id="high_wan_2_client_src_addr_list_channel" class="hintstyle" href="javascript:void(0);" onClick="openOverHint(82);">第二 WAN</a></th>
-                                                                    <td colspan="4">
-                                                                        <input type="radio" value="0" name="lzr_high_wan_2_client_src_addr" class="content_input_fd">启用
-                                                                        <input type="radio" value="5" name="lzr_high_wan_2_client_src_addr" class="content_input_fd">停用
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <th><a id="high_wan_2_client_src_addr_list_name" class="hintstyle" style="margin-left:27px;" href="javascript:void(0);" onClick="openOverHint(28);">客户端 IP 地址列表</a></th>
-                                                                    <td>
-                                                                        <input id="lzr_high_wan_2_client_src_addr_file" type="text" maxlength="255" class="input_32_table" name="lzr_high_wan_2_client_src_addr_file" value="/jffs/scripts/lz/data/high_wan_2_client_src_addr.txt" onchange="checkTextField(this);" autocorrect="off" autocapitalize="off">
-                                                                        <span id="high_wan_2_client_src_addr_list_status"></span>
-                                                                    </td>
-                                                                </tr>
-                                                            </table>
-                                                            <table width="100%" border="1" align="center" cellpadding="4" cellspacing="0" bordercolor="#6b8fa3" class="FormTable">
-                                                                <thead>
-                                                                    <tr>
-                                                                        <td colspan="2">
-                                                                            <a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(29);">客户端至预设目标 IP 地址静态直通策略</a>
-                                                                            <div id="wan_1_src_to_dst_addr_list" class="content_ip_list"></div>
-                                                                            <div id="wan_2_src_to_dst_addr_list" class="content_ip_list"></div>
-                                                                        </td>
-                                                                    </tr>
-                                                                </thead>
-                                                                <tr>
-                                                                    <th><a id="wan_1_src_to_dst_addr_list_channel" class="hintstyle" href="javascript:void(0);" onClick="openOverHint(82);">首选 WAN</a></th>
-                                                                    <td colspan="4">
-                                                                        <input type="radio" value="0" name="lzr_wan_1_src_to_dst_addr" class="content_input_fd">启用
-                                                                        <input type="radio" value="5" name="lzr_wan_1_src_to_dst_addr" class="content_input_fd">停用
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <th><a id="wan_1_src_to_dst_addr_list_name" class="hintstyle" style="margin-left:27px;" href="javascript:void(0);" onClick="openOverHint(30);">客户端 IP 地址至目标 IP 地址列表</a></th>
-                                                                    <td>
-                                                                        <input id="lzr_wan_1_src_to_dst_addr_file" type="text" maxlength="255" class="input_32_table" name="lzr_wan_1_src_to_dst_addr_file" value="/jffs/scripts/lz/data/wan_1_src_to_dst_addr.txt" onchange="checkTextField(this);" autocorrect="off" autocapitalize="off">
-                                                                        <span id="wan_1_src_to_dst_addr_list_status"></span>
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <th><a id="wan_2_src_to_dst_addr_list_channel" class="hintstyle" href="javascript:void(0);" onClick="openOverHint(82);">第二 WAN</a></th>
-                                                                    <td colspan="4">
-                                                                        <input type="radio" value="0" name="lzr_wan_2_src_to_dst_addr" class="content_input_fd">启用
-                                                                        <input type="radio" value="5" name="lzr_wan_2_src_to_dst_addr" class="content_input_fd">停用
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <th><a id="wan_2_src_to_dst_addr_list_name" class="hintstyle" style="margin-left:27px;" href="javascript:void(0);" onClick="openOverHint(31);">客户端 IP 地址至目标 IP 地址列表</a></th>
-                                                                    <td>
-                                                                        <input id="lzr_wan_2_src_to_dst_addr_file" type="text" maxlength="255" class="input_32_table" name="lzr_wan_2_src_to_dst_addr_file" value="/jffs/scripts/lz/data/wan_2_src_to_dst_addr.txt" onchange="checkTextField(this);" autocorrect="off" autocapitalize="off">
-                                                                        <span id="wan_2_src_to_dst_addr_list_status"></span>
-                                                                    </td>
-                                                                </tr>
-                                                            </table>
-                                                            <table width="100%" border="1" align="center" cellpadding="4" cellspacing="0" bordercolor="#6b8fa3" class="FormTable">
-                                                                <thead>
-                                                                    <tr>
-                                                                        <td colspan="2">
-                                                                            <a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(32);">高优先级客户端至预设目标 IP 地址静态直通策略</a>
-                                                                            <div id="high_wan_1_src_to_dst_addr_list" class="content_ip_list"></div>
-                                                                        </td>
-                                                                    </tr>
-                                                                </thead>
-                                                                <tr>
-                                                                    <th><a id="high_wan_1_src_to_dst_addr_list_channel" class="hintstyle" href="javascript:void(0);" onClick="openOverHint(82);">首选 WAN</a></th>
-                                                                    <td colspan="4">
-                                                                        <input type="radio" value="0" name="lzr_high_wan_1_src_to_dst_addr" class="content_input_fd">启用
-                                                                        <input type="radio" value="5" name="lzr_high_wan_1_src_to_dst_addr" class="content_input_fd">停用
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <th><a id="high_wan_1_src_to_dst_addr_list_name" class="hintstyle" style="margin-left:27px;" href="javascript:void(0);" onClick="openOverHint(33);">客户端 IP 地址至目标 IP 地址列表</a></th>
-                                                                    <td>
-                                                                        <input id="lzr_high_wan_1_src_to_dst_addr_file" type="text" maxlength="255" class="input_32_table" name="lzr_high_wan_1_src_to_dst_addr_file" value="/jffs/scripts/lz/data/high_wan_1_src_to_dst_addr.txt" onchange="checkTextField(this);" autocorrect="off" autocapitalize="off">
-                                                                        <span id="high_wan_1_src_to_dst_addr_list_status"></span>
-                                                                    </td>
-                                                                </tr>
-                                                            </table>
-                                                            <table width="100%" border="1" align="center" cellpadding="4" cellspacing="0" bordercolor="#6b8fa3" class="FormTable">
-                                                                <thead>
-                                                                    <tr>
-                                                                        <td colspan="2"><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(34);">协议端口动态访问策略</a></td>
-                                                                    </tr>
-                                                                </thead>
-                                                                <tr>
-                                                                    <th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(82);">首选 WAN</a></th>
-                                                                    <td colspan="4"></td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <th><a class="hintstyle" style="margin-left:27px;" href="javascript:void(0);" onClick="openOverHint(83);">TCP 目标端口</a></th>
-                                                                    <td>
-                                                                        <input id="lzr_wan0_dest_tcp_port" type="text" maxlength="512" class="input_32_table" name="lzr_wan0_dest_tcp_port" value="" onchange="checkPortTextField(this);" autocorrect="off" autocapitalize="off">
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <th><a class="hintstyle" style="margin-left:27px;" href="javascript:void(0);" onClick="openOverHint(83);">UDP 目标端口</a></th>
-                                                                    <td>
-                                                                        <input id="lzr_wan0_dest_udp_port" type="text" maxlength="512" class="input_32_table" name="lzr_wan0_dest_udp_port" value="" onchange="checkPortTextField(this);" autocorrect="off" autocapitalize="off">
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <th><a class="hintstyle" style="margin-left:27px;" href="javascript:void(0);" onClick="openOverHint(83);">UDPLITE 目标端口</a></th>
-                                                                    <td>
-                                                                        <input id="lzr_wan0_dest_udplite_port" type="text" maxlength="512" class="input_32_table" name="lzr_wan0_dest_udplite_port" value="" onchange="checkPortTextField(this);" autocorrect="off" autocapitalize="off">
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <th><a class="hintstyle" style="margin-left:27px;" href="javascript:void(0);" onClick="openOverHint(83);">SCTP 目标端口</a></th>
-                                                                    <td>
-                                                                        <input id="lzr_wan0_dest_sctp_port" type="text" maxlength="512" class="input_32_table" name="lzr_wan0_dest_sctp_port" value="" onchange="checkPortTextField(this);" autocorrect="off" autocapitalize="off">
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(82);">第二 WAN</a></th>
-                                                                    <td colspan="4"></td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <th><a class="hintstyle" style="margin-left:27px;" href="javascript:void(0);" onClick="openOverHint(83);">TCP 目标端口</a></th>
-                                                                    <td>
-                                                                        <input id="lzr_wan1_dest_tcp_port" type="text" maxlength="512" class="input_32_table" name="lzr_wan1_dest_tcp_port" value="" onchange="checkPortTextField(this);" autocorrect="off" autocapitalize="off">
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <th><a class="hintstyle" style="margin-left:27px;" href="javascript:void(0);" onClick="openOverHint(83);">UDP 目标端口</a></th>
-                                                                    <td>
-                                                                        <input id="lzr_wan1_dest_udp_port" type="text" maxlength="512" class="input_32_table" name="lzr_wan1_dest_udp_port" value="" onchange="checkPortTextField(this);" autocorrect="off" autocapitalize="off">
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <th><a class="hintstyle" style="margin-left:27px;" href="javascript:void(0);" onClick="openOverHint(83);">UDPLITE 目标端口</a></th>
-                                                                    <td>
-                                                                        <input id="lzr_wan1_dest_udplite_port" type="text" maxlength="512" class="input_32_table" name="lzr_wan1_dest_udplite_port" onchange="checkPortTextField(this);" value="" autocorrect="off" autocapitalize="off">
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <th><a class="hintstyle" style="margin-left:27px;" href="javascript:void(0);" onClick="openOverHint(83);">SCTP 目标端口</a></th>
-                                                                    <td>
-                                                                        <input id="lzr_wan1_dest_sctp_port" type="text" maxlength="512" class="input_32_table" name="lzr_wan1_dest_sctp_port" value="" onchange="checkPortTextField(this);" autocorrect="off" autocapitalize="off">
-                                                                    </td>
-                                                                </tr>
-                                                            </table>
-                                                            <table width="100%" border="1" align="center" cellpadding="4" cellspacing="0" bordercolor="#6b8fa3" class="FormTable">
-                                                                <thead>
-                                                                    <tr>
-                                                                        <td colspan="2">
-                                                                            <a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(35);">客户端至预设目标 IP 地址协议端口动态访问策略</a>
-                                                                            <div id="wan_1_src_to_dst_addr_port_list" class="content_ip_list"></div>
-                                                                            <div id="wan_2_src_to_dst_addr_port_list" class="content_ip_list"></div>
-                                                                        </td>
-                                                                    </tr>
-                                                                </thead>
-                                                                <tr>
-                                                                    <th><a id="wan_1_src_to_dst_addr_port_list_channel" class="hintstyle" href="javascript:void(0);" onClick="openOverHint(82);">首选 WAN</a></th>
-                                                                    <td colspan="4">
-                                                                        <input type="radio" value="0" name="lzr_wan_1_src_to_dst_addr_port" class="content_input_fd">启用
-                                                                        <input type="radio" value="5" name="lzr_wan_1_src_to_dst_addr_port" class="content_input_fd">停用
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <th><a id="wan_1_src_to_dst_addr_port_list_name" class="hintstyle" style="margin-left:27px;" href="javascript:void(0);" onClick="openOverHint(36);">客户端地址至目标地址协议端口列表</a></th>
-                                                                    <td>
-                                                                        <input id="lzr_wan_1_src_to_dst_addr_port_file" type="text" maxlength="255" class="input_32_table" name="lzr_wan_1_src_to_dst_addr_port_file" value="/jffs/scripts/lz/data/wan_1_src_to_dst_addr_port.txt" onchange="checkTextField(this);" autocorrect="off" autocapitalize="off">
-                                                                        <span id="wan_1_src_to_dst_addr_port_list_status"></span>
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <th><a id="wan_2_src_to_dst_addr_port_list_channel" class="hintstyle" href="javascript:void(0);" onClick="openOverHint(82);">第二 WAN</a></th>
-                                                                    <td colspan="4">
-                                                                        <input type="radio" value="0" name="lzr_wan_2_src_to_dst_addr_port" class="content_input_fd">启用
-                                                                        <input type="radio" value="5" name="lzr_wan_2_src_to_dst_addr_port" class="content_input_fd">停用
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <th><a id="wan_2_src_to_dst_addr_port_list_name" class="hintstyle" style="margin-left:27px;" href="javascript:void(0);" onClick="openOverHint(37);">客户端地址至目标地址协议端口列表</a></th>
-                                                                    <td>
-                                                                        <input id="lzr_wan_2_src_to_dst_addr_port_file" type="text" maxlength="255" class="input_32_table" name="lzr_wan_2_src_to_dst_addr_port_file" value="/jffs/scripts/lz/data/wan_2_src_to_dst_addr_port.txt" onchange="checkTextField(this);" autocorrect="off" autocapitalize="off">
-                                                                        <span id="wan_2_src_to_dst_addr_port_list_status"></span>
-                                                                    </td>
-                                                                </tr>
-                                                            </table>
-                                                            <table width="100%" border="1" align="center" cellpadding="4" cellspacing="0" bordercolor="#6b8fa3" class="FormTable">
-                                                                <thead>
-                                                                    <tr>
-                                                                        <td colspan="2">
-                                                                            <a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(38);">高优先级客户端至预设目标 IP 地址协议端口动态访问策略</a>
-                                                                            <div id="high_wan_1_src_to_dst_addr_port_list" class="content_ip_list"></div>
-                                                                        </td>
-                                                                    </tr>
-                                                                </thead>
-                                                                <tr>
-                                                                    <th><a id="high_wan_1_src_to_dst_addr_port_list_channel" class="hintstyle" href="javascript:void(0);" onClick="openOverHint(82);">首选 WAN</a></th>
-                                                                    <td colspan="4">
-                                                                        <input type="radio" value="0" name="lzr_high_wan_1_src_to_dst_addr_port" class="content_input_fd">启用
-                                                                        <input type="radio" value="5" name="lzr_high_wan_1_src_to_dst_addr_port" class="content_input_fd">停用
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <th><a id="high_wan_1_src_to_dst_addr_port_list_name" class="hintstyle" style="margin-left:27px;" href="javascript:void(0);" onClick="openOverHint(39);">客户端地址至目标地址协议端口列表</a></th>
-                                                                    <td>
-                                                                        <input id="lzr_high_wan_1_src_to_dst_addr_port_file" type="text" maxlength="255" class="input_32_table" name="lzr_high_wan_1_src_to_dst_addr_port_file" value="/jffs/scripts/lz/data/high_wan_1_src_to_dst_addr_port.txt" onchange="checkTextField(this);" autocorrect="off" autocapitalize="off">
-                                                                        <span id="high_wan_1_src_to_dst_addr_port_list_status"></span>
-                                                                    </td>
-                                                                </tr>
-                                                            </table>
+                                                            <table width="100%" border="1" align="center" cellpadding="4" cellspacing="0" bordercolor="#6b8fa3" class="FormTable"></table>
+                                                            <div>本部分策略按优先级顺序由高到低排列，系统抢先执行高优先级策略。</div>
                                                             <table width="100%" border="1" align="center" cellpadding="4" cellspacing="0" bordercolor="#6b8fa3" class="FormTable">
                                                                 <thead>
                                                                     <tr>
@@ -836,6 +463,47 @@
                                                                     <td>
                                                                         <input id="lzr_local_ipsets_file" type="text" maxlength="255" class="input_32_table" name="lzr_local_ipsets_file" value="/jffs/scripts/lz/data/local_ipsets_data.txt" onchange="checkTextField(this);" autocorrect="off" autocapitalize="off">
                                                                         <span id="local_ipsets_list_status"></span>
+                                                                    </td>
+                                                                </tr>
+                                                            </table>
+                                                            <table width="100%" border="1" align="center" cellpadding="4" cellspacing="0" bordercolor="#6b8fa3" class="FormTable">
+                                                                <thead>
+                                                                    <tr>
+                                                                        <td colspan="2">
+                                                                            <a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(46);">代理转发静态直通策略</a>
+                                                                            <div id="proxy_remote_node_addr_list" class="content_ip_list"></div>
+                                                                        </td>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tr>
+                                                                    <th rowspan="2"><a id="proxy_remote_node_addr_list_name" class="hintstyle" href="javascript:void(0);" onClick="openOverHint(84);">远程节点服务器地址列表</a></th>
+                                                                    <td colspan="4">
+                                                                        <input type="radio" value="0" name="lzr_proxy_route" class="content_input_fd">首选 WAN
+                                                                        <input type="radio" value="1" name="lzr_proxy_route" class="content_input_fd">第二 WAN
+                                                                        <input type="radio" value="5" name="lzr_proxy_route" class="content_input_fd">停用
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <input id="lzr_proxy_remote_node_addr_file" type="text" maxlength="255" class="input_32_table" name="lzr_proxy_remote_node_addr_file" value="/jffs/scripts/lz/proxy_remote_node_addr.txt" onchange="checkTextField(this);" autocorrect="off" autocapitalize="off">
+                                                                        <span id="proxy_remote_node_addr_list_status"></span>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(49);">域名地址预解析</a></th>
+                                                                    <td>
+                                                                        <select id="lzr_dn_pre_resolved" name="lzr_dn_pre_resolved" class="input_option" style="margin-left:2px;">
+                                                                            <option value="0" selected>系统 DNS</option>
+                                                                            <option value="1">自定义 DNS</option>
+                                                                            <option value="2">系统 DNS + 自定义 DNS</option>
+                                                                            <option value="5">停用</option>
+                                                                        </select>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(50);">自定义预解析 DNS 服务器</a></th>
+                                                                    <td>
+                                                                        <input type="text" maxlength="15" class="input_15_table" id="lzr_pre_dns" name="lzr_pre_dns" value="8.8.8.8" onKeyPress="return validator.isIPAddr(this, event);" onchange="checkIPaddrField(this);" autocorrect="off" autocapitalize="off">
                                                                     </td>
                                                                 </tr>
                                                             </table>
@@ -894,40 +562,382 @@
                                                                 <thead>
                                                                     <tr>
                                                                         <td colspan="2">
-                                                                            <a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(46);">代理转发静态直通策略</a>
-                                                                            <div id="proxy_remote_node_addr_list" class="content_ip_list"></div>
+                                                                            <a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(32);">高优先级客户端至预设目标 IP 地址静态直通策略</a>
+                                                                            <div id="high_wan_1_src_to_dst_addr_list" class="content_ip_list"></div>
                                                                         </td>
                                                                     </tr>
                                                                 </thead>
                                                                 <tr>
-                                                                    <th rowspan="2"><a id="proxy_remote_node_addr_list_name" class="hintstyle" href="javascript:void(0);" onClick="openOverHint(84);">远程节点服务器地址列表</a></th>
+                                                                    <th><a id="high_wan_1_src_to_dst_addr_list_channel" class="hintstyle" href="javascript:void(0);" onClick="openOverHint(82);">首选 WAN</a></th>
                                                                     <td colspan="4">
-                                                                        <input type="radio" value="0" name="lzr_proxy_route" class="content_input_fd">首选 WAN
-                                                                        <input type="radio" value="1" name="lzr_proxy_route" class="content_input_fd">第二 WAN
-                                                                        <input type="radio" value="5" name="lzr_proxy_route" class="content_input_fd">停用
+                                                                        <input type="radio" value="0" name="lzr_high_wan_1_src_to_dst_addr" class="content_input_fd">启用
+                                                                        <input type="radio" value="5" name="lzr_high_wan_1_src_to_dst_addr" class="content_input_fd">停用
                                                                     </td>
                                                                 </tr>
                                                                 <tr>
+                                                                    <th><a id="high_wan_1_src_to_dst_addr_list_name" class="hintstyle" style="margin-left:27px;" href="javascript:void(0);" onClick="openOverHint(33);">客户端 IP 地址至目标 IP 地址列表</a></th>
                                                                     <td>
-                                                                        <input id="lzr_proxy_remote_node_addr_file" type="text" maxlength="255" class="input_32_table" name="lzr_proxy_remote_node_addr_file" value="/jffs/scripts/lz/proxy_remote_node_addr.txt" onchange="checkTextField(this);" autocorrect="off" autocapitalize="off">
-                                                                        <span id="proxy_remote_node_addr_list_status"></span>
+                                                                        <input id="lzr_high_wan_1_src_to_dst_addr_file" type="text" maxlength="255" class="input_32_table" name="lzr_high_wan_1_src_to_dst_addr_file" value="/jffs/scripts/lz/data/high_wan_1_src_to_dst_addr.txt" onchange="checkTextField(this);" autocorrect="off" autocapitalize="off">
+                                                                        <span id="high_wan_1_src_to_dst_addr_list_status"></span>
+                                                                    </td>
+                                                                </tr>
+                                                            </table>
+                                                            <table width="100%" border="1" align="center" cellpadding="4" cellspacing="0" bordercolor="#6b8fa3" class="FormTable">
+                                                                <thead>
+                                                                    <tr>
+                                                                        <td colspan="2">
+                                                                            <a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(29);">客户端至预设目标 IP 地址静态直通策略</a>
+                                                                            <div id="wan_2_src_to_dst_addr_list" class="content_ip_list"></div>
+                                                                            <div id="wan_1_src_to_dst_addr_list" class="content_ip_list"></div>
+                                                                        </td>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tr>
+                                                                    <th><a id="wan_2_src_to_dst_addr_list_channel" class="hintstyle" href="javascript:void(0);" onClick="openOverHint(82);">第二 WAN</a></th>
+                                                                    <td colspan="4">
+                                                                        <input type="radio" value="0" name="lzr_wan_2_src_to_dst_addr" class="content_input_fd">启用
+                                                                        <input type="radio" value="5" name="lzr_wan_2_src_to_dst_addr" class="content_input_fd">停用
                                                                     </td>
                                                                 </tr>
                                                                 <tr>
-                                                                    <th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(49);">域名地址预解析</a></th>
+                                                                    <th><a id="wan_2_src_to_dst_addr_list_name" class="hintstyle" style="margin-left:27px;" href="javascript:void(0);" onClick="openOverHint(31);">客户端 IP 地址至目标 IP 地址列表</a></th>
                                                                     <td>
-                                                                        <select id="lzr_dn_pre_resolved" name="lzr_dn_pre_resolved" class="input_option" style="margin-left:2px;">
-                                                                            <option value="0" selected>系统 DNS</option>
-                                                                            <option value="1">自定义 DNS</option>
-                                                                            <option value="2">系统 DNS + 自定义 DNS</option>
-                                                                            <option value="5">停用</option>
+                                                                        <input id="lzr_wan_2_src_to_dst_addr_file" type="text" maxlength="255" class="input_32_table" name="lzr_wan_2_src_to_dst_addr_file" value="/jffs/scripts/lz/data/wan_2_src_to_dst_addr.txt" onchange="checkTextField(this);" autocorrect="off" autocapitalize="off">
+                                                                        <span id="wan_2_src_to_dst_addr_list_status"></span>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th><a id="wan_1_src_to_dst_addr_list_channel" class="hintstyle" href="javascript:void(0);" onClick="openOverHint(82);">首选 WAN</a></th>
+                                                                    <td colspan="4">
+                                                                        <input type="radio" value="0" name="lzr_wan_1_src_to_dst_addr" class="content_input_fd">启用
+                                                                        <input type="radio" value="5" name="lzr_wan_1_src_to_dst_addr" class="content_input_fd">停用
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th><a id="wan_1_src_to_dst_addr_list_name" class="hintstyle" style="margin-left:27px;" href="javascript:void(0);" onClick="openOverHint(30);">客户端 IP 地址至目标 IP 地址列表</a></th>
+                                                                    <td>
+                                                                        <input id="lzr_wan_1_src_to_dst_addr_file" type="text" maxlength="255" class="input_32_table" name="lzr_wan_1_src_to_dst_addr_file" value="/jffs/scripts/lz/data/wan_1_src_to_dst_addr.txt" onchange="checkTextField(this);" autocorrect="off" autocapitalize="off">
+                                                                        <span id="wan_1_src_to_dst_addr_list_status"></span>
+                                                                    </td>
+                                                                </tr>
+                                                            </table>
+                                                            <table width="100%" border="1" align="center" cellpadding="4" cellspacing="0" bordercolor="#6b8fa3" class="FormTable">
+                                                                <thead>
+                                                                    <tr>
+                                                                        <td colspan="2">
+                                                                            <a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(26);">高优先级客户端静态直通策略</a>
+                                                                            <div id="high_wan_2_client_src_addr_list" class="content_ip_list"></div>
+                                                                            <div id="high_wan_1_client_src_addr_list" class="content_ip_list"></div>
+                                                                        </td>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tr>
+                                                                    <th><a id="high_wan_2_client_src_addr_list_channel" class="hintstyle" href="javascript:void(0);" onClick="openOverHint(82);">第二 WAN</a></th>
+                                                                    <td colspan="4">
+                                                                        <input type="radio" value="0" name="lzr_high_wan_2_client_src_addr" class="content_input_fd">启用
+                                                                        <input type="radio" value="5" name="lzr_high_wan_2_client_src_addr" class="content_input_fd">停用
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th><a id="high_wan_2_client_src_addr_list_name" class="hintstyle" style="margin-left:27px;" href="javascript:void(0);" onClick="openOverHint(28);">客户端 IP 地址列表</a></th>
+                                                                    <td>
+                                                                        <input id="lzr_high_wan_2_client_src_addr_file" type="text" maxlength="255" class="input_32_table" name="lzr_high_wan_2_client_src_addr_file" value="/jffs/scripts/lz/data/high_wan_2_client_src_addr.txt" onchange="checkTextField(this);" autocorrect="off" autocapitalize="off">
+                                                                        <span id="high_wan_2_client_src_addr_list_status"></span>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th><a id="high_wan_1_client_src_addr_list_channel" class="hintstyle" href="javascript:void(0);" onClick="openOverHint(82);">首选 WAN</a></th>
+                                                                    <td colspan="4">
+                                                                        <input type="radio" value="0" name="lzr_high_wan_1_client_src_addr" class="content_input_fd">启用
+                                                                        <input type="radio" value="5" name="lzr_high_wan_1_client_src_addr" class="content_input_fd">停用
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th><a id="high_wan_1_client_src_addr_list_name" class="hintstyle" style="margin-left:27px;" href="javascript:void(0);" onClick="openOverHint(27);">客户端 IP 地址列表</a></th>
+                                                                    <td>
+                                                                        <input id="lzr_high_wan_1_client_src_addr_file" type="text" maxlength="255" class="input_32_table" name="lzr_high_wan_1_client_src_addr_file" value="/jffs/scripts/lz/data/high_wan_1_client_src_addr.txt" onchange="checkTextField(this);" autocorrect="off" autocapitalize="off">
+                                                                        <span id="high_wan_1_client_src_addr_list_status"></span>
+                                                                    </td>
+                                                                </tr>
+                                                            </table>
+                                                            <table width="100%" border="1" align="center" cellpadding="4" cellspacing="0" bordercolor="#6b8fa3" class="FormTable">
+                                                                <thead>
+                                                                    <tr>
+                                                                        <td colspan="2">
+                                                                            <a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(38);">高优先级客户端至预设目标 IP 地址协议端口动态访问策略</a>
+                                                                            <div id="high_wan_1_src_to_dst_addr_port_list" class="content_ip_list"></div>
+                                                                        </td>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tr>
+                                                                    <th><a id="high_wan_1_src_to_dst_addr_port_list_channel" class="hintstyle" href="javascript:void(0);" onClick="openOverHint(82);">首选 WAN</a></th>
+                                                                    <td colspan="4">
+                                                                        <input type="radio" value="0" name="lzr_high_wan_1_src_to_dst_addr_port" class="content_input_fd">启用
+                                                                        <input type="radio" value="5" name="lzr_high_wan_1_src_to_dst_addr_port" class="content_input_fd">停用
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th><a id="high_wan_1_src_to_dst_addr_port_list_name" class="hintstyle" style="margin-left:27px;" href="javascript:void(0);" onClick="openOverHint(39);">客户端地址至目标地址协议端口列表</a></th>
+                                                                    <td>
+                                                                        <input id="lzr_high_wan_1_src_to_dst_addr_port_file" type="text" maxlength="255" class="input_32_table" name="lzr_high_wan_1_src_to_dst_addr_port_file" value="/jffs/scripts/lz/data/high_wan_1_src_to_dst_addr_port.txt" onchange="checkTextField(this);" autocorrect="off" autocapitalize="off">
+                                                                        <span id="high_wan_1_src_to_dst_addr_port_list_status"></span>
+                                                                    </td>
+                                                                </tr>
+                                                            </table>
+                                                            <table width="100%" border="1" align="center" cellpadding="4" cellspacing="0" bordercolor="#6b8fa3" class="FormTable">
+                                                                <thead>
+                                                                    <tr>
+                                                                        <td colspan="2">
+                                                                            <a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(35);">客户端至预设目标 IP 地址协议端口动态访问策略</a>
+                                                                            <div id="wan_2_src_to_dst_addr_port_list" class="content_ip_list"></div>
+                                                                            <div id="wan_1_src_to_dst_addr_port_list" class="content_ip_list"></div>
+                                                                        </td>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tr>
+                                                                    <th><a id="wan_2_src_to_dst_addr_port_list_channel" class="hintstyle" href="javascript:void(0);" onClick="openOverHint(82);">第二 WAN</a></th>
+                                                                    <td colspan="4">
+                                                                        <input type="radio" value="0" name="lzr_wan_2_src_to_dst_addr_port" class="content_input_fd">启用
+                                                                        <input type="radio" value="5" name="lzr_wan_2_src_to_dst_addr_port" class="content_input_fd">停用
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th><a id="wan_2_src_to_dst_addr_port_list_name" class="hintstyle" style="margin-left:27px;" href="javascript:void(0);" onClick="openOverHint(37);">客户端地址至目标地址协议端口列表</a></th>
+                                                                    <td>
+                                                                        <input id="lzr_wan_2_src_to_dst_addr_port_file" type="text" maxlength="255" class="input_32_table" name="lzr_wan_2_src_to_dst_addr_port_file" value="/jffs/scripts/lz/data/wan_2_src_to_dst_addr_port.txt" onchange="checkTextField(this);" autocorrect="off" autocapitalize="off">
+                                                                        <span id="wan_2_src_to_dst_addr_port_list_status"></span>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th><a id="wan_1_src_to_dst_addr_port_list_channel" class="hintstyle" href="javascript:void(0);" onClick="openOverHint(82);">首选 WAN</a></th>
+                                                                    <td colspan="4">
+                                                                        <input type="radio" value="0" name="lzr_wan_1_src_to_dst_addr_port" class="content_input_fd">启用
+                                                                        <input type="radio" value="5" name="lzr_wan_1_src_to_dst_addr_port" class="content_input_fd">停用
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th><a id="wan_1_src_to_dst_addr_port_list_name" class="hintstyle" style="margin-left:27px;" href="javascript:void(0);" onClick="openOverHint(36);">客户端地址至目标地址协议端口列表</a></th>
+                                                                    <td>
+                                                                        <input id="lzr_wan_1_src_to_dst_addr_port_file" type="text" maxlength="255" class="input_32_table" name="lzr_wan_1_src_to_dst_addr_port_file" value="/jffs/scripts/lz/data/wan_1_src_to_dst_addr_port.txt" onchange="checkTextField(this);" autocorrect="off" autocapitalize="off">
+                                                                        <span id="wan_1_src_to_dst_addr_port_list_status"></span>
+                                                                    </td>
+                                                                </tr>
+                                                            </table>
+                                                            <table width="100%" border="1" align="center" cellpadding="4" cellspacing="0" bordercolor="#6b8fa3" class="FormTable">
+                                                                <thead>
+                                                                    <tr>
+                                                                        <td colspan="2">
+                                                                            <a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(18);">域名地址动态访问策略</a>
+                                                                            <div id="wan_2_domain_list" class="content_ip_list"></div>
+                                                                            <div id="wan_2_domain_addr_list" class="content_ip_list"></div>
+                                                                            <div id="wan_1_domain_list" class="content_ip_list"></div>
+                                                                            <div id="wan_1_domain_addr_list" class="content_ip_list"></div>
+                                                                        </td>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tr>
+                                                                    <th><a id="wan_2_domain_list_channel" class="hintstyle" href="javascript:void(0);" onClick="openOverHint(82);">第二 WAN</a></th>
+                                                                    <td colspan="4">
+                                                                        <input type="radio" value="0" name="lzr_wan_2_domain" class="content_input_fd">启用
+                                                                        <input type="radio" value="5" name="lzr_wan_2_domain" class="content_input_fd">停用
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th><a id="wan_2_domain_list_name" class="hintstyle" style="margin-left:27px;" href="javascript:void(0);" onClick="openOverHint(21);">客户端 IP 地址列表</a></th>
+                                                                    <td>
+                                                                        <input id="lzr_wan_2_domain_client_src_addr_file" type="text" maxlength="255" class="input_32_table" name="lzr_wan_2_domain_client_src_addr_file" value="/jffs/scripts/lz/data/wan_2_domain_client_src_addr.txt" onchange="checkTextField(this);" autocorrect="off" autocapitalize="off">
+                                                                        <span id="wan_2_domain_list_status"></span>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th><a id="wan_2_domain_addr_list_name" class="hintstyle" style="margin-left:27px;" href="javascript:void(0);" onClick="openOverHint(22);">域名地址列表</a></th>
+                                                                    <td>
+                                                                        <input id="lzr_wan_2_domain_file" type="text" maxlength="255" class="input_32_table" name="lzr_wan_2_domain_file" value="/jffs/scripts/lz/data/wan_2_domain.txt" onchange="checkTextField(this);" autocorrect="off" autocapitalize="off">
+                                                                        <span id="wan_2_domain_addr_list_status"></span>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th><a id="wan_1_domain_list_channel" class="hintstyle" href="javascript:void(0);" onClick="openOverHint(82);">首选 WAN</a></th>
+                                                                    <td colspan="4">
+                                                                        <input type="radio" value="0" name="lzr_wan_1_domain" class="content_input_fd">启用
+                                                                        <input type="radio" value="5" name="lzr_wan_1_domain" class="content_input_fd">停用
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th><a id="wan_1_domain_list_name" class="hintstyle" style="margin-left:27px;" href="javascript:void(0);" onClick="openOverHint(19);">客户端 IP 地址列表</a></th>
+                                                                    <td>
+                                                                        <input id="lzr_wan_1_domain_client_src_addr_file" type="text" maxlength="255" class="input_32_table" name="lzr_wan_1_domain_client_src_addr_file" value="/jffs/scripts/lz/data/wan_1_domain_client_src_addr.txt" onchange="checkTextField(this);" autocorrect="off" autocapitalize="off">
+                                                                        <span id="wan_1_domain_list_status"></span>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th><a id="wan_1_domain_addr_list_name" class="hintstyle" style="margin-left:27px;" href="javascript:void(0);" onClick="openOverHint(20);">域名地址列表</a></th>
+                                                                    <td>
+                                                                        <input id="lzr_wan_1_domain_file" type="text" maxlength="255" class="input_32_table" name="lzr_wan_1_domain_file" value="/jffs/scripts/lz/data/wan_1_domain.txt" onchange="checkTextField(this);" autocorrect="off" autocapitalize="off">
+                                                                        <span id="wan_1_domain_addr_list_status"></span>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(51);">域名解析后 IP 地址缓存时间<br />(0--永久; 1~2147483秒)</a></th>
+                                                                    <td>
+                                                                        <input type="number" min="0" max="2147483" maxlength="7" class="input_15_table" id="lzr_dn_cache_time" name="lzr_dn_cache_time" value="864000" onkeypress="return validator.isNumber(this, event);" onchange="checkNumberField(this, 864000)" autocorrect="off" autocapitalize="off">
+                                                                    </td>
+                                                                </tr>
+                                                            </table>
+                                                            <table width="100%" border="1" align="center" cellpadding="4" cellspacing="0" bordercolor="#6b8fa3" class="FormTable">
+                                                                <thead>
+                                                                    <tr>
+                                                                        <td colspan="2">
+                                                                            <a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(23);">客户端静态直通策略</a>
+                                                                            <div id="wan_2_client_src_addr_list" class="content_ip_list"></div>
+                                                                            <div id="wan_1_client_src_addr_list" class="content_ip_list"></div>
+                                                                        </td>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tr>
+                                                                    <th><a id="wan_2_client_src_addr_list_channel" class="hintstyle" href="javascript:void(0);" onClick="openOverHint(82);">第二 WAN</a></th>
+                                                                    <td colspan="4">
+                                                                        <input type="radio" value="0" name="lzr_wan_2_client_src_addr" class="content_input_fd">启用
+                                                                        <input type="radio" value="5" name="lzr_wan_2_client_src_addr" class="content_input_fd">停用
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th><a id="wan_2_client_src_addr_list_name" class="hintstyle" style="margin-left:27px;" href="javascript:void(0);" onClick="openOverHint(25);">客户端 IP 地址列表</a></th>
+                                                                    <td>
+                                                                        <input id="lzr_wan_2_client_src_addr_file" type="text" maxlength="255" class="input_32_table" name="lzr_wan_2_client_src_addr_file" value="/jffs/scripts/lz/data/wan_2_client_src_addr.txt" onchange="checkTextField(this);" autocorrect="off" autocapitalize="off">
+                                                                        <span id="wan_2_client_src_addr_list_status"></span>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th><a id="wan_1_client_src_addr_list_channel" class="hintstyle" href="javascript:void(0);" onClick="openOverHint(82);">首选 WAN</a></th>
+                                                                    <td colspan="4">
+                                                                        <input type="radio" value="0" name="lzr_wan_1_client_src_addr" class="content_input_fd">启用
+                                                                        <input type="radio" value="5" name="lzr_wan_1_client_src_addr" class="content_input_fd">停用
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th><a id="wan_1_client_src_addr_list_name" class="hintstyle" style="margin-left:27px;" href="javascript:void(0);" onClick="openOverHint(24);">客户端 IP 地址列表</a></th>
+                                                                    <td>
+                                                                        <input id="lzr_wan_1_client_src_addr_file" type="text" maxlength="255" class="input_32_table" name="lzr_wan_1_client_src_addr_file" value="/jffs/scripts/lz/data/wan_1_client_src_addr.txt" onchange="checkTextField(this);" autocorrect="off" autocapitalize="off">
+                                                                        <span id="wan_1_client_src_addr_list_status"></span>
+                                                                    </td>
+                                                                </tr>
+                                                            </table>
+                                                            <table width="100%" border="1" align="center" cellpadding="4" cellspacing="0" bordercolor="#6b8fa3" class="FormTable">
+                                                                <thead>
+                                                                    <tr>
+                                                                        <td colspan="2">
+                                                                            <a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(34);">协议端口动态访问策略</a>
+                                                                            <div id="wan1_dest_port_list" class="content_ip_list"></div>
+                                                                            <div id="wan0_dest_port_list" class="content_ip_list"></div>
+                                                                        </td>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tr>
+                                                                    <th><a id="wan1_dest_port_list_channel" class="hintstyle" href="javascript:void(0);" onClick="openOverHint(82);">第二 WAN</a></th>
+                                                                    <td colspan="4">
+                                                                        <span id="wan1_dest_port_list_status"></span>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th><a class="hintstyle" style="margin-left:27px;" href="javascript:void(0);" onClick="openOverHint(83);">TCP 目标端口</a></th>
+                                                                    <td>
+                                                                        <input id="lzr_wan1_dest_tcp_port" type="text" maxlength="512" class="input_32_table" name="lzr_wan1_dest_tcp_port" value="" onchange="checkPortTextField(this);" autocorrect="off" autocapitalize="off">
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th><a class="hintstyle" style="margin-left:27px;" href="javascript:void(0);" onClick="openOverHint(83);">UDP 目标端口</a></th>
+                                                                    <td>
+                                                                        <input id="lzr_wan1_dest_udp_port" type="text" maxlength="512" class="input_32_table" name="lzr_wan1_dest_udp_port" value="" onchange="checkPortTextField(this);" autocorrect="off" autocapitalize="off">
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th><a class="hintstyle" style="margin-left:27px;" href="javascript:void(0);" onClick="openOverHint(83);">UDPLITE 目标端口</a></th>
+                                                                    <td>
+                                                                        <input id="lzr_wan1_dest_udplite_port" type="text" maxlength="512" class="input_32_table" name="lzr_wan1_dest_udplite_port" onchange="checkPortTextField(this);" value="" autocorrect="off" autocapitalize="off">
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th><a class="hintstyle" style="margin-left:27px;" href="javascript:void(0);" onClick="openOverHint(83);">SCTP 目标端口</a></th>
+                                                                    <td>
+                                                                        <input id="lzr_wan1_dest_sctp_port" type="text" maxlength="512" class="input_32_table" name="lzr_wan1_dest_sctp_port" value="" onchange="checkPortTextField(this);" autocorrect="off" autocapitalize="off">
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th><a id="wan0_dest_port_list_channel" class="hintstyle" href="javascript:void(0);" onClick="openOverHint(82);">首选 WAN</a></th>
+                                                                    <td colspan="4">
+                                                                        <span id="wan0_dest_port_list_status"></span>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th><a class="hintstyle" style="margin-left:27px;" href="javascript:void(0);" onClick="openOverHint(83);">TCP 目标端口</a></th>
+                                                                    <td>
+                                                                        <input id="lzr_wan0_dest_tcp_port" type="text" maxlength="512" class="input_32_table" name="lzr_wan0_dest_tcp_port" value="" onchange="checkPortTextField(this);" autocorrect="off" autocapitalize="off">
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th><a class="hintstyle" style="margin-left:27px;" href="javascript:void(0);" onClick="openOverHint(83);">UDP 目标端口</a></th>
+                                                                    <td>
+                                                                        <input id="lzr_wan0_dest_udp_port" type="text" maxlength="512" class="input_32_table" name="lzr_wan0_dest_udp_port" value="" onchange="checkPortTextField(this);" autocorrect="off" autocapitalize="off">
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th><a class="hintstyle" style="margin-left:27px;" href="javascript:void(0);" onClick="openOverHint(83);">UDPLITE 目标端口</a></th>
+                                                                    <td>
+                                                                        <input id="lzr_wan0_dest_udplite_port" type="text" maxlength="512" class="input_32_table" name="lzr_wan0_dest_udplite_port" value="" onchange="checkPortTextField(this);" autocorrect="off" autocapitalize="off">
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th><a class="hintstyle" style="margin-left:27px;" href="javascript:void(0);" onClick="openOverHint(83);">SCTP 目标端口</a></th>
+                                                                    <td>
+                                                                        <input id="lzr_wan0_dest_sctp_port" type="text" maxlength="512" class="input_32_table" name="lzr_wan0_dest_sctp_port" value="" onchange="checkPortTextField(this);" autocorrect="off" autocapitalize="off">
+                                                                    </td>
+                                                                </tr>
+                                                            </table>
+                                                            <table width="100%" border="1" align="center" cellpadding="4" cellspacing="0" bordercolor="#6b8fa3" class="FormTable">
+                                                                <thead>
+                                                                    <tr>
+                                                                        <td colspan="2">
+                                                                            <a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(14);">自定义目标 IP 地址访问策略</a>
+                                                                            <div id="custom_data_wan_port_2_list" class="content_ip_list"></div>
+                                                                            <div id="custom_data_wan_port_1_list" class="content_ip_list"></div>
+                                                                        </td>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tr>
+                                                                    <th><a id="custom_data_wan_port_2_list_channel" class="hintstyle" href="javascript:void(0);" onClick="openOverHint(17);">自定义策略 - 2</a></th>
+                                                                    <td>
+                                                                        <select id="lzr_custom_data_wan_port_2" name="lzr_custom_data_wan_port_2" class="input_option" style="margin-left:2px;">
+                                                                            <option value="0">首选 WAN</option>
+                                                                            <option value="1">第二 WAN</option>
+                                                                            <option value="2">负载均衡</option>
+                                                                            <option value="5" selected>停用</option>
                                                                         </select>
                                                                     </td>
                                                                 </tr>
                                                                 <tr>
-                                                                    <th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(50);">自定义预解析 DNS 服务器</a></th>
+                                                                    <th><a id="custom_data_wan_port_2_list_name" class="hintstyle" style="margin-left:27px;" href="javascript:void(0);" onClick="openOverHint(81);">目标 IP 地址列表</a></th>
                                                                     <td>
-                                                                        <input type="text" maxlength="15" class="input_15_table" id="lzr_pre_dns" name="lzr_pre_dns" value="8.8.8.8" onKeyPress="return validator.isIPAddr(this, event);" onchange="checkIPaddrField(this);" autocorrect="off" autocapitalize="off">
+                                                                        <input id="lzr_custom_data_file_2" type="text" maxlength="255" class="input_32_table" name="lzr_custom_data_file_2" value="/jffs/scripts/lz/data/custom_data_2.txt" onchange="checkTextField(this);" autocorrect="off" autocapitalize="off">
+                                                                        <span id="custom_data_wan_port_2_list_status"></span>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th><a id="custom_data_wan_port_1_list_channel" class="hintstyle" href="javascript:void(0);" onClick="openOverHint(15);">自定义策略 - 1</a></th>
+                                                                    <td>
+                                                                        <select id="lzr_custom_data_wan_port_1" name="lzr_custom_data_wan_port_1" class="input_option" style="margin-left:2px;">
+                                                                            <option value="0">首选 WAN</option>
+                                                                            <option value="1">第二 WAN</option>
+                                                                            <option value="2">负载均衡</option>
+                                                                            <option value="5" selected>停用</option>
+                                                                        </select>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th><a id="custom_data_wan_port_1_list_name" class="hintstyle" style="margin-left:27px;" href="javascript:void(0);" onClick="openOverHint(16);">目标 IP 地址列表</a></th>
+                                                                    <td>
+                                                                        <input id="lzr_custom_data_file_1" type="text" maxlength="255" class="input_32_table" name="lzr_custom_data_file_1" value="/jffs/scripts/lz/data/custom_data_1.txt" onchange="checkTextField(this);" autocorrect="off" autocapitalize="off">
+                                                                        <span id="custom_data_wan_port_1_list_status"></span>
                                                                     </td>
                                                                 </tr>
                                                             </table>

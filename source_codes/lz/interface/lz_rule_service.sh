@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_service.sh v4.5.8
+# lz_rule_service.sh v4.5.9
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 服务接口脚本
@@ -280,6 +280,31 @@ case "${2}" in
                         } > "${PATH_LZ}/tmp/rtlist.log"
                     }
                     print_custom_data_rt_list "${list_prio}" &
+                ;;
+                24982|24983)
+                    list_fwmark="$( echo "${2}" | cut -f 3 -d '_' )"
+                    case "${list_fwmark}" in
+                        0x2222|0x3333)
+                            print_dst_port_rt_list() {
+                                {
+                                    if ip rule show | grep -q "^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*all[[:space:]]*fwmark[[:space:]]*${2}[[:space:]]*lookup"; then
+                                        iptables -t mangle -L LZPRCNMK -n 2> /dev/null \
+                                            | sed -n "/CONNMARK[[:space:]]*set[[:space:]]*${2}$/p" \
+                                            | sed -e 's/^.*[[:space:]]\(tcp\|udp\|udplite\|sctp\|dccp\)[^[:alpha:]].*[[:space:]]0[\.]0[\.]0[\.]0[\/]0[[:space:]][[:space:]]*0[\.]0[\.]0[\.]0[\/]0[[:space:]].*dports[[:space:]][[:space:]]*\([^[:space:]][^[:space:]]*\)[[:space:]].*$/\1 \2/g' \
+                                            -e '/CONNMARK/d' \
+                                            | awk -v count="0" -v pid="[${$}]:" 'BEGIN{system("printf \"%s %s \n\n\" \"$( date +\"%F %T\")\" "pid)} \
+                                            NF >= "2" {print $1,$2,$3,$4,$5; count++;} \
+                                            END{if (count > "0") printf "\n"; printf "Total: %s\n", count;}' OFS="\t"
+                                    else
+                                        printf "%s [%s]: \n\nTotal: 0\n" "$( date +"%F %T")" "${$}"
+                                    fi
+                                } > "${PATH_LZ}/tmp/rtlist.log"
+                            }
+                            print_dst_port_rt_list "${list_prio}" "${list_fwmark}" &
+                        ;;
+                        *)
+                        ;;
+                    esac
                 ;;
                 24976|24977)
                     list_fwmark="$( echo "${2}" | cut -f 3 -d '_' )"

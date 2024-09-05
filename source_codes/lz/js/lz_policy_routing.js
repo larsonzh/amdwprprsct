@@ -1,5 +1,5 @@
 /*
-# lz_policy_routing.js v4.5.8
+# lz_policy_routing.js v4.5.9
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ JavaScript for Asuswrt-Merlin Router
@@ -1852,24 +1852,26 @@ function toolsCommand() {
 }
 
 let ipListDialogIDArray = {
-    "custom_data_wan_port_1_list" : ["24991", "Advanced"], 
-    "custom_data_wan_port_2_list" : ["24990", "Advanced"], 
-    "wan_1_domain_list" : ["24977_0x9191_c_0", "Advanced"], 
-    "wan_1_domain_addr_list" : ["24977_0x9191_d_0", "Advanced"], 
-    "wan_2_domain_list" : ["24976_0x8181_c_1", "Advanced"], 
-    "wan_2_domain_addr_list" : ["24976_0x8181_d_1", "Advanced"], 
-    "wan_1_client_src_addr_list" : ["24979", "Advanced"], 
-    "wan_2_client_src_addr_list" : ["24978", "Advanced"], 
-    "high_wan_1_client_src_addr_list" : ["24970", "Advanced"], 
-    "high_wan_2_client_src_addr_list" : ["24969", "Advanced"], 
-    "wan_1_src_to_dst_addr_list" : ["24966", "Advanced"], 
-    "wan_2_src_to_dst_addr_list" : ["24965", "Advanced"], 
-    "high_wan_1_src_to_dst_addr_list" : ["24964", "Advanced"], 
-    "wan_1_src_to_dst_addr_port_list" : ["24975_0x3131", "Advanced"], 
-    "wan_2_src_to_dst_addr_port_list" : ["24974_0x2121", "Advanced"], 
-    "high_wan_1_src_to_dst_addr_port_list" : ["24973_0x1717", "Advanced"], 
     "local_ipsets_list" : ["24962", "Advanced"], 
     "proxy_remote_node_addr_list" : ["24960", "Advanced"], 
+    "high_wan_1_src_to_dst_addr_list" : ["24964", "Advanced"], 
+    "wan_2_src_to_dst_addr_list" : ["24965", "Advanced"], 
+    "wan_1_src_to_dst_addr_list" : ["24966", "Advanced"], 
+    "high_wan_2_client_src_addr_list" : ["24969", "Advanced"], 
+    "high_wan_1_client_src_addr_list" : ["24970", "Advanced"], 
+    "high_wan_1_src_to_dst_addr_port_list" : ["24973_0x1717", "Advanced"], 
+    "wan_2_src_to_dst_addr_port_list" : ["24974_0x2121", "Advanced"], 
+    "wan_1_src_to_dst_addr_port_list" : ["24975_0x3131", "Advanced"], 
+    "wan_2_domain_list" : ["24976_0x8181_c_1", "Advanced"], 
+    "wan_2_domain_addr_list" : ["24976_0x8181_d_1", "Advanced"], 
+    "wan_1_domain_list" : ["24977_0x9191_c_0", "Advanced"], 
+    "wan_1_domain_addr_list" : ["24977_0x9191_d_0", "Advanced"], 
+    "wan_2_client_src_addr_list" : ["24978", "Advanced"], 
+    "wan_1_client_src_addr_list" : ["24979", "Advanced"], 
+    "wan1_dest_port_list" : ["24982_0x2222", "Advanced"], 
+    "wan0_dest_port_list" : ["24983_0x3333", "Advanced"], 
+    "custom_data_wan_port_2_list" : ["24990", "Advanced"], 
+    "custom_data_wan_port_1_list" : ["24991", "Advanced"], 
     "custom_hosts_list" : ["hosts", "Runtime"], 
     "iptv_box_ip_list" : ["888_box", "IPTV"], 
     "iptv_isp_ip_list" : ["888_isp", "IPTV"]
@@ -1890,7 +1892,10 @@ function initRTIPListDialog() {
             code += '<img id="loading_' + key + '_Icon" style="display:none;" src="/ext/lzr/InternetScan.gif">';
             code += '</div>';
             document.getElementById(key).innerHTML = code;
-            document.getElementById(key + "_status").style = "margin-left:27px; text-decoration:underline; cursor:pointer;";
+            if (key == "wan0_dest_port_list" || key == "wan1_dest_port_list")
+                document.getElementById(key + "_status").style = "margin-left:387px; text-decoration:underline; cursor:pointer;";
+            else
+                document.getElementById(key + "_status").style = "margin-left:27px; text-decoration:underline; cursor:pointer;";
             document.getElementById(key + "_status").setAttribute('onclick', 'openRTIPList(this);');
             document.getElementById(key + "_status").title = "显示列表中当前正在运行的有效地址条目。";
             document.getElementById(key + "_status").setAttribute('onmouseover', 'over_var=1;');
@@ -1907,6 +1912,8 @@ function initRTIPListDialog() {
                 str1 = $("#wan_2_domain_list_channel").html();
             if (document.getElementById(key + "_name") != null)
                 str3 = $("#" + key + "_name").html();
+            else if (key == "wan0_dest_port_list" || key == "wan1_dest_port_list")
+                str3 = "协议目标端口列表";
             if (str1 == "" || str3 == "")
                 str2 = "";
             if (document.getElementById(key + "_title") != null)
