@@ -1,5 +1,5 @@
 /*
-# lz_policy_routing.js v4.5.9
+# lz_policy_routing.js v4.6.0
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ JavaScript for Asuswrt-Merlin Router
@@ -1051,12 +1051,11 @@ function openOverHint(itemNum) {
         content += "<br /><b>策略执行优先级</b>：详见<b>基本设置&nbsp;-&nbsp;策略路由优先级</b></div>";
     } else if (itemNum == 43) {
         content = "<div>该网口用于从外网访问路由器及本地网络 (应与 DDNS 出口保持一致)，以及路由器本机内部应用访问外部网络，上述网络流量共用同一个路由器外网网口，缺省为<b>首选 WAN</b>。<br />";
-        content += "<br />部分版本的固件系统，已在系统底层将路由器内置的 DDNS 绑定至<b>首选 WAN</b>，更改或可导致远程访问失败。<br />";
+        content += "<br />部分版本的固件系统，已在系统底层将路由器内置的 DDNS 绑定至<b>首选 WAN</b>，更改或可导致远程访问路由器失败。<br />";
         content += "<br /><b>策略执行优先级</b>：详见<b>基本设置&nbsp;-&nbsp;策略路由优先级</b></div>";
     } else if (itemNum == 44) {
-        content = "<div>用于双线路负载均衡模式下使用路由器主机内置的 OpenVPN、PPTP、IPSec 和 WireGuard 虚拟专用网络服务器。<br />"
-        content += "<br />当双线路负载均衡模式下远程接入成功后，远程客户端可通过本策略经由路由器其他流量出口访问外部网络。<br />";
-        content += "<br />流量出口选项：<br />";
+        content = "<div>VPN 客户端在双线路负载均衡模式下远程接入路由器成功后，远程的 VPN 客户端作为虚拟的路由器本地内网设备，可为其指定访问外部网络的路由器流量出口。<br />";
+        content += "<br />访问外网出口选项：<br />";
         content += "<ul>";
         content += "<li>首选 WAN (缺省)</li>";
         content += "<li>第二 WAN</li>";
@@ -1330,10 +1329,13 @@ function openOverHint(itemNum) {
         content += "<br />缺省为<b>中国大陆 (Gitee)</b> 站点。<br />";
         content += "<br /><b>中国大陆 (Gitee)</b> 站点是<b>国际 (Github)</b> 站点的镜像备份。<br />";
         content += "<br />从中国大陆内地访问<b>国际 (Github)</b> 站点，线路通畅性可能不佳，若有受到干扰甚至屏蔽，或版本检测或在线安装功能无法正常使用时，请选择<b>中国大陆 (Gitee)</b> 站点。</b></div>";
+    } else if (itemNum == 91) {
+        content = "<div>本策略用于路由器主机内置的 OpenVPN、PPTP、IPSec 和 WireGuard 虚拟专用网络服务器的远程 VPN 客户端，在双线路负载均衡模式下远程接入成功后，该客户端作为虚拟的路由器本地内网设备，通过本策略经由路由器其他流量出口访问外部网络。<br />";
+        content += "<br /><b>策略执行优先级</b>：详见<b>基本设置&nbsp;-&nbsp;策略路由优先级</b></div>";
     } else if (itemNum == 100) {
         mode = 1;
         caption = "基本设置 - 策略路由优先级";
-        content = "<div><b>策略路由</b>优先级顺序：由高到低排列，系统抢先执行高优先级策略。<br />";
+        content = "<div><b>策略路由</b>优先级顺序：序号 <b>1</b> 为最高优先级，网络流量优先匹配高优先级策略。<br />";
         content += "<ol>";
         content += "<li>负载均衡</li>";
         content += "<li>IPTV 机顶盒</li>";
@@ -1852,26 +1854,26 @@ function toolsCommand() {
 }
 
 let ipListDialogIDArray = {
-    "local_ipsets_list" : ["24962", "Advanced"], 
-    "proxy_remote_node_addr_list" : ["24960", "Advanced"], 
-    "high_wan_1_src_to_dst_addr_list" : ["24964", "Advanced"], 
-    "wan_2_src_to_dst_addr_list" : ["24965", "Advanced"], 
-    "wan_1_src_to_dst_addr_list" : ["24966", "Advanced"], 
-    "high_wan_2_client_src_addr_list" : ["24969", "Advanced"], 
-    "high_wan_1_client_src_addr_list" : ["24970", "Advanced"], 
-    "high_wan_1_src_to_dst_addr_port_list" : ["24973_0x1717", "Advanced"], 
-    "wan_2_src_to_dst_addr_port_list" : ["24974_0x2121", "Advanced"], 
-    "wan_1_src_to_dst_addr_port_list" : ["24975_0x3131", "Advanced"], 
-    "wan_2_domain_list" : ["24976_0x8181_c_1", "Advanced"], 
-    "wan_2_domain_addr_list" : ["24976_0x8181_d_1", "Advanced"], 
+    "custom_data_wan_port_1_list" : ["24991", "Advanced"], 
+    "custom_data_wan_port_2_list" : ["24990", "Advanced"], 
+    "wan0_dest_port_list" : ["24983_0x3333", "Advanced"], 
+    "wan1_dest_port_list" : ["24982_0x2222", "Advanced"], 
+    "wan_1_client_src_addr_list" : ["24979", "Advanced"], 
+    "wan_2_client_src_addr_list" : ["24978", "Advanced"], 
     "wan_1_domain_list" : ["24977_0x9191_c_0", "Advanced"], 
     "wan_1_domain_addr_list" : ["24977_0x9191_d_0", "Advanced"], 
-    "wan_2_client_src_addr_list" : ["24978", "Advanced"], 
-    "wan_1_client_src_addr_list" : ["24979", "Advanced"], 
-    "wan1_dest_port_list" : ["24982_0x2222", "Advanced"], 
-    "wan0_dest_port_list" : ["24983_0x3333", "Advanced"], 
-    "custom_data_wan_port_2_list" : ["24990", "Advanced"], 
-    "custom_data_wan_port_1_list" : ["24991", "Advanced"], 
+    "wan_2_domain_list" : ["24976_0x8181_c_1", "Advanced"], 
+    "wan_2_domain_addr_list" : ["24976_0x8181_d_1", "Advanced"], 
+    "wan_1_src_to_dst_addr_port_list" : ["24975_0x3131", "Advanced"], 
+    "wan_2_src_to_dst_addr_port_list" : ["24974_0x2121", "Advanced"], 
+    "high_wan_1_src_to_dst_addr_port_list" : ["24973_0x1717", "Advanced"], 
+    "high_wan_1_client_src_addr_list" : ["24970", "Advanced"], 
+    "high_wan_2_client_src_addr_list" : ["24969", "Advanced"], 
+    "wan_1_src_to_dst_addr_list" : ["24966", "Advanced"], 
+    "wan_2_src_to_dst_addr_list" : ["24965", "Advanced"], 
+    "high_wan_1_src_to_dst_addr_list" : ["24964", "Advanced"], 
+    "proxy_remote_node_addr_list" : ["24960", "Advanced"], 
+    "local_ipsets_list" : ["24962", "Advanced"], 
     "custom_hosts_list" : ["hosts", "Runtime"], 
     "iptv_box_ip_list" : ["888_box", "IPTV"], 
     "iptv_isp_ip_list" : ["888_isp", "IPTV"]

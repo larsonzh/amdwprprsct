@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_service.sh v4.5.9
+# lz_rule_service.sh v4.6.0
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 服务接口脚本
@@ -293,7 +293,7 @@ case "${2}" in
                                             | sed -e 's/^.*[[:space:]]\(tcp\|udp\|udplite\|sctp\|dccp\)[^[:alpha:]].*[[:space:]]0[\.]0[\.]0[\.]0[\/]0[[:space:]][[:space:]]*0[\.]0[\.]0[\.]0[\/]0[[:space:]].*dports[[:space:]][[:space:]]*\([^[:space:]][^[:space:]]*\)[[:space:]].*$/\1 \2/g' \
                                             -e '/CONNMARK/d' \
                                             | awk -v count="0" -v pid="[${$}]:" 'BEGIN{system("printf \"%s %s \n\n\" \"$( date +\"%F %T\")\" "pid)} \
-                                            NF >= "2" {print $1,$2,$3,$4,$5; count++;} \
+                                            NF == "2" {print $1,$2; count++;} \
                                             END{if (count > "0") printf "\n"; printf "Total: %s\n", count;}' OFS="\t"
                                     else
                                         printf "%s [%s]: \n\nTotal: 0\n" "$( date +"%F %T")" "${$}"
