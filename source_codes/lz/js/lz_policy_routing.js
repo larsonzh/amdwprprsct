@@ -1,5 +1,5 @@
 /*
-# lz_policy_routing.js v4.6.0
+# lz_policy_routing.js v4.6.1
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ JavaScript for Asuswrt-Merlin Router
@@ -774,6 +774,8 @@ function openOverHint(itemNum) {
         content += "<br />例如：<br />";
         content += "abc.def.com.cn<br />";
         content += "xxx.yyy.zzz<br />";
+        content += "<br />本域名地址列表仅支持英文域名地址。<br />";
+        content += "<br />一个域名地址条目由多个不同级别的域名连接而成，之间用点号 (.) 相隔，级别最低的在最左边，最高的在最右边。构成域名的字符只能使用英文字母 (a~z，不区分大小写)、数字 (0~9) 以及连接符 (-)。连接符 (-) 不能连续出现，也不能放在域名的开头或结尾。每一级域名不超过 63 个字符，完整域名 (域名地址) 总共不超过 255 个字符。<br />";
         content += "<br />域名地址条目中不能有网络协议前缀 (如 http://、https:// 或 ftp:// 等)、端口号 (如 :23456) 、路径及文件名、特殊符号等影响地址解析的内容。<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 21) {
@@ -794,6 +796,8 @@ function openOverHint(itemNum) {
         content += "<br />例如：<br />";
         content += "abc.def.com<br />";
         content += "xxx.yyy.org<br />";
+        content += "<br />本域名地址列表仅支持英文域名地址。<br />";
+        content += "<br />一个域名地址条目由多个不同级别的域名连接而成，之间用点号 (.) 相隔，级别最低的在最左边，最高的在最右边。构成域名的字符只能使用英文字母 (a~z，不区分大小写)、数字 (0~9) 以及连接符 (-)。连接符 (-) 不能连续出现，也不能放在域名的开头或结尾。每一级域名不超过 63 个字符，完整域名 (域名地址) 总共不超过 255 个字符。<br />";
         content += "<br />域名地址条目中不能有网络协议前缀 (如 http://、https:// 或 ftp:// 等)、端口号 (如 :23456) 、路径及文件名、特殊符号等影响地址解析的内容。<br />";
         content += "<br />为避免软件升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。</div>";
     } else if (itemNum == 23) {
@@ -926,26 +930,26 @@ function openOverHint(itemNum) {
         content += "客户端地址<br />";
         content += "<br />例如：<br />";
         content += "192.168.50.101&nbsp;123.123.123.121&nbsp;tcp&nbsp;80,443,6881:6889,25671&nbsp;801,4431,16881:16889,225671<br />";
-        content += "192.168.50.102&nbsp;123.123.123.122&nbsp;udp&nbsp;all&nbsp;8080<br />";
-        content += "192.168.50.103&nbsp;123.123.123.123&nbsp;tcp&nbsp;8081&nbsp;all<br />";
+        content += "192.168.50.102&nbsp;123.123.123.122&nbsp;udp&nbsp;any&nbsp;8080<br />";
+        content += "192.168.50.103&nbsp;123.123.123.123&nbsp;tcp&nbsp;8081&nbsp;any<br />";
         content += "192.168.50.104&nbsp;123.123.123.124&nbsp;udp&nbsp;80,443,6881:6889,25671<br />";
         content += "192.168.50.0/27&nbsp;123.123.123.0/24&nbsp;tcp&nbsp;4334<br />";
         content += "0.0.0.0/0&nbsp;123.123.123.125&nbsp;udplite&nbsp;12345<br />";
         content += "192.168.50.105&nbsp;0.0.0.0/0&nbsp;sctp<br />";
         content += "0.0.0.0/0&nbsp;0.0.0.0/0<br />";
         content += "192.168.50.106<br />";
-        content += "<br />可以用 <b>0.0.0.0/0</b> 表示所有未知 IP 地址，<b>0.0.0.0</b> 和<b>路由器本地 IP 地址</b>为无效地址，<b>all</b> 表示所有未知端口号。<br />";
+        content += "<br />可以用 <b>0.0.0.0/0</b> 表示所有未知 IP 地址，<b>0.0.0.0</b> 和<b>路由器本地 IP 地址</b>为无效地址，<b>any</b> 表示任意未知端口号。<br />";
         content += "<br /><b>客户端地址</b>为必选项。<br />";
         content += "<br /><b>目标地址</b>、<b>通讯协议</b>、<b>客户端源端口号</b>及<b>目标端口号</b>为可选项。填写<b>通讯协议</b>时，<b>目标地址</b>则成为必选项，后续依此类推。<br />";
         content += "<br />每个条目只能使用一个端口通讯协议，只能是 TCP、UDP、UDPLITE、SCTP 四种协议中的一个，字母英文大小写均可。<br />";
         content += "<br />连续端口号中间用英文半角 <b>:</b> 冒号相隔，如：6881:6889 表示 6881~6889 的连续端口号。<br />";
         content += "<br />每个条目最多可设置 15 个不连续的目标访问端口号埠，不连续的端口号埠之间用英文半角 <b>,</b> 逗号相隔，不要有空格。<br />";
         content += "<br />等效设置一，例如：<br />";
-        content += "192.168.50.12&nbsp;123.123.123.151&nbsp;tcp&nbsp;all&nbsp;80,443,6881:6889,25671<br />";
+        content += "192.168.50.12&nbsp;123.123.123.151&nbsp;tcp&nbsp;any&nbsp;80,443,6881:6889,25671<br />";
         content += "192.168.50.12&nbsp;123.123.123.151&nbsp;tcp&nbsp;80,443,6881:6889,25671<br />";
         content += "<br />等效设置二，例如：<br />";
-        content += "192.168.50.12&nbsp;123.123.123.151&nbsp;tcp&nbsp;all&nbsp;all<br />";
-        content += "192.168.50.12&nbsp;123.123.123.151&nbsp;tcp&nbsp;all<br />";
+        content += "192.168.50.12&nbsp;123.123.123.151&nbsp;tcp&nbsp;any&nbsp;any<br />";
+        content += "192.168.50.12&nbsp;123.123.123.151&nbsp;tcp&nbsp;any<br />";
         content += "192.168.50.12&nbsp;123.123.123.151&nbsp;tcp<br />";
         content += "<br />等效设置三，例如：<br />";
         content += "192.168.50.12&nbsp;0.0.0.0/0<br />";
@@ -965,26 +969,26 @@ function openOverHint(itemNum) {
         content += "客户端地址<br />";
         content += "<br />例如：<br />";
         content += "192.168.50.101&nbsp;123.123.123.121&nbsp;tcp&nbsp;80,443,6881:6889,25671&nbsp;801,4431,16881:16889,225671<br />";
-        content += "192.168.50.102&nbsp;123.123.123.122&nbsp;udp&nbsp;all&nbsp;8080<br />";
-        content += "192.168.50.103&nbsp;123.123.123.123&nbsp;tcp&nbsp;8081&nbsp;all<br />";
+        content += "192.168.50.102&nbsp;123.123.123.122&nbsp;udp&nbsp;any&nbsp;8080<br />";
+        content += "192.168.50.103&nbsp;123.123.123.123&nbsp;tcp&nbsp;8081&nbsp;any<br />";
         content += "192.168.50.104&nbsp;123.123.123.124&nbsp;udp&nbsp;80,443,6881:6889,25671<br />";
         content += "192.168.50.0/27&nbsp;123.123.123.0/24&nbsp;tcp&nbsp;4334<br />";
         content += "0.0.0.0/0&nbsp;123.123.123.125&nbsp;udplite&nbsp;12345<br />";
         content += "192.168.50.105&nbsp;0.0.0.0/0&nbsp;sctp<br />";
         content += "0.0.0.0/0&nbsp;0.0.0.0/0<br />";
         content += "192.168.50.106<br />";
-        content += "<br />可以用 <b>0.0.0.0/0</b> 表示所有未知 IP 地址，<b>0.0.0.0</b> 和<b>路由器本地 IP 地址</b>为无效地址，<b>all</b> 表示所有未知端口号。<br />";
+        content += "<br />可以用 <b>0.0.0.0/0</b> 表示所有未知 IP 地址，<b>0.0.0.0</b> 和<b>路由器本地 IP 地址</b>为无效地址，<b>any</b> 表示任意未知端口号。<br />";
         content += "<br /><b>客户端地址</b>为必选项。<br />";
         content += "<br /><b>目标地址</b>、<b>通讯协议</b>、<b>客户端源端口号</b>及<b>目标端口号</b>为可选项。填写<b>通讯协议</b>时，<b>目标地址</b>则成为必选项，后续依此类推。<br />";
         content += "<br />每个条目只能使用一个端口通讯协议，只能是 TCP、UDP、UDPLITE、SCTP 四种协议中的一个，字母英文大小写均可。<br />";
         content += "<br />连续端口号中间用英文半角 <b>:</b> 冒号相隔，如：6881:6889 表示 6881~6889 的连续端口号。<br />";
         content += "<br />每个条目最多可设置 15 个不连续的目标访问端口号埠，不连续的端口号埠之间用英文半角 <b>,</b> 逗号相隔，不要有空格。<br />";
         content += "<br />等效设置一，例如：<br />";
-        content += "192.168.50.12&nbsp;123.123.123.151&nbsp;tcp&nbsp;all&nbsp;80,443,6881:6889,25671<br />";
+        content += "192.168.50.12&nbsp;123.123.123.151&nbsp;tcp&nbsp;any&nbsp;80,443,6881:6889,25671<br />";
         content += "192.168.50.12&nbsp;123.123.123.151&nbsp;tcp&nbsp;80,443,6881:6889,25671<br />";
         content += "<br />等效设置二，例如：<br />";
-        content += "192.168.50.12&nbsp;123.123.123.151&nbsp;tcp&nbsp;all&nbsp;all<br />";
-        content += "192.168.50.12&nbsp;123.123.123.151&nbsp;tcp&nbsp;all<br />";
+        content += "192.168.50.12&nbsp;123.123.123.151&nbsp;tcp&nbsp;any&nbsp;any<br />";
+        content += "192.168.50.12&nbsp;123.123.123.151&nbsp;tcp&nbsp;any<br />";
         content += "192.168.50.12&nbsp;123.123.123.151&nbsp;tcp<br />";
         content += "<br />等效设置三，例如：<br />";
         content += "192.168.50.12&nbsp;0.0.0.0/0<br />";
@@ -1009,26 +1013,26 @@ function openOverHint(itemNum) {
         content += "客户端地址<br />";
         content += "<br />例如：<br />";
         content += "192.168.50.101&nbsp;123.123.123.121&nbsp;tcp&nbsp;80,443,6881:6889,25671&nbsp;801,4431,16881:16889,225671<br />";
-        content += "192.168.50.102&nbsp;123.123.123.122&nbsp;udp&nbsp;all&nbsp;8080<br />";
-        content += "192.168.50.103&nbsp;123.123.123.123&nbsp;tcp&nbsp;8081&nbsp;all<br />";
+        content += "192.168.50.102&nbsp;123.123.123.122&nbsp;udp&nbsp;any&nbsp;8080<br />";
+        content += "192.168.50.103&nbsp;123.123.123.123&nbsp;tcp&nbsp;8081&nbsp;any<br />";
         content += "192.168.50.104&nbsp;123.123.123.124&nbsp;udp&nbsp;80,443,6881:6889,25671<br />";
         content += "192.168.50.0/27&nbsp;123.123.123.0/24&nbsp;tcp&nbsp;4334<br />";
         content += "0.0.0.0/0&nbsp;123.123.123.125&nbsp;udplite&nbsp;12345<br />";
         content += "192.168.50.105&nbsp;0.0.0.0/0&nbsp;sctp<br />";
         content += "0.0.0.0/0&nbsp;0.0.0.0/0<br />";
         content += "192.168.50.106<br />";
-        content += "<br />可以用 <b>0.0.0.0/0</b> 表示所有未知 IP 地址，<b>0.0.0.0</b> 和<b>路由器本地 IP 地址</b>为无效地址，<b>all</b> 表示所有未知端口号。<br />";
+        content += "<br />可以用 <b>0.0.0.0/0</b> 表示所有未知 IP 地址，<b>0.0.0.0</b> 和<b>路由器本地 IP 地址</b>为无效地址，<b>any</b> 表示任意未知端口号。<br />";
         content += "<br /><b>客户端地址</b>为必选项。<br />";
         content += "<br /><b>目标地址</b>、<b>通讯协议</b>、<b>客户端源端口号</b>及<b>目标端口号</b>为可选项。填写<b>通讯协议</b>时，<b>目标地址</b>则成为必选项，后续依此类推。<br />";
         content += "<br />每个条目只能使用一个端口通讯协议，只能是 TCP、UDP、UDPLITE、SCTP 四种协议中的一个，字母英文大小写均可。<br />";
         content += "<br />连续端口号中间用英文半角 <b>:</b> 冒号相隔，如：6881:6889 表示 6881~6889 的连续端口号。<br />";
         content += "<br />每个条目最多可设置 15 个不连续的目标访问端口号埠，不连续的端口号埠之间用英文半角 <b>,</b> 逗号相隔，不要有空格。<br />";
         content += "<br />等效设置一，例如：<br />";
-        content += "192.168.50.12&nbsp;123.123.123.151&nbsp;tcp&nbsp;all&nbsp;80,443,6881:6889,25671<br />";
+        content += "192.168.50.12&nbsp;123.123.123.151&nbsp;tcp&nbsp;any&nbsp;80,443,6881:6889,25671<br />";
         content += "192.168.50.12&nbsp;123.123.123.151&nbsp;tcp&nbsp;80,443,6881:6889,25671<br />";
         content += "<br />等效设置二，例如：<br />";
-        content += "192.168.50.12&nbsp;123.123.123.151&nbsp;tcp&nbsp;all&nbsp;all<br />";
-        content += "192.168.50.12&nbsp;123.123.123.151&nbsp;tcp&nbsp;all<br />";
+        content += "192.168.50.12&nbsp;123.123.123.151&nbsp;tcp&nbsp;any&nbsp;any<br />";
+        content += "192.168.50.12&nbsp;123.123.123.151&nbsp;tcp&nbsp;any<br />";
         content += "192.168.50.12&nbsp;123.123.123.151&nbsp;tcp<br />";
         content += "<br />等效设置三，例如：<br />";
         content += "192.168.50.12&nbsp;0.0.0.0/0<br />";
@@ -1370,7 +1374,7 @@ function openOverHint(itemNum) {
         content = "<div>前往<b>系统记录 - 一般记录文件</b>查询<b>策略路由</b>打开/关闭过程中的工作状态信息。</div>";
     } else if (itemNum == 102) {
         mode = 2;
-        content = "<div>海外孤品，清仓捡漏。</div>";
+        content = "<div>天佑白嫖。</div>";
     } else if (itemNum == 103) {
         mode = 2;
         content = "<div>攒钱买盒饭。</div>";
@@ -1916,6 +1920,8 @@ function initRTIPListDialog() {
                 str3 = $("#" + key + "_name").html();
             else if (key == "wan0_dest_port_list" || key == "wan1_dest_port_list")
                 str3 = "协议目标端口列表";
+            if (key == "proxy_remote_node_addr_list")
+                str3 = str3 + " (已预解析)";
             if (str1 == "" || str3 == "")
                 str2 = "";
             if (document.getElementById(key + "_title") != null)

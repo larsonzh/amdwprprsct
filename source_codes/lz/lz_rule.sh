@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule.sh v4.6.0
+# lz_rule.sh v4.6.1
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # 本软件采用CIDR（无类别域间路由，Classless Inter-Domain Routing）技术，是一个在Internet上创建附加地
@@ -86,7 +86,7 @@
 ## -------------全局数据定义及初始化-------------------
 
 ## 版本号
-LZ_VERSION=v4.6.0
+LZ_VERSION=v4.6.1
 
 ## 运行状态查询命令
 SHOW_STATUS="status"
@@ -159,6 +159,18 @@ SERVICE_EVENT_NAME="service-event"
 
 ## DNSMasq配置扩展全路径文件名
 DNSMASQ_CONF_ADD="/jffs/configs/dnsmasq.conf.add"
+
+## DNSMasq域名地址配置文件部署路径
+PATH_DNSMASQ_DOMAIN_CONF="${PATH_TMP}/dnsmasq"
+
+## 第一WAN口域名地址配置文件名
+DOMAIN_WAN1_CONF="lz_wan1_domain.conf"
+
+## 第二WAN口域名地址配置文件名
+DOMAIN_WAN2_CONF="lz_wan2_domain.conf"
+
+## 自定义域名地址解析配置文件名
+CUSTOM_HOSTS_CONF="lz_hosts.conf"
 
 ## 系统中的服务事件触发接口文件名
 SERVICE_INTERFACE_NAME="lz_rule_service.sh"

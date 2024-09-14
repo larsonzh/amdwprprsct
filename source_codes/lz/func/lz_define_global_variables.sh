@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_define_global_variables.sh v4.6.0
+# lz_define_global_variables.sh v4.6.1
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 # QnkgTFog5aaZ5aaZ5ZGc77yI6Juk6J+G5aKp5YS/77yJ（首次运行标识，切勿修改）
 
@@ -12,18 +12,6 @@
 
 # shellcheck disable=SC2034  # Unused variables left for readability
 # shellcheck disable=SC2154
-
-## DNSMasq域名地址配置文件部署路径
-PATH_DNSMASQ_DOMAIN_CONF="${PATH_TMP}/dnsmasq"
-
-## 自定义域名地址解析配置文件名
-CUSTOM_HOSTS_CONF="lz_hosts.conf"
-
-## 第一WAN口域名地址配置文件名
-DOMAIN_WAN1_CONF="lz_wan1_domain.conf"
-
-## 第二WAN口域名地址配置文件名
-DOMAIN_WAN2_CONF="lz_wan2_domain.conf"
 
 ## 项目运行状态标识数据集锁名称
 ## 状态标识：不存在--项目未启动或处于终止运行STOP状态

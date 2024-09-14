@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_initialize_config.sh v4.6.0
+# lz_initialize_config.sh v4.6.1
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 初始化脚本配置
@@ -30,7 +30,7 @@ lz_variable_initialize() {
 ## 输入项：无
 ## 返回值：无
 lz_variable_uninitialize() {
-    eval "$( echo "${param_list}" | sed "s/^[[:alnum:]_][[:alnum:]_]*$/unset local_& local_ini_& local_&_changed local_&_flag local_ini_&_flag/g" )"
+    eval "$( echo "${param_list}" | sed "s/^[[:alnum:]_]\+$/unset local_& local_ini_& local_&_changed local_&_flag local_ini_&_flag/g" )"
     unset local_default local_changed local_reinstall dnsmasq_enable param_list
 }
 
@@ -137,18 +137,18 @@ lz_init_cfg_data() {
 EOF_INI_PARAM
 ## 以上注释不可修改及删除
     eval "$( sed -n "/^[[:space:]]*<<EOF_INI_PARAM/,/^[[:space:]]*EOF_INI_PARAM/{
-        /^[[:space:]]*local_ini_[[:alnum:]_][[:alnum:]_]*[=].*$/!d;
-        s/^[[:space:]]*\(local_ini_[[:alnum:]_][[:alnum:]_]*[=][^[:space:]#]*\)/\1/g;
+        /^[[:space:]]*local_ini_[[:alnum:]_]\+[=].*$/!d;
+        s/^[[:space:]]*\(local_ini_[[:alnum:]_]\+[=][^[:space:]#]*\)/\1/g;
         p
     }" "${PATH_FUNC}/lz_initialize_config.sh" 2> /dev/null \
     | awk -F '=' '!i[$1]++ {print $0}' )"
     param_list="$( sed -n "/^[[:space:]]*<<EOF_INI_PARAM/,/^[[:space:]]*EOF_INI_PARAM/{
-            /^[[:space:]]*local_ini_[[:alnum:]_][[:alnum:]_]*[=].*$/!d;
-            s/^[[:space:]]*local_ini_\([[:alnum:]_][[:alnum:]_]*\)[=].*$/\1/g;
+            /^[[:space:]]*local_ini_[[:alnum:]_]\+[=].*$/!d;
+            s/^[[:space:]]*local_ini_\([[:alnum:]_]\+\)[=].*$/\1/g;
             p
         }" "${PATH_FUNC}/lz_initialize_config.sh" 2> /dev/null \
         | awk '!i[$1]++ {print $1}' )"
-    eval "$( echo "${param_list}" | sed "s/^[[:alnum:]_][[:alnum:]_]*$/local_&=\"\${local_ini_&}\"/" )"
+    eval "$( echo "${param_list}" | sed "s/^[[:alnum:]_]\+$/local_&=\"\${local_ini_&}\"/" )"
 }
 
 ## 获取配置参数缺省值列表函数
@@ -159,7 +159,7 @@ EOF_INI_PARAM
 lz_get_param_default_list() {
     eval "$( echo "${param_list}" \
         | sed -n "/^all_foreign_wan_port$/,/^custom_dualwan_scripts_filename$/{
-            s/^[[:alnum:]_][[:alnum:]_]*$/echo &=\"\${local_&}\"/;
+            s/^[[:alnum:]_]\+$/echo &=\"\${local_&}\"/;
             p
         }" )" | sed 's/\"//g'
 }
@@ -171,7 +171,7 @@ lz_get_param_default_list() {
 ##     备份配置参数缺省值列表
 lz_get_ini_param_default_list() {
     eval "$( echo "${param_list}" \
-        | sed "s/^[[:alnum:]_][[:alnum:]_]*$/echo &=\"\${local_ini_&}\"/" )" \
+        | sed "s/^[[:alnum:]_]\+$/echo &=\"\${local_ini_&}\"/" )" \
         | sed 's/\"//g'
 }
 
@@ -182,7 +182,7 @@ lz_get_ini_param_default_list() {
 ##     1--不完整
 lz_get_data_status() {
     eval "$( echo "${param_list}" | sed -n "/^all_foreign_wan_port$/,/^custom_dualwan_scripts_filename$/{
-            s/^[[:alnum:]_][[:alnum:]_]*$/echo \"& \${local_&_flag}\"/;p}" )" \
+            s/^[[:alnum:]_]\+$/echo \"& \${local_&_flag}\"/;p}" )" \
         | awk '$2 != "1" {print "1"; exit}'
 }
 
@@ -192,7 +192,7 @@ lz_get_data_status() {
 ## 返回值：无
 lz_fix_lost_data() {
     eval "$( eval "$( echo "${param_list}" | sed -n "/^all_foreign_wan_port$/,/^custom_dualwan_scripts_filename$/{
-            s/^[[:alnum:]_][[:alnum:]_]*$/echo \"& \${local_&_flag}\"/;p}" )" \
+            s/^[[:alnum:]_]\+$/echo \"& \${local_&_flag}\"/;p}" )" \
         | awk '$2 != "1" {print "local_"$1"=\"\${local_ini_"$1"}\"";}' )"
 }
 
@@ -202,7 +202,7 @@ lz_fix_lost_data() {
 ## 返回值：
 ##     1--不完整
 lz_get_ini_data_status() {
-    eval "$( echo "${param_list}" | sed "s/^[[:alnum:]_][[:alnum:]_]*$/echo \"& \${local_ini_&_flag}\"/" )" \
+    eval "$( echo "${param_list}" | sed "s/^[[:alnum:]_]\+$/echo \"& \${local_ini_&_flag}\"/" )" \
         | awk '$2 != "1" {print "1"; exit}'
 }
 
@@ -589,6 +589,10 @@ wan_1_domain_client_src_addr_file=${local_wan_1_domain_client_src_addr_file}
 ## 例如：
 ## abc.def.com.cn
 ## www.qq.com
+## 本域名地址列表仅支持英文域名地址。
+## 一个域名地址条目由多个不同级别的域名连接而成，之间用点号 (.) 相隔，级别最低的在最左边，最高的在最右边。
+## 构成域名的字符只能使用英文字母 (a~z，不区分大小写)、数字 (0~9) 以及连接符 (-)。连接符 (-) 不能连续出现，
+## 也不能放在域名的开头或结尾。每一级域名不超过 63 个字符，完整域名 (域名地址) 总共不超过 255 个字符。
 ## 域名地址条目中不能有网络协议前缀（如 http://、https:// 或 ftp://等）、端口号（如:23456）、路径及文件名、
 ## 特殊符号等影响地址解析的内容。
 ## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
@@ -610,6 +614,9 @@ wan_2_domain=${local_wan_2_domain}
 ## 文件路径、名称可自定义和修改，文件路径及名称不得为空。
 ## 缺省为"${PATH_DATA}/wan_2_domain_client_src_addr.txt"，为空文件。
 ## 文本格式：一个网址/网段一行，为一个条目，可多行多个条目。
+## 例如：
+## 192.168.50.111
+## 192.168.60.0/28
 ## 可以用0.0.0.0/0表示所有客户端，0.0.0.0和路由器本地IP地址为无效地址。
 ## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
 wan_2_domain_client_src_addr_file=${local_wan_2_domain_client_src_addr_file}
@@ -619,6 +626,13 @@ wan_2_domain_client_src_addr_file=${local_wan_2_domain_client_src_addr_file}
 ## 文件路径、名称可自定义和修改，文件路径及名称不得为空。
 ## 缺省为"${PATH_DATA}/wan_2_domain.txt"，为空文件。
 ## 文本格式：一个域名地址一行，为一个条目，可多行多个条目。
+## 例如：
+## abc.def.com.cn
+## www.qq.com
+## 本域名地址列表仅支持英文域名地址。
+## 一个域名地址条目由多个不同级别的域名连接而成，之间用点号 (.) 相隔，级别最低的在最左边，最高的在最右边。
+## 构成域名的字符只能使用英文字母 (a~z，不区分大小写)、数字 (0~9) 以及连接符 (-)。连接符 (-) 不能连续出现，
+## 也不能放在域名的开头或结尾。每一级域名不超过 63 个字符，完整域名 (域名地址) 总共不超过 255 个字符。
 ## 域名地址条目中不能有网络协议前缀（如 http://、https:// 或 ftp://等）、端口号（如:23456）、路径及文件名、
 ## 特殊符号等影响地址解析的内容。
 ## 为避免脚本升级更新或重新安装导致配置重置为缺省状态，建议更改文件名或文件存储路径。
@@ -1541,7 +1555,7 @@ lz_get_config_data() {
 ##     全局常量及变量
 ## 返回值：无
 lz_full_data_backup() {
-    eval "$( echo "${param_list}" | awk '/^[[:alnum:]_][[:alnum:]_]*$/ {print "echo lz_config_"$1"=\$\{local_"$1"\}"}' )" > "${PATH_CONFIGS}/lz_rule_config.box"
+    eval "$( echo "${param_list}" | awk '/^[[:alnum:]_]\+$/ {print "echo lz_config_"$1"=\$\{local_"$1"\}"}' )" > "${PATH_CONFIGS}/lz_rule_config.box"
     chmod 775 "${PATH_CONFIGS}/lz_rule_config.box" > /dev/null 2>&1
 }
 
@@ -1551,7 +1565,7 @@ lz_full_data_backup() {
 ## 返回值：无
 lz_backup_data_changed() {
     eval "$( eval "$( echo "${param_list}" | sed -n "/^all_foreign_wan_port$/,/^custom_dualwan_scripts_filename$/{
-            s/^[[:alnum:]_][[:alnum:]_]*$/echo \"& \${local_&_changed}\"/;p
+            s/^[[:alnum:]_]\+$/echo \"& \${local_&_changed}\"/;p
         }" )" | awk -v x="0" '$2 == "1" {
             x++;
             printf " -e \"s|^[[:space:]]\*lz_config_%s=\${local_ini_%s}|lz_config_%s=\${local_%s}|\"",$1,$1,$1,$1;
@@ -1564,7 +1578,7 @@ lz_backup_data_changed() {
 ##     全局常量及变量
 ## 返回值：无
 lz_restore_box_data() {
-    eval "$( echo "${param_list}" | awk '/^[[:alnum:]_][[:alnum:]_]*$/ {print "echo lz_config_"$1"=\$\{local_ini_"$1"\}"}' )" > "${PATH_CONFIGS}/lz_rule_config.box"
+    eval "$( echo "${param_list}" | awk '/^[[:alnum:]_]+$/ {print "echo lz_config_"$1"=\$\{local_ini_"$1"\}"}' )" > "${PATH_CONFIGS}/lz_rule_config.box"
     chmod 775 "${PATH_CONFIGS}/lz_rule_config.box" > /dev/null 2>&1
 }
 
@@ -1877,7 +1891,7 @@ lz_get_box_data() {
 ##     local_changed
 lz_get_cfg_changed() {
     eval "$( eval "$( echo "${param_list}" | sed -n "/^all_foreign_wan_port$/,/^custom_dualwan_scripts_filename$/{
-            s/^[[:alnum:]_][[:alnum:]_]*$/echo \"& \${local_ini_&} \${local_&}\"/;p}" )" \
+            s/^[[:alnum:]_]\+$/echo \"& \${local_ini_&} \${local_&}\"/;p}" )" \
         | awk -v x="0" '$2 != $3 {x++; print "local_"$1"_changed=\"1\"";} \
             END{if (x > 0) print "local_changed=\"1\"";}' )"
 }
@@ -1888,7 +1902,7 @@ lz_get_cfg_changed() {
 ## 返回值：无
 lz_restore_config() {
     eval "$( eval "$( echo "${param_list}" | sed -n "/^all_foreign_wan_port$/,/^custom_dualwan_scripts_filename$/{
-            s/^[[:alnum:]_][[:alnum:]_]*$/echo \"& \${local_&_changed}\"/;p}" )" \
+            s/^[[:alnum:]_]\+$/echo \"& \${local_&_changed}\"/;p}" )" \
         | awk -v x="0" '$2 == "1" {
             x++;
             if ($1 == "ruid_interval_day")
@@ -1904,7 +1918,7 @@ lz_restore_config() {
     [ "${local_udpxy_used_changed}" = "1" ] \
         && sed -i "s|^[[:space:]]*udpxy_used=${local_udpxy_used}|udpxy_used=${local_ini_udpxy_used}|" "${PATH_FUNC}/lz_define_global_variables.sh"
     eval "$( echo "${param_list}" | sed -n "/^all_foreign_wan_port$/,/^custom_dualwan_scripts_filename$/{
-        s/^[[:alnum:]_][[:alnum:]_]*$/local_&=\"\${local_ini_&}\"/;P}" )"
+        s/^[[:alnum:]_]\+$/local_&=\"\${local_ini_&}\"/;P}" )"
 }
 
 ## 将当前配置优化至IPTV配置函数
@@ -2110,10 +2124,10 @@ fi
 
 if [ -s "${PATH_CONFIGS}/lz_rule_config.box" ]; then
     ## 清除lz_rule_config.box内的错误字符内容及参数赋值等式中等号两端的非法空格
-    sed -i -e 's/^[[:space:]][[:space:]]*//' -e 's/[=][=][=]*/=/g' \
-        -e 's/^\(lz_config_[[:alnum:]_][[:alnum:]_]*\)[[:space:]][[:space:]]*\([=].*\)$/\1\2/' \
-        -e 's/^\(lz_config_[[:alnum:]_][[:alnum:]_]*[=]\)[[:space:]][[:space:]]*\([^[:space:]#].*\)$/\1\2/' \
-        -e 's/[[:space:]#].*$//' -e '/^lz_config_[[:alnum:]_][[:alnum:]_]*[=]/!d' "${PATH_CONFIGS}/lz_rule_config.box"
+    sed -i -e 's/^[[:space:]]\+//' -e 's/[=][=][=]*/=/g' \
+        -e 's/^\(lz_config_[[:alnum:]_]\+\)[[:space:]]\+\([=].*\)$/\1\2/' \
+        -e 's/^\(lz_config_[[:alnum:]_]\+[=]\)[[:space:]]\+\([^[:space:]#].*\)$/\1\2/' \
+        -e 's/[[:space:]#].*$//' -e '/^lz_config_[[:alnum:]_]\+[=]/!d' "${PATH_CONFIGS}/lz_rule_config.box"
     ## 删除lz_rule_config.box中可能出现的重复参数项
     awk -v x="0" '$1 ~ /^lz_config_[[:alnum:]_]+[=]/ && i[substr($1, 1, index($1, "="))]++ \
         {x++; printf " -e '\''%ss\/\^\.\*\$\/#\&\/'\''", NR;} END{if (x != "0") printf "\n";}' "${PATH_CONFIGS}/lz_rule_config.box" \
@@ -2152,12 +2166,12 @@ if [ ! -s "${PATH_CONFIGS}/lz_rule_config.sh" ]; then
     local_reinstall="$(( local_reinstall + 1 ))"
 else
     ## 清除lz_rule_config.sh内的错误字符内容及参数赋值等式中等号两端的非法空格
-    sed -i -e 's/^[[:space:]][[:space:]]*//' \
-        -e 's/^\([[:alnum:]_][[:alnum:]_]*\)[[:space:]][[:space:]]*\([=][^=].*\)$/\1\2/' \
-        -e 's/^\([[:alnum:]_][[:alnum:]_]*[=]\)[[:space:]][[:space:]]*\([^[:space:]#].*\)$/\1\2/' \
-        -e 's/^\([[:alnum:]_][[:alnum:]_]*[=][^[:space:]#]*\)[[:space:]][[:space:]]*[^[:space:]#][^[:space:]#]*\([[:space:]][[:space:]]*[^[:space:]#][^[:space:]#]*\)*/\1/' \
-        -e 's/[[:space:]][[:space:]]*$//' \
-        -e '/^\([[:space:]]*\|[#].*\|[[:alnum:]_][[:alnum:]_]*[=].*\)$/!d' "${PATH_CONFIGS}/lz_rule_config.sh"
+    sed -i -e 's/^[[:space:]]\+//' \
+        -e 's/^\([[:alnum:]_]\+\)[[:space:]]\+\([=][^=].*\)$/\1\2/' \
+        -e 's/^\([[:alnum:]_]\+[=]\)[[:space:]]\+\([^[:space:]#].*\)$/\1\2/' \
+        -e 's/^\([[:alnum:]_]\+[=][^[:space:]#]*\)[[:space:]]\+[^[:space:]#][^[:space:]#]*\([[:space:]]\+[^[:space:]#][^[:space:]#]*\)*/\1/' \
+        -e 's/[[:space:]]\+$//' \
+        -e '/^\([[:space:]]*\|[#].*\|[[:alnum:]_]\+[=].*\)$/!d' "${PATH_CONFIGS}/lz_rule_config.sh"
     ## 注释lz_rule_config.sh中的重复参数项
     awk -v x="0" '$1 ~ /^[[:alnum:]_]+[=]/ && i[substr($1, 1, index($1, "="))]++ \
         {x++; printf " -e '\''%ss\/\^\.\*\$\/DEL###\&\/'\''", NR;} END{if (x != "0") printf "\n";}' "${PATH_CONFIGS}/lz_rule_config.sh" \
@@ -2312,7 +2326,7 @@ fi
 ## 生成并传递软件的配置参数
 eval "$( eval "$( echo "${param_list}" \
     | sed -n "/^all_foreign_wan_port$/,/^custom_dualwan_scripts_filename$/{
-        s/^[[:alnum:]_][[:alnum:]_]*$/echo &=\"\${local_&}\"/;
+        s/^[[:alnum:]_]\+$/echo &=\"\${local_&}\"/;
         p
     }" )" )"
 
