@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule.sh v4.6.1
+# lz_rule.sh v4.6.2
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # 本软件采用CIDR（无类别域间路由，Classless Inter-Domain Routing）技术，是一个在Internet上创建附加地
@@ -86,7 +86,7 @@
 ## -------------全局数据定义及初始化-------------------
 
 ## 版本号
-LZ_VERSION=v4.6.1
+LZ_VERSION=v4.6.2
 
 ## 运行状态查询命令
 SHOW_STATUS="status"
@@ -1058,9 +1058,9 @@ lz_get_repo_site() {
     local remoteRepo="https://gitee.com/"
     local configFile="${PATH_CONFIGS}/lz_rule_config.box"
     [ ! -s "${configFile}" ] && configFile="${PATH_CONFIGS}/lz_rule_config.sh"
-    eval "$( awk -F "=" '$0 ~ /^[[:space:]]*(lz_config_){0,1}repo_site[=]/ {
+    eval "$( awk -F "=" '$0 ~ /^[[:space:]]*(lz_config_)?repo_site[=]/ {
             key=$1;
-            gsub(/^[[:space:]]*(lz_config_){0,1}/, "", key);
+            gsub(/^[[:space:]]*(lz_config_)?/, "", key);
             value=$2;
             gsub(/[[:space:]#].*$/, "", value);
             print key,value;

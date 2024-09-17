@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_vpn_daemon.sh v4.6.1
+# lz_vpn_daemon.sh v4.6.2
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 虚拟专网客户端路由刷新处理后台守护进程脚本
@@ -10,7 +10,7 @@
 #BEGIN
 
 ## 版本号
-LZ_VERSION=v4.6.1
+LZ_VERSION=v4.6.2
 
 ## 项目接口文件部署路径
 PATH_INTERFACE="${0%/*}"
@@ -105,14 +105,14 @@ update_vpn_client_sub_route() {
         else
             call_openvpn_event_interface && return "0"
         fi
-        for vpn_client in $( ipset -q list "${PPTP_CLIENT_IP_SET}" | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}' ) \
-            $( ipset -q list "${WIREGUARD_CLIENT_IP_SET}" | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}' )
+        for vpn_client in $( ipset -q list "${PPTP_CLIENT_IP_SET}" | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?' ) \
+            $( ipset -q list "${WIREGUARD_CLIENT_IP_SET}" | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?' )
         do
             ! echo "${vpn_client_list}" | grep -q "^${vpn_client}$" && call_openvpn_event_interface && return "0"
         done
     else
-        ipset -q list "${PPTP_CLIENT_IP_SET}" | grep -qE '([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}' \
-            || ipset -q list "${WIREGUARD_CLIENT_IP_SET}" | grep -qE '([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}' \
+        ipset -q list "${PPTP_CLIENT_IP_SET}" | grep -qE '([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?' \
+            || ipset -q list "${WIREGUARD_CLIENT_IP_SET}" | grep -qE '([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?' \
             && call_openvpn_event_interface && return "0"
     fi
     return "1"
@@ -158,7 +158,7 @@ update_vpn_client() {
         if [ "${IPSEC_SERVER_ENABLE}" = "1" ]; then
             IPSEC_SERVER_ENABLE="$( nvram get "ipsec_server_enable" )"
             [ "${IPSEC_SERVER_ENABLE}" = "0" ] && call_openvpn_event_interface && return "0"
-        elif ipset -q list "${IPSEC_SUBNET_IP_SET}" | grep -qE '([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}'; then
+        elif ipset -q list "${IPSEC_SUBNET_IP_SET}" | grep -qE '([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?'; then
             call_openvpn_event_interface && return "0"
         fi
     fi
@@ -213,7 +213,7 @@ do
             if [ "${IPSEC_SERVER_ENABLE}" = "1" ]; then
                 IPSEC_SERVER_ENABLE="$( nvram get "ipsec_server_enable" )"
                 [ "${IPSEC_SERVER_ENABLE}" = "0" ] && call_openvpn_event_interface
-            elif ipset -q list "${IPSEC_SUBNET_IP_SET}" | grep -qE '([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2}){0,1}'; then
+            elif ipset -q list "${IPSEC_SUBNET_IP_SET}" | grep -qE '([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?'; then
                 call_openvpn_event_interface
             fi
         fi
