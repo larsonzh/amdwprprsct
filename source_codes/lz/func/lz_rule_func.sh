@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v4.6.2
+# lz_rule_func.sh v4.6.3
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 #BEGIN
@@ -124,14 +124,14 @@ lz_print_src_to_dst_port_ipv4_address_list() {
 ##     总有效条目数
 lz_get_ipv4_data_file_item_total() {
     local retval="0"
-    [ -s "${1}" ] && retval="$( lz_print_ipv4_address_list "${1}" | awk 'NF >= "1" {
+    [ -s "${1}" ] && retval="$( lz_print_ipv4_address_list "${1}" | awk -v count="0" 'NF >= "1" {
         if ($1 != "0.0.0.0/0")
             count++;
         else {
             count=1;
             exit;
         }
-    } END{print count}' )"
+    } END{print count;}' )"
     echo "${retval}"
 }
 
@@ -3301,16 +3301,16 @@ lz_initialize_ip_data_policy() {
     ## 获取WAN口的DNS解析服务器网址
     local local_ifip_wan0_dns1="" local_ifip_wan0_dns2="" local_ifip_wan1_dns1="" local_ifip_wan1_dns2=""
     eval "$( nvram get "wan0_dns" | awk 'NF >= "1" {
-        if ($1 !~ /^0\+[\.]0\+[\.]0\+[\.]0\+$/ && $1 !~ /^127[\.]0\+[\.]0\+[\.]0*1$/ && $1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?$/)
+        if ($1 !~ /^0+[\.]0+[\.]0+[\.]0+$/ && $1 !~ /^127[\.]0+[\.]0+[\.]0*1$/ && $1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?$/)
             print "local_ifip_wan0_dns1="$1;
-        if ($2 !~ /^0\+[\.]0\+[\.]0\+[\.]0\+$/ && $2 !~ /^127[\.]0\+[\.]0\+[\.]0*1$/ && $2 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?$/)
+        if ($2 !~ /^0+[\.]0+[\.]0+[\.]0+$/ && $2 !~ /^127[\.]0+[\.]0+[\.]0*1$/ && $2 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?$/)
             print "local_ifip_wan0_dns2="$2;
         exit;
     }' )"
     eval "$( nvram get "wan1_dns" | awk 'NF >= "1" {
-        if ($1 !~ /^0\+[\.]0\+[\.]0\+[\.]0\+$/ && $1 !~ /^127[\.]0\+[\.]0\+[\.]0*1$/ && $1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?$/)
+        if ($1 !~ /^0+[\.]0+[\.]0+[\.]0+$/ && $1 !~ /^127[\.]0+[\.]0+[\.]0*1$/ && $1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?$/)
             print "local_ifip_wan1_dns1="$1;
-        if ($2 !~ /^0\+[\.]0\+[\.]0\+[\.]0\+$/ && $2 !~ /^127[\.]0\+[\.]0\+[\.]0*1$/ && $2 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?$/)
+        if ($2 !~ /^0+[\.]0+[\.]0+[\.]0+$/ && $2 !~ /^127[\.]0+[\.]0+[\.]0*1$/ && $2 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?$/)
             print "local_ifip_wan1_dns2="$2;
         exit;
     }' )"
@@ -3617,16 +3617,16 @@ lz_proxy_route_support() {
             ip rule add from "${line}" to "0.0.0.0" table "${wan_no}" prio "${IP_RULE_PRIO_TOPEST}" > /dev/null 2>&1
         else
             if [ "${dn_pre_resolved}" = "0" ]; then
-                nslookup "${line}" 2> /dev/null | awk 'NR > 4 && $3 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ && $3 !~ /^0\+[\.]0\+[\.]0\+[\.]0\+$/ \
+                nslookup "${line}" 2> /dev/null | awk 'NR > 4 && $3 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ && $3 !~ /^0+[\.]0+[\.]0+[\.]0+$/ \
                     {system("ip rule add from 0.0.0.0 to "$3"'" table ${wan_no} prio ${IP_RULE_PRIO_TOPEST} > /dev/null 2>&1; ip rule add from "'"$3"'" to 0.0.0.0 table ${wan_no} prio ${IP_RULE_PRIO_TOPEST} > /dev/null 2>&1"'")}'
             elif [ "${dn_pre_resolved}" = "1" ]; then
                 [ "${pre_dns_enable}" = "0" ] \
-                    && nslookup "${line}" "${pre_dns}" 2> /dev/null | awk 'NR > 4 && $3 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ && $3 !~ /^0\+[\.]0\+[\.]0\+[\.]0\+$/ \
+                    && nslookup "${line}" "${pre_dns}" 2> /dev/null | awk 'NR > 4 && $3 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ && $3 !~ /^0+[\.]0+[\.]0+[\.]0+$/ \
                         {system("ip rule add from 0.0.0.0 to "$3"'" table ${wan_no} prio ${IP_RULE_PRIO_TOPEST} > /dev/null 2>&1; ip rule add from "'"$3"'" to 0.0.0.0 table ${wan_no} prio ${IP_RULE_PRIO_TOPEST} > /dev/null 2>&1"'")}'
             elif [ "${dn_pre_resolved}" = "2" ]; then
-                node_list="$( nslookup "${line}" 2> /dev/null | awk 'NR > 4 && $3 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ && $3 !~ /^0\+[\.]0\+[\.]0\+[\.]0\+$/ {print $3}' )"
+                node_list="$( nslookup "${line}" 2> /dev/null | awk 'NR > 4 && $3 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ && $3 !~ /^0+[\.]0+[\.]0+[\.]0+$/ {print $3}' )"
                 [ "${pre_dns_enable}" = "0" ] \
-                    && eval "$( nslookup "${line}" "${pre_dns}" 2> /dev/null | awk 'NR > 4 && $3 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ && $3 !~ /^0\+[\.]0\+[\.]0\+[\.]0\+$/ \
+                    && eval "$( nslookup "${line}" "${pre_dns}" 2> /dev/null | awk 'NR > 4 && $3 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ && $3 !~ /^0+[\.]0+[\.]0+[\.]0+$/ \
                         {printf "node_list=\"\$\( echo \"\${node_list}\" \| sed -e \"\\\$a %s\" -e \"\/\^[[:space:]]\*\$\/d\" \)\"\n", $3}' )"
                 echo "${node_list}" | awk '$1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ && !i[$1]++ \
                     {system("ip rule add from 0.0.0.0 to "$1"'" table ${wan_no} prio ${IP_RULE_PRIO_TOPEST} > /dev/null 2>&1; ip rule add from "'"$1"'" to 0.0.0.0 table ${wan_no} prio ${IP_RULE_PRIO_TOPEST} > /dev/null 2>&1"'")}'
@@ -5004,7 +5004,7 @@ lz_add_dual_ip_rules() {
 ## 返回值：无
 lz_add_src_to_dst_sets_ip_rules() {
     if [ -z "${1}" ] || [ ! -s "${2}" ]; then return; fi;
-    { echo "${1}" | grep -qEw '0\+[\.]0\+[\.]0\+[\.]0\+[\/]0\+' || echo "${1}" | grep -qEw '0\+[\.]0\+[\.]0\+[\.]0\+' \
+    { echo "${1}" | grep -qEw '0+[\.]0+[\.]0+[\.]0+[\/]0+' || echo "${1}" | grep -qEw '0+[\.]0+[\.]0+[\.]0+' \
         || [ "${1}" = "${route_local_ip}" ]; } && return
     local box_addr="${1}"
     [ "${box_addr}" = "${route_local_subnet}" ] && box_addr="${route_static_subnet}"
@@ -5021,7 +5021,7 @@ lz_add_src_to_dst_sets_ip_rules() {
 ## 返回值：无
 lz_add_src_sets_to_dst_ip_rules() {
     if [ ! -s "${1}" ] || [ -z "${2}" ]; then return; fi;
-    { echo "${2}" | grep -qEw '0\+[\.]0\+[\.]0\+[\.]0\+[\/]0\+' || echo "${2}" | grep -qEw '0\+[\.]0\+[\.]0\+[\.]0\+' \
+    { echo "${2}" | grep -qEw '0+[\.]0+[\.]0+[\.]0+[\/]0+' || echo "${2}" | grep -qEw '0+[\.]0+[\.]0+[\.]0+' \
         || [ "${2}" = "${route_local_ip}" ]; } && return
     local box_addr="${2}"
     [ "${box_addr}" = "${route_local_subnet}" ] && box_addr="${route_static_subnet}"

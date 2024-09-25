@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_initialize_config.sh v4.6.2
+# lz_initialize_config.sh v4.6.3
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 初始化脚本配置
@@ -1555,7 +1555,7 @@ lz_get_config_data() {
 ##     全局常量及变量
 ## 返回值：无
 lz_full_data_backup() {
-    eval "$( echo "${param_list}" | awk '/^[[:alnum:]_]\+$/ {print "echo lz_config_"$1"=\$\{local_"$1"\}"}' )" > "${PATH_CONFIGS}/lz_rule_config.box"
+    eval "$( echo "${param_list}" | awk '/^[[:alnum:]_]+$/ {print "echo lz_config_"$1"=\$\{local_"$1"\}"}' )" > "${PATH_CONFIGS}/lz_rule_config.box"
     chmod 775 "${PATH_CONFIGS}/lz_rule_config.box" > /dev/null 2>&1
 }
 
@@ -2114,7 +2114,7 @@ lz_variable_initialize
 lz_init_cfg_data
 
 ## 获取重新安装标识
-local_reinstall="$( grep -c 'QnkgTFog5aaZ5aaZ5ZGc77yI6Juk6J[\+]G5aKp5YS[\/]77yJ' "${PATH_FUNC}/lz_define_global_variables.sh" )"
+local_reinstall="$( grep -wc 'QnkgTFog5aaZ5aaZ5ZGc77yI6Juk6J[+]G5aKp5YS[\/]77yJ' "${PATH_FUNC}/lz_define_global_variables.sh" )"
 
 ## 新安装的脚本，更新主运行脚本和脚本配置文件中初始缺省的路径数据
 if [ "${local_reinstall}" -gt "0" ] && [ "${PATH_LZ}" != "/jffs/scripts/lz" ]; then
@@ -2320,7 +2320,7 @@ lz_restore_to_rn "${1}"
 
 if [ "${local_reinstall}" -gt "0" ]; then
     ## 删除重新安装标识
-    sed -i "/QnkgTFog5aaZ5aaZ5ZGc77yI6Juk6J+G5aKp5YS\/77yJ/d" "${PATH_FUNC}/lz_define_global_variables.sh" > /dev/null 2>&1
+    sed -i "/QnkgTFog5aaZ5aaZ5ZGc77yI6Juk6J[+]G5aKp5YS[\/]77yJ/d" "${PATH_FUNC}/lz_define_global_variables.sh" > /dev/null 2>&1
 fi
 
 ## 生成并传递软件的配置参数
