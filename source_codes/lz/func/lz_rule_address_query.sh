@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_address_query.sh v4.6.3
+# lz_rule_address_query.sh v4.6.4
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 网址信息查询脚本
@@ -91,10 +91,29 @@ lz_aq_print_ipv4_address_list() {
     sed -e 's/^[[:space:]]\+//g' -e 's/[#].*$//g' -e 's/[[:space:]]\+/ /g' -e 's/[[:space:]]\+$//g' \
         -e 's/\(^\|[^[:digit:]]\)[0]\+\([[:digit:]]\)/\1\2/g' \
         -e 's/^\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]].*$/\1/' \
-        -e "s#\(^\|[[:space:]]\)${aq_route_local_subnet}\([[:space:]]\|$\)#${aq_route_static_subnet}#g" \
         -e '/^\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?$/!d' \
         -e '/[3-9][0-9][0-9]\|[2][6-9][0-9]\|[2][5][6-9]\|[\/][4-9][0-9]\|[\/][3][3-9]/d' \
+        -e 's/[\/]32//g' \
         -e "/\(^\|[[:space:]]\)\(0\+[\.]0\+[\.]0\+[\.]0\+\|${aq_route_local_ip}\)\([[:space:]]\|$\)/d" "${1}" \
+        | awk 'function fix_cidr(ipa) {
+            split(ipa, arr, /\.|\//);
+            if (arr[5] !~ /^[0-9][0-9]?$/)
+                ip_value = ipa;
+            else {
+                pos = int(arr[5] / 8) + 1;
+                step = rshift(255, arr[5] % 8) + 1;
+                for (i = pos; i < 5; ++i) {
+                    if (i == pos)
+                        arr[i] = int(arr[i] / step) * step;
+                    else
+                        arr[i] = 0;
+                }
+                ip_value = arr[1]"."arr[2]"."arr[3]"."arr[4]"/"arr[5];
+            }
+            delete arr;
+            return ip_value;
+        } \
+        NF == "1" && !i[$1]++ {print fix_cidr($1);}' \
         | awk 'NF == "1" && !i[$1]++ {print $1}'
 }
 
@@ -121,10 +140,29 @@ lz_aq_print_src_to_dst_ipv4_address_list() {
     sed -e 's/^[[:space:]]\+//g' -e 's/[#].*$//g' -e 's/[[:space:]]\+/ /g' -e 's/[[:space:]]\+$//g' \
         -e 's/\(^\|[^[:digit:]]\)[0]\+\([[:digit:]]\)/\1\2/g' \
         -e 's/^\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]]\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]].*$/\1 \4/' \
-        -e "s#\(^\|[[:space:]]\)${aq_route_local_subnet}\([[:space:]]\|$\)#${aq_route_static_subnet}#g" \
         -e '/^\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?[[:space:]]\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?$/!d' \
         -e '/[3-9][0-9][0-9]\|[2][6-9][0-9]\|[2][5][6-9]\|[\/][4-9][0-9]\|[\/][3][3-9]/d' \
+        -e 's/[\/]32//g' \
         -e "/\(^\|[[:space:]]\)\(0\+[\.]0\+[\.]0\+[\.]0\+\|${aq_route_local_ip}\)\([[:space:]]\|$\)/d" "${1}" \
+        | awk 'function fix_cidr(ipa) {
+            split(ipa, arr, /\.|\//);
+            if (arr[5] !~ /^[0-9][0-9]?$/)
+                ip_value = ipa;
+            else {
+                pos = int(arr[5] / 8) + 1;
+                step = rshift(255, arr[5] % 8) + 1;
+                for (i = pos; i < 5; ++i) {
+                    if (i == pos)
+                        arr[i] = int(arr[i] / step) * step;
+                    else
+                        arr[i] = 0;
+                }
+                ip_value = arr[1]"."arr[2]"."arr[3]"."arr[4]"/"arr[5];
+            }
+            delete arr;
+            return ip_value;
+        } \
+        NF == "2" && !i[$1_$2]++ {print fix_cidr($1),fix_cidr($2);}' \
         | awk 'NF == "2" && $1 != $2 && !i[$1_$2]++ {print $0; next;} \
         NF == "2" && $1 == "0.0.0.0/0" && $2 == "0.0.0.0/0" && !i[$1_$2]++ {print $1,$2; next;}'
 }
@@ -140,9 +178,29 @@ lz_aq_print_src_to_dst_port_ipv4_address_list() {
         | grep -Ei "${local_regex}" \
         | tr '[:A-Z:]' '[:a-z:]' \
         | sed -e 's/^[[:space:]]\+//g' -e 's/[#].*$//g' -e 's/[[:space:]]\+/ /g' -e 's/[[:space:]]\+$//g' \
-        -e "s#\(^\|[[:space:]]\)${aq_route_local_subnet}\([[:space:]]\|$\)#${aq_route_static_subnet}#g" \
-        -e "/\(^\|[[:space:]]\)\(0\+[\.]0\+[\.]0\+[\.]0\+\|${aq_route_local_ip}\)\([[:space:]]\|$\)/d" \
+        -e 's/\(^\|[^[:digit:]]\)[0]\+\([[:digit:]]\)/\1\2/g' \
         -e '/^\([^[:space:]]\+[[:space:]]\)\?[^[:space:]]*\([3-9][0-9][0-9]\|[2][6-9][0-9]\|[2][5][6-9]\|[\/][4-9][0-9]\|[\/][3][3-9]\)[^[:space:]]*\([[:space:]]\|$\)/d' \
+        -e 's/[\/]32//g' \
+        -e "/\(^\|[[:space:]]\)\(0\+[\.]0\+[\.]0\+[\.]0\+\|${aq_route_local_ip}\)\([[:space:]]\|$\)/d" \
+        | awk 'function fix_cidr(ipa) {
+            split(ipa, arr, /\.|\//);
+            if (arr[5] !~ /^[0-9][0-9]?$/)
+                ip_value = ipa;
+            else {
+                pos = int(arr[5] / 8) + 1;
+                step = rshift(255, arr[5] % 8) + 1;
+                for (i = pos; i < 5; ++i) {
+                    if (i == pos)
+                        arr[i] = int(arr[i] / step) * step;
+                    else
+                        arr[i] = 0;
+                }
+                ip_value = arr[1]"."arr[2]"."arr[3]"."arr[4]"/"arr[5];
+            }
+            delete arr;
+            return ip_value;
+        } \
+        NF >= "1" && !i[$1"_"$2"_"$3"_"$4"_"$5]++ {print fix_cidr($1),fix_cidr($2),$3,$4,$5;}' \
         | awk 'NF >= "1" && !i[$1"_"$2"_"$3"_"$4"_"$5]++ {print $1,$2,$3,$4,$5}'
 }
 
@@ -639,8 +697,29 @@ lz_aq_get_route_local_address_info() {
 
     aq_route_static_subnet="$( ip -o -4 address list | awk '$2 == "br0" {print $4}' | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?' )"
     aq_route_local_subnet=""
-    [ -n "${aq_route_static_subnet}" ] && aq_route_local_subnet="${aq_route_static_subnet%.*}.0"
-    [ "${aq_route_static_subnet}" != "${aq_route_static_subnet##*/}" ] && aq_route_local_subnet="${aq_route_local_subnet}/${aq_route_static_subnet##*/}"
+    if [ -n "${aq_route_static_subnet}" ]; then
+        aq_route_local_subnet="$( awk -v ipv="${aq_route_static_subnet}" 'function fix_cidr(ipa) {
+            if (ipa ~ /([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?/) {
+                if (split(ipa, arr, /\.|\//) == 5) {
+                    pos = int(arr[5] / 8) + 1;
+                    step = rshift(255, arr[5] % 8) + 1;
+                    for (i = pos; i < 5; ++i) {
+                        if (i == pos)
+                            arr[i] = int(arr[i] / step) * step;
+                        else
+                            arr[i] = 0;
+                    }
+                    ipa = arr[1]"."arr[2]"."arr[3]"."arr[4];
+                    if (arr[5] != "32")
+                        ipa = ipa"/"arr[5];
+                }
+                delete arr;
+            } else if (ipa != "")
+                ipa = "";
+            return ipa;
+        } \
+        BEGIN{print fix_cidr(ipv);}' )"
+    fi
 }
 
 ## 设置网址信息查询用变量函数

@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_service.sh v4.6.3
+# lz_rule_service.sh v4.6.4
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 服务接口脚本
@@ -35,11 +35,12 @@ get_repo_site() {
 }
 
 get_last_version() {
-    local VER_SRC="larsonzh/amdwprprsct/blob/master/source_codes/lz/lz_rule.sh"
-    /usr/sbin/curl -fsLC "-" --retry 1 \
+    local RAW_SRC="larsonzh/amdwprprsct/raw/master/source_codes/lz/lz_rule.sh"
+    local BLOB_URL="larsonzh/amdwprprsct/blob/master/source_codes/lz/lz_rule.sh"
+    /usr/sbin/curl -fsLC "-" -m 15 --retry 3 \
         -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.5304.88 Safari/537.36 Edg/108.0.1462.46" \
-        -e "${1}" "${1}${VER_SRC}" \
-        | grep -oE 'LZ_VERSION=v[0-9]+([\.][0-9]+){2}' | sed 's/LZ_VERSION=//g' | sed -n 1p
+        -e "${1}${BLOB_URL}" "${1}${RAW_SRC}" \
+        | grep -oEw 'LZ_VERSION=v[0-9]+([\.][0-9]+)+' | sed 's/LZ_VERSION=//g' | sed -n 1p
 }
 
 case "${2}" in
@@ -185,9 +186,10 @@ case "${2}" in
                 } >> "/tmp/syslog.log"
                 mkdir -p "${PATH_LZ}/tmp/doupdate" 2> /dev/null
                 local PACKAGE_SRC="larsonzh/amdwprprsct/raw/master/installation_package/lz_rule-${remoteVer}.tgz"
-                /usr/sbin/curl -fsLC "-" --retry 1 \
+                local BLOB_URL="larsonzh/amdwprprsct/blob/master/installation_package/lz_rule-${remoteVer}.tgz"
+                /usr/sbin/curl -fsLC "-" --retry 3 \
                     -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.5304.88 Safari/537.36 Edg/108.0.1462.46" \
-                    -e "${LZ_REPO}" "${LZ_REPO}${PACKAGE_SRC}" -o "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}.tgz"
+                    -e "${LZ_REPO}${BLOB_URL}" "${LZ_REPO}${PACKAGE_SRC}" -o "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}.tgz"
                 if [ -f "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}.tgz" ]; then
                     {
                         printf "%s [%s]:\n" "$( date +"%F %T" )" "${$}"
@@ -271,10 +273,30 @@ case "${2}" in
                                 sed -e 's/^[[:space:]]\+//g' -e 's/[#].*$//g' -e 's/[[:space:]]\+/ /g' -e 's/[[:space:]]\+$//g' \
                                     -e 's/\(^\|[^[:digit:]]\)[0]\+\([[:digit:]]\)/\1\2/g' \
                                     -e 's/^\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]].*$/\1/' \
-                                    -e "s#\(^\|[[:space:]]\)${route_local_subnet}\([[:space:]]\|$\)#${route_static_subnet}#g" \
                                     -e '/^\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?$/!d' \
                                     -e '/[3-9][0-9][0-9]\|[2][6-9][0-9]\|[2][5][6-9]\|[\/][4-9][0-9]\|[\/][3][3-9]/d' \
+                                    -e 's/[\/]32//g' \
+                                    -e "s#\(^\|[[:space:]]\)${route_local_subnet}\([[:space:]]\|$\)#\1${route_static_subnet}\2#g" \
                                     -e "/\(^\|[[:space:]]\)\(0[\.]0[\.]0[\.]0\|0[\.]0[\.]0[\.]0[\/]0\|${route_local_ip}\)\([[:space:]]\|$\)/d" "${custom_data_file}" \
+                                    | awk 'function fix_cidr(ipa) {
+                                        split(ipa, arr, /\.|\//);
+                                        if (arr[5] !~ /^[0-9][0-9]?$/)
+                                            ip_value = ipa;
+                                        else {
+                                            pos = int(arr[5] / 8) + 1;
+                                            step = rshift(255, arr[5] % 8) + 1;
+                                            for (i = pos; i < 5; ++i) {
+                                                if (i == pos)
+                                                    arr[i] = int(arr[i] / step) * step;
+                                                else
+                                                    arr[i] = 0;
+                                            }
+                                            ip_value = arr[1]"."arr[2]"."arr[3]"."arr[4]"/"arr[5];
+                                        }
+                                        delete arr;
+                                        return ip_value;
+                                    } \
+                                    NF == "1" && !i[$1]++ {print fix_cidr($1);}' \
                                     | awk -v count="0" 'NF == "1" && !i[$1]++ {print $1; count++;} \
                                     END{if (count > "0") printf "\n"; printf "Total: %s\n", count;}'
                             fi

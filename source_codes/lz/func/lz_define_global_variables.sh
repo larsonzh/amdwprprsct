@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_define_global_variables.sh v4.6.3
+# lz_define_global_variables.sh v4.6.4
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 # QnkgTFog5aaZ5aaZ5ZGc77yI6Juk6J+G5aKp5YS/77yJ（首次运行标识，切勿修改）
 
@@ -416,8 +416,29 @@ route_local_ip="${route_static_subnet%/*}"
 
 ## 路由器本地子网
 route_local_subnet=""
-[ -n "${route_static_subnet}" ] && route_local_subnet="${route_static_subnet%.*}.0"
-[ "${route_static_subnet}" != "${route_static_subnet##*/}" ] && route_local_subnet="${route_local_subnet}/${route_static_subnet##*/}"
+if [ -n "${route_static_subnet}" ]; then
+    route_local_subnet="$( awk -v ipv="${route_static_subnet}" 'function fix_cidr(ipa) {
+        if (ipa ~ /([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?/) {
+            if (split(ipa, arr, /\.|\//) == 5) {
+                pos = int(arr[5] / 8) + 1;
+                step = rshift(255, arr[5] % 8) + 1;
+                for (i = pos; i < 5; ++i) {
+                    if (i == pos)
+                        arr[i] = int(arr[i] / step) * step;
+                    else
+                        arr[i] = 0;
+                }
+                ipa = arr[1]"."arr[2]"."arr[3]"."arr[4];
+                if (arr[5] != "32")
+                    ipa = ipa"/"arr[5];
+            }
+            delete arr;
+        } else if (ipa != "")
+            ipa = "";
+        return ipa;
+    } \
+    BEGIN{print fix_cidr(ipv);}' )"
+fi
 
 ## 静态分流模式整体通道推送命令是否执行（0--未执行；1--已执行）
 command_from_all_executed="0"

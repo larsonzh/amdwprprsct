@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v4.6.3
+# lz_rule_func.sh v4.6.4
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 #BEGIN
@@ -61,10 +61,29 @@ lz_print_ipv4_address_list() {
     sed -e 's/^[[:space:]]\+//g' -e 's/[#].*$//g' -e 's/[[:space:]]\+/ /g' -e 's/[[:space:]]\+$//g' \
         -e 's/\(^\|[^[:digit:]]\)[0]\+\([[:digit:]]\)/\1\2/g' \
         -e 's/^\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]].*$/\1/' \
-        -e "s#\(^\|[[:space:]]\)${route_local_subnet}\([[:space:]]\|$\)#${route_static_subnet}#g" \
         -e '/^\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?$/!d' \
         -e '/[3-9][0-9][0-9]\|[2][6-9][0-9]\|[2][5][6-9]\|[\/][4-9][0-9]\|[\/][3][3-9]/d' \
+        -e 's/[\/]32//g' \
         -e "/\(^\|[[:space:]]\)\(0\+[\.]0\+[\.]0\+[\.]0\+\|${route_local_ip}\)\([[:space:]]\|$\)/d" "${1}" \
+        | awk 'function fix_cidr(ipa) {
+            split(ipa, arr, /\.|\//);
+            if (arr[5] !~ /^[0-9][0-9]?$/)
+                ip_value = ipa;
+            else {
+                pos = int(arr[5] / 8) + 1;
+                step = rshift(255, arr[5] % 8) + 1;
+                for (i = pos; i < 5; ++i) {
+                    if (i == pos)
+                        arr[i] = int(arr[i] / step) * step;
+                    else
+                        arr[i] = 0;
+                }
+                ip_value = arr[1]"."arr[2]"."arr[3]"."arr[4]"/"arr[5];
+            }
+            delete arr;
+            return ip_value;
+        } \
+        NF == "1" && !i[$1]++ {print fix_cidr($1);}' \
         | awk 'NF == "1" && !i[$1]++ {print $1}'
 }
 
@@ -91,10 +110,29 @@ lz_print_src_to_dst_ipv4_address_list() {
     sed -e 's/^[[:space:]]\+//g' -e 's/[#].*$//g' -e 's/[[:space:]]\+/ /g' -e 's/[[:space:]]\+$//g' \
         -e 's/\(^\|[^[:digit:]]\)[0]\+\([[:digit:]]\)/\1\2/g' \
         -e 's/^\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]]\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]].*$/\1 \4/' \
-        -e "s#\(^\|[[:space:]]\)${route_local_subnet}\([[:space:]]\|$\)#${route_static_subnet}#g" \
         -e '/^\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?[[:space:]]\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?$/!d' \
         -e '/[3-9][0-9][0-9]\|[2][6-9][0-9]\|[2][5][6-9]\|[\/][4-9][0-9]\|[\/][3][3-9]/d' \
+        -e 's/[\/]32//g' \
         -e "/\(^\|[[:space:]]\)\(0\+[\.]0\+[\.]0\+[\.]0\+\|${route_local_ip}\)\([[:space:]]\|$\)/d" "${1}" \
+        | awk 'function fix_cidr(ipa) {
+            split(ipa, arr, /\.|\//);
+            if (arr[5] !~ /^[0-9][0-9]?$/)
+                ip_value = ipa;
+            else {
+                pos = int(arr[5] / 8) + 1;
+                step = rshift(255, arr[5] % 8) + 1;
+                for (i = pos; i < 5; ++i) {
+                    if (i == pos)
+                        arr[i] = int(arr[i] / step) * step;
+                    else
+                        arr[i] = 0;
+                }
+                ip_value = arr[1]"."arr[2]"."arr[3]"."arr[4]"/"arr[5];
+            }
+            delete arr;
+            return ip_value;
+        } \
+        NF == "2" && !i[$1_$2]++ {print fix_cidr($1),fix_cidr($2);}' \
         | awk 'NF == "2" && $1 != $2 && !i[$1_$2]++ {print $0; next;} \
         NF == "2" && $1 == "0.0.0.0/0" && $2 == "0.0.0.0/0" && !i[$1_$2]++ {print $1,$2; next;}'
 }
@@ -111,10 +149,29 @@ lz_print_src_to_dst_port_ipv4_address_list() {
         | tr '[:A-Z:]' '[:a-z:]' \
         | sed -e 's/^[[:space:]]\+//g' -e 's/[#].*$//g' -e 's/[[:space:]]\+/ /g' -e 's/[[:space:]]\+$//g' \
         -e 's/\(^\|[^[:digit:]]\)[0]\+\([[:digit:]]\)/\1\2/g' \
-        -e "s#\(^\|[[:space:]]\)${route_local_subnet}\([[:space:]]\|$\)#${route_static_subnet}#g" \
-        -e "/\(^\|[[:space:]]\)\(0\+[\.]0\+[\.]0\+[\.]0\+\|${route_local_ip}\)\([[:space:]]\|$\)/d" \
         -e '/^\([^[:space:]]\+[[:space:]]\)\?[^[:space:]]*\([3-9][0-9][0-9]\|[2][6-9][0-9]\|[2][5][6-9]\|[\/][4-9][0-9]\|[\/][3][3-9]\)[^[:space:]]*\([[:space:]]\|$\)/d' \
-        | awk 'NF >= "1" && !i[$1"_"$2"_"$3"_"$4"_"$5]++ {print $1,$2,$3,$4,$5}'
+        -e 's/[\/]32//g' \
+        -e "/\(^\|[[:space:]]\)\(0\+[\.]0\+[\.]0\+[\.]0\+\|${route_local_ip}\)\([[:space:]]\|$\)/d" \
+        | awk 'function fix_cidr(ipa) {
+            split(ipa, arr, /\.|\//);
+            if (arr[5] !~ /^[0-9][0-9]?$/)
+                ip_value = ipa;
+            else {
+                pos = int(arr[5] / 8) + 1;
+                step = rshift(255, arr[5] % 8) + 1;
+                for (i = pos; i < 5; ++i) {
+                    if (i == pos)
+                        arr[i] = int(arr[i] / step) * step;
+                    else
+                        arr[i] = 0;
+                }
+                ip_value = arr[1]"."arr[2]"."arr[3]"."arr[4]"/"arr[5];
+            }
+            delete arr;
+            return ip_value;
+        } \
+        NF >= "1" && !i[$1"_"$2"_"$3"_"$4"_"$5]++ {print fix_cidr($1),fix_cidr($2),$3,$4,$5;}' \
+        | awk 'NF >= "1" && !i[$1"_"$2"_"$3"_"$4"_"$5]++ {print $1,$2,$3,$4,$5;}'
 }
 
 ## 获取IPv4源网址/网段列表数据文件总有效条目数函数
@@ -817,9 +874,9 @@ lz_get_route_info() {
     fi
 
     ## 输出显示路由器NVRAM使用情况
-    nvram show 2>&1 \
-        |  awk '/size[\:][[:space:]]*[0-9]+[[:space:]]*bytes[[:space:]]*[\(][0-9]+[[:space:]]*left[\)]/ \
-        {print "'"$(lzdate) [${$}]:    NVRAM usage: "'"$2" \/ "substr($4,2)+$2,$3; exit}' \
+    nvram show 2>&1 | sed -e '/^.*size[\:][[:space:]]*[0-9]\+[[:space:]]*bytes[[:space:]]*[(][0-9]\+[[:space:]]*left[)].*$/!d' \
+        -e 's/^.*\(size[\:][[:space:]]*[0-9]\+[[:space:]]*bytes[[:space:]]*[(][0-9]\+[[:space:]]*left[)]\).*$/\1/' \
+        | awk '{print "'"$(lzdate) [${$}]:    NVRAM usage: "'"$2" \/ "substr($4,2)+$2,$3; exit;}' \
         | tee -ai "${SYSLOG}" 2> /dev/null
 
     ## 获取路由器本地网络信息
@@ -2086,9 +2143,9 @@ lz_add_ipv4_src_addr_list_binding_wan() {
     ##     0--成功
     ##     1--失败
     if [ "${4}" = "0" ] && lz_get_unkonwn_ipv4_src_addr_data_file_item "${1}"; then
-        if [ -n "${route_static_subnet}" ]; then
+        if [ -n "${route_local_subnet}" ]; then
             ! ip rule add not from "0.0.0.0" table "${2}" prio "${3}" > /dev/null 2>&1 \
-                && ip rule add from "${route_static_subnet}" table "${2}" prio "${3}" > /dev/null 2>&1
+                && ip rule add from "${route_local_subnet}" table "${2}" prio "${3}" > /dev/null 2>&1
         else
             ip rule add from all table "${2}" prio "${3}" > /dev/null 2>&1
         fi
@@ -2153,9 +2210,9 @@ lz_add_ipv4_src_to_dst_addr_list_binding_wan() {
     ##     0--成功
     ##     1--失败
     lz_get_unkonwn_ipv4_src_dst_addr_data_file_item "${1}" && {
-        if [ -n "${route_static_subnet}" ]; then
+        if [ -n "${route_local_subnet}" ]; then
             ! ip rule add not from "0.0.0.0" table "${2}" prio "${3}" > /dev/null 2>&1 \
-                && ip rule add from "${route_static_subnet}" table "${2}" prio "${3}" > /dev/null 2>&1
+                && ip rule add from "${route_local_subnet}" table "${2}" prio "${3}" > /dev/null 2>&1
         else
             ip rule add from all table "${2}" prio "${3}" > /dev/null 2>&1
         fi
@@ -2448,9 +2505,9 @@ lz_client_dest_port_policy() {
     ##     0--成功
     ##     1--失败
     lz_get_unkonwn_ipv4_src_dst_addr_port_data_file_item "${1}" && {
-        if [ -n "${route_static_subnet}" ]; then
+        if [ -n "${route_local_subnet}" ]; then
             ! ip rule add not from "0.0.0.0" table "${3}" prio "${4}" > /dev/null 2>&1 \
-                && ip rule add from "${route_static_subnet}" table "${3}" prio "${4}" > /dev/null 2>&1
+                && ip rule add from "${route_local_subnet}" table "${3}" prio "${4}" > /dev/null 2>&1
         else
             ip rule add from all table "${3}" prio "${4}" > /dev/null 2>&1
         fi
@@ -3563,29 +3620,37 @@ lz_initialize_ip_data_policy() {
 ##     域名地址条目列表
 lz_get_remote_node_list() {
     sed -e "s/['\"[:space:]]//g" -e 's/[#].*$//g' \
-        -e '/^\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\|[[:alnum:]]\([[:alnum:]-]\{0,61\}[[:alnum:]]\)\?\([\.][[:alnum:]]\([[:alnum:]-]\{0,61\}[[:alnum:]]\)\?\)*\)$/!d' \
+        -e '/^\(\([0-9]\+[\.]\)\{3\}[0-9]\+\([\/][0-9]\+\)\?\|[[:alnum:]]\([[:alnum:]-]\{0,61\}[[:alnum:]]\)\?\([\.][[:alnum:]]\([[:alnum:]-]\{0,61\}[[:alnum:]]\)\?\)*\)$/!d' \
         -e '/[^[:space:]]\{256,\}\|[-]\{2,\}/d' "${1}" 2> /dev/null \
         | tr '[:A-Z:]' '[:a-z:]' \
         | awk 'NF == "1" && !i[$1]++ {
             if ($1 ~ /^([0-9]+[\.]){3}[0-9]+([\/][0-9]+)?$/) {
-                if (split($1, arr, "\.") == 4) {
-                    if (split(arr[4], arr4, "\/") == 2) {
-                        if (arr[1] + 0 < 256 && arr[2] + 0 < 256 && arr[3] + 0 < 256 && arr4[1] + 0 < 256 && arr4[2] + 0 < 33) {
-                            ipa=arr[1] + 0"."arr[2] + 0"."arr[3] + 0"."arr[4] + 0"/"arr4[2] + 0;
-                            if (ipa == "'"${route_local_subnet}"'")
-                                ipa="'"${route_static_subnet}"'";
-                            if (ipa != "0.0.0.0/0")
-                                print ipa;
+                ipa = $1;
+                split(ipa, arr, /\.|\//);
+                for (i = 1; i <= 4; ++i)
+                    arr[i] = arr[i] + 0;
+                ipa = arr[1]"."arr[2]"."arr[3]"."arr[4];
+                if (arr[5] ~ /^[0-9]+$/) {
+                    arr[5] = arr[5] + 0;
+                    if (arr[1] < 256 && arr[2] < 256 && arr[3] < 256 && arr[4] < 256 && arr[5] < 33) {
+                        pos = int(arr[5] / 8) + 1;
+                        step = rshift(255, arr[5] % 8) + 1;
+                        for (i = pos; i < 5; ++i) {
+                            if (i == pos)
+                                arr[i] = int(arr[i] / step) * step;
+                            else
+                                arr[i] = 0;
                         }
-                    } else {
-                        if (arr[1] + 0 < 256 && arr[2] + 0 < 256 && arr[3] + 0 < 256 && arr[4] + 0 < 256) {
-                            ipa=arr[1] + 0"."arr[2] + 0"."arr[3] + 0"."arr[4] + 0;
-                            if (ipa != "0.0.0.0" && ipa != "'"${route_local_ip}"'")
-                                print ipa;
-                        } else
-                            print $1;
+                        ipa = ipa"/"arr[5];
+                        if (ipa != "0.0.0.0/0" && ipa != "0.0.0.0/32" && ipa != "'"${route_local_ip}"'""/32")
+                            print ipa;
                     }
-                    delete arr4;
+                } else {
+                    if (arr[1] < 256 && arr[2] < 256 && arr[3] < 256 && arr[4] < 256) {
+                        if (ipa != "0.0.0.0" && ipa != "'"${route_local_ip}"'")
+                            print ipa;
+                    } else
+                        print ipa;
                 }
                 delete arr;
             } else
@@ -5006,10 +5071,8 @@ lz_add_src_to_dst_sets_ip_rules() {
     if [ -z "${1}" ] || [ ! -s "${2}" ]; then return; fi;
     { echo "${1}" | grep -qEw '0+[\.]0+[\.]0+[\.]0+[\/]0+' || echo "${1}" | grep -qEw '0+[\.]0+[\.]0+[\.]0+' \
         || [ "${1}" = "${route_local_ip}" ]; } && return
-    local box_addr="${1}"
-    [ "${box_addr}" = "${route_local_subnet}" ] && box_addr="${route_static_subnet}"
-    lz_print_valid_ipv4_address_list "${2}" | awk 'NF >= "1" && $1 != "'"${box_addr}"'" \
-        {system("'"ip rule add from ${box_addr} to "'"$1"'" table ${3} prio ${4} > /dev/null 2>&1"'");}'
+    lz_print_valid_ipv4_address_list "${2}" | awk 'NF >= "1" && $1 != "'"${1}"'" \
+        {system("'"ip rule add from ${1} to "'"$1"'" table ${3} prio ${4} > /dev/null 2>&1"'");}'
 }
 
 ## 添加从源地址列表到目标地址访问网络路径规则函数
@@ -5023,10 +5086,8 @@ lz_add_src_sets_to_dst_ip_rules() {
     if [ ! -s "${1}" ] || [ -z "${2}" ]; then return; fi;
     { echo "${2}" | grep -qEw '0+[\.]0+[\.]0+[\.]0+[\/]0+' || echo "${2}" | grep -qEw '0+[\.]0+[\.]0+[\.]0+' \
         || [ "${2}" = "${route_local_ip}" ]; } && return
-    local box_addr="${2}"
-    [ "${box_addr}" = "${route_local_subnet}" ] && box_addr="${route_static_subnet}"
-    lz_print_valid_ipv4_address_list "${1}" | awk 'NF >= "1" && $1 != "'"${box_addr}"'" \
-        {system("ip rule add from "$1"'" to ${box_addr} table ${3} prio ${4} > /dev/null 2>&1"'");}'
+    lz_print_valid_ipv4_address_list "${1}" | awk 'NF >= "1" && $1 != "'"${2}"'" \
+        {system("ip rule add from "$1"'" to ${2} table ${3} prio ${4} > /dev/null 2>&1"'");}'
 }
 
 ## 启动IPTV机顶盒服务函数
@@ -5329,11 +5390,11 @@ lz_deployment_routing_policy() {
 
     ## 静态分流模式
     if [ "${usage_mode}" != "0" ] && [ "${command_from_all_executed}" = "0" ]; then
-        if [ -n "${route_static_subnet}" ]; then
+        if [ -n "${route_local_subnet}" ]; then
             [ "${policy_mode}" = "0" ] && ! ip rule add not from "0.0.0.0" table "${WAN1}" prio "${IP_RULE_PRIO}" > /dev/null 2>&1 \
-                && ip rule add from "${route_static_subnet}" table "${WAN1}" prio "${IP_RULE_PRIO}" > /dev/null 2>&1
+                && ip rule add from "${route_local_subnet}" table "${WAN1}" prio "${IP_RULE_PRIO}" > /dev/null 2>&1
             [ "${policy_mode}" = "1" ] && ! ip rule add not from "0.0.0.0" table "${WAN0}" prio "${IP_RULE_PRIO}" > /dev/null 2>&1 \
-                && ip rule add from "${route_static_subnet}" table "${WAN0}" prio "${IP_RULE_PRIO}" > /dev/null 2>&1
+                && ip rule add from "${route_local_subnet}" table "${WAN0}" prio "${IP_RULE_PRIO}" > /dev/null 2>&1
         else
             [ "${policy_mode}" = "0" ] && ip rule add from all table "${WAN1}" prio "${IP_RULE_PRIO}" > /dev/null 2>&1
             [ "${policy_mode}" = "1" ] && ip rule add from all table "${WAN0}" prio "${IP_RULE_PRIO}" > /dev/null 2>&1

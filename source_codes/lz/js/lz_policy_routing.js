@@ -1,5 +1,5 @@
 /*
-# lz_policy_routing.js v4.6.3
+# lz_policy_routing.js v4.6.4
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ JavaScript for Asuswrt-Merlin Router
@@ -18,8 +18,8 @@ function getVersion() {
         url: '/ext/lzr/LZRVersion.html',
         dataType: 'text',
         success: function(response) {
-            let buf = response.match(/^[\s]*LZ_VERSION[=][\w\.]*/m);
-            if (buf != null) policySettingsArray.version = (buf.length > 0) ? buf[0].replace(/^.*[=]/, "") : "";
+            let buf = response.match(/^[\s]*LZ_VERSION[=]v[\d]+([\.][\d]+)+/m);
+            if (buf != null) policySettingsArray.version = (buf.length > 0) ? buf[0].replace(/^[\s]*LZ_VERSION[=](v[\d]+([\.][\d]+)+)/, "$1") : "";
         }
     });
 }

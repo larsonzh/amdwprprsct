@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule.sh v4.6.3
+# lz_rule.sh v4.6.4
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # 本软件采用CIDR（无类别域间路由，Classless Inter-Domain Routing）技术，是一个在Internet上创建附加地
@@ -86,7 +86,7 @@
 ## -------------全局数据定义及初始化-------------------
 
 ## 版本号
-LZ_VERSION=v4.6.3
+LZ_VERSION=v4.6.4
 
 ## 运行状态查询命令
 SHOW_STATUS="status"
@@ -1079,11 +1079,12 @@ lz_get_repo_site() {
 ## 返回值：
 ##     软件最新版本信息
 lz_get_last_version() {
-    local VER_SRC="larsonzh/amdwprprsct/blob/master/source_codes/lz/${PROJECT_FILENAME}"
-    /usr/sbin/curl -fsLC "-" --retry 1 \
+    local RAW_SRC="larsonzh/amdwprprsct/raw/master/source_codes/lz/${PROJECT_FILENAME}"
+    local BLOB_URL="larsonzh/amdwprprsct/blob/master/source_codes/lz/${PROJECT_FILENAME}"
+    /usr/sbin/curl -fsLC "-" -m 15 --retry 3 \
         -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.5304.88 Safari/537.36 Edg/108.0.1462.46" \
-        -e "${1}" "${1}${VER_SRC}" \
-        | grep -oE 'LZ_VERSION=v[0-9]+([\.][0-9]+){2}' | sed 's/LZ_VERSION=//g' | sed -n 1p
+        -e "${1}${BLOB_URL}" "${1}${RAW_SRC}" \
+        | grep -oEw 'LZ_VERSION=v[0-9]+([\.][0-9]+)+' | sed 's/LZ_VERSION=//g' | sed -n 1p
 }
 
 ## ---------------------主执行脚本---------------------
@@ -1583,9 +1584,10 @@ if lz_project_file_management "${1}"; then
                 echo "$(lzdate)" [$$]: "Latest Version: ${remoteVer} (${LZ_REPO}larsonzh/amdwprprsct)" | tee -ai "${SYSLOG}" 2> /dev/null
                 mkdir -p "${PATH_LZ}/tmp/doupdate" 2> /dev/null
                 local PACKAGE_SRC="larsonzh/amdwprprsct/raw/master/installation_package/lz_rule-${remoteVer}.tgz"
-                /usr/sbin/curl -fsLC "-" --retry 1 \
+                local BLOB_URL="larsonzh/amdwprprsct/blob/master/installation_package/lz_rule-${remoteVer}.tgz"
+                /usr/sbin/curl -fsLC "-" --retry 3 \
                     -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.5304.88 Safari/537.36 Edg/108.0.1462.46" \
-                    -e "${LZ_REPO}" "${LZ_REPO}${PACKAGE_SRC}" -o "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}.tgz"
+                    -e "${LZ_REPO}${BLOB_URL}" "${LZ_REPO}${PACKAGE_SRC}" -o "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}.tgz"
                 if [ -f "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}.tgz" ]; then
                     echo "$(lzdate)" [$$]: "Successfully downloaded lz_rule-${remoteVer}.tgz from ${LZ_REPO}larsonzh/amdwprprsct." | tee -ai "${SYSLOG}" 2> /dev/null
                     tar -xzf "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}.tgz" -C "${PATH_LZ}/tmp/doupdate"
