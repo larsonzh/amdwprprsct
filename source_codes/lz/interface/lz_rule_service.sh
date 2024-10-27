@@ -265,18 +265,13 @@ case "${2}" in
                                 || [ -z "${custom_data_file}" ] || [ ! -s "${custom_data_file}" ]; then
                                 printf "Total: 0\n"
                             else
-                                local route_static_subnet="$( ip -o -4 address list | awk '$2 == "br0" {print $4}' | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?' )"
-                                local route_local_ip="${route_static_subnet%/*}"
-                                local route_local_subnet=""
-                                [ -n "${route_static_subnet}" ] && route_local_subnet="${route_static_subnet%.*}.0"
-                                [ "${route_static_subnet}" != "${route_static_subnet##*/}" ] && route_local_subnet="${route_local_subnet}/${route_static_subnet##*/}"
+                                local route_local_ip="$( ip -o -4 address list | awk '$2 == "br0" {print $4; exit;}' | grep -Eo '^([0-9]{1,3}[\.]){3}[0-9]{1,3}' )"
                                 sed -e 's/^[[:space:]]\+//g' -e 's/[#].*$//g' -e 's/[[:space:]]\+/ /g' -e 's/[[:space:]]\+$//g' \
                                     -e 's/\(^\|[^[:digit:]]\)[0]\+\([[:digit:]]\)/\1\2/g' \
                                     -e 's/^\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]].*$/\1/' \
                                     -e '/^\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?$/!d' \
                                     -e '/[3-9][0-9][0-9]\|[2][6-9][0-9]\|[2][5][6-9]\|[\/][4-9][0-9]\|[\/][3][3-9]/d' \
                                     -e 's/[\/]32//g' \
-                                    -e "s#\(^\|[[:space:]]\)${route_local_subnet}\([[:space:]]\|$\)#\1${route_static_subnet}\2#g" \
                                     -e "/\(^\|[[:space:]]\)\(0[\.]0[\.]0[\.]0\|0[\.]0[\.]0[\.]0[\/]0\|${route_local_ip}\)\([[:space:]]\|$\)/d" "${custom_data_file}" \
                                     | awk 'function fix_cidr(ipa) {
                                         split(ipa, arr, /\.|\//);

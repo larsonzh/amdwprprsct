@@ -993,7 +993,7 @@ lz_get_route_info() {
     fi
     echo "$(lzdate)" [$$]: --------------------------------------------- | tee -ai "${SYSLOG}" 2> /dev/null
 
-    route_local_ip="$( echo "${route_local_ip}" | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}' )"
+    route_local_ip="$( echo "${route_local_ip}" | grep -Eo '^([0-9]{1,3}[\.]){3}[0-9]{1,3}$' )"
 }
 
 ## 处理系统负载均衡分流策略规则函数
@@ -3393,37 +3393,37 @@ lz_initialize_ip_data_policy() {
             ipset -q add "${ISPIP_SET_0}" "${local_ifip_wan1_dns2}" nomatch
         }
         ## 加入第一WAN口外网IPv4网关地址
-        for local_wan_ip in $( ip -o -4 addr list | grep "$( nvram get "wan0_pppoe_ifname" | sed 's/[[:space:]]\+/\n/g' | sed -n 1p )" | awk '{print $6}' )
+        for local_wan_ip in $( ip -o -4 address list | grep "$( nvram get "wan0_pppoe_ifname" | sed 's/[[:space:]]\+/\n/g' | sed -n 1p )" | awk '{print $6}' )
         do
             ipset -q del "${ISPIP_SET_0}" "${local_wan_ip}"
             ipset -q add "${ISPIP_SET_0}" "${local_wan_ip}"
         done
         ## 排除第二WAN口外网IPv4网关地址
-        for local_wan_ip in $( ip -o -4 addr list | grep "$( nvram get "wan1_pppoe_ifname" | sed 's/[[:space:]]\+/\n/g' | sed -n 1p )" | awk '{print $6}' )
+        for local_wan_ip in $( ip -o -4 address list | grep "$( nvram get "wan1_pppoe_ifname" | sed 's/[[:space:]]\+/\n/g' | sed -n 1p )" | awk '{print $6}' )
         do
             ipset -q del "${ISPIP_SET_0}" "${local_wan_ip}"
             ipset -q add "${ISPIP_SET_0}" "${local_wan_ip}" nomatch
         done
         ## 加入第一WAN口外网IPv4网络地址
-        for local_wan_ip in $( ip -o -4 addr list | grep "$( nvram get "wan0_pppoe_ifname" | sed 's/[[:space:]]\+/\n/g' | sed -n 1p )" | awk '{print $4}' )
+        for local_wan_ip in $( ip -o -4 address list | grep "$( nvram get "wan0_pppoe_ifname" | sed 's/[[:space:]]\+/\n/g' | sed -n 1p )" | awk '{print $4}' )
         do
             ipset -q del "${ISPIP_SET_0}" "${local_wan_ip}"
             ipset -q add "${ISPIP_SET_0}" "${local_wan_ip}"
         done
         ## 排除第二WAN口外网IPv4网络地址
-        for local_wan_ip in $( ip -o -4 addr list | grep "$( nvram get "wan1_pppoe_ifname" | sed 's/[[:space:]]\+/\n/g' | sed -n 1p )" | awk '{print $4}' )
+        for local_wan_ip in $( ip -o -4 address list | grep "$( nvram get "wan1_pppoe_ifname" | sed 's/[[:space:]]\+/\n/g' | sed -n 1p )" | awk '{print $4}' )
         do
             ipset -q del "${ISPIP_SET_0}" "${local_wan_ip}"
             ipset -q add "${ISPIP_SET_0}" "${local_wan_ip}" nomatch
         done
         ## 加入第一WAN口内网地址
-        for local_wan_ip in $( ip -o -4 addr list | grep "$( nvram get "wan0_ifname" | sed 's/[[:space:]]\+/\n/g' | sed -n 1p )" | awk '{print $4}' )
+        for local_wan_ip in $( ip -o -4 address list | grep "$( nvram get "wan0_ifname" | sed 's/[[:space:]]\+/\n/g' | sed -n 1p )" | awk '{print $4}' )
         do
             ipset -q del "${ISPIP_SET_0}" "${local_wan_ip}"
             ipset -q add "${ISPIP_SET_0}" "${local_wan_ip}"
         done
         ## 排除第二WAN口内网地址
-        for local_wan_ip in $( ip -o -4 addr list | grep "$( nvram get "wan1_ifname" | sed 's/[[:space:]]\+/\n/g' | sed -n 1p )" | awk '{print $4}' )
+        for local_wan_ip in $( ip -o -4 address list | grep "$( nvram get "wan1_ifname" | sed 's/[[:space:]]\+/\n/g' | sed -n 1p )" | awk '{print $4}' )
         do
             ipset -q del "${ISPIP_SET_0}" "${local_wan_ip}"
             ipset -q add "${ISPIP_SET_0}" "${local_wan_ip}" nomatch
@@ -3449,37 +3449,37 @@ lz_initialize_ip_data_policy() {
             ipset -q add "${ISPIP_SET_1}" "${local_ifip_wan1_dns2}"
         }
         ## 排除第一WAN口外网IPv4网关地址
-        for local_wan_ip in $( ip -o -4 addr list | grep "$( nvram get "wan0_pppoe_ifname" | sed 's/[[:space:]]\+/\n/g' | sed -n 1p )" | awk '{print $6}' )
+        for local_wan_ip in $( ip -o -4 address list | grep "$( nvram get "wan0_pppoe_ifname" | sed 's/[[:space:]]\+/\n/g' | sed -n 1p )" | awk '{print $6}' )
         do
             ipset -q del "${ISPIP_SET_1}" "${local_wan_ip}"
             ipset -q add "${ISPIP_SET_1}" "${local_wan_ip}" nomatch
         done
         ## 加入第二WAN口外网IPv4网关地址
-        for local_wan_ip in $( ip -o -4 addr list | grep "$( nvram get "wan1_pppoe_ifname" | sed 's/[[:space:]]\+/\n/g' | sed -n 1p )" | awk '{print $6}' )
+        for local_wan_ip in $( ip -o -4 address list | grep "$( nvram get "wan1_pppoe_ifname" | sed 's/[[:space:]]\+/\n/g' | sed -n 1p )" | awk '{print $6}' )
         do
             ipset -q del "${ISPIP_SET_1}" "${local_wan_ip}"
             ipset -q add "${ISPIP_SET_1}" "${local_wan_ip}"
         done
         ## 排除第一WAN口外网IPv4网络地址
-        for local_wan_ip in $( ip -o -4 addr list | grep "$( nvram get "wan0_pppoe_ifname" | sed 's/[[:space:]]\+/\n/g' | sed -n 1p )" | awk '{print $4}' )
+        for local_wan_ip in $( ip -o -4 address list | grep "$( nvram get "wan0_pppoe_ifname" | sed 's/[[:space:]]\+/\n/g' | sed -n 1p )" | awk '{print $4}' )
         do
             ipset -q del "${ISPIP_SET_1}" "${local_wan_ip}"
             ipset -q add "${ISPIP_SET_1}" "${local_wan_ip}" nomatch
         done
         ## 加入第二WAN口外网IPv4网络地址
-        for local_wan_ip in $( ip -o -4 addr list | grep "$( nvram get "wan1_pppoe_ifname" | sed 's/[[:space:]]\+/\n/g' | sed -n 1p )" | awk '{print $4}' )
+        for local_wan_ip in $( ip -o -4 address list | grep "$( nvram get "wan1_pppoe_ifname" | sed 's/[[:space:]]\+/\n/g' | sed -n 1p )" | awk '{print $4}' )
         do
             ipset -q del "${ISPIP_SET_1}" "${local_wan_ip}"
             ipset -q add "${ISPIP_SET_1}" "${local_wan_ip}"
         done
         ## 排除第一WAN口内网地址
-        for local_wan_ip in $( ip -o -4 addr list | grep "$( nvram get "wan0_ifname" | sed 's/[[:space:]]\+/\n/g' | sed -n 1p )" | awk '{print $4}' )
+        for local_wan_ip in $( ip -o -4 address list | grep "$( nvram get "wan0_ifname" | sed 's/[[:space:]]\+/\n/g' | sed -n 1p )" | awk '{print $4}' )
         do
             ipset -q del "${ISPIP_SET_1}" "${local_wan_ip}"
             ipset -q add "${ISPIP_SET_1}" "${local_wan_ip}" nomatch
         done
         ## 加入第二WAN口内网地址
-        for local_wan_ip in $( ip -o -4 addr list | grep "$( nvram get "wan1_ifname" | sed 's/[[:space:]]\+/\n/g' | sed -n 1p )" | awk '{print $4}' )
+        for local_wan_ip in $( ip -o -4 address list | grep "$( nvram get "wan1_ifname" | sed 's/[[:space:]]\+/\n/g' | sed -n 1p )" | awk '{print $4}' )
         do
             ipset -q del "${ISPIP_SET_1}" "${local_wan_ip}"
             ipset -q add "${ISPIP_SET_1}" "${local_wan_ip}"
@@ -3506,25 +3506,25 @@ lz_initialize_ip_data_policy() {
             ipset -q add "${ISPIP_ALL_CN_SET}" "${local_ifip_wan1_dns2}"
         }
         ## 排除WAN口外网IPv4网络地址
-        for local_wan_ip in $( ip -o -4 addr list | awk '/ppp/ {print $4}' )
+        for local_wan_ip in $( ip -o -4 address list | awk '/ppp/ {print $4}' )
         do
             ipset -q del "${ISPIP_ALL_CN_SET}" "${local_wan_ip}"
             ipset -q add "${ISPIP_ALL_CN_SET}" "${local_wan_ip}"
         done
         ## 排除WAN口外网IPv4网关地址
-        for local_wan_ip in $( ip -o -4 addr list | awk '/ppp/ {print $6}' )
+        for local_wan_ip in $( ip -o -4 address list | awk '/ppp/ {print $6}' )
         do
             ipset -q del "${ISPIP_ALL_CN_SET}" "${local_wan_ip}"
             ipset -q add "${ISPIP_ALL_CN_SET}" "${local_wan_ip}"
         done
         ## 排除第一WAN口内网地址
-        for local_wan_ip in $( ip -o -4 addr list | grep "$( nvram get "wan0_ifname" | sed 's/[[:space:]]\+/\n/g' | sed -n 1p )" | awk '{print $4}' )
+        for local_wan_ip in $( ip -o -4 address list | grep "$( nvram get "wan0_ifname" | sed 's/[[:space:]]\+/\n/g' | sed -n 1p )" | awk '{print $4}' )
         do
             ipset -q del "${ISPIP_ALL_CN_SET}" "${local_wan_ip}"
             ipset -q add "${ISPIP_ALL_CN_SET}" "${local_wan_ip}"
         done
         ## 排除第二WAN口内网地址
-        for local_wan_ip in $( ip -o -4 addr list | grep "$( nvram get "wan1_ifname" | sed 's/[[:space:]]\+/\n/g' | sed -n 1p )" | awk '{print $4}' )
+        for local_wan_ip in $( ip -o -4 address list | grep "$( nvram get "wan1_ifname" | sed 's/[[:space:]]\+/\n/g' | sed -n 1p )" | awk '{print $4}' )
         do
             ipset -q del "${ISPIP_ALL_CN_SET}" "${local_wan_ip}"
             ipset -q add "${ISPIP_ALL_CN_SET}" "${local_wan_ip}"
@@ -3537,34 +3537,34 @@ lz_initialize_ip_data_policy() {
     [ -n "${local_ifip_wan1_dns1}" ] && ipset -q add "${BALANCE_GUARD_IP_SET}" "${local_ifip_wan1_dns1}"
     [ -n "${local_ifip_wan1_dns2}" ] && ipset -q add "${BALANCE_GUARD_IP_SET}" "${local_ifip_wan1_dns2}"
     ## 阻止访问WAN口外网IPv4网络地址负载均衡
-    for local_wan_ip in $( ip -o -4 addr list | awk '/ppp/ {print $4}' )
+    for local_wan_ip in $( ip -o -4 address list | awk '/ppp/ {print $4}' )
     do
         ipset -q add "${BALANCE_GUARD_IP_SET}" "${local_wan_ip}"
     done
     ## 阻止访问WAN口外网IPv4网关地址负载均衡
-    for local_wan_ip in $( ip -o -4 addr list | awk '/ppp/ {print $6}' )
+    for local_wan_ip in $( ip -o -4 address list | awk '/ppp/ {print $6}' )
     do
         ipset -q add "${BALANCE_GUARD_IP_SET}" "${local_wan_ip}"
     done
     ## 阻止访问第一WAN口内网地址负载均衡
-    for local_wan_ip in $( ip -o -4 addr list | grep "$( nvram get "wan0_ifname" | sed 's/[[:space:]]\+/\n/g' | sed -n 1p )" | awk '{print $4}' )
+    for local_wan_ip in $( ip -o -4 address list | grep "$( nvram get "wan0_ifname" | sed 's/[[:space:]]\+/\n/g' | sed -n 1p )" | awk '{print $4}' )
     do
         ipset -q add "${BALANCE_GUARD_IP_SET}" "${local_wan_ip}"
     done
     ## 阻止访问第二WAN口内网地址负载均衡
-    for local_wan_ip in $( ip -o -4 addr list | grep "$( nvram get "wan1_ifname" | sed 's/[[:space:]]\+/\n/g' | sed -n 1p )" | awk '{print $4}' )
+    for local_wan_ip in $( ip -o -4 address list | grep "$( nvram get "wan1_ifname" | sed 's/[[:space:]]\+/\n/g' | sed -n 1p )" | awk '{print $4}' )
     do
         ipset -q add "${BALANCE_GUARD_IP_SET}" "${local_wan_ip}"
     done
     if [ "${usage_mode}" != "0" ]; then
         ## 静态分流模式：模式1、模式2
         ## 阻止对源网址为第一WAN口内网地址的设备负载均衡
-        for local_wan_ip in $( ip -o -4 addr list | grep "$( nvram get "wan0_ifname" | sed 's/[[:space:]]\+/\n/g' | sed -n 1p )" | awk '{print $4}' )
+        for local_wan_ip in $( ip -o -4 address list | grep "$( nvram get "wan0_ifname" | sed 's/[[:space:]]\+/\n/g' | sed -n 1p )" | awk '{print $4}' )
         do
             ipset -q add "${BALANCE_IP_SET}" "${local_wan_ip}"
         done
         ## 阻止对源网址为第二WAN口内网地址的设备负载均衡
-        for local_wan_ip in $( ip -o -4 addr list | grep "$( nvram get "wan1_ifname" | sed 's/[[:space:]]\+/\n/g' | sed -n 1p )" | awk '{print $4}' )
+        for local_wan_ip in $( ip -o -4 address list | grep "$( nvram get "wan1_ifname" | sed 's/[[:space:]]\+/\n/g' | sed -n 1p )" | awk '{print $4}' )
         do
             ipset -q add "${BALANCE_IP_SET}" "${local_wan_ip}"
         done
@@ -3731,10 +3731,10 @@ lzdate() { date +"%F %T"; }
     echo "\$(lzdate)" [\$\$]: Running LZ VPN Event Handling Process "${LZ_VERSION}"
 } >> "${SYSLOG}"
 
-lz_ovpn_subnet_list="\$( ipset -q list "${OPENVPN_SUBNET_IP_SET}" | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?' )"
-lz_pptp_client_list="\$( ipset -q list "${PPTP_CLIENT_IP_SET}" | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?' )"
-lz_ipsec_subnet_list="\$( ipset -q list "${IPSEC_SUBNET_IP_SET}" | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?' )"
-lz_wireguard_client_list="\$( ipset -q list "${WIREGUARD_CLIENT_IP_SET}" | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?' )"
+lz_ovpn_subnet_list="\$( ipset -q list "${OPENVPN_SUBNET_IP_SET}" | grep -Eo '^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?$' )"
+lz_pptp_client_list="\$( ipset -q list "${PPTP_CLIENT_IP_SET}" | grep -Eo '^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?$' )"
+lz_ipsec_subnet_list="\$( ipset -q list "${IPSEC_SUBNET_IP_SET}" | grep -Eo '^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?$' )"
+lz_wireguard_client_list="\$( ipset -q list "${WIREGUARD_CLIENT_IP_SET}" | grep -Eo '^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?$' )"
 lz_nvram_ipsec_subnet_list=
 if [ "\$( nvram get "ipsec_server_enable" )" = "1" ]; then
     lz_nvram_ipsec_subnet_list="\$( nvram get "ipsec_profile_1" | sed 's/>/\n/g' | sed -n 15p | grep -Eo '([0-9]{1,3}[\.]){2}[0-9]{1,3}' | sed 's/^.*\$/&\.0\/24/' )"
@@ -4335,14 +4335,14 @@ lz_get_wan_pub_ip() {
     local local_wan_ip=""
     local local_local_wan_ip=""
     local local_public_ip_enable="0"
-    local local_wan_dev="$( ip route show table "${1}" | awk '/default/ && /ppp[0-9]*/ {print $5}' | sed -n 1p )"
+    local local_wan_dev="$( ip route show table "${1}" | awk '/default/ && /ppp[0-9]*/ {print $5; exit;}' )"
     if [ -z "${local_wan_dev}" ]; then
-        local_wan_dev="$( ip route show table "${1}" | awk '/default/ {print $5}' | sed -n 1p )"
+        local_wan_dev="$( ip route show table "${1}" | awk '/default/ {print $5; exit;}' )"
     fi
     if [ -n "${local_wan_dev}" ]; then
-        local_wan_ip="$( curl -s --connect-timeout 20 --interface "${local_wan_dev}" "whatismyip.akamai.com" | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}' )"
+        local_wan_ip="$( curl -s --connect-timeout 20 --interface "${local_wan_dev}" "whatismyip.akamai.com" | grep -Eo '^([0-9]{1,3}[\.]){3}[0-9]{1,3}$' )"
         [ -n "${local_wan_ip}" ] && local_public_ip_enable="1"
-        local_local_wan_ip="$( ip -o -4 addr list | awk '$2 ~ "'"${local_wan_dev}"'" {print $4}' | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}' )"
+        local_local_wan_ip="$( ip -o -4 address list | awk '$2 == "'"${local_wan_dev}"'" {print $4; exit;}' | grep -Eo '^([0-9]{1,3}[\.]){3}[0-9]{1,3}' )"
         [ "${local_wan_ip}" != "${local_local_wan_ip}" ] && local_public_ip_enable="0"
     fi
     echo "${local_wan_ip}:-${local_local_wan_ip}:-${local_public_ip_enable}"

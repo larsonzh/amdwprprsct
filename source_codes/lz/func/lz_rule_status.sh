@@ -394,12 +394,12 @@ lz_set_parameter_status_variable() {
     status_route_hardware_type=
     status_route_os_name=
 
-    status_route_static_subnet="$( ip -o -4 address list | awk '$2 == "br0" {print $4}' | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?' )"
+    status_route_static_subnet="$( ip -o -4 address list | awk '$2 == "br0" {print $4; exit;}' | grep -Eo '^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?$' )"
     status_route_local_ip="${status_route_static_subnet%/*}"
     status_route_local_subnet=""
     if [ -n "${status_route_static_subnet}" ]; then
         status_route_local_subnet="$( awk -v ipv="${status_route_static_subnet}" 'function fix_cidr(ipa) {
-            if (ipa ~ /([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?/) {
+            if (ipa ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?$/) {
                 if (split(ipa, arr, /\.|\//) == 5) {
                     pos = int(arr[5] / 8) + 1;
                     step = rshift(255, arr[5] % 8) + 1;
@@ -1263,7 +1263,7 @@ lz_get_route_status_info() {
     fi
     echo "$(lzdate)" [$$]: --------------------------------------------- | tee -ai "${STATUS_LOG}" 2> /dev/null
 
-    status_route_local_ip="$( echo "${status_route_local_ip}" | grep -Eo "([0-9]{1,3}[\.]){3}[0-9]{1,3}" )"
+    status_route_local_ip="$( echo "${status_route_local_ip}" | grep -Eo "^([0-9]{1,3}[\.]){3}[0-9]{1,3}$" )"
 }
 
 ## 显示更新ISP网络运营商CIDR网段数据定时任务函数
@@ -1418,14 +1418,14 @@ lz_get_wan_pub_ip_status() {
     local local_wan_ip=""
     local local_local_wan_ip=""
     local local_public_ip_enable="0"
-    local local_wan_dev="$( ip route show table "${1}" | awk '/default/ && /ppp[0-9]*/ {print $5}' | sed -n 1p )"
+    local local_wan_dev="$( ip route show table "${1}" | awk '/default/ && /ppp[0-9]*/ {print $5; exit;}' )"
     if [ -z "${local_wan_dev}" ]; then
-        local_wan_dev="$( ip route show table "${1}" | awk '/default/ {print $5}' | sed -n 1p )"
+        local_wan_dev="$( ip route show table "${1}" | awk '/default/ {print $5; exit;}' )"
     fi
     if [ -n "${local_wan_dev}" ]; then
-        local_wan_ip="$( curl -s --connect-timeout 20 --interface "${local_wan_dev}" "whatismyip.akamai.com" | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}' )"
+        local_wan_ip="$( curl -s --connect-timeout 20 --interface "${local_wan_dev}" "whatismyip.akamai.com" | grep -Eo '^([0-9]{1,3}[\.]){3}[0-9]{1,3}' )"
         [ -n "${local_wan_ip}" ] && local_public_ip_enable="1"
-        local_local_wan_ip="$( ip -o -4 addr list | awk '$2 ~ "'"${local_wan_dev}"'" {print $4}' | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}' )"
+        local_local_wan_ip="$( ip -o -4 address list | awk '$2 == "'"${local_wan_dev}"'" {print $4; exit;}' | grep -Eo '^([0-9]{1,3}[\.]){3}[0-9]{1,3}' )"
         [ "${local_wan_ip}" != "${local_local_wan_ip}" ] && local_public_ip_enable="0"
     fi
     echo "${local_wan_ip}:-${local_local_wan_ip}:-${local_public_ip_enable}"

@@ -695,11 +695,11 @@ lz_aq_get_route_local_address_info() {
     aq_route_local_ip_cidr_mask="$( echo "${local_route_local_info}" | awk 'NR==2 {print $4}' | awk -F: '{print $2}' )"
     [ -n "$aq_route_local_ip_cidr_mask" ] && aq_route_local_ip_cidr_mask="$( lz_aq_netmask2cdr "${aq_route_local_ip_cidr_mask}" )"
 
-    aq_route_static_subnet="$( ip -o -4 address list | awk '$2 == "br0" {print $4}' | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?' )"
+    aq_route_static_subnet="$( ip -o -4 address list | awk '$2 == "br0" {print $4; exit;}' | grep -Eo '^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?$' )"
     aq_route_local_subnet=""
     if [ -n "${aq_route_static_subnet}" ]; then
         aq_route_local_subnet="$( awk -v ipv="${aq_route_static_subnet}" 'function fix_cidr(ipa) {
-            if (ipa ~ /([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?/) {
+            if (ipa ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?$/) {
                 if (split(ipa, arr, /\.|\//) == 5) {
                     pos = int(arr[5] / 8) + 1;
                     step = rshift(255, arr[5] % 8) + 1;
@@ -1040,7 +1040,7 @@ lz_aq_resolve_ip() {
                 local_info="$( nslookup "${local_domain_name}" "${local_dnslookup_server}" 2> /dev/null )"
             fi
             local_ip="$( echo "${local_info}" | sed '1,4d' | awk '{print $3}' | grep -v : \
-                        | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}' )"
+                        | grep -Eo '^([0-9]{1,3}[\.]){3}[0-9]{1,3}$' )"
             local_domain_name="$( echo "${local_info}" | sed '1,3d' | grep -i Name | awk '{print $2}' | sed -n 1p )"
             [ -z "${local_domain_name}" ] && local_domain_name="$( echo "${1}" \
                                                                 | sed -e 's/^[[:space:]]*\([^[:space:]].*$\)/\1/g' \
@@ -1269,13 +1269,13 @@ lz_query_address() {
                     }' )"
 
                     ## 加入第一WAN口外网IPv4网关地址
-                    ipset -q add lz_aq_ispip_tmp_sets "$( ip -o -4 addr list | grep "$( nvram get "wan0_pppoe_ifname" | sed 's/[[:space:]]\+/\n/g' | sed -n 1p )" | awk '{print $6}' )"
+                    ipset -q add lz_aq_ispip_tmp_sets "$( ip -o -4 address list | grep "$( nvram get "wan0_pppoe_ifname" | sed 's/[[:space:]]\+/\n/g' | sed -n 1p )" | awk '{print $6}' )"
 
                     ## 加入第一WAN口外网IPv4网络地址
-                    ipset -q add lz_aq_ispip_tmp_sets "$( ip -o -4 addr list | grep "$( nvram get "wan0_pppoe_ifname" | sed 's/[[:space:]]\+/\n/g' | sed -n 1p )" | awk '{print $4}' )"
+                    ipset -q add lz_aq_ispip_tmp_sets "$( ip -o -4 address list | grep "$( nvram get "wan0_pppoe_ifname" | sed 's/[[:space:]]\+/\n/g' | sed -n 1p )" | awk '{print $4}' )"
 
                     ## 加入第一WAN口内网地址
-                    ipset -q add lz_aq_ispip_tmp_sets "$( ip -o -4 addr list | grep "$( nvram get "wan0_ifname" | sed 's/[[:space:]]\+/\n/g' | sed -n 1p )" | awk '{print $4}' )"
+                    ipset -q add lz_aq_ispip_tmp_sets "$( ip -o -4 address list | grep "$( nvram get "wan0_ifname" | sed 's/[[:space:]]\+/\n/g' | sed -n 1p )" | awk '{print $4}' )"
 
                     ipset -q test lz_aq_ispip_tmp_sets "${local_net_ip}" && local_isp_no="$(( AQ_ISP_TOTAL + 2 ))"
                 fi
@@ -1292,13 +1292,13 @@ lz_query_address() {
                     }' )"
 
                     ## 加入第二WAN口外网IPv4网关地址
-                    ipset -q add lz_aq_ispip_tmp_sets "$( ip -o -4 addr list | grep "$( nvram get "wan1_pppoe_ifname" | sed 's/[[:space:]]\+/\n/g' | sed -n 1p )" | awk '{print $6}' )"
+                    ipset -q add lz_aq_ispip_tmp_sets "$( ip -o -4 address list | grep "$( nvram get "wan1_pppoe_ifname" | sed 's/[[:space:]]\+/\n/g' | sed -n 1p )" | awk '{print $6}' )"
 
                     ## 加入第二WAN口外网IPv4网络地址
-                    ipset -q add lz_aq_ispip_tmp_sets "$( ip -o -4 addr list | grep "$( nvram get "wan1_pppoe_ifname" | sed 's/[[:space:]]\+/\n/g' | sed -n 1p )" | awk '{print $4}' )"
+                    ipset -q add lz_aq_ispip_tmp_sets "$( ip -o -4 address list | grep "$( nvram get "wan1_pppoe_ifname" | sed 's/[[:space:]]\+/\n/g' | sed -n 1p )" | awk '{print $4}' )"
 
                     ## 加入第二WAN口内网地址
-                    ipset -q add lz_aq_ispip_tmp_sets "$( ip -o -4 addr list | grep "$( nvram get "wan1_ifname" | sed 's/[[:space:]]\+/\n/g' | sed -n 1p )" | awk '{print $4}' )"
+                    ipset -q add lz_aq_ispip_tmp_sets "$( ip -o -4 address list | grep "$( nvram get "wan1_ifname" | sed 's/[[:space:]]\+/\n/g' | sed -n 1p )" | awk '{print $4}' )"
 
                     ipset -q test lz_aq_ispip_tmp_sets "${local_net_ip}" && local_isp_no="$(( AQ_ISP_TOTAL + 3 ))"
                 fi

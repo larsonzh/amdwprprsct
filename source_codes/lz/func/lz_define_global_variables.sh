@@ -409,7 +409,7 @@ route_hardware_type="$( uname -m )"
 route_os_name="$( uname -o )"
 
 ## 路由器本地静态子网
-route_static_subnet="$( ip -o -4 address list | awk '$2 == "br0" {print $4}' | grep -Eo '([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?' )"
+route_static_subnet="$( ip -o -4 address list | awk '$2 == "br0" {print $4; exit;}' | grep -Eo '^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?$' )"
 
 ## 路由器本地IP地址
 route_local_ip="${route_static_subnet%/*}"
@@ -418,7 +418,7 @@ route_local_ip="${route_static_subnet%/*}"
 route_local_subnet=""
 if [ -n "${route_static_subnet}" ]; then
     route_local_subnet="$( awk -v ipv="${route_static_subnet}" 'function fix_cidr(ipa) {
-        if (ipa ~ /([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?/) {
+        if (ipa ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?$/) {
             if (split(ipa, arr, /\.|\//) == 5) {
                 pos = int(arr[5] / 8) + 1;
                 step = rshift(255, arr[5] % 8) + 1;
