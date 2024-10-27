@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_define_global_variables.sh v4.6.4
+# lz_define_global_variables.sh v4.6.5
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 # QnkgTFog5aaZ5aaZ5ZGc77yI6Juk6J+G5aKp5YS/77yJ（首次运行标识，切勿修改）
 
@@ -415,9 +415,7 @@ route_static_subnet="$( ip -o -4 address list | awk '$2 == "br0" {print $4; exit
 route_local_ip="${route_static_subnet%/*}"
 
 ## 路由器本地子网
-route_local_subnet=""
-if [ -n "${route_static_subnet}" ]; then
-    route_local_subnet="$( awk -v ipv="${route_static_subnet}" 'function fix_cidr(ipa) {
+route_local_subnet="$( awk -v ipv="${route_static_subnet}" 'function fix_cidr(ipa) {
         if (ipa ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?$/) {
             if (split(ipa, arr, /\.|\//) == 5) {
                 pos = int(arr[5] / 8) + 1;
@@ -438,7 +436,6 @@ if [ -n "${route_static_subnet}" ]; then
         return ipa;
     } \
     BEGIN{print fix_cidr(ipv);}' )"
-fi
 
 ## 静态分流模式整体通道推送命令是否执行（0--未执行；1--已执行）
 command_from_all_executed="0"

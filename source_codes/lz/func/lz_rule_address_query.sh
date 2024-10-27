@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_address_query.sh v4.6.4
+# lz_rule_address_query.sh v4.6.5
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 网址信息查询脚本
@@ -94,7 +94,7 @@ lz_aq_print_ipv4_address_list() {
         -e '/^\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?$/!d' \
         -e '/[3-9][0-9][0-9]\|[2][6-9][0-9]\|[2][5][6-9]\|[\/][4-9][0-9]\|[\/][3][3-9]/d' \
         -e 's/[\/]32//g' \
-        -e "/\(^\|[[:space:]]\)\(0\+[\.]0\+[\.]0\+[\.]0\+\|${aq_route_local_ip}\)\([[:space:]]\|$\)/d" "${1}" \
+        -e "/\(^\|[[:space:]]\)\(0\([\.]0\)\{3\}\|${aq_route_local_ip}\)\([[:space:]]\|$\)/d" "${1}" \
         | awk 'function fix_cidr(ipa) {
             split(ipa, arr, /\.|\//);
             if (arr[5] !~ /^[0-9][0-9]?$/)
@@ -143,7 +143,7 @@ lz_aq_print_src_to_dst_ipv4_address_list() {
         -e '/^\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?[[:space:]]\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?$/!d' \
         -e '/[3-9][0-9][0-9]\|[2][6-9][0-9]\|[2][5][6-9]\|[\/][4-9][0-9]\|[\/][3][3-9]/d' \
         -e 's/[\/]32//g' \
-        -e "/\(^\|[[:space:]]\)\(0\+[\.]0\+[\.]0\+[\.]0\+\|${aq_route_local_ip}\)\([[:space:]]\|$\)/d" "${1}" \
+        -e "/\(^\|[[:space:]]\)\(0\([\.]0\)\{3\}\|${aq_route_local_ip}\)\([[:space:]]\|$\)/d" "${1}" \
         | awk 'function fix_cidr(ipa) {
             split(ipa, arr, /\.|\//);
             if (arr[5] !~ /^[0-9][0-9]?$/)
@@ -181,7 +181,7 @@ lz_aq_print_src_to_dst_port_ipv4_address_list() {
         -e 's/\(^\|[^[:digit:]]\)[0]\+\([[:digit:]]\)/\1\2/g' \
         -e '/^\([^[:space:]]\+[[:space:]]\)\?[^[:space:]]*\([3-9][0-9][0-9]\|[2][6-9][0-9]\|[2][5][6-9]\|[\/][4-9][0-9]\|[\/][3][3-9]\)[^[:space:]]*\([[:space:]]\|$\)/d' \
         -e 's/[\/]32//g' \
-        -e "/\(^\|[[:space:]]\)\(0\+[\.]0\+[\.]0\+[\.]0\+\|${aq_route_local_ip}\)\([[:space:]]\|$\)/d" \
+        -e "/\(^\|[[:space:]]\)\(0\([\.]0\)\{3\}\|${aq_route_local_ip}\)\([[:space:]]\|$\)/d" \
         | awk 'function fix_cidr(ipa) {
             split(ipa, arr, /\.|\//);
             if (arr[5] !~ /^[0-9][0-9]?$/)
@@ -696,9 +696,7 @@ lz_aq_get_route_local_address_info() {
     [ -n "$aq_route_local_ip_cidr_mask" ] && aq_route_local_ip_cidr_mask="$( lz_aq_netmask2cdr "${aq_route_local_ip_cidr_mask}" )"
 
     aq_route_static_subnet="$( ip -o -4 address list | awk '$2 == "br0" {print $4; exit;}' | grep -Eo '^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?$' )"
-    aq_route_local_subnet=""
-    if [ -n "${aq_route_static_subnet}" ]; then
-        aq_route_local_subnet="$( awk -v ipv="${aq_route_static_subnet}" 'function fix_cidr(ipa) {
+    aq_route_local_subnet="$( awk -v ipv="${aq_route_static_subnet}" 'function fix_cidr(ipa) {
             if (ipa ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?$/) {
                 if (split(ipa, arr, /\.|\//) == 5) {
                     pos = int(arr[5] / 8) + 1;
@@ -719,7 +717,6 @@ lz_aq_get_route_local_address_info() {
             return ipa;
         } \
         BEGIN{print fix_cidr(ipv);}' )"
-    fi
 }
 
 ## 设置网址信息查询用变量函数
@@ -1261,9 +1258,9 @@ lz_query_address() {
                     ipset -q flush lz_aq_ispip_tmp_sets
                     ## 第一WAN口的DNS解析服务器网址
                     eval "$( nvram get "wan0_dns" | awk 'NF >= "1" {
-                        if ($1 !~ /^0+[\.]0+[\.]0+[\.]0+$/ && $1 !~ /^127[\.]0+[\.]0+[\.]0*1$/ && $1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?$/)
+                        if ($1 != "0.0.0.0" && $1 != "127.0.0.1" && $1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?$/)
                             print "ipset -q add lz_aq_ispip_tmp_sets "$1;
-                        if ($2 !~ /^0+[\.]0+[\.]0+[\.]0+$/ && $2 !~ /^127[\.]0+[\.]0+[\.]0*1$/ && $2 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?$/)
+                        if ($2 != "0.0.0.0" && $2 != "127.0.0.1" && $2 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?$/)
                             print "ipset -q add lz_aq_ispip_tmp_sets "$2;
                         exit;
                     }' )"
@@ -1284,9 +1281,9 @@ lz_query_address() {
                     ipset -q flush lz_aq_ispip_tmp_sets
                     ## 第二WAN口的DNS解析服务器网址
                     eval "$( nvram get "wan1_dns" | awk 'NF >= "1" {
-                        if ($1 !~ /^0+[\.]0+[\.]0+[\.]0+$/ && $1 !~ /^127[\.]0+[\.]0+[\.]0*1$/ && $1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?$/)
+                        if ($1 != "0.0.0.0" && $1 != "127.0.0.1" && $1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?$/)
                             print "ipset -q add lz_aq_ispip_tmp_sets "$1;
-                        if ($2 !~ /^0+[\.]0+[\.]0+[\.]0+$/ && $2 !~ /^127[\.]0+[\.]0+[\.]0*1$/ && $2 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?$/)
+                        if ($2 != "0.0.0.0" && $2 != "127.0.0.1" && $2 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?$/)
                             print "ipset -q add lz_aq_ispip_tmp_sets "$2;
                         exit;
                     }' )"

@@ -1,5 +1,5 @@
 #!/bin/sh
-# install.sh v4.6.4
+# install.sh v4.6.5
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ RULE script for Asuswrt-Merlin Router
@@ -11,7 +11,7 @@
 
 #BEGIN
 
-LZ_VERSION=v4.6.4
+LZ_VERSION=v4.6.5
 TIMEOUT=10
 CURRENT_PATH="${0%/*}"
 [ "${CURRENT_PATH:0:1}" != '/' ] && CURRENT_PATH="$( pwd )${CURRENT_PATH#*.}"

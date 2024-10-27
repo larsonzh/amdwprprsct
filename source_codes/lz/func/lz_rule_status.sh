@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_status.sh v4.6.4
+# lz_rule_status.sh v4.6.5
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 显示脚本运行状态脚本
@@ -172,7 +172,7 @@ lz_print_ipv4_address_list_status() {
         -e '/^\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?$/!d' \
         -e '/[3-9][0-9][0-9]\|[2][6-9][0-9]\|[2][5][6-9]\|[\/][4-9][0-9]\|[\/][3][3-9]/d' \
         -e 's/[\/]32//g' \
-        -e "/\(^\|[[:space:]]\)\(0\+[\.]0\+[\.]0\+[\.]0\+\|${status_route_local_ip}\)\([[:space:]]\|$\)/d" "${1}" \
+        -e "/\(^\|[[:space:]]\)\(0\([\.]0\)\{3\}\|${status_route_local_ip}\)\([[:space:]]\|$\)/d" "${1}" \
         | awk 'function fix_cidr(ipa) {
             split(ipa, arr, /\.|\//);
             if (arr[5] !~ /^[0-9][0-9]?$/)
@@ -221,7 +221,7 @@ lz_print_src_to_dst_ipv4_address_list_status() {
         -e '/^\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?[[:space:]]\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?$/!d' \
         -e '/[3-9][0-9][0-9]\|[2][6-9][0-9]\|[2][5][6-9]\|[\/][4-9][0-9]\|[\/][3][3-9]/d' \
         -e 's/[\/]32//g' \
-        -e "/\(^\|[[:space:]]\)\(0\+[\.]0\+[\.]0\+[\.]0\+\|${status_route_local_ip}\)\([[:space:]]\|$\)/d" "${1}" \
+        -e "/\(^\|[[:space:]]\)\(0\([\.]0\)\{3\}\|${status_route_local_ip}\)\([[:space:]]\|$\)/d" "${1}" \
         | awk 'function fix_cidr(ipa) {
             split(ipa, arr, /\.|\//);
             if (arr[5] !~ /^[0-9][0-9]?$/)
@@ -259,7 +259,7 @@ lz_print_src_to_dst_port_ipv4_address_list_status() {
         -e 's/\(^\|[^[:digit:]]\)[0]\+\([[:digit:]]\)/\1\2/g' \
         -e '/^\([^[:space:]]\+[[:space:]]\)\?[^[:space:]]*\([3-9][0-9][0-9]\|[2][6-9][0-9]\|[2][5][6-9]\|[\/][4-9][0-9]\|[\/][3][3-9]\)[^[:space:]]*\([[:space:]]\|$\)/d' \
         -e 's/[\/]32//g' \
-        -e "/\(^\|[[:space:]]\)\(0\+[\.]0\+[\.]0\+[\.]0\+\|${status_route_local_ip}\)\([[:space:]]\|$\)/d" \
+        -e "/\(^\|[[:space:]]\)\(0\([\.]0\)\{3\}\|${status_route_local_ip}\)\([[:space:]]\|$\)/d" \
         | awk 'function fix_cidr(ipa) {
             split(ipa, arr, /\.|\//);
             if (arr[5] !~ /^[0-9][0-9]?$/)
@@ -396,9 +396,7 @@ lz_set_parameter_status_variable() {
 
     status_route_static_subnet="$( ip -o -4 address list | awk '$2 == "br0" {print $4; exit;}' | grep -Eo '^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?$' )"
     status_route_local_ip="${status_route_static_subnet%/*}"
-    status_route_local_subnet=""
-    if [ -n "${status_route_static_subnet}" ]; then
-        status_route_local_subnet="$( awk -v ipv="${status_route_static_subnet}" 'function fix_cidr(ipa) {
+    status_route_local_subnet="$( awk -v ipv="${status_route_static_subnet}" 'function fix_cidr(ipa) {
             if (ipa ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?$/) {
                 if (split(ipa, arr, /\.|\//) == 5) {
                     pos = int(arr[5] / 8) + 1;
@@ -419,7 +417,6 @@ lz_set_parameter_status_variable() {
             return ipa;
         } \
         BEGIN{print fix_cidr(ipv);}' )"
-    fi
 
     status_ip_rule_exist=0
     status_adjust_traffic_policy="5"
@@ -2067,7 +2064,7 @@ lz_output_dport_policy_info_status() {
             if ip rule show | grep -q "^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*all[[:space:]]*fwmark[[:space:]]*${2}[[:space:]]*lookup"; then
                 iptables -t mangle -L "${STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN}" -n 2> /dev/null \
                     | sed -n "/CONNMARK[[:space:]]*set[[:space:]]*${2}$/p" \
-                    | sed -e 's/^.*[[:space:]]\(tcp\|udp\|udplite\|sctp\|dccp\)[^[:alpha:]].*[[:space:]]0\+[\.]0\+[\.]0\+[\.]0\+[\/]0\+[[:space:]]\+0\+[\.]0\+[\.]0\+[\.]0\+[\/]0\+[[:space:]].*dports[[:space:]]\+\([^[:space:]]\+\)[[:space:]].*$/\1 \2/g' \
+                    | sed -e 's/^.*[[:space:]]\(tcp\|udp\|udplite\|sctp\|dccp\)[^[:alpha:]].*[[:space:]]0\([\.]0\)\{3\}[\/]0[[:space:]]\+0\([\.]0\)\{3\}[\/]0[[:space:]].*dports[[:space:]]\+\([^[:space:]]\+\)[[:space:]].*$/\1 \4/g' \
                     -e '/CONNMARK/d' \
                     | tr '[:a-z:]' '[:A-Z:]' \
                     | awk -v count="0" -v wan_name="${wan_name}" 'NF == "2" {print "'"$(lzdate) [${$}]: "'"wan_name" "$1": "$2; count++;} \
