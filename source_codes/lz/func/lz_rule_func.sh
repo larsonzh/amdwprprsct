@@ -4340,7 +4340,7 @@ lz_get_wan_pub_ip() {
         local_wan_dev="$( ip route show table "${1}" | awk '/default/ {print $5; exit;}' )"
     fi
     if [ -n "${local_wan_dev}" ]; then
-        local_wan_ip="$( curl -s --connect-timeout 20 --interface "${local_wan_dev}" "whatismyip.akamai.com" | grep -Eo '^([0-9]{1,3}[\.]){3}[0-9]{1,3}$' )"
+        local_wan_ip="$( curl -s --connect-timeout 20 --interface "${local_wan_dev}" "whatismyip.akamai.com" | grep -Eo '^([0-9]{1,3}[\.]){3}[0-9]{1,3}' )"
         [ -n "${local_wan_ip}" ] && local_public_ip_enable="1"
         local_local_wan_ip="$( ip -o -4 address list | awk '$2 == "'"${local_wan_dev}"'" {print $4; exit;}' | grep -Eo '^([0-9]{1,3}[\.]){3}[0-9]{1,3}' )"
         [ "${local_wan_ip}" != "${local_local_wan_ip}" ] && local_public_ip_enable="0"
