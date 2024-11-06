@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v4.6.5
+# lz_rule_func.sh v4.6.6
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 #BEGIN
@@ -1892,13 +1892,13 @@ fi
 
 UPDATE_ISPIP_DATA_A
     if [ "${drop_sys_caches}" = "0" ]; then
-    cat >> "${PATH_LZ}/${UPDATE_FILENAME}" <<UPDATE_ISPIP_DATA_B
+        cat >> "${PATH_LZ}/${UPDATE_FILENAME}" <<UPDATE_ISPIP_DATA_B
 { [ -f /proc/sys/vm/drop_caches ] && sync && echo 3 > /proc/sys/vm/drop_caches && echo -e "\$(lzdate) [\$\$]:\\n\$(lzdate) [\$\$]: LZ ${LZ_VERSION} Free Memory OK\\n\$(lzdate) [\$\$]:"; } | tee -ai "${SYSLOG}" 2> /dev/null
 
 #END
 UPDATE_ISPIP_DATA_B
     else
-    cat >> "${PATH_LZ}/${UPDATE_FILENAME}" <<UPDATE_ISPIP_DATA_C
+        cat >> "${PATH_LZ}/${UPDATE_FILENAME}" <<UPDATE_ISPIP_DATA_C
 echo \$(lzdate) [\$\$]: | tee -ai "${SYSLOG}" 2> /dev/null
 
 #END

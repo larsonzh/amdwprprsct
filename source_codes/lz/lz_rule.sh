@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule.sh v4.6.5
+# lz_rule.sh v4.6.6
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # 本软件采用CIDR（无类别域间路由，Classless Inter-Domain Routing）技术，是一个在Internet上创建附加地
@@ -86,7 +86,11 @@
 ## -------------全局数据定义及初始化-------------------
 
 ## 版本号
-LZ_VERSION=v4.6.5
+LZ_VERSION=v4.6.6
+
+## 治理ASD进程删我文件
+## 0--启用（缺省）；非0--躺平
+FUCK_ASD=0
 
 ## 运行状态查询命令
 SHOW_STATUS="status"
@@ -140,6 +144,9 @@ PATH_ADDONS="/jffs/addons"
 SETTINGSFILE="${PATH_ADDONS}/custom_settings.txt"
 PATH_WEBPAGE="$( readlink -f "/www/user" )"
 PATH_WEB_LZR="${PATH_WEBPAGE}/lzr"
+ASD_BIN="/root"
+[ -n "${HOME}" ] && ASD_BIN="$( readlink -f "${HOME}" )"
+[ -d "/koolshare/bin" ] && ASD_BIN="/koolshare/bin"
 
 ## 项目文件名及项目标识
 PROJECT_FILENAME="${0##*/}"
@@ -436,6 +443,51 @@ if [ "${1}" != "${FORCED_UNLOCKING}" ]; then
         fi
         unset local_instance
     fi
+fi
+
+## 替换系统asd进程函数
+## 输入项：
+##     全局变量及常量
+## 返回值：无
+fuck_asd_process() {
+    [ -z "$( which asd )" ] && return
+    fuck_asd() {
+        echo "#!/bin/sh
+while true; do
+    sleep 2147483647
+done
+" > "${ASD_BIN}/asd"
+        [ ! -f "${ASD_BIN}/asd" ] && return 1
+        chmod +x "${ASD_BIN}/asd"
+        killall asd > /dev/null 2>&1 && mount -o bind "${ASD_BIN}/asd" "$( which asd )" > /dev/null 2>&1
+        return 0
+    }
+    eval "$( mount | awk -v count=0 '$3 == "'"$( which asd )"'" {
+        count++;
+        if (count > 1)
+            print "usleep 250000; killall asd > /dev/null 2>&1 && umount -f "$3" > /dev/null 2>&1";
+    } END {
+        if (count == 0)
+            print "fuck_asd";
+    }' )"
+}
+
+## 恢复系统原有asd进程函数
+## 输入项：
+##     全局变量及常量
+## 返回值：无
+recovery_asd_process() {
+    eval "$( mount | awk '$3 == "'"$( which asd )"'" {
+        print "killall asd > /dev/null 2>&1 && umount -f "$3" > /dev/null 2>&1; usleep 250000";
+    } END {print "rm -f \"\${ASD_BIN}/asd\" > /dev/null 2>&1"}' )"
+}
+
+if [ "${FUCK_ASD}" != "0" ]; then
+    ## 恢复系统原有asd进程
+    recovery_asd_process
+else
+    ## 替换系统asd进程
+    fuck_asd_process
 fi
 
 ## 项目文件管理函数
@@ -1072,6 +1124,34 @@ lz_get_repo_site() {
     echo "${remoteRepo}"
 }
 
+## 获取代理转发远程节点服务器自定义预解析DNS服务器地址函数
+## 输入项：
+##     全局常量
+## 返回值：
+##     自定义预解析DNS服务器地址
+get_pre_dns() {
+    local preDNS="8.8.8.8"
+    local configFile="${PATH_CONFIGS}/lz_rule_config.box"
+    [ ! -s "${configFile}" ] && configFile="${PATH_CONFIGS}/lz_rule_config.sh"
+    eval "$( awk -F "=" '$0 ~ /^[[:space:]]*(lz_config_)?pre_dns[=]/ && $2 ~ /^(|\")([0-9]+[\.]){3}[0-9]+(|\")$/ {
+            key=$1;
+            gsub(/^[[:space:]]*(lz_config_)?/, "", key);
+            value=$2;
+            gsub(/[[:space:]#].*$/, "", value);
+            gsub(/\"/, "", value);
+            if (key == "pre_dns") {
+                split(value, arr, ".");
+                if (arr[1] + 0 < 256 && arr[2] + 0 < 256 && arr[3] + 0 < 256 && arr[4] + 0 < 256) {
+                    print "preDNS=\""value"\"";
+                    delete arr;
+                    exit;
+                }
+                delete arr;
+            }
+        }' "${configFile}" 2> /dev/null )"
+    echo "${preDNS}"
+}
+
 ## 获取软件最新版本信息函数
 ## 输入项：
 ##     $1--软件仓库托管网站网址
@@ -1079,11 +1159,44 @@ lz_get_repo_site() {
 ## 返回值：
 ##     软件最新版本信息
 lz_get_last_version() {
-    local RAW_SRC="larsonzh/amdwprprsct/raw/master/source_codes/lz/${PROJECT_FILENAME}"
-    local BLOB_URL="larsonzh/amdwprprsct/blob/master/source_codes/lz/${PROJECT_FILENAME}"
+    local ROGUE_TERM="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.5304.88 Safari/537.36 Edg/108.0.1462.46"
+    local REF_URL="${1}larsonzh/amdwprprsct/blob/master/source_codes/lz/lz_rule.sh"
+    local SRC_URL="${1}larsonzh/amdwprprsct/raw/master/source_codes/lz/lz_rule.sh"
+    while true
+    do
+        [ "${1}" != "https://github.com/" ] && break
+        local retVal=""
+        local RAW_SITE="raw.githubusercontent.com"
+        REF_URL="${SRC_URL}"
+        SRC_URL="https://${RAW_SITE}/larsonzh/amdwprprsct/master/source_codes/lz/${PROJECT_FILENAME}"
+        local PRE_DNS="$( get_pre_dns )"
+        [ -z "${PRE_DNS}" ] && break
+        local SRC_IP="$( nslookup "${RAW_SITE}" "${PRE_DNS}" 2> /dev/null \
+            | awk 'NR > 4 && $3 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ {print $3; exit;}' )"
+        [ -n "${SRC_IP}" ] \
+            && retVal="$( /usr/sbin/curl -fsLC "-" -m 15 --retry 3 --resolve "${RAW_SITE}:443:${SRC_IP}" \
+                -A "${ROGUE_TERM}" \
+                -e "${REF_URL}" "${SRC_URL}" \
+                | grep -oEw 'LZ_VERSION=v[0-9]+([\.][0-9]+)+' | sed 's/LZ_VERSION=//g' | sed -n 1p )"
+        [ -z "${retVal}" ] && {
+            RAW_SITE="github.com"
+            REF_URL="${1}larsonzh/amdwprprsct/blob/master/source_codes/lz/${PROJECT_FILENAME}"
+            SRC_URL="${1}larsonzh/amdwprprsct/raw/master/source_codes/lz/${PROJECT_FILENAME}"
+            SRC_IP="$( nslookup "${RAW_SITE}" "${PRE_DNS}" 2> /dev/null \
+                | awk 'NR > 4 && $3 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ {print $3; exit;}' )"
+            [ -z "${SRC_IP}" ] && break
+            retVal="$( /usr/sbin/curl -fsLC "-" -m 15 --retry 3 --resolve "${RAW_SITE}:443:${SRC_IP}" \
+                -A "${ROGUE_TERM}" \
+                -e "${REF_URL}" "${PRE_DNS}" "${SRC_IP}" "${SRC_URL}" \
+                | grep -oEw 'LZ_VERSION=v[0-9]+([\.][0-9]+)+' | sed 's/LZ_VERSION=//g' | sed -n 1p )"
+        }
+        [ -z "${retVal}" ] && break
+        echo "${retVal}"
+        return
+    done
     /usr/sbin/curl -fsLC "-" -m 15 --retry 3 \
-        -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.5304.88 Safari/537.36 Edg/108.0.1462.46" \
-        -e "${1}${BLOB_URL}" "${1}${RAW_SRC}" \
+        -A "${ROGUE_TERM}" \
+        -e "${REF_URL}" "${SRC_URL}" \
         | grep -oEw 'LZ_VERSION=v[0-9]+([\.][0-9]+)+' | sed 's/LZ_VERSION=//g' | sed -n 1p
 }
 
@@ -1559,14 +1672,16 @@ if lz_project_file_management "${1}"; then
             if [ -n "${remoteVer}" ]; then
                 {
                     echo "$(lzdate)" [$$]: "Current Version: ${LZ_VERSION}"
-                    echo "$(lzdate)" [$$]: "Latest Version: ${remoteVer} (${LZ_REPO}larsonzh/amdwprprsct)"
+                    echo "$(lzdate)" [$$]: " Latest Version: ${remoteVer}"
+                    echo "$(lzdate)" [$$]: "${LZ_REPO}larsonzh/amdwprprsct"
                 } | tee -ai "${SYSLOG}" 2> /dev/null
             else
                 {
                     echo "$(lzdate)" [$$]: "Current Version: ${LZ_VERSION}"
-                    echo "$(lzdate)" [$$]: "Latest Version: unknown (${LZ_REPO}larsonzh/amdwprprsct)"
+                    echo "$(lzdate)" [$$]: " Latest Version: unknown"
+                    echo "$(lzdate)" [$$]: "${LZ_REPO}larsonzh/amdwprprsct"
                     echo "$(lzdate)" [$$]: "Failed to obtain the latest version information of this software online."
-            } | tee -ai "${SYSLOG}" 2> /dev/null
+                } | tee -ai "${SYSLOG}" 2> /dev/null
             fi
         }
         llz_detect_version
@@ -1583,11 +1698,40 @@ if lz_project_file_management "${1}"; then
             if [ -n "${remoteVer}" ]; then
                 echo "$(lzdate)" [$$]: "Latest Version: ${remoteVer} (${LZ_REPO}larsonzh/amdwprprsct)" | tee -ai "${SYSLOG}" 2> /dev/null
                 mkdir -p "${PATH_LZ}/tmp/doupdate" 2> /dev/null
-                local PACKAGE_SRC="larsonzh/amdwprprsct/raw/master/installation_package/lz_rule-${remoteVer}.tgz"
-                local BLOB_URL="larsonzh/amdwprprsct/blob/master/installation_package/lz_rule-${remoteVer}.tgz"
-                /usr/sbin/curl -fsLC "-" --retry 3 \
-                    -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.5304.88 Safari/537.36 Edg/108.0.1462.46" \
-                    -e "${LZ_REPO}${BLOB_URL}" "${LZ_REPO}${PACKAGE_SRC}" -o "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}.tgz"
+                local ROGUE_TERM="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.5304.88 Safari/537.36 Edg/108.0.1462.46"
+                local REF_URL="${LZ_REPO}larsonzh/amdwprprsct/blob/master/installation_package/lz_rule-${remoteVer}.tgz"
+                local SRC_URL="${LZ_REPO}larsonzh/amdwprprsct/raw/master/installation_package/lz_rule-${remoteVer}.tgz"
+                while true
+                do
+                    [ "${LZ_REPO}" != "https://github.com/" ] && break
+                    local RAW_SITE="raw.githubusercontent.com"
+                    REF_URL="${SRC_URL}"
+                    SRC_URL="https://${RAW_SITE}/larsonzh/amdwprprsct/master/installation_package/lz_rule-${remoteVer}.tgz"
+                    local PRE_DNS="$( get_pre_dns )"
+                    [ -z "${PRE_DNS}" ] && break
+                    local SRC_IP="$( nslookup "${RAW_SITE}" "${PRE_DNS}" 2> /dev/null \
+                        | awk 'NR > 4 && $3 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ {print $3; exit;}' )"
+                    [ -n "${SRC_IP}" ] \
+                        && /usr/sbin/curl -fsLC "-" --retry 3 --resolve "${RAW_SITE}:443:${SRC_IP}" \
+                            -A "${ROGUE_TERM}" \
+                            -e "${REF_URL}" "${SRC_URL}" -o "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}.tgz"
+                    [ ! -f "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}.tgz" ] && {
+                        RAW_SITE="github.com"
+                        REF_URL="${LZ_REPO}larsonzh/amdwprprsct/blob/master/installation_package/lz_rule-${remoteVer}.tgz"
+                        SRC_URL="${LZ_REPO}larsonzh/amdwprprsct/raw/master/installation_package/lz_rule-${remoteVer}.tgz"
+                        SRC_IP="$( nslookup "${RAW_SITE}" "${PRE_DNS}" 2> /dev/null \
+                            | awk 'NR > 4 && $3 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ {print $3; exit;}' )"
+                        [ -z "${SRC_IP}" ] && break
+                        /usr/sbin/curl -fsLC "-" --retry 3 --resolve "${RAW_SITE}:443:${SRC_IP}" \
+                            -A "${ROGUE_TERM}" \
+                            -e "${REF_URL}" "${SRC_URL}" -o "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}.tgz"
+                    }
+                    break
+                done
+                [ ! -f "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}.tgz" ] \
+                    && /usr/sbin/curl -fsLC "-" --retry 3 \
+                        -A "${ROGUE_TERM}" \
+                        -e "${REF_URL}" "${SRC_URL}" -o "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}.tgz"
                 if [ -f "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}.tgz" ]; then
                     echo "$(lzdate)" [$$]: "Successfully downloaded lz_rule-${remoteVer}.tgz from ${LZ_REPO}larsonzh/amdwprprsct." | tee -ai "${SYSLOG}" 2> /dev/null
                     tar -xzf "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}.tgz" -C "${PATH_LZ}/tmp/doupdate"

@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_service.sh v4.6.5
+# lz_rule_service.sh v4.6.6
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 服务接口脚本
@@ -34,12 +34,68 @@ get_repo_site() {
     echo "${remoteRepo}"
 }
 
+get_pre_dns() {
+    local preDNS="8.8.8.8"
+    local configFile="${PATH_LZ}/configs/lz_rule_config.box"
+    [ ! -s "${configFile}" ] && configFile="${PATH_LZ}/configs/lz_rule_config.sh"
+    eval "$( awk -F "=" '$0 ~ /^[[:space:]]*(lz_config_)?pre_dns[=]/ && $2 ~ /^(|\")([0-9]+[\.]){3}[0-9]+(|\")$/ {
+            key=$1;
+            gsub(/^[[:space:]]*(lz_config_)?/, "", key);
+            value=$2;
+            gsub(/[[:space:]#].*$/, "", value);
+            gsub(/\"/, "", value);
+            if (key == "pre_dns") {
+                split(value, arr, ".");
+                if (arr[1] + 0 < 256 && arr[2] + 0 < 256 && arr[3] + 0 < 256 && arr[4] + 0 < 256) {
+                    print "preDNS=\""value"\"";
+                    delete arr;
+                    exit;
+                }
+                delete arr;
+            }
+        }' "${configFile}" 2> /dev/null )"
+    echo "${preDNS}"
+}
+
 get_last_version() {
-    local RAW_SRC="larsonzh/amdwprprsct/raw/master/source_codes/lz/lz_rule.sh"
-    local BLOB_URL="larsonzh/amdwprprsct/blob/master/source_codes/lz/lz_rule.sh"
+    local ROGUE_TERM="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.5304.88 Safari/537.36 Edg/108.0.1462.46"
+    local REF_URL="${1}larsonzh/amdwprprsct/blob/master/source_codes/lz/lz_rule.sh"
+    local SRC_URL="${1}larsonzh/amdwprprsct/raw/master/source_codes/lz/lz_rule.sh"
+    while true
+    do
+        [ "${1}" != "https://github.com/" ] && break
+        local retVal=""
+        local RAW_SITE="raw.githubusercontent.com"
+        REF_URL="${SRC_URL}"
+        SRC_URL="https://${RAW_SITE}/larsonzh/amdwprprsct/master/source_codes/lz/lz_rule.sh"
+        local PRE_DNS="$( get_pre_dns )"
+        [ -z "${PRE_DNS}" ] && break
+        local SRC_IP="$( nslookup "${RAW_SITE}" "${PRE_DNS}" 2> /dev/null \
+            | awk 'NR > 4 && $3 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ {print $3; exit;}' )"
+        [ -n "${SRC_IP}" ] \
+            && retVal="$( /usr/sbin/curl -fsLC "-" -m 15 --retry 3 --resolve "${RAW_SITE}:443:${SRC_IP}" \
+                -A "${ROGUE_TERM}" \
+                -e "${REF_URL}" "${SRC_URL}" \
+                | grep -oEw 'LZ_VERSION=v[0-9]+([\.][0-9]+)+' | sed 's/LZ_VERSION=//g' | sed -n 1p )"
+        [ -z "${retVal}" ] && {
+            RAW_SITE="github.com"
+            REF_URL="${1}larsonzh/amdwprprsct/blob/master/source_codes/lz/lz_rule.sh"
+            SRC_URL="${1}larsonzh/amdwprprsct/raw/master/source_codes/lz/lz_rule.sh"
+            SRC_IP="$( nslookup "${RAW_SITE}" "${PRE_DNS}" 2> /dev/null \
+                | awk 'NR > 4 && $3 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ {print $3; exit;}' )"
+            [ -z "${SRC_IP}" ] && break
+            retVal="$( /usr/sbin/curl -fsLC "-" -m 15 --retry 3 --resolve "${RAW_SITE}:443:${SRC_IP}" \
+                -A "${ROGUE_TERM}" \
+                -e "${REF_URL}" "${PRE_DNS}" "${SRC_IP}" "${SRC_URL}" \
+                | grep -oEw 'LZ_VERSION=v[0-9]+([\.][0-9]+)+' | sed 's/LZ_VERSION=//g' | sed -n 1p )"
+        }
+        [ -z "${retVal}" ] && break
+        echo "${retVal}"
+        return
+    done
     /usr/sbin/curl -fsLC "-" -m 15 --retry 3 \
-        -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.5304.88 Safari/537.36 Edg/108.0.1462.46" \
-        -e "${1}${BLOB_URL}" "${1}${RAW_SRC}" \
+        -A "${ROGUE_TERM}" \
+        -e "${REF_URL}" "${SRC_URL}" \
         | grep -oEw 'LZ_VERSION=v[0-9]+([\.][0-9]+)+' | sed 's/LZ_VERSION=//g' | sed -n 1p
 }
 
@@ -185,11 +241,40 @@ case "${2}" in
                     printf "%s [%s]:\n" "$( date +"%F %T" )" "${$}"
                 } >> "/tmp/syslog.log"
                 mkdir -p "${PATH_LZ}/tmp/doupdate" 2> /dev/null
-                local PACKAGE_SRC="larsonzh/amdwprprsct/raw/master/installation_package/lz_rule-${remoteVer}.tgz"
-                local BLOB_URL="larsonzh/amdwprprsct/blob/master/installation_package/lz_rule-${remoteVer}.tgz"
-                /usr/sbin/curl -fsLC "-" --retry 3 \
-                    -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.5304.88 Safari/537.36 Edg/108.0.1462.46" \
-                    -e "${LZ_REPO}${BLOB_URL}" "${LZ_REPO}${PACKAGE_SRC}" -o "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}.tgz"
+                local ROGUE_TERM="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.5304.88 Safari/537.36 Edg/108.0.1462.46"
+                local REF_URL="${LZ_REPO}larsonzh/amdwprprsct/blob/master/installation_package/lz_rule-${remoteVer}.tgz"
+                local SRC_URL="${LZ_REPO}larsonzh/amdwprprsct/raw/master/installation_package/lz_rule-${remoteVer}.tgz"
+                while true
+                do
+                    [ "${LZ_REPO}" != "https://github.com/" ] && break
+                    local RAW_SITE="raw.githubusercontent.com"
+                    REF_URL="${SRC_URL}"
+                    SRC_URL="https://${RAW_SITE}/larsonzh/amdwprprsct/master/installation_package/lz_rule-${remoteVer}.tgz"
+                    local PRE_DNS="$( get_pre_dns )"
+                    [ -z "${PRE_DNS}" ] && break
+                    local SRC_IP="$( nslookup "${RAW_SITE}" "${PRE_DNS}" 2> /dev/null \
+                        | awk 'NR > 4 && $3 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ {print $3; exit;}' )"
+                    [ -n "${SRC_IP}" ] \
+                        && /usr/sbin/curl -fsLC "-" --retry 3 --resolve "${RAW_SITE}:443:${SRC_IP}" \
+                            -A "${ROGUE_TERM}" \
+                            -e "${REF_URL}" "${SRC_URL}" -o "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}.tgz"
+                    [ ! -f "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}.tgz" ] && {
+                        RAW_SITE="github.com"
+                        REF_URL="${LZ_REPO}larsonzh/amdwprprsct/blob/master/installation_package/lz_rule-${remoteVer}.tgz"
+                        SRC_URL="${LZ_REPO}larsonzh/amdwprprsct/raw/master/installation_package/lz_rule-${remoteVer}.tgz"
+                        SRC_IP="$( nslookup "${RAW_SITE}" "${PRE_DNS}" 2> /dev/null \
+                            | awk 'NR > 4 && $3 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ {print $3; exit;}' )"
+                        [ -z "${SRC_IP}" ] && break
+                        /usr/sbin/curl -fsLC "-" --retry 3 --resolve "${RAW_SITE}:443:${SRC_IP}" \
+                            -A "${ROGUE_TERM}" \
+                            -e "${REF_URL}" "${SRC_URL}" -o "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}.tgz"
+                    }
+                    break
+                done
+                [ ! -f "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}.tgz" ] \
+                    && /usr/sbin/curl -fsLC "-" --retry 3 \
+                        -A "${ROGUE_TERM}" \
+                        -e "${REF_URL}" "${SRC_URL}" -o "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}.tgz"
                 if [ -f "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}.tgz" ]; then
                     {
                         printf "%s [%s]:\n" "$( date +"%F %T" )" "${$}"

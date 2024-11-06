@@ -1,5 +1,5 @@
 #!/bin/sh
-# uninstall.sh v4.6.5
+# uninstall.sh v4.6.6
 # By LZ (larsonzhang@gmail.com)
 
 # LZ RULE script for Asuswrt-Merlin Router
@@ -8,8 +8,7 @@
 
 #BEGIN
 
-LZ_VERSION=v4.6.5
-TIMEOUT=10
+LZ_VERSION=v4.6.6
 CURRENT_PATH="${0%/*}"
 [ "${CURRENT_PATH:0:1}" != '/' ] && CURRENT_PATH="$( pwd )${CURRENT_PATH#*.}"
 SYSLOG="/tmp/syslog.log"
@@ -22,28 +21,6 @@ lzdate() {  date +"%F %T"; }
     echo "  $(lzdate)"
     echo
 } | tee -ai "${SYSLOG}" 2> /dev/null
-
-if [ "${1}" != 'y' ] && [ "${1}" != 'Y' ]; then
-    ! read -r -n1 -t ${TIMEOUT} -p "  Automatically terminate after ${TIMEOUT}s, continue uninstallation? [Y/N] " ANSWER \
-        || [ -n "${ANSWER}" ] && echo -e "\r"
-    case ${ANSWER} in
-        Y | y)
-        {
-            echo | tee -ai "${SYSLOG}" 2> /dev/null
-        }
-        ;;
-        *)
-        {
-            {
-                echo
-                echo "  LZ script uninstallation failed."
-                echo -e "  $(lzdate)\n\n"
-            } | tee -ai "${SYSLOG}" 2> /dev/null
-            exit "1"
-        }
-        ;;
-    esac
-fi
 
 if [ ! -f "${CURRENT_PATH}/lz_rule.sh" ]; then
     {
@@ -82,6 +59,7 @@ rm -f "${CURRENT_PATH}/images/favicon.png" > /dev/null 2>&1
 rm -f "${CURRENT_PATH}/images/InternetScan.gif" > /dev/null 2>&1
 rm -f "${CURRENT_PATH}/images/wechat.png" > /dev/null 2>&1
 rm -f "${CURRENT_PATH}/webs/LZ_Policy_Routing_Content.asp" > /dev/null 2>&1
+rm -f "${CURRENT_PATH}/interface/lz_openvpn_event.sh" > /dev/null 2>&1
 rm -f "${CURRENT_PATH}/interface/lz_rule_service.sh" > /dev/null 2>&1
 rm -f "${CURRENT_PATH}/data/lz_all_cn_cidr.txt" > /dev/null 2>&1
 rm -f "${CURRENT_PATH}/data/lz_chinatelecom_cidr.txt" > /dev/null 2>&1
@@ -104,6 +82,7 @@ rm -f "${CURRENT_PATH}/tmp/iptables.log" > /dev/null 2>&1
 rm -f "${CURRENT_PATH}/tmp/crontab.log" > /dev/null 2>&1
 rm -f "${CURRENT_PATH}/tmp/unlock.log" > /dev/null 2>&1
 rm -f "${CURRENT_PATH}/lz_rule.sh" > /dev/null 2>&1
+rm -f "${CURRENT_PATH}/lz_update_ispip_data.sh" > /dev/null 2>&1
 rm -f "${CURRENT_PATH}/uninstall.sh" > /dev/null 2>&1
 rm -f "${CURRENT_PATH}/Changelog.txt" > /dev/null 2>&1
 rm -f "${CURRENT_PATH}/HowtoInstall.txt" > /dev/null 2>&1
