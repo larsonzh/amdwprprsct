@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_initialize_config.sh v4.6.6
+# lz_initialize_config.sh v4.6.7
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 初始化脚本配置
@@ -972,6 +972,7 @@ dn_pre_resolved=${local_dn_pre_resolved}
 ## 代理转发远程节点服务器自定义域名地址预解析DNS服务器
 ## 缺省自定义DNS为"8.8.8.8"。
 ## 用于设置路由器内第三方传输代理软件中使用的特定DNS服务器IPv4地址，可避免DNS劫持和污染。
+## 本地址也用于“三、运行设置”中“软件版本资源库位置”功能连接访问“国际（Github）”站点时解析域名地址。
 pre_dns=${local_pre_dns}
 
 ## 本地客户端IPv4网址/网段分流黑名单列表数据文件
@@ -1040,6 +1041,8 @@ custom_hosts_file=${local_custom_hosts_file}
 ## 用于在线检测本软件最新版本，以及通过网络进行本软件的在线升级或重新安装。
 ## 从中国大陆内地访问国际（Github）站点，线路通畅性可能不佳，若有受到干扰甚至屏蔽，或版本检测或在线安装功能
 ## 无法正常使用时，请选择中国大陆（Gitee）站点。
+## 本软件连接访问国际（Github）站点时，为避免DNS劫持和污染，使用“二、高级设置”中“代理转发远程节点服务器自定
+## 义域名地址预解析DNS服务器”功能定义的DNS服务器地址实时解析域名地址。
 repo_site=${local_repo_site}
 
 ## 路由表缓存清理

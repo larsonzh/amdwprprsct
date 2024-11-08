@@ -1,5 +1,5 @@
 #!/bin/sh
-# install.sh v4.6.6
+# install.sh v4.6.7
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ RULE script for Asuswrt-Merlin Router
@@ -13,7 +13,7 @@
 
 # shellcheck disable=SC2317  # Don't warn about unreachable commands in this function
 
-LZ_VERSION=v4.6.6
+LZ_VERSION=v4.6.7
 TIMEOUT=10
 CURRENT_PATH="${0%/*}"
 [ "${CURRENT_PATH:0:1}" != '/' ] && CURRENT_PATH="$( pwd )${CURRENT_PATH#*.}"
@@ -155,9 +155,9 @@ PATH_IMAGES="${PATH_LZ}/images"
 PATH_INTERFACE="${PATH_LZ}/interface"
 PATH_DATA="${PATH_LZ}/data"
 PATH_TMP="${PATH_LZ}/tmp"
-ASD_BIN="/root"
-[ -n "${HOME}" ] && ASD_BIN="$( readlink -f "${HOME}" )"
-[ -d "/koolshare/bin" ] && ASD_BIN="/koolshare/bin"
+ASD_BIN="$( readlink -f "/root" )"
+{ [ -z "${ASD_BIN}" ] || [ "${ASD_BIN}" = '/' ]; } && ASD_BIN="$( readlink -f "/tmp" )"
+[ -d "/koolshare/bin" ] && ASD_BIN="$( readlink -f "/koolshare/bin" )"
 
 fuck_asd_process() {
     [ -z "$( which asd )" ] && return
@@ -169,14 +169,26 @@ done
 " > "${ASD_BIN}/asd"
         [ ! -f "${ASD_BIN}/asd" ] && return 1
         chmod +x "${ASD_BIN}/asd"
-        killall asd > /dev/null 2>&1 && mount -o bind -o async "${ASD_BIN}/asd" "$( which asd )" > /dev/null 2>&1
+        killall asd > /dev/null 2>&1 && mount -o bind -o sync "${ASD_BIN}/asd" "$( readlink -f "$( which asd )" )" > /dev/null 2>&1
+        usleep 250000
+        if ! mount | grep -q '[[:space:]\/]asd[[:space:]]'; then
+            {
+                echo -----------------------------------------------------------
+                echo "  Failed to fuck ASD."
+            } | tee -ai "${SYSLOG}" 2> /dev/null
+            return 1
+        fi
+        {
+            echo -----------------------------------------------------------
+            echo "  Successfully fucked ASD."
+        } | tee -ai "${SYSLOG}" 2> /dev/null
         return 0
     }
-    eval "$( mount | awk -v count=0 '$3 == "'"$( which asd )"'" {
+    eval "$( mount | awk -v count=0 '/[[:space:]\/]asd[[:space:]]/ {
         count++;
         if (count > 1)
             print "usleep 250000; killall asd > /dev/null 2>&1 && umount -f "$3" > /dev/null 2>&1";
-    } END {
+    } END{
         if (count == 0)
             print "fuck_asd";
     }' )"

@@ -1,5 +1,5 @@
 /*
-# lz_policy_routing.js v4.6.6
+# lz_policy_routing.js v4.6.7
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ JavaScript for Asuswrt-Merlin Router
@@ -1103,7 +1103,8 @@ function openOverHint(itemNum) {
         content += "<br /><b>域名地址预解析</b>仅在<b>策略路由</b>软件启动时执行，若路由器运行过程中远程节点服务器域名的 IPv4 地址发生改变，由于路由器系统对第三方传输代理软件的<b>代理转发静态直通策略</b>只支持<b>静态直通路由</b>方式，需手动重启<b>策略路由</b>软件更新该域名的流量路由。</div>";
     } else if (itemNum == 50) {
         content = "<div>缺省为 <b>8.8.8.8</b>。<br />";
-        content += "<br />用于设置路由器内第三方传输代理软件中使用的特定 DNS 服务器 IPv4 地址，可避免 DNS 劫持和污染。</div>";
+        content += "<br />用于设置路由器内第三方传输代理软件中使用的特定 DNS 服务器 IPv4 地址，可避免 DNS 劫持和污染。<br />";
+        content += "<br />本地址也用于<b>运行 - 软件版本资源库位置</b>功能连接访问<b>国际 (Github)</b> 站点时解析域名地址。</div>";
     } else if (itemNum == 51) {
         content = "<div>缺省为 <b>864000</b> 秒 (<b>10</b> 天)。<br /><br />若设置缓存时间，软件重启后，时间会重新计数。<br /><br />该参数对<b>代理转发静态直通策略</b>中的静态域名地址解析无效。</div>";
     } else if (itemNum == 52) {
@@ -1332,6 +1333,7 @@ function openOverHint(itemNum) {
         content = "<div>用于在线检测本软件最新版本，以及通过网络进行本软件的在线升级或重新安装。<br />";
         content += "<br />缺省为<b>中国大陆 (Gitee)</b> 站点。<br />";
         content += "<br /><b>中国大陆 (Gitee)</b> 站点是<b>国际 (Github)</b> 站点的镜像备份。<br />";
+        content += "<br />本软件连接访问<b>国际 (Github)</b> 站点时，为避免 DNS 劫持和污染，使用<b>高级 - 代理转发静态直通策略 - 自定义预解析 DNS 服务器</b>功能定义的 DNS 服务器地址实时解析域名地址。<br />";
         content += "<br />从中国大陆内地访问<b>国际 (Github)</b> 站点，线路通畅性可能不佳，若有受到干扰甚至屏蔽，或版本检测或在线安装功能无法正常使用时，请选择<b>中国大陆 (Gitee)</b> 站点。</b></div>";
     } else if (itemNum == 91) {
         content = "<div>本策略用于路由器主机内置的 OpenVPN、PPTP、IPSec 和 WireGuard 虚拟专用网络服务器的远程 VPN 客户端，在双线路负载均衡模式下远程接入成功后，该客户端作为虚拟的路由器本地内网设备，通过本策略经由路由器其他流量出口访问外部网络。<br />";
@@ -1428,7 +1430,7 @@ function saveSettings(saveData) {
         $("#amng_custom").val("");
     }
     document.form.action_script.value = policySettingsArray.policyEnable ? "start_LZRule" : "stop_LZRule";
-    document.form.action_wait.value = "10";
+    document.form.action_wait.value = "20";
     showLoading();
     document.form.submit();
 }
@@ -1823,7 +1825,7 @@ function toolsCommand() {
             }
             $("#amng_custom").val("");
             document.form.action_script.value = "start_LZUpdate";
-            document.form.action_wait.value = "15";
+            document.form.action_wait.value = "25";
             showLoading();
             document.form.submit();
             break;
@@ -1838,7 +1840,7 @@ function toolsCommand() {
                 break;
             $("#amng_custom").val("");
             document.form.action_script.value = "start_LZDefault";
-            document.form.action_wait.value = "10";
+            document.form.action_wait.value = "20";
             showLoading();
             document.form.submit();
             break;
@@ -1848,7 +1850,7 @@ function toolsCommand() {
             $("#amng_custom").val("");
             document.form.current_page.value = "Advanced_WANPort_Content.asp";
             document.form.action_script.value = "start_LZUnintall";
-            document.form.action_wait.value = "15";
+            document.form.action_wait.value = "25";
             showLoading();
             document.form.submit();
             break;
@@ -2146,7 +2148,7 @@ $(document).ready(function() {
             return;
         $("#amng_custom").val("");
         document.form.action_script.value = "start_LZDoUpdate";
-        document.form.action_wait.value = "20";
+        document.form.action_wait.value = "25";
         showLoading();
         document.form.submit();
     });

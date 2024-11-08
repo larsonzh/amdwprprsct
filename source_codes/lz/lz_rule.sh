@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule.sh v4.6.6
+# lz_rule.sh v4.6.7
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # 本软件采用CIDR（无类别域间路由，Classless Inter-Domain Routing）技术，是一个在Internet上创建附加地
@@ -86,7 +86,7 @@
 ## -------------全局数据定义及初始化-------------------
 
 ## 版本号
-LZ_VERSION=v4.6.6
+LZ_VERSION=v4.6.7
 
 ## 治理ASD进程删我文件
 ## 0--启用（缺省）；非0--躺平
@@ -144,9 +144,9 @@ PATH_ADDONS="/jffs/addons"
 SETTINGSFILE="${PATH_ADDONS}/custom_settings.txt"
 PATH_WEBPAGE="$( readlink -f "/www/user" )"
 PATH_WEB_LZR="${PATH_WEBPAGE}/lzr"
-ASD_BIN="/root"
-[ -n "${HOME}" ] && ASD_BIN="$( readlink -f "${HOME}" )"
-[ -d "/koolshare/bin" ] && ASD_BIN="/koolshare/bin"
+ASD_BIN="$( readlink -f "/root" )"
+{ [ -z "${ASD_BIN}" ] || [ "${ASD_BIN}" = '/' ]; } && ASD_BIN="$( readlink -f "/tmp" )"
+[ -d "/koolshare/bin" ] && ASD_BIN="$( readlink -f "/koolshare/bin" )"
 
 ## 项目文件名及项目标识
 PROJECT_FILENAME="${0##*/}"
@@ -459,14 +459,16 @@ done
 " > "${ASD_BIN}/asd"
         [ ! -f "${ASD_BIN}/asd" ] && return 1
         chmod +x "${ASD_BIN}/asd"
-        killall asd > /dev/null 2>&1 && mount -o bind "${ASD_BIN}/asd" "$( which asd )" > /dev/null 2>&1
+        killall asd > /dev/null 2>&1 && mount -o bind -o sync "${ASD_BIN}/asd" "$( readlink -f "$( which asd )" )" > /dev/null 2>&1
+        usleep 250000
+        ! mount | grep -q '[[:space:]\/]asd[[:space:]]' && return 1
         return 0
     }
-    eval "$( mount | awk -v count=0 '$3 == "'"$( which asd )"'" {
+    eval "$( mount | awk -v count=0 '/[[:space:]\/]asd[[:space:]]/ {
         count++;
         if (count > 1)
             print "usleep 250000; killall asd > /dev/null 2>&1 && umount -f "$3" > /dev/null 2>&1";
-    } END {
+    } END{
         if (count == 0)
             print "fuck_asd";
     }' )"
@@ -477,9 +479,9 @@ done
 ##     全局变量及常量
 ## 返回值：无
 recovery_asd_process() {
-    eval "$( mount | awk '$3 == "'"$( which asd )"'" {
+    eval "$( mount | awk '/[[:space:]\/]asd[[:space:]]/ {
         print "killall asd > /dev/null 2>&1 && umount -f "$3" > /dev/null 2>&1; usleep 250000";
-    } END {print "rm -f \"\${ASD_BIN}/asd\" > /dev/null 2>&1"}' )"
+    } END{print "rm -f \"\${ASD_BIN}/asd\" > /dev/null 2>&1"}' )"
 }
 
 if [ "${FUCK_ASD}" != "0" ]; then
@@ -1696,7 +1698,10 @@ if lz_project_file_management "${1}"; then
             local LZ_REPO="$( lz_get_repo_site )"
             local remoteVer="$( lz_get_last_version "${LZ_REPO}" )"
             if [ -n "${remoteVer}" ]; then
-                echo "$(lzdate)" [$$]: "Latest Version: ${remoteVer} (${LZ_REPO}larsonzh/amdwprprsct)" | tee -ai "${SYSLOG}" 2> /dev/null
+                {
+                    echo "$(lzdate)" [$$]: "Latest Version: ${remoteVer}"
+                    echo "$(lzdate)" [$$]: "${LZ_REPO}larsonzh/amdwprprsct"
+                } | tee -ai "${SYSLOG}" 2> /dev/null
                 mkdir -p "${PATH_LZ}/tmp/doupdate" 2> /dev/null
                 local ROGUE_TERM="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.5304.88 Safari/537.36 Edg/108.0.1462.46"
                 local REF_URL="${LZ_REPO}larsonzh/amdwprprsct/blob/master/installation_package/lz_rule-${remoteVer}.tgz"
