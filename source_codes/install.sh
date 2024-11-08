@@ -1,5 +1,5 @@
 #!/bin/sh
-# install.sh v4.6.7
+# install.sh v4.6.8
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ RULE script for Asuswrt-Merlin Router
@@ -13,13 +13,19 @@
 
 # shellcheck disable=SC2317  # Don't warn about unreachable commands in this function
 
-LZ_VERSION=v4.6.7
+LZ_VERSION=v4.6.8
 TIMEOUT=10
 CURRENT_PATH="${0%/*}"
 [ "${CURRENT_PATH:0:1}" != '/' ] && CURRENT_PATH="$( pwd )${CURRENT_PATH#*.}"
-SYSLOG="/tmp/syslog.log"
+PATH_LOCK="/var/lock" LOCK_FILE_ID="555"
+LOCK_FILE="${PATH_LOCK}/lz_rule.lock"
 PATH_BASE="/jffs/scripts"
-[ "$( echo "${1}" | tr T t )" = t ] && PATH_BASE="${HOME}"
+HANNER="$( echo "${1}" | tr T t )"
+[ "${HANNER}" = t ] && {
+    PATH_BASE="$( readlink -f "/root" )"
+    { [ -z "${PATH_BASE}" ] || [ "${PATH_BASE}" = '/' ]; } && PATH_BASE="$( readlink -f "/tmp" )"
+}
+SYSLOG="/tmp/syslog.log"
 lzdate() { date +"%F %T"; }
 
 {
@@ -51,7 +57,7 @@ elif [ "${USER}" = "root" ]; then
 fi
 
 AVAL_SPACE=
-if [ "${1}" = "entware" ]; then
+if { [ "${HANNER}" = "entware" ] || [ "${HANNER}" = "entwareX" ]; }; then
     if which opkg > /dev/null 2>&1; then
         for sditem in $( df | awk '$1 ~ /^\/dev\/sd/ {print $1":-"$4":-"$6}' )
         do
@@ -134,6 +140,11 @@ fi
 
 echo "  Installation in progress..." | tee -ai "${SYSLOG}" 2> /dev/null
 
+if { [ "${HANNER}" != "X" ] && [ "${HANNER}" != "entwareX" ]; }; then
+    [ ! -d "${PATH_LOCK}" ] && { mkdir -p "${PATH_LOCK}" > /dev/null 2>&1; chmod 777 "${PATH_LOCK}" > /dev/null 2>&1; }
+    eval "exec ${LOCK_FILE_ID}<>${LOCK_FILE}"; flock -x "${LOCK_FILE_ID}" > /dev/null 2>&1;
+fi
+
 PATH_LZ="${PATH_BASE}/lz"
 if ! mkdir -p "${PATH_LZ}" > /dev/null 2>&1; then
     {
@@ -144,6 +155,7 @@ if ! mkdir -p "${PATH_LZ}" > /dev/null 2>&1; then
         echo "  LZ script installation failed."
         echo -e "  $(lzdate)\n"
     } | tee -ai "${SYSLOG}" 2> /dev/null
+    { [ "${HANNER}" != "X" ] && [ "${HANNER}" != "entwareX" ]; } && flock -u "${LOCK_FILE_ID}" > /dev/null 2>&1
     exit 1
 fi
 
@@ -431,6 +443,8 @@ fi
     echo -----------------------------------------------------------
     echo -e "  $(lzdate)\n"
 } | tee -ai "${SYSLOG}" 2> /dev/null
+
+{ [ "${HANNER}" != "X" ] && [ "${HANNER}" != "entwareX" ]; } && flock -u "${LOCK_FILE_ID}" > /dev/null 2>&1
 
 exit 0
 

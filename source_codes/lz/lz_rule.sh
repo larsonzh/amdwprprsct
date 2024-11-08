@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule.sh v4.6.7
+# lz_rule.sh v4.6.8
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # 本软件采用CIDR（无类别域间路由，Classless Inter-Domain Routing）技术，是一个在Internet上创建附加地
@@ -86,7 +86,7 @@
 ## -------------全局数据定义及初始化-------------------
 
 ## 版本号
-LZ_VERSION=v4.6.7
+LZ_VERSION=v4.6.8
 
 ## 治理ASD进程删我文件
 ## 0--启用（缺省）；非0--躺平
@@ -1744,10 +1744,36 @@ if lz_project_file_management "${1}"; then
                     if [ -s "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}/install.sh" ]; then
                         chmod 775 "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}/install.sh"
                         sed -i "s/elif \[ \"\${USER}\" = \"root\" \]; then/elif \[ \"\${USER}\" = \"\" \]; then/g" "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}/install.sh" 2> /dev/null
-                        if [ "${PATH_LZ}" = "/jffs/scripts/lz" ]; then
-                            "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}/install.sh" && upgrade_restart="1"
+                        local oldRemote="$( awk -v ver="${remoteVer##*v}" 'BEGIN{
+                            ret = 0;
+                            split(ver, arr, ".");
+                            for (i = 1; i < 4; ++i) {
+                                if (arr[i] !~ /[0-9]+/)
+                                    arr[i] = 0 + 0;
+                                else
+                                    arr[i] = arr[i] + 0;
+                            }
+                            if (arr[1] == 4 && arr[2] == 6 && arr[3] >= 8)
+                                ret = 1;
+                            else if (arr[1] == 4 && arr[2] > 6)
+                                ret = 1;
+                            else if (arr[1] > 4)
+                                ret = 1;
+                            delete arr;
+                            print ret;
+                        }' )"
+                        if [ "${oldRemote}" != "0" ]; then
+                            if [ "${PATH_LZ}" = "/jffs/scripts/lz" ]; then
+                                "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}/install.sh" "X" && upgrade_restart="1"
+                            else
+                                "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}/install.sh" "entwareX" && upgrade_restart="1"
+                            fi
                         else
-                            "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}/install.sh" "entware" && upgrade_restart="1"
+                            if [ "${PATH_LZ}" = "/jffs/scripts/lz" ]; then
+                                "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}/install.sh" && upgrade_restart="1"
+                            else
+                                "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}/install.sh" "entware" && upgrade_restart="1"
+                            fi
                         fi
                     else
                         {

@@ -1,5 +1,5 @@
 #!/bin/sh
-# uninstall.sh v4.6.7
+# uninstall.sh v4.6.8
 # By LZ (larsonzhang@gmail.com)
 
 # LZ RULE script for Asuswrt-Merlin Router
@@ -8,9 +8,13 @@
 
 #BEGIN
 
-LZ_VERSION=v4.6.7
+LZ_VERSION=v4.6.8
 CURRENT_PATH="${0%/*}"
 [ "${CURRENT_PATH:0:1}" != '/' ] && CURRENT_PATH="$( pwd )${CURRENT_PATH#*.}"
+PATH_LOCK="/var/lock" LOCK_FILE_ID="555"
+LOCK_FILE="${PATH_LOCK}/lz_rule.lock"
+PATH_HOME="$( readlink -f "/root" )"
+{ [ -z "${PATH_HOME}" ] || [ "${PATH_HOME}" = '/' ]; } && PATH_HOME="$( readlink -f "/tmp" )"
 SYSLOG="/tmp/syslog.log"
 lzdate() {  date +"%F %T"; }
 
@@ -22,6 +26,9 @@ lzdate() {  date +"%F %T"; }
     echo
 } | tee -ai "${SYSLOG}" 2> /dev/null
 
+[ ! -d "${PATH_LOCK}" ] && { mkdir -p "${PATH_LOCK}" > /dev/null 2>&1; chmod 777 "${PATH_LOCK}" > /dev/null 2>&1; }
+eval "exec ${LOCK_FILE_ID}<>${LOCK_FILE}"; flock -x "${LOCK_FILE_ID}" > /dev/null 2>&1;
+
 if [ ! -f "${CURRENT_PATH}/lz_rule.sh" ]; then
     {
         echo "$(lzdate)" [$$]: "${CURRENT_PATH}/lz_rule.sh" does not exist.
@@ -29,6 +36,7 @@ if [ ! -f "${CURRENT_PATH}/lz_rule.sh" ]; then
         echo "  LZ script uninstallation failed."
         echo -e "  $(lzdate)\n\n"
     } | tee -ai "${SYSLOG}" 2> /dev/null
+    flock -u "${LOCK_FILE_ID}" > /dev/null 2>&1
     exit "1"
 else
     chmod +x "${CURRENT_PATH}/lz_rule.sh" > /dev/null 2>&1
@@ -105,7 +113,9 @@ rmdir "${CURRENT_PATH}" > /dev/null 2>&1
     echo -e "  $(lzdate)\n\n"
 } | tee -ai "${SYSLOG}" 2> /dev/null
 
-[ ! -d "${CURRENT_PATH}" ] && { cd "${CURRENT_PATH%/*}/" || { cd "${HOME}/" || exit "0"; }; }
+flock -u "${LOCK_FILE_ID}" > /dev/null 2>&1
+
+[ ! -d "${CURRENT_PATH}" ] && { cd "${CURRENT_PATH%/*}/" || { cd "${PATH_HOME}/" || exit "0"; }; }
 
 exit "0"
 

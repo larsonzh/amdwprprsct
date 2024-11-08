@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_service.sh v4.6.7
+# lz_rule_service.sh v4.6.8
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 服务接口脚本
@@ -15,6 +15,8 @@ PATH_LZ="${PATH_LZ%/*}"
 [ ! -s "${PATH_LZ}/lz_rule.sh" ] && return
 [ "${1}" = "stop" ] && [ "${2}" = "LZRule" ] && "${PATH_LZ}/lz_rule.sh" "STOP"
 [ "${1}" != "start" ] && [ "${1}" != "restart" ] && return
+PATH_LOCK="/var/lock" LOCK_FILE_ID="555"
+LOCK_FILE="${PATH_LOCK}/lz_rule.lock"
 
 get_repo_site() {
     local remoteRepo="https://gitee.com/"
@@ -207,6 +209,8 @@ case "${2}" in
     ;;
     LZDetectVersion)
         detect_version() {
+            [ ! -d "${PATH_LOCK}" ] && { mkdir -p "${PATH_LOCK}" > /dev/null 2>&1; chmod 777 "${PATH_LOCK}" > /dev/null 2>&1; }
+            eval "exec ${LOCK_FILE_ID}<>${LOCK_FILE}"; flock -x "${LOCK_FILE_ID}" > /dev/null 2>&1;
             local PATH_WEB_LZR="$( readlink "/www/user" )/lzr"
             echo 'var versionStatus = "InProgress";' > "${PATH_WEB_LZR}/detect_version.js"
             local LZ_REPO="$( get_repo_site )"
@@ -226,11 +230,14 @@ case "${2}" in
                     printf "%s [%s]:\n" "$( date +"%F %T" )" "${$}"
                 } >> "/tmp/syslog.log"
             fi
+            flock -u "${LOCK_FILE_ID}" > /dev/null 2>&1
         }
         detect_version &
     ;;
     LZDoUpdate)
         do_update() {
+            [ ! -d "${PATH_LOCK}" ] && { mkdir -p "${PATH_LOCK}" > /dev/null 2>&1; chmod 777 "${PATH_LOCK}" > /dev/null 2>&1; }
+            eval "exec ${LOCK_FILE_ID}<>${LOCK_FILE}"; flock -x "${LOCK_FILE_ID}" > /dev/null 2>&1;
             [ -d "${PATH_LZ}/tmp/doupdate" ] && rm -rf "${PATH_LZ}/tmp/doupdate" 2> /dev/null
             local LZ_REPO="$( get_repo_site )"
             local remoteVer="$( get_last_version "${LZ_REPO}" )"
@@ -286,10 +293,36 @@ case "${2}" in
                     if [ -s "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}/install.sh" ]; then
                         chmod 775 "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}/install.sh"
                         sed -i "s/elif \[ \"\${USER}\" = \"root\" \]; then/elif \[ \"\${USER}\" = \"\" \]; then/g" "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}/install.sh" 2> /dev/null
-                        if [ "${PATH_LZ}" = "/jffs/scripts/lz" ]; then
-                            "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}/install.sh" && [ -s "${PATH_LZ}/lz_rule.sh" ] && "${PATH_LZ}/lz_rule.sh"
+                        local oldRemote="$( awk -v ver="${remoteVer##*v}" 'BEGIN{
+                            ret = 0;
+                            split(ver, arr, ".");
+                            for (i = 1; i < 4; ++i) {
+                                if (arr[i] !~ /[0-9]+/)
+                                    arr[i] = 0 + 0;
+                                else
+                                    arr[i] = arr[i] + 0;
+                            }
+                            if (arr[1] == 4 && arr[2] == 6 && arr[3] >= 8)
+                                ret = 1;
+                            else if (arr[1] == 4 && arr[2] > 6)
+                                ret = 1;
+                            else if (arr[1] > 4)
+                                ret = 1;
+                            delete arr;
+                            print ret;
+                        }' )"
+                        if [ "${oldRemote}" != "0" ]; then
+                            if [ "${PATH_LZ}" = "/jffs/scripts/lz" ]; then
+                                "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}/install.sh" "X" && upgrade_restart="1"
+                            else
+                                "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}/install.sh" "entwareX" && upgrade_restart="1"
+                            fi
                         else
-                            "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}/install.sh" "entware" && [ -s "${PATH_LZ}/lz_rule.sh" ] && "${PATH_LZ}/lz_rule.sh"
+                            if [ "${PATH_LZ}" = "/jffs/scripts/lz" ]; then
+                                "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}/install.sh" && upgrade_restart="1"
+                            else
+                                "${PATH_LZ}/tmp/doupdate/lz_rule-${remoteVer}/install.sh" "entware" && upgrade_restart="1"
+                            fi
                         fi
                     else
                         {
@@ -313,6 +346,8 @@ case "${2}" in
                     printf "%s [%s]:\n" "$( date +"%F %T" )" "${$}"
                 } >> "/tmp/syslog.log"
             fi
+            flock -u "${LOCK_FILE_ID}" > /dev/null 2>&1
+            [ "${upgrade_restart}" ] && [ -s "${PATH_LZ}/lz_rule.sh" ] && "${PATH_LZ}/lz_rule.sh"
         }
         do_update &
     ;;
