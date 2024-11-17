@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v4.6.8
+# lz_rule_func.sh v4.6.9
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 #BEGIN
@@ -972,6 +972,13 @@ lz_get_route_info() {
             echo "$(lzdate)" [$$]: "   Proxy Route: Secondary WAN" | tee -ai "${SYSLOG}" 2> /dev/null
         else
             echo "$(lzdate)" [$$]: "   Proxy Route: Primary WAN" | tee -ai "${SYSLOG}" 2> /dev/null
+        fi
+        if ps | grep -qE '[[:space:]\/]asd([[:space:]]|$)'; then
+            if [ "${FUCK_ASD}" = "0" ]; then
+                echo "$(lzdate)" [$$]: "   System ASD Process: Disable" | tee -ai "${SYSLOG}" 2> /dev/null
+            else
+                echo "$(lzdate)" [$$]: "   System ASD Process: Native" | tee -ai "${SYSLOG}" 2> /dev/null
+            fi
         fi
         if [ "${route_cache}" = "0" ]; then
             echo "$(lzdate)" [$$]: "   Route Cache Cleaning: Enable" | tee -ai "${SYSLOG}" 2> /dev/null

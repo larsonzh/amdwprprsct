@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_config.sh v4.6.8
+# lz_rule_config.sh v4.6.9
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # 本软件采用CIDR（无类别域间路由，Classless Inter-Domain Routing）技术，是一个在Internet上创建附加地
@@ -25,6 +25,8 @@
 ##       在线获取最新版本信息       /jffs/scripts/lz/lz_rule.sh lastver
 ##       在线安装软件最新版本       /jffs/scripts/lz/lz_rule.sh upgrade
 ##       在线更新 ISP 运营商数据    /jffs/scripts/lz/lz_rule.sh isp
+##       关闭系统 ASD 进程          /jffs/scripts/lz/lz_rule.sh fasd
+##       恢复系统 ASD 进程          /jffs/scripts/lz/lz_rule.sh rasd
 ##       显示命令列表               /jffs/scripts/lz/lz_rule.sh cmd
 ##       显示帮助                   /jffs/scripts/lz/lz_rule.sh help
 ## 提示：

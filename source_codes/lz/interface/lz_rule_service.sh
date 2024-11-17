@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_service.sh v4.6.8
+# lz_rule_service.sh v4.6.9
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 服务接口脚本
@@ -12,11 +12,26 @@
 PATH_LZ="${0%/*}"
 [ "${PATH_LZ:0:1}" != '/' ] && PATH_LZ="$( pwd )${PATH_LZ#*.}"
 PATH_LZ="${PATH_LZ%/*}"
-[ ! -s "${PATH_LZ}/lz_rule.sh" ] && return
-[ "${1}" = "stop" ] && [ "${2}" = "LZRule" ] && "${PATH_LZ}/lz_rule.sh" "STOP"
-[ "${1}" != "start" ] && [ "${1}" != "restart" ] && return
 PATH_LOCK="/var/lock" LOCK_FILE_ID="555"
 LOCK_FILE="${PATH_LOCK}/lz_rule.lock"
+[ ! -s "${PATH_LZ}/lz_rule.sh" ] && return
+[ "${1}" = "stop" ] && {
+    if [ "${2}" = "LZRule" ]; then
+        "${PATH_LZ}/lz_rule.sh" "STOP" &
+    elif [ "${2%%_*}" = "LZASDRule" ]; then
+        asd_value="$( echo "${2}" | cut -f 2 -d '_' )"
+        do_fuck_asd() {
+            [ "${1}" != "0" ] && [ "${1}" != "5" ] && return
+            [ ! -d "${PATH_LOCK}" ] && { mkdir -p "${PATH_LOCK}" > /dev/null 2>&1; chmod 777 "${PATH_LOCK}" > /dev/null 2>&1; }
+            eval "exec ${LOCK_FILE_ID}<>${LOCK_FILE}"; flock -x "${LOCK_FILE_ID}" > /dev/null 2>&1;
+            sed -i "s/^[[:space:]]*\(FUCK_ASD[=]\).*$/\1${1}/g" "${PATH_LZ}/lz_rule.sh"
+            flock -u "${LOCK_FILE_ID}" > /dev/null 2>&1
+            "${PATH_LZ}/lz_rule.sh" "STOP"
+        }
+        do_fuck_asd "${asd_value}" &
+    fi
+}
+[ "${1}" != "start" ] && [ "${1}" != "restart" ] && return
 
 get_repo_site() {
     local remoteRepo="https://gitee.com/"
@@ -234,6 +249,23 @@ case "${2}" in
         }
         detect_version &
     ;;
+    LZDetectASD)
+        detect_asd() {
+            [ ! -d "${PATH_LOCK}" ] && { mkdir -p "${PATH_LOCK}" > /dev/null 2>&1; chmod 777 "${PATH_LOCK}" > /dev/null 2>&1; }
+            eval "exec ${LOCK_FILE_ID}<>${LOCK_FILE}"; flock -x "${LOCK_FILE_ID}" > /dev/null 2>&1;
+            local PATH_WEB_LZR="$( readlink "/www/user" )/lzr"
+            echo 'var asdStatus = "InProgress";' > "${PATH_WEB_LZR}/detect_asd.js"
+            if mount | grep -q '[[:space:]\/]asd[[:space:]]'; then
+                echo 'var asdStatus = "0";' > "${PATH_WEB_LZR}/detect_asd.js"
+            elif ps | grep -qE '[[:space:]\/]asd([[:space:]]|$)'; then
+                echo 'var asdStatus = "5";' > "${PATH_WEB_LZR}/detect_asd.js"
+            else
+                echo 'var asdStatus = "None";' > "${PATH_WEB_LZR}/detect_asd.js"
+            fi
+            flock -u "${LOCK_FILE_ID}" > /dev/null 2>&1
+        }
+        detect_asd &
+    ;;
     LZDoUpdate)
         do_update() {
             [ ! -d "${PATH_LOCK}" ] && { mkdir -p "${PATH_LOCK}" > /dev/null 2>&1; chmod 777 "${PATH_LOCK}" > /dev/null 2>&1; }
@@ -357,6 +389,17 @@ case "${2}" in
     *)
         if [ "${2%%_*}" = "LZAddress" ]; then
             "${PATH_LZ}/lz_rule.sh" "address" "$( echo "${2}" | cut -f 2 -d '_' )" "$( echo "${2}" | cut -f 3 -d '_' )" &
+        elif [ "${2%%_*}" = "LZASDRule" ]; then
+            asd_value="$( echo "${2}" | cut -f 2 -d '_' )"
+            fuck_asd() {
+                [ "${1}" != "0" ] && [ "${1}" != "5" ] && return
+                [ ! -d "${PATH_LOCK}" ] && { mkdir -p "${PATH_LOCK}" > /dev/null 2>&1; chmod 777 "${PATH_LOCK}" > /dev/null 2>&1; }
+                eval "exec ${LOCK_FILE_ID}<>${LOCK_FILE}"; flock -x "${LOCK_FILE_ID}" > /dev/null 2>&1;
+                sed -i "s/^[[:space:]]*\(FUCK_ASD[=]\).*$/\1${1}/g" "${PATH_LZ}/lz_rule.sh"
+                flock -u "${LOCK_FILE_ID}" > /dev/null 2>&1
+            }
+            fuck_asd "${asd_value}"
+            "${PATH_LZ}/lz_rule.sh" &
         elif [ "${2%%_*}" = "LZRTList" ]; then
             list_prio="$( echo "${2}" | cut -f 2 -d '_' )"
             case "${list_prio}" in

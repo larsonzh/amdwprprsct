@@ -1,5 +1,5 @@
 #!/bin/sh
-# install.sh v4.6.8
+# install.sh v4.6.9
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ RULE script for Asuswrt-Merlin Router
@@ -13,7 +13,7 @@
 
 # shellcheck disable=SC2317  # Don't warn about unreachable commands in this function
 
-LZ_VERSION=v4.6.8
+LZ_VERSION=v4.6.9
 TIMEOUT=10
 CURRENT_PATH="${0%/*}"
 [ "${CURRENT_PATH:0:1}" != '/' ] && CURRENT_PATH="$( pwd )${CURRENT_PATH#*.}"
@@ -172,7 +172,7 @@ ASD_BIN="$( readlink -f "/root" )"
 [ -d "/koolshare/bin" ] && ASD_BIN="$( readlink -f "/koolshare/bin" )"
 
 fuck_asd_process() {
-    [ -z "$( which asd )" ] && return
+    { [ -z "$( which asd )" ] || ! ps | grep -qE '[[:space:]\/]asd([[:space:]]|$)'; } && return
     fuck_asd() {
         echo "#!/bin/sh
 while true; do

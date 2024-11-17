@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule.sh v4.6.8
+# lz_rule.sh v4.6.9
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # 本软件采用CIDR（无类别域间路由，Classless Inter-Domain Routing）技术，是一个在Internet上创建附加地
@@ -25,6 +25,8 @@
 ##       在线获取最新版本信息       /jffs/scripts/lz/lz_rule.sh lastver
 ##       在线安装软件最新版本       /jffs/scripts/lz/lz_rule.sh upgrade
 ##       在线更新 ISP 运营商数据    /jffs/scripts/lz/lz_rule.sh isp
+##       关闭系统 ASD 进程          /jffs/scripts/lz/lz_rule.sh fasd
+##       恢复系统 ASD 进程          /jffs/scripts/lz/lz_rule.sh rasd
 ##       显示命令列表               /jffs/scripts/lz/lz_rule.sh cmd
 ##       显示帮助                   /jffs/scripts/lz/lz_rule.sh help
 ## 提示：
@@ -86,10 +88,11 @@
 ## -------------全局数据定义及初始化-------------------
 
 ## 版本号
-LZ_VERSION=v4.6.8
+LZ_VERSION=v4.6.9
 
-## 治理ASD进程删我文件
-## 0--启用（缺省）；非0--躺平
+## 关闭系统ASD进程
+## 0--启用（缺省）；非0--停用
+## 保护本软件程序及相关资源文件不因其误判为恶意代码而被删除。
 FUCK_ASD=0
 
 ## 运行状态查询命令
@@ -115,6 +118,12 @@ UPGRADE_SOFTWARE="upgrade"
 
 ## 在线更新ISP运营商网段数据文件命令
 ISPIP_DATA_UPDATE="ispip"
+
+## 关闭系统ASD进程命令
+DISABLE_ASD="fasd"
+
+## 恢复系统ASD进程命令
+RECOVER_ASD="rasd"
 
 ## 显示显示命令列表命令
 DISPLAY_CMD_LIST="cmd"
@@ -268,6 +277,10 @@ lz_display_cmd_help() {
     echo "    Upgrade software"
     echo "ispip"
     echo "    Update ISP IP data"
+    echo "fasd"
+    echo "    Disable System ASD Process"
+    echo "rasd"
+    echo "    Recover System ASD Process"
     echo "cmd"
     echo "    Print command list"
     echo "help"
@@ -295,6 +308,8 @@ lz_display_cmd_list() {
     echo "    Latest Version Information      ${1} lastver"
     echo "    Upgrade software                ${1} upgrade"
     echo "    Update ISP IP data              ${1} ispip"
+    echo "    Disable System ASD Process      ${1} fasd"
+    echo "    Recover System ASD Process      ${1} rasd"
     echo "    Print command list              ${1} cmd"
     echo "    Print help                      ${1} help"
 }
@@ -302,7 +317,7 @@ lz_display_cmd_list() {
 while [ "${#}" -gt "0" ]
 do
     case "${1}" in
-        "stop" | "STOP" | "default" | "rn" | "hd" | "iptv" \
+        "stop" | "STOP" | "default" | "rn" | "hd" | "iptv" | "${DISABLE_ASD}" | "${RECOVER_ASD}" \
             | "${SHOW_STATUS}" | "${FORCED_UNLOCKING}" | "${UNMOUNT_WEB_UI}" | "${LAST_VERSION}" | "${UPGRADE_SOFTWARE}" \
             | "${ISPIP_DATA_UPDATE}" | "${DISPLAY_CMD_LIST}" | "${DISPLAY_CMD_HELP}" | "${ISPIP_DATA_UPDATE_ID}" )
             [ "${#}" = "1" ] && break
@@ -430,8 +445,12 @@ if [ "${1}" != "${FORCED_UNLOCKING}" ]; then
     sed -i -e '/^$/d' -e '/^[[:space:]]*$/d' -e '1d' "${INSTANCE_LIST}" > /dev/null 2>&1
     if grep -q 'lz_' "${INSTANCE_LIST}" 2> /dev/null; then
         local_instance="$( grep 'lz_' "${INSTANCE_LIST}" | sed -n 1p | sed -e 's/^[[:space:]]*//g' -e 's/[[:space:]]*$//g' )"
-        if [ "${local_instance}" = "lz_${1}" ] && [ "${local_instance}" != "lz_${SHOW_STATUS}" ] \
-            && [ "${local_instance}" != "lz_${ADDRESS_QUERY}" ] && [ "${local_instance}" != "lz_${LAST_VERSION}" ]; then
+        if [ "${local_instance}" = "lz_${1}" ] \
+            && [ "${local_instance}" != "lz_${SHOW_STATUS}" ] && [ "${local_instance}" != "lz_${ADDRESS_QUERY}" ] \
+            && [ "${local_instance}" != "lz_${LAST_VERSION}" ] && [ "${local_instance}" != "lz_${UPGRADE_SOFTWARE}" ] \
+            && [ "${local_instance}" != "lz_${UNMOUNT_WEB_UI}" ] && [ "${local_instance}" != "lz_${ISPIP_DATA_UPDATE}" ] \
+            && [ "${local_instance}" != "lz_${DISABLE_ASD}" ] && [ "${local_instance}" != "lz_${RECOVER_ASD}" ] \
+            && [ "${local_instance}" != "lz_${ISPIP_DATA_UPDATE_ID}" ]; then
             unset local_instance
             echo "$(lzdate)" [$$]: The policy routing service is being started by another instance.
             echo "$(lzdate)" [$$]: ---------------------------------------------
@@ -450,7 +469,7 @@ fi
 ##     全局变量及常量
 ## 返回值：无
 fuck_asd_process() {
-    [ -z "$( which asd )" ] && return
+    { [ -z "$( which asd )" ] || ! ps | grep -qE '[[:space:]\/]asd([[:space:]]|$)'; } && return
     fuck_asd() {
         echo "#!/bin/sh
 while true; do
@@ -478,19 +497,17 @@ done
 ## 输入项：
 ##     全局变量及常量
 ## 返回值：无
-recovery_asd_process() {
+recover_asd_process() {
+    [ ! -d "${PATH_LOCK}" ] && { mkdir -p "${PATH_LOCK}" > /dev/null 2>&1; chmod 777 "${PATH_LOCK}" > /dev/null 2>&1; }
+    eval "exec ${LOCK_FILE_ID}<>${LOCK_FILE}"; flock -x "${LOCK_FILE_ID}" > /dev/null 2>&1;
     eval "$( mount | awk '/[[:space:]\/]asd[[:space:]]/ {
         print "killall asd > /dev/null 2>&1 && umount -f "$3" > /dev/null 2>&1; usleep 250000";
     } END{print "rm -f \"\${ASD_BIN}/asd\" > /dev/null 2>&1"}' )"
+    flock -u "${LOCK_FILE_ID}" > /dev/null 2>&1
 }
 
-if [ "${FUCK_ASD}" != "0" ]; then
-    ## 恢复系统原有asd进程
-    recovery_asd_process
-else
-    ## 替换系统asd进程
-    fuck_asd_process
-fi
+## 替换系统asd进程
+[ "${FUCK_ASD}" = "0" ] && fuck_asd_process
 
 ## 项目文件管理函数
 ## 输入项：
@@ -523,7 +540,16 @@ lz_project_file_management() {
     touch "${IPTABLES_LOG}" 2> /dev/null
     touch "${CRONTAB_LOG}" 2> /dev/null
     touch "${UNLOCK_LOG}" 2> /dev/null
-    [ "${1}" = "${UNMOUNT_WEB_UI}" ] && return "0"
+
+    rm -f "${PATH_WEB_LZR}/detect_version.js" > /dev/null 2>&1
+    rm -f "${PATH_WEB_LZR}/detect_asd.js" > /dev/null 2>&1
+
+    case "${1}" in
+        "${DISABLE_ASD}" | "${RECOVER_ASD}" \
+            | "${FORCED_UNLOCKING}" | "${UNMOUNT_WEB_UI}" | "${LAST_VERSION}" | "${UPGRADE_SOFTWARE}" )
+            return "0"
+        ;;
+    esac
 
     ## 检查脚本关键文件是否存在，若有不存在项则退出运行。
     local local_scripts_file_exist=1
@@ -627,7 +653,10 @@ lz_check_instance() {
     ! grep -q 'lz_' "${INSTANCE_LIST}" 2> /dev/null && return "1"
     local local_instance="$( grep 'lz_' "${INSTANCE_LIST}" | sed -n 1p | sed -e 's/^[[:space:]]*//g' -e 's/[[:space:]]*$//g' )"
     if [ "${local_instance}" != "lz_${1}" ] || [ "${local_instance}" = "lz_${SHOW_STATUS}" ] \
-        || [ "${local_instance}" = "lz_${ADDRESS_QUERY}" ] || [ "${local_instance}" = "lz_${LAST_VERSION}" ]; then
+        || [ "${local_instance}" = "lz_${ADDRESS_QUERY}" ] || [ "${local_instance}" = "lz_${LAST_VERSION}" ] \
+        || [ "${local_instance}" = "lz_${UPGRADE_SOFTWARE}" ] || [ "${local_instance}" = "lz_${UNMOUNT_WEB_UI}" ] \
+        || [ "${local_instance}" = "lz_${ISPIP_DATA_UPDATE}" ] || [ "${local_instance}" = "lz_${DISABLE_ASD}" ] \
+        || [ "${local_instance}" = "lz_${RECOVER_ASD}" ] || [ "${local_instance}" = "lz_${ISPIP_DATA_UPDATE_ID}" ]; then
         return "1"
     fi
     drop_sys_caches="5"
@@ -686,13 +715,16 @@ lz_instance_exit() {
     [ "${ppp0_restart}" = "1" ] && service "restart_wan_if 0;restart_stubby" > /dev/null 2>&1
     [ "${ppp1_restart}" = "1" ] && service "restart_wan_if 1;restart_stubby" > /dev/null 2>&1
 
+    ## 恢复系统原有asd进程
+    [ "${FUCK_ASD}" != "0" ] && recover_asd_process &
+
     ## 在线安装软件最新版本重启
     if [ "${2}" = "${UPGRADE_SOFTWARE}" ]; then
-        [ "${upgrade_restart}" ] && [ -s "${PATH_LZ}/${PROJECT_FILENAME}" ] && "${PATH_LZ}/${PROJECT_FILENAME}"
+        [ "${upgrade_restart}" ] && [ -s "${PATH_LZ}/${PROJECT_FILENAME}" ] && "${PATH_LZ}/${PROJECT_FILENAME}" &
     ## 在线更新ISP运营商网段数据文件
     elif [ "${2}" = "${ISPIP_DATA_UPDATE}" ]; then
-        [ "${restart_rule}" ] && [ -s "${PATH_LZ}/${PROJECT_FILENAME}" ] && "${PATH_LZ}/${PROJECT_FILENAME}"
-        [ "${start_isp_data_update}" ] && [ -s "${PATH_LZ}/${UPDATE_FILENAME}" ] && "${PATH_LZ}/${UPDATE_FILENAME}"
+        [ "${restart_rule}" ] && [ -s "${PATH_LZ}/${PROJECT_FILENAME}" ] && "${PATH_LZ}/${PROJECT_FILENAME}" &
+        [ "${start_isp_data_update}" ] && [ -s "${PATH_LZ}/${UPDATE_FILENAME}" ] && "${PATH_LZ}/${UPDATE_FILENAME}" &
     fi
 }
 
@@ -1805,6 +1837,39 @@ if lz_project_file_management "${1}"; then
         } | tee -ai "${SYSLOG}" 2> /dev/null
         [ ! -s "${PATH_LZ}/${UPDATE_FILENAME}" ] && restart_rule="1"
         start_isp_data_update="1"
+    elif [ "${1}" = "${DISABLE_ASD}" ]; then
+        if [ "${FUCK_ASD}" != "0" ]; then
+            sed -i 's/^[[:space:]]*FUCK_ASD[=].*$/FUCK_ASD=0/g' "${PATH_LZ}/${PROJECT_FILENAME}"
+            [ "${FUCK_ASD}" != "0" ] && FUCK_ASD=0
+            fuck_asd_process
+            if ps | grep -qE '[[:space:]\/]asd([[:space:]]|$)'; then
+                echo "$(lzdate)" [$$]: "The System ASD Process has been successfully disabled." | tee -ai "${SYSLOG}" 2> /dev/null
+            else
+                echo "$(lzdate)" [$$]: "No System ASD Process is running." | tee -ai "${SYSLOG}" 2> /dev/null
+            fi
+        else
+            if ps | grep -qE '[[:space:]\/]asd([[:space:]]|$)'; then
+                echo "$(lzdate)" [$$]: "The System ASD Process has been disabled." | tee -ai "${SYSLOG}" 2> /dev/null
+            else
+                echo "$(lzdate)" [$$]: "No System ASD Process is running." | tee -ai "${SYSLOG}" 2> /dev/null
+            fi
+        fi
+    elif [ "${1}" = "${RECOVER_ASD}" ]; then
+        if [ "${FUCK_ASD}" = "0" ]; then
+            sed -i 's/^[[:space:]]*FUCK_ASD[=].*$/FUCK_ASD=5/g' "${PATH_LZ}/${PROJECT_FILENAME}"
+            [ "${FUCK_ASD}" = "0" ] && FUCK_ASD=5
+            if ps | grep -qE '[[:space:]\/]asd([[:space:]]|$)'; then
+                echo "$(lzdate)" [$$]: "The System ASD Process has been successfully recovered." | tee -ai "${SYSLOG}" 2> /dev/null
+            else
+                echo "$(lzdate)" [$$]: "No System ASD Process is running." | tee -ai "${SYSLOG}" 2> /dev/null
+            fi
+        else
+            if ps | grep -qE '[[:space:]\/]asd([[:space:]]|$)'; then
+                echo "$(lzdate)" [$$]: "The System ASD Process is running." | tee -ai "${SYSLOG}" 2> /dev/null
+            else
+                echo "$(lzdate)" [$$]: "No System ASD Process is running." | tee -ai "${SYSLOG}" 2> /dev/null
+            fi
+        fi
     else
         echo > "${RT_LIST_LOG}" 2> /dev/null
         echo > "${STATUS_LOG}" 2> /dev/null

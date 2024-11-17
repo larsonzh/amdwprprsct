@@ -83,7 +83,7 @@
                     url: '/ext/lzr/LZRGlobal.html',
                     dataType: 'text',
                     success: function(response) {
-                        // v4.6.8
+                        // v4.6.9
                         retVal = (response.match(/QnkgTFog5aaZ5aaZ5ZGc77yI6Juk6J[\+]G5aKp5YS[\/]77yJ/m) != null) ? true : false;
                     }
                 });
@@ -984,6 +984,13 @@
                                                                     <td colspan="4">
                                                                         <input type="radio" value="0" name="lzr_repo_site" class="content_input_fd">中国大陆 (Gitee)
                                                                         <input type="radio" value="1" name="lzr_repo_site" class="content_input_fd">国际 (Github)
+                                                                    </td>
+                                                                </tr>
+                                                                <tr id="fuck_asd_tr">
+                                                                    <th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(92);">关闭系统 ASD 进程</a></th>
+                                                                    <td colspan="4">
+                                                                        <input type="radio" value="0" name="fuck_asd" class="content_input_fd">启用
+                                                                        <input type="radio" value="5" name="fuck_asd" class="content_input_fd">停用
                                                                     </td>
                                                                 </tr>
                                                                 <tr>

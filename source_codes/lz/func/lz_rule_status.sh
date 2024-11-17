@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_status.sh v4.6.8
+# lz_rule_status.sh v4.6.9
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 显示脚本运行状态脚本
@@ -1239,6 +1239,11 @@ lz_get_route_status_info() {
             echo "$(lzdate)" [$$]: "   Proxy Route: Secondary WAN" | tee -ai "${STATUS_LOG}" 2> /dev/null
         else
             echo "$(lzdate)" [$$]: "   Proxy Route: Primary WAN" | tee -ai "${STATUS_LOG}" 2> /dev/null
+        fi
+        if mount | grep -q '[[:space:]\/]asd[[:space:]]'; then
+            echo "$(lzdate)" [$$]: "   System ASD Process: Disable" | tee -ai "${STATUS_LOG}" 2> /dev/null
+        elif ps | grep -qE '[[:space:]\/]asd([[:space:]]|$)'; then
+            echo "$(lzdate)" [$$]: "   System ASD Process: Native" | tee -ai "${STATUS_LOG}" 2> /dev/null
         fi
         if [ "${status_route_cache}" = "0" ]; then
             echo "$(lzdate)" [$$]: "   Route Cache Cleaning: Enable" | tee -ai "${STATUS_LOG}" 2> /dev/null

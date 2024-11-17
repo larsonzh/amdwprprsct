@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_initialize_config.sh v4.6.8
+# lz_initialize_config.sh v4.6.9
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 初始化脚本配置
@@ -239,6 +239,8 @@ lz_restore_cfg_file() {
 ##       在线获取最新版本信息       ${PATH_LZ}/lz_rule.sh lastver
 ##       在线安装软件最新版本       ${PATH_LZ}/lz_rule.sh upgrade
 ##       在线更新 ISP 运营商数据    ${PATH_LZ}/lz_rule.sh isp
+##       关闭系统 ASD 进程          ${PATH_LZ}/lz_rule.sh fasd
+##       恢复系统 ASD 进程          ${PATH_LZ}/lz_rule.sh rasd
 ##       显示命令列表               ${PATH_LZ}/lz_rule.sh cmd
 ##       显示帮助                   ${PATH_LZ}/lz_rule.sh help
 ## 提示：

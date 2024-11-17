@@ -1,5 +1,5 @@
 /*
-# lz_policy_routing.js v4.6.8
+# lz_policy_routing.js v4.6.9
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ JavaScript for Asuswrt-Merlin Router
@@ -13,6 +13,7 @@ function setPolicyRoutingPage() {
 let policySettingsArray = {};
 function getVersion() {
     policySettingsArray["version"] = "";
+    policySettingsArray["fuck_asd"] = "5";
     $.ajax({
         async: false,
         url: '/ext/lzr/LZRVersion.html',
@@ -20,6 +21,9 @@ function getVersion() {
         success: function(response) {
             let buf = response.match(/^[\s]*LZ_VERSION[=]v[\d]+([\.][\d]+)+/m);
             if (buf != null) policySettingsArray.version = (buf.length > 0) ? buf[0].replace(/^[\s]*LZ_VERSION[=](v[\d]+([\.][\d]+)+)/, "$1") : "";
+            buf = response.match(/^[\s]*FUCK_ASD[=]([\w]+|[\"][\w]+[\"])/m);
+            if (buf != null) policySettingsArray.fuck_asd = (buf.length > 0) ? buf[0].replace(/^[\s]*FUCK_ASD[=]([\"]?)([\w]+)([\"]?)/, "$2") : "5";
+            if (policySettingsArray.fuck_asd != "0") policySettingsArray.fuck_asd = "5";
         }
     });
 }
@@ -57,6 +61,47 @@ function getLastVersion() {
                 $("#lzr_new_version_prompt_block").html("在线检测新版本失败" + siteStr).show();
                 $("#lzr_last_version_block").html("").show();
             }
+        }
+    });
+}
+
+function getASDStatus() {
+    $.ajax({
+        url: '/ext/lzr/detect_asd.js',
+        dataType: 'script',
+        error: function(xhr) {
+            setTimeout(getASDStatus, 1000);
+        },
+        success: function() {
+            if (asdStatus == 'InProgress')
+                setTimeout(getASDStatus, 1000);
+            else if (asdStatus != 'None') {
+                asdStatus = (asdStatus == '0') ? "0" : "5";
+                if (policySettingsArray.fuck_asd != asdStatus) {
+                    policySettingsArray.fuck_asd = asdStatus;
+                    initCheckRadio("fuck_asd", 0, 0, 5);
+                }
+                $("#fuck_asd_tr").show();
+            }
+        }
+    });
+}
+
+function detectASD() {
+    $.ajax({
+        async: false,
+        url: '/ext/lzr/LZRInstance.html',
+        dataType: 'text',
+        error: function(xhr) {
+            if (xhr.status == 404) {
+                document.scriptActionsForm.action_script.value = 'start_LZDetectASD';
+                document.scriptActionsForm.action_wait.value = "0";
+                document.scriptActionsForm.submit();
+                setTimeout(getASDStatus, 1000);
+            }
+        },
+        success: function() {
+            setTimeout(detectASD, 3000);
         }
     });
 }
@@ -250,9 +295,9 @@ function initCheckRadio(name, min, max, defaultVal) {
     let radioArray = document.getElementsByName(name);
     for (let i = 0; i < radioArray.length; i++) {
         if (radioArray[i].value == value)
-            radioArray[i].checked = "checked";
+            radioArray[i].checked = true;
         else
-            radioArray[i].checked = "";
+            radioArray[i].checked = false;
     }
 }
 
@@ -339,6 +384,8 @@ function initControls() {
     initListBox("lzr_dn_pre_resolved", 0, 2, 5);
     initTextEdit("lzr_pre_dns");
     initNumberEdit("lzr_dn_cache_time", 0, 2147483, 864000);
+    initCheckRadio("fuck_asd", 0, 0, 5);
+    $("#fuck_asd_tr").hide();
     initCheckRadio("lzr_route_cache", 0, 0, 5);
     initCheckRadio("lzr_drop_sys_caches", 0, 0, 5);
     initListBox("lzr_clear_route_cache_time_interval", 0, 24, 4);
@@ -1338,6 +1385,12 @@ function openOverHint(itemNum) {
     } else if (itemNum == 91) {
         content = "<div>本策略用于路由器主机内置的 OpenVPN、PPTP、IPSec 和 WireGuard 虚拟专用网络服务器的远程 VPN 客户端，在双线路负载均衡模式下远程接入成功后，该客户端作为虚拟的路由器本地内网设备，通过本策略经由路由器其他流量出口访问外部网络。<br />";
         content += "<br /><b>策略执行优先级</b>：详见<b>基本设置&nbsp;-&nbsp;策略路由优先级</b></div>";
+    } else if (itemNum == 92) {
+        content = "<div>缺省为<b>启用</b>。<br />";
+        content += "<br /><b>ASD</b> 是华硕路由器中的一个内置安全守护程序。<br />";
+        content += "<br />策略路由安装程序会在软件安装和软件初次运行时关闭 <b>ASD</b> 进程，以保护本软件程序及相关资源文件不因其误判为恶意代码而被删除。<br />";
+        content += "<br />在软件正常运行后，亦可<b>停用</b>本功能，恢复 <b>ASD</b> 进程的正常作用。<br />";
+        content += "<br />执行<b>停用</b>操作后，<b>ASD</b> 进程恢复时会触发系统防火墙动作，导致网络重连和<b>策略路由</b>后台服务再次重启。</div>";
     } else if (itemNum == 100) {
         mode = 1;
         caption = "基本设置 - 策略路由优先级";
@@ -1422,15 +1475,22 @@ function getPolicyChangedItem(_dataArray) {
 function saveSettings(saveData) {
     if (!policySettingsArray.hasOwnProperty("policyEnable"))
         return;
-    if (saveData != false) {
+    if (saveData) {
         $("[name*=lzr_]").prop("disabled", false);
         $("#amng_custom").val(JSON.stringify(getPolicyChangedItem($("#ruleForm").serializeObject())).replace(/\"lzr_/g, "\"lz_rule_"));
     } else {
         $("[name*=lzr_]").prop("disabled", true);
         $("#amng_custom").val("");
     }
-    document.form.action_script.value = policySettingsArray.policyEnable ? "start_LZRule" : "stop_LZRule";
-    document.form.action_wait.value = "20";
+    let asdValue = $("input[name='fuck_asd']:checked").val();
+    if (policySettingsArray.hasOwnProperty("fuck_asd") 
+        && (asdValue == "0" || asdValue == "5" ) && asdValue != policySettingsArray.fuck_asd) {
+        document.form.action_script.value = policySettingsArray.policyEnable ? 'start_LZASDRule_' + asdValue : "stop_LZASDRule_" + asdValue;
+        document.form.action_wait.value = (asdValue == "0") ? "20" : "30";
+    } else {
+        document.form.action_script.value = policySettingsArray.policyEnable ? "start_LZRule" : "stop_LZRule";
+        document.form.action_wait.value = "20";
+    }
     showLoading();
     document.form.submit();
 }
@@ -2125,8 +2185,10 @@ function initial() {
     initAjaxTextArea();
     if (restart)
         saveSettings(false);
-    else
-        setTimeout(detectVersion, 100);
+    else {
+        setTimeout(detectASD, 100);
+        setTimeout(detectVersion, 1000);
+    }
 }
 
 $(document).ready(function() {
