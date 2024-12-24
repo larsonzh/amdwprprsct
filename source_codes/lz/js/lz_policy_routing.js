@@ -1,5 +1,5 @@
 /*
-# lz_policy_routing.js v4.6.9
+# lz_policy_routing.js v4.7.0
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ JavaScript for Asuswrt-Merlin Router
@@ -1432,7 +1432,7 @@ function openOverHint(itemNum) {
         content = "<div>天佑白嫖。</div>";
     } else if (itemNum == 103) {
         mode = 2;
-        content = "<div>攒钱买盒饭。</div>";
+        content = "<div>我想买台最新型号的 ASUS 路由器。</div>";
     }
     if (content != "") {
         if (mode == 1) {

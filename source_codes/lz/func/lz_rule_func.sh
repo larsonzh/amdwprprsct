@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v4.6.9
+# lz_rule_func.sh v4.7.0
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 #BEGIN
@@ -609,11 +609,11 @@ lz_get_policy_mode() {
     llz_cal_equal_division() {
         local local_equal_division_total="$( lz_get_isp_data_item_total_variable "${1}" )"
         if [ "${2}" != "1" ]; then
-            local_wan1_isp_addr_total="$(( local_wan1_isp_addr_total + local_equal_division_total/2 + local_equal_division_total%2 ))"
-            local_wan2_isp_addr_total="$(( local_wan2_isp_addr_total + local_equal_division_total/2 ))"
+            local_wan1_isp_addr_total="$(( local_wan1_isp_addr_total + local_equal_division_total / 2 + local_equal_division_total % 2 ))"
+            local_wan2_isp_addr_total="$(( local_wan2_isp_addr_total + local_equal_division_total / 2 ))"
         else
-            local_wan1_isp_addr_total="$(( local_wan1_isp_addr_total + local_equal_division_total/2 ))"
-            local_wan2_isp_addr_total="$(( local_wan2_isp_addr_total +local_equal_division_total/2 + local_equal_division_total%2 ))"
+            local_wan1_isp_addr_total="$(( local_wan1_isp_addr_total + local_equal_division_total / 2 ))"
+            local_wan2_isp_addr_total="$(( local_wan2_isp_addr_total + local_equal_division_total / 2 + local_equal_division_total % 2 ))"
         fi
     }
 
@@ -627,24 +627,32 @@ lz_get_policy_mode() {
     ##     local_wan1_isp_addr_total--第一WAN口网段条目累计值
     ##     local_wan2_isp_addr_total--第二WAN口网段条目累计值
     llz_cal_isp_equal_division() {
-        local local_isp_wan_port="$( lz_get_isp_wan_port "${1}" )"
-        local isp_total="0"
-        { [ "${local_isp_wan_port}" = "0" ] || [ "${local_isp_wan_port}" = "1" ]; } \
-            && isp_total="$( lz_get_isp_data_item_total_variable "${1}" )"
-        [ "${local_isp_wan_port}" = "0" ] && local_wan1_isp_addr_total="$(( local_wan1_isp_addr_total + isp_total ))"
-        [ "${local_isp_wan_port}" = "1" ] && local_wan2_isp_addr_total="$(( local_wan2_isp_addr_total + isp_total ))"
-        ## 计算均分出口时两WAN口网段条目累计值
-        ## 输入项：
-        ##     $1--ISP网络运营商索引号（0~10）
-        ##     $2--是否反向（1：反向；非1：正向）
-        ##     全局变量及常量
-        ##         local_wan1_isp_addr_total--第一WAN口网段条目累计值
-        ##         local_wan2_isp_addr_total--第二WAN口网段条目累计值
-        ## 返回值：
-        ##     local_wan1_isp_addr_total--第一WAN口网段条目累计值
-        ##     local_wan2_isp_addr_total--第二WAN口网段条目累计值
-        [ "${local_isp_wan_port}" = "2" ] && llz_cal_equal_division "${1}"
-        [ "${local_isp_wan_port}" = "3" ] && llz_cal_equal_division "${1}" "1"
+        case "$( lz_get_isp_wan_port "${1}" )" in
+            0)
+                local_wan1_isp_addr_total="$(( local_wan1_isp_addr_total + $( lz_get_isp_data_item_total_variable "${1}" ) ))"
+            ;;
+            1)
+                local_wan2_isp_addr_total="$(( local_wan2_isp_addr_total + $( lz_get_isp_data_item_total_variable "${1}" ) ))"
+            ;;
+            2)
+                ## 计算均分出口时两WAN口网段条目累计值
+                ## 输入项：
+                ##     $1--ISP网络运营商索引号（0~10）
+                ##     $2--是否反向（1：反向；非1：正向）
+                ##     全局变量及常量
+                ##         local_wan1_isp_addr_total--第一WAN口网段条目累计值
+                ##         local_wan2_isp_addr_total--第二WAN口网段条目累计值
+                ## 返回值：
+                ##     local_wan1_isp_addr_total--第一WAN口网段条目累计值
+                ##     local_wan2_isp_addr_total--第二WAN口网段条目累计值
+                llz_cal_equal_division "${1}"
+            ;;
+            3)
+                llz_cal_equal_division "${1}" "1"
+            ;;
+            *)
+            ;;
+        esac
     }
 
     local local_index="1"
@@ -663,16 +671,11 @@ lz_get_policy_mode() {
         local_index="$(( local_index + 1 ))"
     done
 
-    local custom_total="0"
-    { [ "${custom_data_wan_port_1}" = "0" ] || [ "${custom_data_wan_port_1}" = "1" ]; } \
-        && custom_total="$( lz_get_ipv4_data_file_valid_item_total "${custom_data_file_1}" )"
-    [ "${custom_data_wan_port_1}" = "0" ] && local_wan1_isp_addr_total="$(( local_wan1_isp_addr_total + custom_total ))"
-    [ "${custom_data_wan_port_1}" = "1" ] && local_wan2_isp_addr_total="$(( local_wan2_isp_addr_total + custom_total ))"
+    [ "${custom_data_wan_port_1}" = "0" ] && local_wan1_isp_addr_total="$(( local_wan1_isp_addr_total + $( lz_get_ipv4_data_file_valid_item_total "${custom_data_file_1}" ) ))"
+    [ "${custom_data_wan_port_1}" = "1" ] && local_wan2_isp_addr_total="$(( local_wan2_isp_addr_total + $( lz_get_ipv4_data_file_valid_item_total "${custom_data_file_1}" ) ))"
 
-    { [ "${custom_data_wan_port_2}" = "0" ] || [ "${custom_data_wan_port_2}" = "1" ]; } \
-        && custom_total="$( lz_get_ipv4_data_file_valid_item_total "${custom_data_file_2}" )"
-    [ "${custom_data_wan_port_2}" = "0" ] && local_wan1_isp_addr_total="$(( local_wan1_isp_addr_total + custom_total ))"
-    [ "${custom_data_wan_port_2}" = "1" ] && local_wan2_isp_addr_total="$(( local_wan2_isp_addr_total + custom_total ))"
+    [ "${custom_data_wan_port_2}" = "0" ] && local_wan1_isp_addr_total="$(( local_wan1_isp_addr_total + $( lz_get_ipv4_data_file_valid_item_total "${custom_data_file_2}" ) ))"
+    [ "${custom_data_wan_port_2}" = "1" ] && local_wan2_isp_addr_total="$(( local_wan2_isp_addr_total + $( lz_get_ipv4_data_file_valid_item_total "${custom_data_file_2}" ) ))"
 
     if [ "${local_wan1_isp_addr_total}" -lt "${local_wan2_isp_addr_total}" ]; then policy_mode="0"; else policy_mode="1"; fi;
 
@@ -680,6 +683,47 @@ lz_get_policy_mode() {
     unset local_wan2_isp_addr_total
 
     return "0"
+}
+
+## 计算ipv4网络地址掩码位数函数
+## 输入项：
+##     $1--ipv4网络地址掩码
+## 返回值：
+##     0~32--ipv4网络地址掩码位数
+lz_ipv4_mask_to_cidr() {
+    local ipv4_mask="$( echo "${1}" | sed -n "1{
+        s/^[[:space:]]\+//;
+        s/[[:space:]].*$//g;
+        s/\(^\|[^[:digit:]]\)[0]\+\([[:digit:]]\)/\1\2/g;
+        p
+    }" )"
+    local x="$( echo "${ipv4_mask}" | sed 's/^\(255[\.]\)\{0,3\}//' )"
+    set -- "^0^^^128^192^224^240^248^252^254" "$(( ( ${#ipv4_mask} - ${#x} ) * 2 ))" "${x%%.*}"
+    if [ "${#3}" -ge 3 ]; then x="${1%%^"${3}"*}"; else x="${1%%^"${3}"^*}"; fi;
+    echo "$(( ${2} + ${#x} / 4 ))"
+}
+
+## ipv4网络掩码转换至CIDR掩码位数函数
+## 输入项：
+##     $1--ipv4网络地址掩码
+## 返回值：
+##     0~32--ipv4网络地址掩码位数
+lz_ipv4mask2cidr() {
+    local x="${1##*255.}"
+    set -- "0^^^128^192^224^240^248^252^254^" "$(( ( ${#1} - ${#x} ) * 2 ))" "${x%%.*}"
+    x="${1%%"${3}"*}"
+    echo "$(( ${2} + ${#x} / 4 ))"
+}
+
+## CIDR掩码位数转换至ipv4网络掩码函数
+## 输入项：
+##     $1--ipv4网络地址掩码位数
+## 返回值：
+##     ipv4网络地址掩码
+lz_cidr2ipv4mask() {
+    set -- "$(( 5 - ${1} / 8 ))" "255" "255" "255" "255" "$(( (( 255 << ( 8 - ${1} % 8 )) & 255 ) & 255 ))" "0" "0" "0" "0"
+    if [ "${1}" -gt 5 ]; then shift "6"; elif [ "${1}" -gt 1 ]; then shift "${1}"; else shift; fi;
+    echo "${1}.${2}.${3}.${4}"
 }
 
 ## 获取路由器基本信息并输出至系统记录函数
@@ -694,7 +738,7 @@ lz_get_policy_mode() {
 lz_get_route_info() {
     echo "$(lzdate)" [$$]: --------------------------------------------- | tee -ai "${SYSLOG}" 2> /dev/null
     ## 匹配设置iptables操作符及输出显示路由器硬件类型
-    case ${route_hardware_type} in
+    case "${route_hardware_type}" in
         armv7l)
             MATCH_SET='--match-set'
         ;;

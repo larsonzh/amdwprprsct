@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_address_query.sh v4.6.9
+# lz_rule_address_query.sh v4.7.0
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 网址信息查询脚本
@@ -663,16 +663,34 @@ lz_aq_unset_isp_data_item_total_variable() {
     done
 }
 
-## ipv4网络掩码转换至掩码位函数
+## 计算ipv4网络地址掩码位数函数
 ## 输入项：
 ##     $1--ipv4网络地址掩码
 ## 返回值：
 ##     0~32--ipv4网络地址掩码位数
-lz_aq_netmask2cdr() {
+lz_aq_ipv4_mask_to_cidr() {
+    local ipv4_mask="$( echo "${1}" | sed -n "1{
+        s/^[[:space:]]\+//;
+        s/[[:space:]].*$//g;
+        s/\(^\|[^[:digit:]]\)[0]\+\([[:digit:]]\)/\1\2/g;
+        p
+    }" )"
+    local x="$( echo "${ipv4_mask}" | sed 's/^\(255[\.]\)\{0,3\}//' )"
+    set -- "^0^^^128^192^224^240^248^252^254" "$(( ( ${#ipv4_mask} - ${#x} ) * 2 ))" "${x%%.*}"
+    if [ "${#3}" -ge 3 ]; then x="${1%%^"${3}"*}"; else x="${1%%^"${3}"^*}"; fi;
+    echo "$(( ${2} + ${#x} / 4 ))"
+}
+
+## ipv4网络掩码转换至CIDR掩码位数函数
+## 输入项：
+##     $1--ipv4网络地址掩码
+## 返回值：
+##     0~32--ipv4网络地址掩码位数
+lz_aq_ipv4mask2cidr() {
     local x="${1##*255.}"
-    set -- "0^^^128^192^224^240^248^252^254^" "$(( (${#1} - ${#x})*2 ))" "${x%%.*}"
+    set -- "0^^^128^192^224^240^248^252^254^" "$(( ( ${#1} - ${#x} ) * 2 ))" "${x%%.*}"
     x="${1%%"${3}"*}"
-    echo "$(( $2 + (${#x}/4) ))"
+    echo "$(( ${2} + ${#x} / 4 ))"
 }
 
 ## 获取路由器本机本地地址信息函数
@@ -693,7 +711,7 @@ lz_aq_get_route_local_address_info() {
     esac
     aq_route_local_ip="$( echo "${local_route_local_info}" | awk 'NR==2 {print $2}' | awk -F: '{print $2}' )"
     aq_route_local_ip_cidr_mask="$( echo "${local_route_local_info}" | awk 'NR==2 {print $4}' | awk -F: '{print $2}' )"
-    [ -n "$aq_route_local_ip_cidr_mask" ] && aq_route_local_ip_cidr_mask="$( lz_aq_netmask2cdr "${aq_route_local_ip_cidr_mask}" )"
+    [ -n "$aq_route_local_ip_cidr_mask" ] && aq_route_local_ip_cidr_mask="$( lz_aq_ipv4_mask_to_cidr "${aq_route_local_ip_cidr_mask}" )"
 
     aq_route_static_subnet="$( ip -o -4 address list | awk '$2 == "br0" {print $4; exit;}' | grep -Eo '^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?$' )"
     aq_route_local_subnet="$( awk -v ipv="${aq_route_static_subnet}" 'function fix_cidr(ipa) {

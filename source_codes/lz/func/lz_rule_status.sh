@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_status.sh v4.6.9
+# lz_rule_status.sh v4.7.0
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 显示脚本运行状态脚本
@@ -888,11 +888,11 @@ lz_get_policy_mode_status() {
     llz_cal_equal_division_status() {
         local local_equal_division_total="$( lz_get_isp_data_item_total_status_variable "${1}" )"
         if [ "${2}" != "1" ]; then
-            local_wan1_isp_addr_total="$(( local_wan1_isp_addr_total + local_equal_division_total/2 + local_equal_division_total%2 ))"
-            local_wan2_isp_addr_total="$(( local_wan2_isp_addr_total + local_equal_division_total/2 ))"
+            local_wan1_isp_addr_total="$(( local_wan1_isp_addr_total + local_equal_division_total / 2 + local_equal_division_total % 2 ))"
+            local_wan2_isp_addr_total="$(( local_wan2_isp_addr_total + local_equal_division_total / 2 ))"
         else
-            local_wan1_isp_addr_total="$(( local_wan1_isp_addr_total + local_equal_division_total/2 ))"
-            local_wan2_isp_addr_total="$(( local_wan2_isp_addr_total + local_equal_division_total/2 + local_equal_division_total%2 ))"
+            local_wan1_isp_addr_total="$(( local_wan1_isp_addr_total + local_equal_division_total / 2 ))"
+            local_wan2_isp_addr_total="$(( local_wan2_isp_addr_total + local_equal_division_total / 2 + local_equal_division_total % 2 ))"
         fi
     }
 
@@ -906,24 +906,32 @@ lz_get_policy_mode_status() {
     ##     local_wan1_isp_addr_total--第一WAN口网段条目累计值
     ##     local_wan2_isp_addr_total--第二WAN口网段条目累计值
     llz_cal_isp_equal_division_status() {
-        local local_isp_wan_port="$( lz_get_isp_wan_port_status "${1}" )"
-        local isp_total="0"
-        { [ "${local_isp_wan_port}" = "0" ] || [ "${local_isp_wan_port}" = "1" ]; } \
-            && isp_total="$( lz_get_isp_data_item_total_status_variable "${1}" )"
-        [ "${local_isp_wan_port}" = "0" ] && local_wan1_isp_addr_total="$(( local_wan1_isp_addr_total + isp_total ))"
-        [ "${local_isp_wan_port}" = "1" ] && local_wan2_isp_addr_total="$(( local_wan2_isp_addr_total + isp_total ))"
-        ## 计算均分出口时两WAN口网段条目累计值状态
-        ## 输入项：
-        ##     $1--ISP网络运营商索引号（0~10）
-        ##     $2--是否反向（1：反向；非1：正向）
-        ##     全局变量及常量
-        ##         local_wan1_isp_addr_total--第一WAN口网段条目累计值
-        ##         local_wan2_isp_addr_total--第二WAN口网段条目累计值
-        ## 返回值：
-        ##     local_wan1_isp_addr_total--第一WAN口网段条目累计值
-        ##     local_wan2_isp_addr_total--第二WAN口网段条目累计值
-        [ "${local_isp_wan_port}" = "2" ] && llz_cal_equal_division_status "${1}"
-        [ "${local_isp_wan_port}" = "3" ] && llz_cal_equal_division_status "${1}" "1"
+        case "$( lz_get_isp_wan_port_status "${1}" )" in
+            0)
+                local_wan1_isp_addr_total="$(( local_wan1_isp_addr_total + $( lz_get_isp_data_item_total_status_variable "${1}" ) ))"
+            ;;
+            1)
+                local_wan2_isp_addr_total="$(( local_wan2_isp_addr_total + $( lz_get_isp_data_item_total_status_variable "${1}" ) ))"
+            ;;
+            2)
+                ## 计算均分出口时两WAN口网段条目累计值状态
+                ## 输入项：
+                ##     $1--ISP网络运营商索引号（0~10）
+                ##     $2--是否反向（1：反向；非1：正向）
+                ##     全局变量及常量
+                ##         local_wan1_isp_addr_total--第一WAN口网段条目累计值
+                ##         local_wan2_isp_addr_total--第二WAN口网段条目累计值
+                ## 返回值：
+                ##     local_wan1_isp_addr_total--第一WAN口网段条目累计值
+                ##     local_wan2_isp_addr_total--第二WAN口网段条目累计值
+                llz_cal_equal_division_status "${1}"
+            ;;
+            3)
+                llz_cal_equal_division_status "${1}" "1"
+            ;;
+            *)
+            ;;
+        esac
     }
 
     local local_index="1"
@@ -942,16 +950,11 @@ lz_get_policy_mode_status() {
         local_index="$(( local_index + 1 ))"
     done
 
-    local custom_total="0"
-    { [ "${status_custom_data_wan_port_1}" = "0" ] || [ "${status_custom_data_wan_port_1}" = "1" ]; } \
-        && custom_total="$( lz_get_ipv4_data_file_valid_item_total_status "${status_custom_data_file_1}" )"
-    [ "${status_custom_data_wan_port_1}" = "0" ] && local_wan1_isp_addr_total="$(( local_wan1_isp_addr_total + custom_total ))"
-    [ "${status_custom_data_wan_port_1}" = "1" ] && local_wan2_isp_addr_total="$(( local_wan2_isp_addr_total + custom_total ))"
+    [ "${status_custom_data_wan_port_1}" = "0" ] && local_wan1_isp_addr_total="$(( local_wan1_isp_addr_total + $( lz_get_ipv4_data_file_valid_item_total_status "${status_custom_data_file_1}" ) ))"
+    [ "${status_custom_data_wan_port_1}" = "1" ] && local_wan2_isp_addr_total="$(( local_wan2_isp_addr_total + $( lz_get_ipv4_data_file_valid_item_total_status "${status_custom_data_file_1}" ) ))"
 
-    { [ "${status_custom_data_wan_port_2}" = "0" ] || [ "${status_custom_data_wan_port_2}" = "1" ]; } \
-        && custom_total="$( lz_get_ipv4_data_file_valid_item_total_status "${status_custom_data_file_2}" )"
-    [ "${status_custom_data_wan_port_2}" = "0" ] && local_wan1_isp_addr_total="$(( local_wan1_isp_addr_total + custom_total ))"
-    [ "${status_custom_data_wan_port_2}" = "1" ] && local_wan2_isp_addr_total="$(( local_wan2_isp_addr_total + custom_total ))"
+    [ "${status_custom_data_wan_port_2}" = "0" ] && local_wan1_isp_addr_total="$(( local_wan1_isp_addr_total + $( lz_get_ipv4_data_file_valid_item_total_status "${status_custom_data_file_2}" ) ))"
+    [ "${status_custom_data_wan_port_2}" = "1" ] && local_wan2_isp_addr_total="$(( local_wan2_isp_addr_total + $( lz_get_ipv4_data_file_valid_item_total_status "${status_custom_data_file_2}" ) ))"
 
     if [ "${local_wan1_isp_addr_total}" -lt "${local_wan2_isp_addr_total}" ]; then status_policy_mode="0"; else status_policy_mode="1"; fi;
 
@@ -1149,7 +1152,7 @@ lz_get_route_status_info() {
     ## 由于不同系统中ifconfig返回信息的格式有一定差别，需分开处理
     ## Linux的其他版本的格式暂不掌握，做框架性预留处理
     local local_route_local_info=
-    case ${local_route_Kernel_name} in
+    case "${local_route_Kernel_name}" in
         Linux)
             local_route_local_info="$( /sbin/ifconfig br0 )"
         ;;
