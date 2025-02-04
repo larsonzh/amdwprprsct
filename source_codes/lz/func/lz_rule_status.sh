@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_status.sh v4.7.1
+# lz_rule_status.sh v4.7.2
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 显示脚本运行状态脚本
@@ -1347,8 +1347,8 @@ lz_show_vpn_support_status() {
         echo "$(lzdate)" [$$]: "   PPTP Client Export: ${local_vpn_client_wan_port}" | tee -ai "${STATUS_LOG}" 2> /dev/null
     fi
     if [ "$( nvram get "ipsec_server_enable" )" = "1" ]; then
-        local_vpn_item="$( nvram get "ipsec_profile_1" | sed 's/>/\n/g' | sed -n 15p | grep -Eo '([0-9]{1,3}[\.]){2}[0-9]{1,3}' | sed 's/^.*$/&\.0\/24/' )"
-        [ -z "${local_vpn_item}" ] && local_vpn_item="$( nvram get "ipsec_profile_2" | sed 's/>/\n/g' | sed -n 15p | grep -Eo '([0-9]{1,3}[\.]){2}[0-9]{1,3}' | sed 's/^.*$/&\.0\/24/' )"
+        local_vpn_item="$( nvram get "ipsec_profile_1" | sed 's/>/\n/g' | sed -n 15p | grep -Eo "${REGEX_IPV4%"([\/]("*}" | sed 's/^.*$/&\.0\/24/' )"
+        [ -z "${local_vpn_item}" ] && local_vpn_item="$( nvram get "ipsec_profile_2" | sed 's/>/\n/g' | sed -n 15p | grep -Eo "${REGEX_IPV4%"([\/]("*}" | sed 's/^.*$/&\.0\/24/' )"
         if [ -n "${local_vpn_item}" ]; then
             {
                 echo "$(lzdate)" [$$]: ---------------------------------------------

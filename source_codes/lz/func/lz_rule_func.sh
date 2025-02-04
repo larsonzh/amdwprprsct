@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v4.7.1
+# lz_rule_func.sh v4.7.2
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 #BEGIN
@@ -3769,6 +3769,8 @@ lz_add_openvpn_event_scripts() {
 [ ! -d "${PATH_LOCK}" ] && { mkdir -p "${PATH_LOCK}" > /dev/null 2>&1; chmod 777 "${PATH_LOCK}" > /dev/null 2>&1; }
 exec ${LOCK_FILE_ID}<>"${LOCK_FILE}"; flock -x "${LOCK_FILE_ID}" > /dev/null 2>&1;
 
+REGEX_IPV4='((25[0-5]|(2[0-4]|1?[0-9])?[0-9])[\.]){3}(25[0-5]|(2[0-4]|1?[0-9])?[0-9])([\/]([0-9]|[1-2][0-9]|3[0-2]))?'
+
 lzdate() { date +"%F %T"; }
 
 {
@@ -3776,14 +3778,14 @@ lzdate() { date +"%F %T"; }
     echo "\$(lzdate)" [\$\$]: Running LZ VPN Event Handling Process "${LZ_VERSION}"
 } >> "${SYSLOG}"
 
-lz_ovpn_subnet_list="\$( ipset -q list "${OPENVPN_SUBNET_IP_SET}" | grep -Eo '^${REGEX_IPV4}$' )"
-lz_pptp_client_list="\$( ipset -q list "${PPTP_CLIENT_IP_SET}" | grep -Eo '^${REGEX_IPV4}$' )"
-lz_ipsec_subnet_list="\$( ipset -q list "${IPSEC_SUBNET_IP_SET}" | grep -Eo '^${REGEX_IPV4}$' )"
-lz_wireguard_client_list="\$( ipset -q list "${WIREGUARD_CLIENT_IP_SET}" | grep -Eo '^${REGEX_IPV4}$' )"
+lz_ovpn_subnet_list="\$( ipset -q list "${OPENVPN_SUBNET_IP_SET}" | grep -Eo '^\${REGEX_IPV4}$' )"
+lz_pptp_client_list="\$( ipset -q list "${PPTP_CLIENT_IP_SET}" | grep -Eo '^\${REGEX_IPV4}$' )"
+lz_ipsec_subnet_list="\$( ipset -q list "${IPSEC_SUBNET_IP_SET}" | grep -Eo '^\${REGEX_IPV4}$' )"
+lz_wireguard_client_list="\$( ipset -q list "${WIREGUARD_CLIENT_IP_SET}" | grep -Eo '^\${REGEX_IPV4}$' )"
 lz_nvram_ipsec_subnet_list=
 if [ "\$( nvram get "ipsec_server_enable" )" = "1" ]; then
-    lz_nvram_ipsec_subnet_list="\$( nvram get "ipsec_profile_1" | sed 's/>/\n/g' | sed -n 15p | grep -Eo '([0-9]{1,3}[\.]){2}[0-9]{1,3}' | sed 's/^.*\$/&\.0\/24/' )"
-    [ -z "\${lz_nvram_ipsec_subnet_list}" ] && lz_nvram_ipsec_subnet_list="\$( nvram get "ipsec_profile_2" | sed 's/>/\n/g' | sed -n 15p | grep -Eo '([0-9]{1,3}[\.]){2}[0-9]{1,3}' | sed 's/^.*\$/&\.0\/24/' )"
+    lz_nvram_ipsec_subnet_list="\$( nvram get "ipsec_profile_1" | sed 's/>/\n/g' | sed -n 15p | grep -Eo "\${REGEX_IPV4%"([\/]("*}" | sed 's/^.*\$/&\.0\/24/' )"
+    [ -z "\${lz_nvram_ipsec_subnet_list}" ] && lz_nvram_ipsec_subnet_list="\$( nvram get "ipsec_profile_2" | sed 's/>/\n/g' | sed -n 15p | grep -Eo "\${REGEX_IPV4%"([\/]("*}" | sed 's/^.*\$/&\.0\/24/' )"
 fi
 ip rule show | awk -F: '\$1 == "${IP_RULE_PRIO_VPN}" || \$1 == "${IP_RULE_PRIO_STATIC_SYS_VPN}" {system("ip rule del prio "\$1" > /dev/null 2>&1")}'
 if ! ip route show | grep -qw nexthop; then
@@ -4324,12 +4326,12 @@ lz_vpn_support() {
         local_vpn_item="$( nvram get "ipsec_profile_1" \
                             | sed 's/>/\n/g' \
                             | sed -n 15p \
-                            | grep -Eo '([0-9]{1,3}[\.]){2}[0-9]{1,3}' \
+                            | grep -Eo "${REGEX_IPV4%"([\/]("*}" \
                             | sed 's/^.*$/&\.0\/24/' )"
         [ -z "${local_vpn_item}" ] && local_vpn_item="$( nvram get "ipsec_profile_2" \
                                                         | sed 's/>/\n/g' \
                                                         | sed -n 15p \
-                                                        | grep -Eo '([0-9]{1,3}[\.]){2}[0-9]{1,3}' \
+                                                        | grep -Eo "${REGEX_IPV4%"([\/]("*}" \
                                                         | sed 's/^.*$/&\.0\/24/' )"
         if [ -n "${local_vpn_item}" ]; then
             ## 虚拟专网客户端路由出口规则添加及分流数据集更新处理
