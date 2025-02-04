@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_status.sh v4.7.0
+# lz_rule_status.sh v4.7.1
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 显示脚本运行状态脚本
@@ -166,11 +166,9 @@ lz_unset_isp_wan_port_status_variable() {
 ## 返回值：
 ##     IPv4地址数据列表
 lz_print_ipv4_address_list_status() {
-    sed -e 's/^[[:space:]]\+//g' -e 's/[#].*$//g' -e 's/[[:space:]]\+/ /g' -e 's/[[:space:]]\+$//g' \
+    sed -e 's/^[[:space:]]\+//g' -e 's/[[:space:]#].*$//g' \
         -e 's/\(^\|[^[:digit:]]\)[0]\+\([[:digit:]]\)/\1\2/g' \
-        -e 's/^\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]].*$/\1/' \
-        -e '/^\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?$/!d' \
-        -e '/[3-9][0-9][0-9]\|[2][6-9][0-9]\|[2][5][6-9]\|[\/][4-9][0-9]\|[\/][3][3-9]/d' \
+        -e "/^${REGEX_SED_IPV4}$/!d" \
         -e 's/[\/]32//g' \
         -e "/\(^\|[[:space:]]\)\(0\([\.]0\)\{3\}\|${status_route_local_ip}\)\([[:space:]]\|$\)/d" "${1}" \
         | awk 'function fix_cidr(ipa) {
@@ -217,9 +215,8 @@ lz_print_valid_ipv4_address_list_status() {
 lz_print_src_to_dst_ipv4_address_list_status() {
     sed -e 's/^[[:space:]]\+//g' -e 's/[#].*$//g' -e 's/[[:space:]]\+/ /g' -e 's/[[:space:]]\+$//g' \
         -e 's/\(^\|[^[:digit:]]\)[0]\+\([[:digit:]]\)/\1\2/g' \
-        -e 's/^\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]]\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]].*$/\1 \4/' \
-        -e '/^\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?[[:space:]]\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?$/!d' \
-        -e '/[3-9][0-9][0-9]\|[2][6-9][0-9]\|[2][5][6-9]\|[\/][4-9][0-9]\|[\/][3][3-9]/d' \
+        -e "s/^\(${REGEX_SED_IPV4}[[:space:]]${REGEX_SED_IPV4}\)[[:space:]].*$/\1/" \
+        -e "/^${REGEX_SED_IPV4}[[:space:]]${REGEX_SED_IPV4}$/!d" \
         -e 's/[\/]32//g' \
         -e "/\(^\|[[:space:]]\)\(0\([\.]0\)\{3\}\|${status_route_local_ip}\)\([[:space:]]\|$\)/d" "${1}" \
         | awk 'function fix_cidr(ipa) {
@@ -251,15 +248,13 @@ lz_print_src_to_dst_ipv4_address_list_status() {
 ## 返回值：
 ##     IPv4源地址至目标地址协议端口数据列表
 lz_print_src_to_dst_port_ipv4_address_list_status() {
-    local local_regex='^[[:space:]]*(([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?)([[:space:]]+(([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?)([[:space:]]+(tcp|udp|udplite|sctp|dccp)([[:space:]]+((([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)[\,])*([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)|any|all)([[:space:]]+((([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)[\,])*([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)|any|all))?)?)?)?$'
-    sed 's/\(^\|[^[:digit:]]\)[0]\+\([[:digit:]]\)/\1\2/g' "${1}" \
-        | grep -Ei "${local_regex}" \
+    local local_regex="^[[:space:]]*(${REGEX_IPV4})([[:space:]]+(${REGEX_IPV4})([[:space:]]+(tcp|udp|udplite|sctp|dccp)([[:space:]]+((([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)[\,])*([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)|any|all)([[:space:]]+((([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)[\,])*([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)|any|all))?)?)?)?$"
+    sed -e 's/^[[:space:]]\+//g' -e 's/[#].*$//g' -e 's/[[:space:]]\+/ /g' -e 's/[[:space:]]\+$//g' \
+        -e 's/\(^\|[^[:digit:]]\)[0]\+\([[:digit:]]\)/\1\2/g' "${1}" \
+        | grep -Eio "${local_regex}" \
         | tr '[:A-Z:]' '[:a-z:]' \
-        | sed -e 's/^[[:space:]]\+//g' -e 's/[#].*$//g' -e 's/[[:space:]]\+/ /g' -e 's/[[:space:]]\+$//g' \
-        -e 's/\(^\|[^[:digit:]]\)[0]\+\([[:digit:]]\)/\1\2/g' \
-        -e '/^\([^[:space:]]\+[[:space:]]\)\?[^[:space:]]*\([3-9][0-9][0-9]\|[2][6-9][0-9]\|[2][5][6-9]\|[\/][4-9][0-9]\|[\/][3][3-9]\)[^[:space:]]*\([[:space:]]\|$\)/d' \
-        -e 's/[\/]32//g' \
-        -e "/\(^\|[[:space:]]\)\(0\([\.]0\)\{3\}\|${status_route_local_ip}\)\([[:space:]]\|$\)/d" \
+        | sed -e 's/[\/]32//g' \
+            -e "/\(^\|[[:space:]]\)\(0\([\.]0\)\{3\}\|${status_route_local_ip}\)\([[:space:]]\|$\)/d" \
         | awk 'function fix_cidr(ipa) {
             split(ipa, arr, /\.|\//);
             if (arr[5] !~ /^[0-9][0-9]?$/)
@@ -394,10 +389,10 @@ lz_set_parameter_status_variable() {
     status_route_hardware_type=
     status_route_os_name=
 
-    status_route_static_subnet="$( ip -o -4 address list | awk '$2 == "br0" {print $4; exit;}' | grep -Eo '^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?$' )"
+    status_route_static_subnet="$( ip -o -4 address list | awk '$2 == "br0" {print $4; exit;}' | grep -Eo "^${REGEX_IPV4}$" )"
     status_route_local_ip="${status_route_static_subnet%/*}"
     status_route_local_subnet="$( awk -v ipv="${status_route_static_subnet}" 'function fix_cidr(ipa) {
-            if (ipa ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?$/) {
+            if (ipa ~ "'"^${REGEX_IPV4}$"'") {
                 if (split(ipa, arr, /\.|\//) == 5) {
                     pos = int(arr[5] / 8) + 1;
                     step = rshift(255, arr[5] % 8) + 1;
@@ -1268,7 +1263,7 @@ lz_get_route_status_info() {
     fi
     echo "$(lzdate)" [$$]: --------------------------------------------- | tee -ai "${STATUS_LOG}" 2> /dev/null
 
-    status_route_local_ip="$( echo "${status_route_local_ip}" | grep -Eo "^([0-9]{1,3}[\.]){3}[0-9]{1,3}$" )"
+    status_route_local_ip="$( echo "${status_route_local_ip}" | grep -Eo "^${REGEX_IPV4%"([\/]("*}$" )"
 }
 
 ## 显示更新ISP网络运营商CIDR网段数据定时任务函数
@@ -1428,9 +1423,9 @@ lz_get_wan_pub_ip_status() {
         local_wan_dev="$( ip route show table "${1}" | awk '/default/ {print $5; exit;}' )"
     fi
     if [ -n "${local_wan_dev}" ]; then
-        local_wan_ip="$( curl -s --connect-timeout 20 --interface "${local_wan_dev}" "whatismyip.akamai.com" | grep -Eo '^([0-9]{1,3}[\.]){3}[0-9]{1,3}' )"
+        local_wan_ip="$( curl -s --connect-timeout 20 --interface "${local_wan_dev}" "whatismyip.akamai.com" | grep -Eo "^${REGEX_IPV4%"([\/]("*}" )"
         [ -n "${local_wan_ip}" ] && local_public_ip_enable="1"
-        local_local_wan_ip="$( ip -o -4 address list | awk '$2 == "'"${local_wan_dev}"'" {print $4; exit;}' | grep -Eo '^([0-9]{1,3}[\.]){3}[0-9]{1,3}' )"
+        local_local_wan_ip="$( ip -o -4 address list | awk '$2 == "'"${local_wan_dev}"'" {print $4; exit;}' | grep -Eo "^${REGEX_IPV4%"([\/]("*}" )"
         [ "${local_wan_ip}" != "${local_local_wan_ip}" ] && local_public_ip_enable="0"
     fi
     echo "${local_wan_ip}:-${local_local_wan_ip}:-${local_public_ip_enable}"
@@ -1818,10 +1813,10 @@ lz_output_ispip_status_info() {
     }
     llz_get_client_src_rt_item_total_status() {
         ip rule show | sed -n "/^[[:space:]]*${1}:/{
-            s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]]*lookup.*$/\1/;
+            s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]]*lookup.*$/\1/;
             s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*all[[:space:]]*lookup.*$/0.0.0.0\/0/;
             s/^[[:space:]]*${1}:[[:space:]]*not[[:space:]]*from[[:space:]]*0[\.]0[\.]0[\.]0[[:space:]]*lookup.*$/0.0.0.0\/0/;
-            /^\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?$/!d;
+            /^${REGEX_SED_IPV4}$/!d;
             p
         }" | awk -v count="0" 'NF == "1" {count++;} END{print count;}'
     }
@@ -1843,7 +1838,7 @@ lz_output_ispip_status_info() {
     llz_get_domain_src_rt_item_total_status() {
         if [ "${3}" = "0" ] || [ "${3}" = "1" ]; then
             eval ipset -q list "\${STATUS_DOMAIN_CLT_SRC_SET_${3}}" \
-                | awk -v count="0" '/^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?$/ {count++;} \
+                | awk -v count="0" '$1 ~ "'"^${REGEX_IPV4}$"'" {count++;} \
                 END{if (count > "0") print count; else print "1";}'
         else
             printf "0\n"
@@ -1882,11 +1877,11 @@ lz_output_ispip_status_info() {
         if ip rule show | grep -q "^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*all[[:space:]]*fwmark[[:space:]]*${2}[[:space:]]*lookup"; then
             iptables -t mangle -L "${STATUS_CUSTOM_PREROUTING_CONNMARK_CHAIN}" -n 2> /dev/null \
                 | sed -n "/CONNMARK[[:space:]]*set[[:space:]]*${2}$/p" \
-                | sed -e 's/^.*[[:space:]]\(tcp\|udp\|udplite\|sctp\|dccp\)[^[:alpha:]].*[[:space:]]\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]]\+\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]].*sports[[:space:]]\+\([^[:space:]]\+\)[[:space:]].*dports[[:space:]]\+\([^[:space:]]\+\)[[:space:]].*$/\2 \5 \1 \8 \9/g' \
-                -e 's/^.*[[:space:]]\(tcp\|udp\|udplite\|sctp\|dccp\)[^[:alpha:]].*[[:space:]]\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]]\+\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]].*sports[[:space:]]\+\([^[:space:]]\+\)[[:space:]].*$/\2 \5 \1 \8 any/g' \
-                -e 's/^.*[[:space:]]\(tcp\|udp\|udplite\|sctp\|dccp\)[^[:alpha:]].*[[:space:]]\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]]\+\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]].*dports[[:space:]]\+\([^[:space:]]\+\)[[:space:]].*$/\2 \5 \1 any \8/g' \
-                -e 's/^.*[[:space:]]\(tcp\|udp\|udplite\|sctp\|dccp\)[^[:alpha:]].*[[:space:]]\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]]\+\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]].*$/\2 \5 \1/g' \
-                -e 's/^.*[[:space:]]\(all\)[^[:alpha:]].*[[:space:]]\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]]\+\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]].*$/\2 \5/g' \
+                | sed -e "s/^.*[[:space:]]\(tcp\|udp\|udplite\|sctp\|dccp\)[^[:alpha:]].*[[:space:]]\(${REGEX_SED_IPV4}\)[[:space:]]\+\(${REGEX_SED_IPV4}\)[[:space:]].*sports[[:space:]]\+\([^[:space:]]\+\)[[:space:]].*dports[[:space:]]\+\([^[:space:]]\+\)[[:space:]].*$/\2 \10 \1 \18 \19/g" \
+                -e "s/^.*[[:space:]]\(tcp\|udp\|udplite\|sctp\|dccp\)[^[:alpha:]].*[[:space:]]\(${REGEX_SED_IPV4}\)[[:space:]]\+\(${REGEX_SED_IPV4}\)[[:space:]].*sports[[:space:]]\+\([^[:space:]]\+\)[[:space:]].*$/\2 \10 \1 \18 any/g" \
+                -e "s/^.*[[:space:]]\(tcp\|udp\|udplite\|sctp\|dccp\)[^[:alpha:]].*[[:space:]]\(${REGEX_SED_IPV4}\)[[:space:]]\+\(${REGEX_SED_IPV4}\)[[:space:]].*dports[[:space:]]\+\([^[:space:]]\+\)[[:space:]].*$/\2 \10 \1 any \18/g" \
+                -e "s/^.*[[:space:]]\(tcp\|udp\|udplite\|sctp\|dccp\)[^[:alpha:]].*[[:space:]]\(${REGEX_SED_IPV4}\)[[:space:]]\+\(${REGEX_SED_IPV4}\)[[:space:]].*$/\2 \10 \1/g" \
+                -e "s/^.*[[:space:]]\(all\)[^[:alpha:]].*[[:space:]]\(${REGEX_SED_IPV4}\)[[:space:]]\+\(${REGEX_SED_IPV4}\)[[:space:]].*$/\2 \10/g" \
                 -e '/CONNMARK/d' \
                 | awk -v count="0" 'NF >= "2" {count++;} END{print count;}'
         else
@@ -1938,12 +1933,12 @@ lz_output_ispip_status_info() {
     }
     llz_get_src_to_dst_rt_item_total_status() {
         ip rule show | sed -n "/^[[:space:]]*${1}:/{
-            s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*all[[:space:]]*to[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]].*$/0.0.0.0\/0 \1/;
-            s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]]*to[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]].*$/\1 \4/;
-            s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]]*lookup.*$/\1 0.0.0.0\/0/;
+            s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*all[[:space:]]*to[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]].*$/0.0.0.0\/0 \1/;
+            s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]]*to[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]].*$/\1 \9/;
+            s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]]*lookup.*$/\1 0.0.0.0\/0/;
             s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*all[[:space:]]*lookup.*$/0.0.0.0\/0 0.0.0.0\/0/;
             s/^[[:space:]]*${1}:[[:space:]]*not[[:space:]]*from[[:space:]]*0[\.]0[\.]0[\.]0[[:space:]]*lookup.*$/0.0.0.0\/0 0.0.0.0\/0/;
-            /^\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?[[:space:]]\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?$/!d;
+            /^${REGEX_SED_IPV4}[[:space:]]${REGEX_SED_IPV4}$/!d;
             p
         }" | awk -v count="0" 'NF == "2" {count++;} END{print count;}'
     }
@@ -1963,8 +1958,8 @@ lz_output_ispip_status_info() {
         local_exist="1"
     }
     local_item_count="$( ip rule show | sed -n "/^[[:space:]]*${STATUS_IP_RULE_PRIO_TOPEST}:/{
-        s/^[[:space:]]*${STATUS_IP_RULE_PRIO_TOPEST}:[[:space:]]*from[[:space:]]*0[\.]0[\.]0[\.]0[[:space:]]*to[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]]*lookup.*$/\1/;
-        /^\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?$/!d;
+        s/^[[:space:]]*${STATUS_IP_RULE_PRIO_TOPEST}:[[:space:]]*from[[:space:]]*0[\.]0[\.]0[\.]0[[:space:]]*to[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]]*lookup.*$/\1/;
+        /^${REGEX_SED_IPV4}$/!d;
         p
     }" | awk -v count="0" 'NF == "1" {count++;} END{print count;}' )"
     [ "${local_item_count}" -gt "0" ] && {
@@ -1979,17 +1974,17 @@ lz_output_ispip_status_info() {
     ip route show table "${STATUS_LZ_IPTV}" | grep -qw "default" && {
         local total1=0 total2=0
         eval "$( ip rule show | sed -n "/^[[:space:]]*${STATUS_IP_RULE_PRIO_IPTV}:/{
-            s/^[[:space:]]*${STATUS_IP_RULE_PRIO_IPTV}:[[:space:]]*from[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]]*lookup.*$/\1/;
-            s/^[[:space:]]*${STATUS_IP_RULE_PRIO_IPTV}:[[:space:]]*from[[:space:]]*all[[:space:]]*to[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]]*lookup.*$/\1/;
-            s/^[[:space:]]*${STATUS_IP_RULE_PRIO_IPTV}:[[:space:]]*from[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]]*to[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]]*lookup.*$/\1 \4/;
-            /^\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\|\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?[[:space:]]*\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)$/!d;
+            s/^[[:space:]]*${STATUS_IP_RULE_PRIO_IPTV}:[[:space:]]*from[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]]*lookup.*$/\1/;
+            s/^[[:space:]]*${STATUS_IP_RULE_PRIO_IPTV}:[[:space:]]*from[[:space:]]*all[[:space:]]*to[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]]*lookup.*$/\1/;
+            s/^[[:space:]]*${STATUS_IP_RULE_PRIO_IPTV}:[[:space:]]*from[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]]*to[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]]*lookup.*$/\1 \9/;
+            /^\(${REGEX_SED_IPV4}\|${REGEX_SED_IPV4}[[:space:]]\+${REGEX_SED_IPV4}\)$/!d;
             p
         }" | awk -v count1=0 -v count2=0 'NF == "1" {count1++; next;} NF == "2" {count2++; next;} END{print "total1="count1/2"; total2="count2/2;}' )"
         local_item_count="$( ip rule show | sed -n "/^[[:space:]]*${STATUS_IP_RULE_PRIO_IPTV}:/{
-            s/^[[:space:]]*${STATUS_IP_RULE_PRIO_IPTV}:[[:space:]]*from[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]]*lookup.*$/\1/;
-            s/^[[:space:]]*${STATUS_IP_RULE_PRIO_IPTV}:[[:space:]]*from[[:space:]]*all[[:space:]]*to[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]]*lookup.*$/\1/;
-            s/^[[:space:]]*${STATUS_IP_RULE_PRIO_IPTV}:[[:space:]]*from[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]]*to[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]]*lookup.*$/\1 \4/;
-            /^\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\|\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?[[:space:]]*\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)$/!d;
+            s/^[[:space:]]*${STATUS_IP_RULE_PRIO_IPTV}:[[:space:]]*from[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]]*lookup.*$/\1/;
+            s/^[[:space:]]*${STATUS_IP_RULE_PRIO_IPTV}:[[:space:]]*from[[:space:]]*all[[:space:]]*to[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]]*lookup.*$/\1/;
+            s/^[[:space:]]*${STATUS_IP_RULE_PRIO_IPTV}:[[:space:]]*from[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]]*to[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]]*lookup.*$/\1 \9/;
+            /^\(${REGEX_SED_IPV4}\|${REGEX_SED_IPV4}[[:space:]]\+${REGEX_SED_IPV4}\)$/!d;
             p
         }" | awk -v count=0 'NF == "1" && "'"${total1}"'" != "0" {
             print $1;
@@ -2011,17 +2006,17 @@ lz_output_ispip_status_info() {
         }
         local total=0
         eval "$( ip rule show | sed -n "/^[[:space:]]*${STATUS_IP_RULE_PRIO_IPTV}:/{
-            s/^[[:space:]]*${STATUS_IP_RULE_PRIO_IPTV}:[[:space:]]*from[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]]*lookup.*$/\1/;
-            s/^[[:space:]]*${STATUS_IP_RULE_PRIO_IPTV}:[[:space:]]*from[[:space:]]*all[[:space:]]*to[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]]*lookup.*$/\1/;
-            s/^[[:space:]]*${STATUS_IP_RULE_PRIO_IPTV}:[[:space:]]*from[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]]*to[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]]*lookup.*$/\1 \4/;
-            /^\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\|\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?[[:space:]]*\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)$/!d;
+            s/^[[:space:]]*${STATUS_IP_RULE_PRIO_IPTV}:[[:space:]]*from[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]]*lookup.*$/\1/;
+            s/^[[:space:]]*${STATUS_IP_RULE_PRIO_IPTV}:[[:space:]]*from[[:space:]]*all[[:space:]]*to[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]]*lookup.*$/\1/;
+            s/^[[:space:]]*${STATUS_IP_RULE_PRIO_IPTV}:[[:space:]]*from[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]]*to[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]]*lookup.*$/\1 \9/;
+            /^\(${REGEX_SED_IPV4}\|${REGEX_SED_IPV4}[[:space:]]\+${REGEX_SED_IPV4}\)$/!d;
             p
         }" | awk -v count=0 'NF == "2" {count++;} END{print "total="count/2;}' )"
         local_item_count="$( ip rule show | sed -n "/^[[:space:]]*${STATUS_IP_RULE_PRIO_IPTV}:/{
-            s/^[[:space:]]*${STATUS_IP_RULE_PRIO_IPTV}:[[:space:]]*from[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]]*lookup.*$/\1/;
-            s/^[[:space:]]*${STATUS_IP_RULE_PRIO_IPTV}:[[:space:]]*from[[:space:]]*all[[:space:]]*to[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]]*lookup.*$/\1/;
-            s/^[[:space:]]*${STATUS_IP_RULE_PRIO_IPTV}:[[:space:]]*from[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]]*to[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]]*lookup.*$/\1 \4/;
-            /^\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\|\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?[[:space:]]*\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)$/!d;
+            s/^[[:space:]]*${STATUS_IP_RULE_PRIO_IPTV}:[[:space:]]*from[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]]*lookup.*$/\1/;
+            s/^[[:space:]]*${STATUS_IP_RULE_PRIO_IPTV}:[[:space:]]*from[[:space:]]*all[[:space:]]*to[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]]*lookup.*$/\1/;
+            s/^[[:space:]]*${STATUS_IP_RULE_PRIO_IPTV}:[[:space:]]*from[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]]*to[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]]*lookup.*$/\1 \9/;
+            /^\(${REGEX_SED_IPV4}\|${REGEX_SED_IPV4}[[:space:]]\+${REGEX_SED_IPV4}\)$/!d;
             p
         }" | awk -v count=0 'NF == "2" && "'"${total}"'" != "0" {
             count++;
@@ -2036,19 +2031,19 @@ lz_output_ispip_status_info() {
         }
     }
     local_item_count="$( ip rule show | sed -n "/^[[:space:]]*${STATUS_IP_RULE_PRIO_ISP_DATA_LB}:/{
-        s/^[[:space:]]*${STATUS_IP_RULE_PRIO_ISP_DATA_LB}:[[:space:]]*from[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]]*lookup.*$/\1/;
-        /^\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?$/!d;
+        s/^[[:space:]]*${STATUS_IP_RULE_PRIO_ISP_DATA_LB}:[[:space:]]*from[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]]*lookup.*$/\1/;
+        /^${REGEX_SED_IPV4}$/!d;
         p
     }" | awk -v count="0" 'NF == "1" {count++;} END{print count;}' )"
     [ "${local_item_count}" -le "0" ] && local_item_count="$( ipset -q list "${STATUS_BLACK_CLT_SRC_SET}" \
-            | awk -v count="0" '/^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?$/ {count++;} END{print count;}' )"
+            | awk -v count="0" '$1 ~ "'"^${REGEX_IPV4}$"'" {count++;} END{print count;}' )"
     [ "${local_item_count}" -gt "0" ] && {
         echo "$(lzdate)" [$$]: "   LocalIPBlcLst   Load Balancing      ${local_item_count}" | tee -ai "${STATUS_LOG}" 2> /dev/null
         local_exist="1"
     }
     [ -s "${PATH_DNSMASQ_DOMAIN_CONF}/${CUSTOM_HOSTS_CONF}" ] && {
-        local_item_count="$( sed -e "/^[[:space:]]*\(address=[\/][[:alnum:]]\([[:alnum:]-]\{0,61\}[[:alnum:]]\)\?\([\.][[:alnum:]]\([[:alnum:]-]\{0,61\}[[:alnum:]]\)\?\)*[\/]\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\|cname=[[:alnum:]]\([[:alnum:]-]\{0,61\}[[:alnum:]]\)\?\([\.][[:alnum:]]\([[:alnum:]-]\{0,61\}[[:alnum:]]\)\?\)*[\,][[:alnum:]]\([[:alnum:]-]\{0,61\}[[:alnum:]]\)\?\([\.][[:alnum:]]\([[:alnum:]-]\{0,61\}[[:alnum:]]\)\?\)*\)[[:space:]]*$/!d" \
-            -e "s/^[[:space:]]*address=[\/]\([[:alnum:]]\([[:alnum:]-]\{0,61\}[[:alnum:]]\)\?\([\.][[:alnum:]]\([[:alnum:]-]\{0,61\}[[:alnum:]]\)\?\)*\)[\/]\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\)[[:space:]]*$/\5 \1/" \
+        local_item_count="$( sed -e "/^[[:space:]]*\(address=[\/][[:alnum:]]\([[:alnum:]-]\{0,61\}[[:alnum:]]\)\?\([\.][[:alnum:]]\([[:alnum:]-]\{0,61\}[[:alnum:]]\)\?\)*[\/]${REGEX_SED_IPV4%"\([\/]\("*}\|cname=[[:alnum:]]\([[:alnum:]-]\{0,61\}[[:alnum:]]\)\?\([\.][[:alnum:]]\([[:alnum:]-]\{0,61\}[[:alnum:]]\)\?\)*[\,][[:alnum:]]\([[:alnum:]-]\{0,61\}[[:alnum:]]\)\?\([\.][[:alnum:]]\([[:alnum:]-]\{0,61\}[[:alnum:]]\)\?\)*\)[[:space:]]*$/!d" \
+            -e "s/^[[:space:]]*address=[\/]\([[:alnum:]]\([[:alnum:]-]\{0,61\}[[:alnum:]]\)\?\([\.][[:alnum:]]\([[:alnum:]-]\{0,61\}[[:alnum:]]\)\?\)*\)[\/]\(${REGEX_SED_IPV4%"\([\/]\("*}\)[[:space:]]*$/\5 \1/" \
             -e "s/^[[:space:]]*cname=\([[:alnum:]]\([[:alnum:]-]\{0,61\}[[:alnum:]]\)\?\([\.][[:alnum:]]\([[:alnum:]-]\{0,61\}[[:alnum:]]\)\?\)*\)[\,]\([[:alnum:]]\([[:alnum:]-]\{0,61\}[[:alnum:]]\)\?\([\.][[:alnum:]]\([[:alnum:]-]\{0,61\}[[:alnum:]]\)\?\)*\)[[:space:]]*$/\5 \1/" "${PATH_DNSMASQ_DOMAIN_CONF}/${CUSTOM_HOSTS_CONF}" \
             | awk -v count="0" 'NF == "2" && $1 != $2 && !i[$1_$2]++ {count++;} END{print count;}' )"
         [ "${local_item_count}" -gt "0" ] && {
@@ -2161,7 +2156,7 @@ lz_show_iptv_function_status() {
     local iptv_getway_ip_1=
 
     if [ "${status_wan1_iptv_mode}" != "0" ] && [ -n "${iptv_wan0_ifname}" ]; then
-        eval "$( lz_show_routing_table_status "${rt_wan0}" | awk '$1 == "default" && $3 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ && $5 == "'"${iptv_wan0_ifname}"'" \
+        eval "$( lz_show_routing_table_status "${rt_wan0}" | awk '$1 == "default" && $3 ~ "'"^${REGEX_IPV4%"([\/]("*}$"'" && $5 == "'"${iptv_wan0_ifname}"'" \
             {printf "iptv_interface_id_0=%s\niptv_getway_ip_0=%s\n", $5,$3; exit}' )"
         [ -z "${iptv_interface_id_0}" ] && { [ "${status_iptv_igmp_switch}" = "0" ] || [ "${status_wan1_udpxy_switch}" = "0" ]; } && {
             local_info="1"
@@ -2180,7 +2175,7 @@ lz_show_iptv_function_status() {
             echo "$(lzdate)" [$$]: The interface \( wan0 DHCP or IPoE \) of Primary WAN: Not Available | tee -ai "${STATUS_LOG}" 2> /dev/null
         fi
     elif [ "${status_wan1_iptv_mode}" = "0" ] && [ -n "${iptv_wan0_pppoe_ifname}" ]; then
-        eval "$( lz_show_routing_table_status "${rt_wan0}" | awk '$1 == "default" && $3 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ && $5 == "'"${iptv_wan0_pppoe_ifname}"'" \
+        eval "$( lz_show_routing_table_status "${rt_wan0}" | awk '$1 == "default" && $3 ~ "'"^${REGEX_IPV4%"([\/]("*}$"'" && $5 == "'"${iptv_wan0_pppoe_ifname}"'" \
             {printf "iptv_interface_id_0=%s\niptv_getway_ip_0=%s\n", $5,$3; exit}' )"
         [ -z "${iptv_interface_id_0}" ] && { [ "${status_iptv_igmp_switch}" = "0" ] || [ "${status_wan1_udpxy_switch}" = "0" ]; } \
             && local_info="1" \
@@ -2191,7 +2186,7 @@ lz_show_iptv_function_status() {
         echo "$(lzdate)" [$$]: The interface \( wan0 PPPoE \) of Primary WAN: Not Available | tee -ai "${STATUS_LOG}" 2> /dev/null
     fi
     if [ "${status_wan2_iptv_mode}" != "0" ] && [ -n "${iptv_wan1_ifname}" ]; then
-        eval "$( lz_show_routing_table_status "${rt_wan1}" | awk '$1 == "default" && $3 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ && $5 == "'"${iptv_wan1_ifname}"'" \
+        eval "$( lz_show_routing_table_status "${rt_wan1}" | awk '$1 == "default" && $3 ~ "'"^${REGEX_IPV4%"([\/]("*}$"'" && $5 == "'"${iptv_wan1_ifname}"'" \
             {printf "iptv_interface_id_1=%s\niptv_getway_ip_1=%s\n", $5,$3; exit}' )"
         [ -z "${iptv_interface_id_1}" ] && { [ "${status_iptv_igmp_switch}" = "1" ] || [ "${status_wan2_udpxy_switch}" = "0" ]; } && {
             local_info="1"
@@ -2210,7 +2205,7 @@ lz_show_iptv_function_status() {
             echo "$(lzdate)" [$$]: The interface \( wan1 DHCP or IPoE \) of Secondary WAN: Not Available | tee -ai "${STATUS_LOG}" 2> /dev/null
         fi
     elif [ "${status_wan2_iptv_mode}" = "0" ] && [ -n "${iptv_wan1_pppoe_ifname}" ]; then
-        eval "$( lz_show_routing_table_status "${rt_wan1}" | awk '$1 == "default" && $3 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ && $5 == "'"${iptv_wan1_pppoe_ifname}"'" \
+        eval "$( lz_show_routing_table_status "${rt_wan1}" | awk '$1 == "default" && $3 ~ "'"^${REGEX_IPV4%"([\/]("*}$"'" && $5 == "'"${iptv_wan1_pppoe_ifname}"'" \
             {printf "iptv_interface_id_1=%s\niptv_getway_ip_1=%s\n", $5,$3; exit}' )"
         [ -z "${iptv_interface_id_1}" ] && { [ "${status_iptv_igmp_switch}" = "1" ] || [ "${status_wan2_udpxy_switch}" = "0" ]; } \
             && local_info="1" \
@@ -2666,7 +2661,7 @@ lz_show_single_net_iptv_status() {
     local iptv_getway_ip_1=
 
     if [ "${status_wan1_iptv_mode}" != "0" ] && [ -n "${iptv_wan0_ifname}" ]; then
-        eval "$( lz_show_routing_table_status "${rt_main}" | awk '$1 == "default" && $3 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ && $5 == "'"${iptv_wan0_ifname}"'" \
+        eval "$( lz_show_routing_table_status "${rt_main}" | awk '$1 == "default" && $3 ~ "'"^${REGEX_IPV4%"([\/]("*}$"'" && $5 == "'"${iptv_wan0_ifname}"'" \
             {printf "iptv_interface_id_0=%s\niptv_getway_ip_0=%s\n", $5,$3; exit}' )"
         [ -z "${iptv_interface_id_0}" ] && { [ "${status_iptv_igmp_switch}" = "0" ] || [ "${status_wan1_udpxy_switch}" = "0" ]; } && {
             local_info="1"
@@ -2685,7 +2680,7 @@ lz_show_single_net_iptv_status() {
             echo "$(lzdate)" [$$]: The interface \( wan0 DHCP or IPoE \) of Primary WAN: Not Available | tee -ai "${STATUS_LOG}" 2> /dev/null
         fi
     elif [ "${status_wan1_iptv_mode}" = "0" ] && [ -n "${iptv_wan0_pppoe_ifname}" ]; then
-        eval "$( lz_show_routing_table_status "${rt_main}" | awk '$1 == "default" && $3 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ && $5 == "'"${iptv_wan0_pppoe_ifname}"'" \
+        eval "$( lz_show_routing_table_status "${rt_main}" | awk '$1 == "default" && $3 ~ "'"^${REGEX_IPV4%"([\/]("*}$"'" && $5 == "'"${iptv_wan0_pppoe_ifname}"'" \
             {printf "iptv_interface_id_0=%s\niptv_getway_ip_0=%s\n", $5,$3; exit}' )"
         [ -z "${iptv_interface_id_0}" ] && { [ "${status_iptv_igmp_switch}" = "0" ] || [ "${status_wan1_udpxy_switch}" = "0" ]; } \
             && local_info="1" \
@@ -2696,7 +2691,7 @@ lz_show_single_net_iptv_status() {
         echo "$(lzdate)" [$$]: The interface \( wan0 PPPoE \) of Primary WAN: Not Available | tee -ai "${STATUS_LOG}" 2> /dev/null
     fi
     if [ "${status_wan2_iptv_mode}" != "0" ] && [ -n "${iptv_wan1_ifname}" ]; then
-        eval "$( lz_show_routing_table_status "${rt_main}" | awk '$1 == "default" && $3 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ && $5 == "'"${iptv_wan1_ifname}"'" \
+        eval "$( lz_show_routing_table_status "${rt_main}" | awk '$1 == "default" && $3 ~ "'"^${REGEX_IPV4%"([\/]("*}$"'" && $5 == "'"${iptv_wan1_ifname}"'" \
             {printf "iptv_interface_id_1=%s\niptv_getway_ip_1=%s\n", $5,$3; exit}' )"
         [ -z "${iptv_interface_id_1}" ] && { [ "${status_iptv_igmp_switch}" = "1" ] || [ "${status_wan2_udpxy_switch}" = "0" ]; } && {
             local_info="1"
@@ -2715,7 +2710,7 @@ lz_show_single_net_iptv_status() {
             echo "$(lzdate)" [$$]: The interface \( wan1 DHCP or IPoE \) of Secondary WAN: Not Available | tee -ai "${STATUS_LOG}" 2> /dev/null
         fi
     elif [ "${status_wan2_iptv_mode}" = "0" ] && [ -n "${iptv_wan1_pppoe_ifname}" ]; then
-        eval "$( lz_show_routing_table_status "${rt_main}" | awk '$1 == "default" && $3 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ && $5 == "'"${iptv_wan1_pppoe_ifname}"'" \
+        eval "$( lz_show_routing_table_status "${rt_main}" | awk '$1 == "default" && $3 ~ "'"^${REGEX_IPV4%"([\/]("*}$"'" && $5 == "'"${iptv_wan1_pppoe_ifname}"'" \
             {printf "iptv_interface_id_1=%s\niptv_getway_ip_1=%s\n", $5,$3; exit}' )"
         [ -z "${iptv_interface_id_1}" ] && { [ "${status_iptv_igmp_switch}" = "1" ] || [ "${status_wan2_udpxy_switch}" = "0" ]; } \
             && local_info="1" \

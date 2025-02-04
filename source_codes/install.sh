@@ -1,5 +1,5 @@
 #!/bin/sh
-# install.sh v4.7.0
+# install.sh v4.7.1
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ RULE script for Asuswrt-Merlin Router
@@ -13,7 +13,7 @@
 
 # shellcheck disable=SC2317  # Don't warn about unreachable commands in this function
 
-LZ_VERSION=v4.7.0
+LZ_VERSION=v4.7.1
 TIMEOUT=10
 CURRENT_PATH="${0%/*}"
 [ "${CURRENT_PATH:0:1}" != '/' ] && CURRENT_PATH="$( pwd )${CURRENT_PATH#*.}"
@@ -208,8 +208,10 @@ done
 
 fuck_asd_process
 
+[ -d "${PATH_FUNC}X" ] && rm -rf "${PATH_FUNC}X" > /dev/null 2>&1
+
 mkdir -p "${PATH_CONFIGS}" > /dev/null 2>&1
-mkdir -p "${PATH_FUNC}" > /dev/null 2>&1
+mkdir -p "${PATH_FUNC}X" > /dev/null 2>&1
 mkdir -p "${PATH_JS}" > /dev/null 2>&1
 mkdir -p "${PATH_WEBS}" > /dev/null 2>&1
 mkdir -p "${PATH_IMAGES}" > /dev/null 2>&1
@@ -223,7 +225,7 @@ cp -rpf "${CURRENT_PATH}/lz/Changelog.txt" "${PATH_LZ}" > /dev/null 2>&1
 cp -rpf "${CURRENT_PATH}/lz/HowtoInstall.txt" "${PATH_LZ}" > /dev/null 2>&1
 cp -rpf "${CURRENT_PATH}/lz/LICENSE" "${PATH_LZ}" > /dev/null 2>&1
 cp -rpf "${CURRENT_PATH}/lz/configs" "${PATH_LZ}" > /dev/null 2>&1
-cp -rpf "${CURRENT_PATH}/lz/func" "${PATH_LZ}" > /dev/null 2>&1
+cp -rpf "${CURRENT_PATH}/lz/func"/* "${PATH_FUNC}X" > /dev/null 2>&1
 cp -rpf "${CURRENT_PATH}/lz/js" "${PATH_LZ}" > /dev/null 2>&1
 cp -rpf "${CURRENT_PATH}/lz/webs" "${PATH_LZ}" > /dev/null 2>&1
 cp -rpf "${CURRENT_PATH}/lz/images" "${PATH_LZ}" > /dev/null 2>&1
@@ -251,6 +253,9 @@ find "${CURRENT_PATH}/lz/data" -name "*_cidr.txt" -print0 2> /dev/null | xargs -
 [ ! -f "${PATH_DATA}/wan_2_domain_client_src_addr.txt" ] && cp -rp "${CURRENT_PATH}/lz/data/wan_2_domain_client_src_addr.txt" "${PATH_DATA}" > /dev/null 2>&1
 [ ! -f "${PATH_DATA}/wan_2_src_to_dst_addr.txt" ] && cp -rp "${CURRENT_PATH}/lz/data/wan_2_src_to_dst_addr.txt" "${PATH_DATA}" > /dev/null 2>&1
 [ ! -f "${PATH_DATA}/wan_2_src_to_dst_addr_port.txt" ] && cp -rp "${CURRENT_PATH}/lz/data/wan_2_src_to_dst_addr_port.txt" "${PATH_DATA}" > /dev/null 2>&1
+
+[ -d "${PATH_FUNC}" ] && rm -rf "${PATH_FUNC}" > /dev/null 2>&1
+[ ! -d "${PATH_FUNC}" ] && mv -f "${PATH_FUNC}X" "${PATH_FUNC}" > /dev/null 2>&1
 
 chmod -R 775 "${PATH_LZ}"/* > /dev/null 2>&1
 [ ! -d "/jffs/configs" ] && mkdir -p "/jffs/configs" > /dev/null 2>&1

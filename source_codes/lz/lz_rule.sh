@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule.sh v4.7.0
+# lz_rule.sh v4.7.1
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # 本软件采用CIDR（无类别域间路由，Classless Inter-Domain Routing）技术，是一个在Internet上创建附加地
@@ -88,7 +88,7 @@
 ## -------------全局数据定义及初始化-------------------
 
 ## 版本号
-LZ_VERSION=v4.7.0
+LZ_VERSION=v4.7.1
 
 ## 关闭系统ASD进程
 ## 0--启用（缺省）；非0--停用
@@ -223,6 +223,12 @@ UNLOCK_LOG="${PATH_TMP}/unlock.log"
 
 ## 更新ISP网络运营商CIDR网段数据脚本文件名
 UPDATE_FILENAME="lz_update_ispip_data.sh"
+
+# IPv4地址正则表达式
+REGEX_IPV4='((25[0-5]|(2[0-4]|1?[0-9])?[0-9])[\.]){3}(25[0-5]|(2[0-4]|1?[0-9])?[0-9])([\/]([0-9]|[1-2][0-9]|3[0-2]))?'
+
+# IPv4地址SED格式正则表达式
+REGEX_SED_IPV4="$( echo "${REGEX_IPV4}" | sed 's/[(){}|?]/\\&/g' )"
 
 [ "${PROJECT_FILENAME}" != "lz_rule.sh" ] && {
     {
@@ -1206,7 +1212,7 @@ lz_get_last_version() {
         local PRE_DNS="$( get_pre_dns )"
         [ -z "${PRE_DNS}" ] && break
         local SRC_IP="$( nslookup "${RAW_SITE}" "${PRE_DNS}" 2> /dev/null \
-            | awk 'NR > 4 && $3 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ {print $3; exit;}' )"
+            | awk 'NR > 4 && $3 ~ "'"^${REGEX_IPV4%"([\/]("*}$"'" {print $3; exit;}' )"
         [ -n "${SRC_IP}" ] \
             && retVal="$( /usr/sbin/curl -fsLC "-" -m 15 --retry 3 --resolve "${RAW_SITE}:443:${SRC_IP}" \
                 -A "${ROGUE_TERM}" \
@@ -1217,7 +1223,7 @@ lz_get_last_version() {
             REF_URL="${1}larsonzh/amdwprprsct/blob/master/source_codes/lz/${PROJECT_FILENAME}"
             SRC_URL="${1}larsonzh/amdwprprsct/raw/master/source_codes/lz/${PROJECT_FILENAME}"
             SRC_IP="$( nslookup "${RAW_SITE}" "${PRE_DNS}" 2> /dev/null \
-                | awk 'NR > 4 && $3 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ {print $3; exit;}' )"
+                | awk 'NR > 4 && $3 ~ "'"^${REGEX_IPV4%"([\/]("*}$"'" {print $3; exit;}' )"
             [ -z "${SRC_IP}" ] && break
             retVal="$( /usr/sbin/curl -fsLC "-" -m 15 --retry 3 --resolve "${RAW_SITE}:443:${SRC_IP}" \
                 -A "${ROGUE_TERM}" \
@@ -1747,7 +1753,7 @@ if lz_project_file_management "${1}"; then
                     local PRE_DNS="$( get_pre_dns )"
                     [ -z "${PRE_DNS}" ] && break
                     local SRC_IP="$( nslookup "${RAW_SITE}" "${PRE_DNS}" 2> /dev/null \
-                        | awk 'NR > 4 && $3 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ {print $3; exit;}' )"
+                        | awk 'NR > 4 && $3 ~ "'"^${REGEX_IPV4%"([\/]("*}$"'" {print $3; exit;}' )"
                     [ -n "${SRC_IP}" ] \
                         && /usr/sbin/curl -fsLC "-" --retry 3 --resolve "${RAW_SITE}:443:${SRC_IP}" \
                             -A "${ROGUE_TERM}" \
@@ -1757,7 +1763,7 @@ if lz_project_file_management "${1}"; then
                         REF_URL="${LZ_REPO}larsonzh/amdwprprsct/blob/master/installation_package/lz_rule-${remoteVer}.tgz"
                         SRC_URL="${LZ_REPO}larsonzh/amdwprprsct/raw/master/installation_package/lz_rule-${remoteVer}.tgz"
                         SRC_IP="$( nslookup "${RAW_SITE}" "${PRE_DNS}" 2> /dev/null \
-                            | awk 'NR > 4 && $3 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ {print $3; exit;}' )"
+                            | awk 'NR > 4 && $3 ~ "'"^${REGEX_IPV4%"([\/]("*}$"'" {print $3; exit;}' )"
                         [ -z "${SRC_IP}" ] && break
                         /usr/sbin/curl -fsLC "-" --retry 3 --resolve "${RAW_SITE}:443:${SRC_IP}" \
                             -A "${ROGUE_TERM}" \

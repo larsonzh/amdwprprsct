@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_service.sh v4.7.0
+# lz_rule_service.sh v4.7.1
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 服务接口脚本
@@ -32,6 +32,9 @@ LOCK_FILE="${PATH_LOCK}/lz_rule.lock"
     fi
 }
 [ "${1}" != "start" ] && [ "${1}" != "restart" ] && return
+
+REGEX_IPV4='((25[0-5]|(2[0-4]|1?[0-9])?[0-9])[\.]){3}(25[0-5]|(2[0-4]|1?[0-9])?[0-9])([\/]([0-9]|[1-2][0-9]|3[0-2]))?'
+REGEX_SED_IPV4="$( echo "${REGEX_IPV4}" | sed 's/[(){}|?]/\\&/g' )"
 
 get_repo_site() {
     local remoteRepo="https://gitee.com/"
@@ -88,7 +91,7 @@ get_last_version() {
         local PRE_DNS="$( get_pre_dns )"
         [ -z "${PRE_DNS}" ] && break
         local SRC_IP="$( nslookup "${RAW_SITE}" "${PRE_DNS}" 2> /dev/null \
-            | awk 'NR > 4 && $3 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ {print $3; exit;}' )"
+            | awk 'NR > 4 && $3 ~ "'"^${REGEX_IPV4%"([\/]("*}$"'" {print $3; exit;}' )"
         [ -n "${SRC_IP}" ] \
             && retVal="$( /usr/sbin/curl -fsLC "-" -m 15 --retry 3 --resolve "${RAW_SITE}:443:${SRC_IP}" \
                 -A "${ROGUE_TERM}" \
@@ -99,7 +102,7 @@ get_last_version() {
             REF_URL="${1}larsonzh/amdwprprsct/blob/master/source_codes/lz/lz_rule.sh"
             SRC_URL="${1}larsonzh/amdwprprsct/raw/master/source_codes/lz/lz_rule.sh"
             SRC_IP="$( nslookup "${RAW_SITE}" "${PRE_DNS}" 2> /dev/null \
-                | awk 'NR > 4 && $3 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ {print $3; exit;}' )"
+                | awk 'NR > 4 && $3 ~ "'"^${REGEX_IPV4%"([\/]("*}$"'" {print $3; exit;}' )"
             [ -z "${SRC_IP}" ] && break
             retVal="$( /usr/sbin/curl -fsLC "-" -m 15 --retry 3 --resolve "${RAW_SITE}:443:${SRC_IP}" \
                 -A "${ROGUE_TERM}" \
@@ -292,7 +295,7 @@ case "${2}" in
                     local PRE_DNS="$( get_pre_dns )"
                     [ -z "${PRE_DNS}" ] && break
                     local SRC_IP="$( nslookup "${RAW_SITE}" "${PRE_DNS}" 2> /dev/null \
-                        | awk 'NR > 4 && $3 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ {print $3; exit;}' )"
+                        | awk 'NR > 4 && $3 ~ "'"^${REGEX_IPV4%"([\/]("*}$"'" {print $3; exit;}' )"
                     [ -n "${SRC_IP}" ] \
                         && /usr/sbin/curl -fsLC "-" --retry 3 --resolve "${RAW_SITE}:443:${SRC_IP}" \
                             -A "${ROGUE_TERM}" \
@@ -302,7 +305,7 @@ case "${2}" in
                         REF_URL="${LZ_REPO}larsonzh/amdwprprsct/blob/master/installation_package/lz_rule-${remoteVer}.tgz"
                         SRC_URL="${LZ_REPO}larsonzh/amdwprprsct/raw/master/installation_package/lz_rule-${remoteVer}.tgz"
                         SRC_IP="$( nslookup "${RAW_SITE}" "${PRE_DNS}" 2> /dev/null \
-                            | awk 'NR > 4 && $3 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}$/ {print $3; exit;}' )"
+                            | awk 'NR > 4 && $3 ~ "'"^${REGEX_IPV4%"([\/]("*}$"'" {print $3; exit;}' )"
                         [ -z "${SRC_IP}" ] && break
                         /usr/sbin/curl -fsLC "-" --retry 3 --resolve "${RAW_SITE}:443:${SRC_IP}" \
                             -A "${ROGUE_TERM}" \
@@ -428,12 +431,10 @@ case "${2}" in
                                 || [ -z "${custom_data_file}" ] || [ ! -s "${custom_data_file}" ]; then
                                 printf "Total: 0\n"
                             else
-                                local route_local_ip="$( ip -o -4 address list | awk '$2 == "br0" {print $4; exit;}' | grep -Eo '^([0-9]{1,3}[\.]){3}[0-9]{1,3}' )"
-                                sed -e 's/^[[:space:]]\+//g' -e 's/[#].*$//g' -e 's/[[:space:]]\+/ /g' -e 's/[[:space:]]\+$//g' \
+                                local route_local_ip="$( ip -o -4 address list | awk '$2 == "br0" {print $4; exit;}' | grep -Eo "^${REGEX_IPV4%"([\/]("*}" )"
+                                sed -e 's/^[[:space:]]\+//g' -e 's/[[:space:]#].*$//g' \
                                     -e 's/\(^\|[^[:digit:]]\)[0]\+\([[:digit:]]\)/\1\2/g' \
-                                    -e 's/^\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]].*$/\1/' \
-                                    -e '/^\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?$/!d' \
-                                    -e '/[3-9][0-9][0-9]\|[2][6-9][0-9]\|[2][5][6-9]\|[\/][4-9][0-9]\|[\/][3][3-9]/d' \
+                                    -e "/^${REGEX_SED_IPV4}$/!d" \
                                     -e 's/[\/]32//g' \
                                     -e "/\(^\|[[:space:]]\)\(0\([\.]0\)\{3\}\([\/]0\)\?\|${route_local_ip}\)\([[:space:]]\|$\)/d" "${custom_data_file}" \
                                     | awk 'function fix_cidr(ipa) {
@@ -501,7 +502,7 @@ case "${2}" in
                                             printf "Total: 0\n"
                                         else
                                             ipset -q list "lz_dn_de_src_addr_${3}" \
-                                                | awk -v count="0" '/^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?$/ {print $1; count++;} \
+                                                | awk -v count="0" '$1 ~ "'"^${REGEX_IPV4}$"'" {print $1; count++;} \
                                                 END{if (count > "0") printf "\nTotal: %s\n", count; else printf "0.0.0.0/0\n\nTotal: 1\n";}'
                                         fi
                                     } > "${PATH_LZ}/tmp/rtlist.log"
@@ -537,12 +538,12 @@ case "${2}" in
                 24964|24965|24966)
                     print_src_to_dst_rt_list() {
                         ip rule show | sed -n "/^[[:space:]]*${1}:/{
-                            s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*all[[:space:]]*to[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]].*$/0.0.0.0\/0 \1/;
-                            s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]]*to[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]].*$/\1 \4/;
-                            s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]]*lookup.*$/\1 0.0.0.0\/0/;
+                            s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*all[[:space:]]*to[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]].*$/0.0.0.0\/0 \1/;
+                            s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]]*to[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]].*$/\1 \9/;
+                            s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]]*lookup.*$/\1 0.0.0.0\/0/;
                             s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*all[[:space:]]*lookup.*$/0.0.0.0\/0 0.0.0.0\/0/;
                             s/^[[:space:]]*${1}:[[:space:]]*not[[:space:]]*from[[:space:]]*0[\.]0[\.]0[\.]0[[:space:]]*lookup.*$/0.0.0.0\/0 0.0.0.0\/0/;
-                            /^\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?[[:space:]]\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?$/!d;
+                            /^${REGEX_SED_IPV4}[[:space:]]${REGEX_SED_IPV4}$/!d;
                             p
                         }" \
                         | awk -v count="0" -v pid="[${$}]:" 'BEGIN{system("printf \"%s %s \n\n\" \"$( date +\"%F %T\" )\" "pid)} \
@@ -554,10 +555,10 @@ case "${2}" in
                 24969|24970|24978|24979)
                     print_client_src_rt_list() {
                         ip rule show | sed -n "/^[[:space:]]*${1}:/{
-                            s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]]*lookup.*$/\1/;
+                            s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]]*lookup.*$/\1/;
                             s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*all[[:space:]]*lookup.*$/0.0.0.0\/0/;
                             s/^[[:space:]]*${1}:[[:space:]]*not[[:space:]]*from[[:space:]]*0[\.]0[\.]0[\.]0[[:space:]]*lookup.*$/0.0.0.0\/0/;
-                            /^\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?$/!d;
+                            /^${REGEX_SED_IPV4}$/!d;
                             p
                         }" \
                         | awk -v count="0" -v pid="[${$}]:" 'BEGIN{system("printf \"%s %s \n\n\" \"$( date +\"%F %T\" )\" "pid)} \
@@ -577,11 +578,11 @@ case "${2}" in
                                     elif ip rule show | grep -q "^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*all[[:space:]]*fwmark[[:space:]]*${2}[[:space:]]*lookup"; then
                                         iptables -t mangle -L LZPRCNMK -n 2> /dev/null \
                                             | sed -n "/CONNMARK[[:space:]]*set[[:space:]]*${2}$/p" \
-                                            | sed -e 's/^.*[[:space:]]\(tcp\|udp\|udplite\|sctp\|dccp\)[^[:alpha:]].*[[:space:]]\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]]\+\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]].*sports[[:space:]]\+\([^[:space:]]\+\)[[:space:]].*dports[[:space:]]\+\([^[:space:]]\+\)[[:space:]].*$/\2 \5 \1 \8 \9/g' \
-                                            -e 's/^.*[[:space:]]\(tcp\|udp\|udplite\|sctp\|dccp\)[^[:alpha:]].*[[:space:]]\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]]\+\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]].*sports[[:space:]]\+\([^[:space:]]\+\)[[:space:]].*$/\2 \5 \1 \8 any/g' \
-                                            -e 's/^.*[[:space:]]\(tcp\|udp\|udplite\|sctp\|dccp\)[^[:alpha:]].*[[:space:]]\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]]\+\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]].*dports[[:space:]]\+\([^[:space:]]\+\)[[:space:]].*$/\2 \5 \1 any \8/g' \
-                                            -e 's/^.*[[:space:]]\(tcp\|udp\|udplite\|sctp\|dccp\)[^[:alpha:]].*[[:space:]]\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]]\+\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]].*$/\2 \5 \1/g' \
-                                            -e 's/^.*[[:space:]]\(all\)[^[:alpha:]].*[[:space:]]\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]]\+\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]].*$/\2 \5/g' \
+                                            | sed -e "s/^.*[[:space:]]\(tcp\|udp\|udplite\|sctp\|dccp\)[^[:alpha:]].*[[:space:]]\(${REGEX_SED_IPV4}\)[[:space:]]\+\(${REGEX_SED_IPV4}\)[[:space:]].*sports[[:space:]]\+\([^[:space:]]\+\)[[:space:]].*dports[[:space:]]\+\([^[:space:]]\+\)[[:space:]].*$/\2 \10 \1 \18 \19/g" \
+                                            -e "s/^.*[[:space:]]\(tcp\|udp\|udplite\|sctp\|dccp\)[^[:alpha:]].*[[:space:]]\(${REGEX_SED_IPV4}\)[[:space:]]\+\(${REGEX_SED_IPV4}\)[[:space:]].*sports[[:space:]]\+\([^[:space:]]\+\)[[:space:]].*$/\2 \10 \1 \18 any/g" \
+                                            -e "s/^.*[[:space:]]\(tcp\|udp\|udplite\|sctp\|dccp\)[^[:alpha:]].*[[:space:]]\(${REGEX_SED_IPV4}\)[[:space:]]\+\(${REGEX_SED_IPV4}\)[[:space:]].*dports[[:space:]]\+\([^[:space:]]\+\)[[:space:]].*$/\2 \10 \1 any \18/g" \
+                                            -e "s/^.*[[:space:]]\(tcp\|udp\|udplite\|sctp\|dccp\)[^[:alpha:]].*[[:space:]]\(${REGEX_SED_IPV4}\)[[:space:]]\+\(${REGEX_SED_IPV4}\)[[:space:]].*$/\2 \10 \1/g" \
+                                            -e "s/^.*[[:space:]]\(all\)[^[:alpha:]].*[[:space:]]\(${REGEX_SED_IPV4}\)[[:space:]]\+\(${REGEX_SED_IPV4}\)[[:space:]].*$/\2 \10/g" \
                                             -e '/CONNMARK/d' \
                                             | tr '[:a-z:]' '[:A-Z:]' \
                                             | awk -v count="0" -v pid="[${$}]:" 'BEGIN{system("printf \"%s %s \n\n\" \"$( date +\"%F %T\" )\" "pid)} \
@@ -604,8 +605,8 @@ case "${2}" in
                             printf "%s [%s]: \n\n" "$( date +"%F %T" )" "${$}"
                             local count="0"
                             eval "$( ip rule show | sed -n "/^[[:space:]]*${1}:/{
-                                    s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]]*lookup.*$/\1/;
-                                    /^\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?$/!d;
+                                    s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]]*lookup.*$/\1/;
+                                    /^${REGEX_SED_IPV4}$/!d;
                                     s/^.*$/echo &/;
                                     p
                                 }" \
@@ -614,7 +615,7 @@ case "${2}" in
                                 printf "\nTotal: %s\n" "${count}"
                             else
                                 ipset -q list "lz_clt_black_lst" \
-                                    | awk -v count="0" '/^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?$/ {print $1; count++;} \
+                                    | awk -v count="0" '$1 ~ "'"^${REGEX_IPV4}$"'" {print $1; count++;} \
                                     END{if (count > "0") printf "\n"; printf "Total: %s\n", count;}'
                             fi
                         } > "${PATH_LZ}/tmp/rtlist.log"
@@ -625,8 +626,8 @@ case "${2}" in
                     print_proxy_remote_node_rt_list() {
                         {
                             ip rule show | sed -n "/^[[:space:]]*${1}:/{
-                                s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*0[\.]0[\.]0[\.]0[[:space:]]*to[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]]*lookup.*$/\1/;
-                                /^\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?$/!d;
+                                s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*0[\.]0[\.]0[\.]0[[:space:]]*to[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]]*lookup.*$/\1/;
+                                /^${REGEX_SED_IPV4}$/!d;
                                 p
                             }" \
                             | awk -v count="0" -v pid="[${$}]:" 'BEGIN{system("printf \"%s %s \n\n\" \"$( date +\"%F %T\" )\" "pid)} \
@@ -642,8 +643,8 @@ case "${2}" in
                             if [ ! -s "${PATH_LZ}/tmp/dnsmasq/lz_hosts.conf" ]; then
                                 printf "Total: 0\n"
                             else
-                                sed -e "/^[[:space:]]*\(address=[\/][[:alnum:]]\([[:alnum:]-]\{0,61\}[[:alnum:]]\)\?\([\.][[:alnum:]]\([[:alnum:]-]\{0,61\}[[:alnum:]]\)\?\)*[\/]\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\|cname=[[:alnum:]]\([[:alnum:]-]\{0,61\}[[:alnum:]]\)\?\([\.][[:alnum:]]\([[:alnum:]-]\{0,61\}[[:alnum:]]\)\?\)*[\,][[:alnum:]]\([[:alnum:]-]\{0,61\}[[:alnum:]]\)\?\([\.][[:alnum:]]\([[:alnum:]-]\{0,61\}[[:alnum:]]\)\?\)*\)[[:space:]]*$/!d" \
-                                    -e "s/^[[:space:]]*address=[\/]\([[:alnum:]]\([[:alnum:]-]\{0,61\}[[:alnum:]]\)\?\([\.][[:alnum:]]\([[:alnum:]-]\{0,61\}[[:alnum:]]\)\?\)*\)[\/]\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\)[[:space:]]*$/\5 \1/" \
+                                sed -e "/^[[:space:]]*\(address=[\/][[:alnum:]]\([[:alnum:]-]\{0,61\}[[:alnum:]]\)\?\([\.][[:alnum:]]\([[:alnum:]-]\{0,61\}[[:alnum:]]\)\?\)*[\/]${REGEX_SED_IPV4%"\([\/]\("*}\|cname=[[:alnum:]]\([[:alnum:]-]\{0,61\}[[:alnum:]]\)\?\([\.][[:alnum:]]\([[:alnum:]-]\{0,61\}[[:alnum:]]\)\?\)*[\,][[:alnum:]]\([[:alnum:]-]\{0,61\}[[:alnum:]]\)\?\([\.][[:alnum:]]\([[:alnum:]-]\{0,61\}[[:alnum:]]\)\?\)*\)[[:space:]]*$/!d" \
+                                    -e "s/^[[:space:]]*address=[\/]\([[:alnum:]]\([[:alnum:]-]\{0,61\}[[:alnum:]]\)\?\([\.][[:alnum:]]\([[:alnum:]-]\{0,61\}[[:alnum:]]\)\?\)*\)[\/]\(${REGEX_SED_IPV4%"\([\/]\("*}\)[[:space:]]*$/\5 \1/" \
                                     -e "s/^[[:space:]]*cname=\([[:alnum:]]\([[:alnum:]-]\{0,61\}[[:alnum:]]\)\?\([\.][[:alnum:]]\([[:alnum:]-]\{0,61\}[[:alnum:]]\)\?\)*\)[\,]\([[:alnum:]]\([[:alnum:]-]\{0,61\}[[:alnum:]]\)\?\([\.][[:alnum:]]\([[:alnum:]-]\{0,61\}[[:alnum:]]\)\?\)*\)[[:space:]]*$/\5 \1/" "${PATH_LZ}/tmp/dnsmasq/lz_hosts.conf" \
                                     | awk -v count="0" 'NF == "2" && $1 != $2 && !i[$1_$2]++ {print $1,$2; count++;} \
                                     END{if (count > "0") printf "\n"; printf "Total: %s\n", count;}' OFS="\t"
@@ -661,18 +662,18 @@ case "${2}" in
                                     printf "%s [%s]: \n\n" "$( date +"%F %T" )" "${$}"
                                     local total1=0 total2=0
                                     eval "$( ip rule show | sed -n "/^[[:space:]]*${1}:/{
-                                        s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]]*lookup.*$/\1/;
-                                        s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*all[[:space:]]*to[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]]*lookup.*$/\1/;
-                                        s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]]*to[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]]*lookup.*$/\1 \4/;
-                                        /^\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\|\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?[[:space:]]*\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)$/!d;
+                                        s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]]*lookup.*$/\1/;
+                                        s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*all[[:space:]]*to[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]]*lookup.*$/\1/;
+                                        s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]]*to[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]]*lookup.*$/\1 \9/;
+                                        /^\(${REGEX_SED_IPV4}\|${REGEX_SED_IPV4}[[:space:]]\+${REGEX_SED_IPV4}\)$/!d;
                                         p
                                     }" \
                                     | awk -v count1=0 -v count2=0 'NF == "1" {count1++; next;} NF == "2" {count2++; next;} END{print "total1="count1/2"; total2="count2/2;}' )"
                                     ip rule show | sed -n "/^[[:space:]]*${1}:/{
-                                        s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]]*lookup.*$/\1/;
-                                        s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*all[[:space:]]*to[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]]*lookup.*$/\1/;
-                                        s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]]*to[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]]*lookup.*$/\1 \4/;
-                                        /^\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\|\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?[[:space:]]*\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)$/!d;
+                                        s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]]*lookup.*$/\1/;
+                                        s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*all[[:space:]]*to[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]]*lookup.*$/\1/;
+                                        s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]]*to[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]]*lookup.*$/\1 \9/;
+                                        /^\(${REGEX_SED_IPV4}\|${REGEX_SED_IPV4}[[:space:]]\+${REGEX_SED_IPV4}\)$/!d;
                                         p
                                     }" \
                                     | awk -v count=0 'NF == "1" && "'"${total1}"'" != "0" {
@@ -697,18 +698,18 @@ case "${2}" in
                                     printf "%s [%s]: \n\n" "$( date +"%F %T" )" "${$}"
                                     local total=0
                                     eval "$( ip rule show | sed -n "/^[[:space:]]*${1}:/{
-                                        s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]]*lookup.*$/\1/;
-                                        s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*all[[:space:]]*to[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]]*lookup.*$/\1/;
-                                        s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]]*to[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]]*lookup.*$/\1 \4/;
-                                        /^\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\|\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?[[:space:]]*\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)$/!d;
+                                        s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]]*lookup.*$/\1/;
+                                        s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*all[[:space:]]*to[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]]*lookup.*$/\1/;
+                                        s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]]*to[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]]*lookup.*$/\1 \9/;
+                                        /^\(${REGEX_SED_IPV4}\|${REGEX_SED_IPV4}[[:space:]]\+${REGEX_SED_IPV4}\)$/!d;
                                         p
                                     }" \
                                     | awk -v count=0 'NF == "2" {count++;} END{print "total="count/2;}' )"
                                     ip rule show | sed -n "/^[[:space:]]*${1}:/{
-                                        s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]]*lookup.*$/\1/;
-                                        s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*all[[:space:]]*to[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]]*lookup.*$/\1/;
-                                        s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]]*to[[:space:]]*\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]]*lookup.*$/\1 \4/;
-                                        /^\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\|\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?[[:space:]]*\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)$/!d;
+                                        s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]]*lookup.*$/\1/;
+                                        s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*all[[:space:]]*to[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]]*lookup.*$/\1/;
+                                        s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]]*to[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]]*lookup.*$/\1 \9/;
+                                        /^\(${REGEX_SED_IPV4}\|${REGEX_SED_IPV4}[[:space:]]\+${REGEX_SED_IPV4}\)$/!d;
                                         p
                                     }" \
                                     | awk -v count=0 'NF == "2" && "'"${total}"'" != "0" {

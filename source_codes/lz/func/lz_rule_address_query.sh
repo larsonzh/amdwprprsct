@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_address_query.sh v4.7.0
+# lz_rule_address_query.sh v4.7.1
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 网址信息查询脚本
@@ -88,11 +88,9 @@ lz_aq_unset_isp_wan_port_variable() {
 ## 返回值：
 ##     IPv4地址数据列表
 lz_aq_print_ipv4_address_list() {
-    sed -e 's/^[[:space:]]\+//g' -e 's/[#].*$//g' -e 's/[[:space:]]\+/ /g' -e 's/[[:space:]]\+$//g' \
+    sed -e 's/^[[:space:]]\+//g' -e 's/[[:space:]#].*$//g' \
         -e 's/\(^\|[^[:digit:]]\)[0]\+\([[:digit:]]\)/\1\2/g' \
-        -e 's/^\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]].*$/\1/' \
-        -e '/^\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?$/!d' \
-        -e '/[3-9][0-9][0-9]\|[2][6-9][0-9]\|[2][5][6-9]\|[\/][4-9][0-9]\|[\/][3][3-9]/d' \
+        -e "/^${REGEX_SED_IPV4}$/!d" \
         -e 's/[\/]32//g' \
         -e "/\(^\|[[:space:]]\)\(0\([\.]0\)\{3\}\|${aq_route_local_ip}\)\([[:space:]]\|$\)/d" "${1}" \
         | awk 'function fix_cidr(ipa) {
@@ -139,9 +137,8 @@ lz_aq_print_valid_ipv4_address_list() {
 lz_aq_print_src_to_dst_ipv4_address_list() {
     sed -e 's/^[[:space:]]\+//g' -e 's/[#].*$//g' -e 's/[[:space:]]\+/ /g' -e 's/[[:space:]]\+$//g' \
         -e 's/\(^\|[^[:digit:]]\)[0]\+\([[:digit:]]\)/\1\2/g' \
-        -e 's/^\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]]\(\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?\)[[:space:]].*$/\1 \4/' \
-        -e '/^\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?[[:space:]]\([0-9]\{1,3\}[\.]\)\{3\}[0-9]\{1,3\}\([\/][0-9]\{1,2\}\)\?$/!d' \
-        -e '/[3-9][0-9][0-9]\|[2][6-9][0-9]\|[2][5][6-9]\|[\/][4-9][0-9]\|[\/][3][3-9]/d' \
+        -e "s/^\(${REGEX_SED_IPV4}[[:space:]]${REGEX_SED_IPV4}\)[[:space:]].*$/\1/" \
+        -e "/^${REGEX_SED_IPV4}[[:space:]]${REGEX_SED_IPV4}$/!d" \
         -e 's/[\/]32//g' \
         -e "/\(^\|[[:space:]]\)\(0\([\.]0\)\{3\}\|${aq_route_local_ip}\)\([[:space:]]\|$\)/d" "${1}" \
         | awk 'function fix_cidr(ipa) {
@@ -173,15 +170,13 @@ lz_aq_print_src_to_dst_ipv4_address_list() {
 ## 返回值：
 ##     IPv4源地址至目标地址协议端口数据列表
 lz_aq_print_src_to_dst_port_ipv4_address_list() {
-    local local_regex='^[[:space:]]*(([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?)([[:space:]]+(([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?)([[:space:]]+(tcp|udp|udplite|sctp|dccp)([[:space:]]+((([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)[\,])*([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)|any|all)([[:space:]]+((([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)[\,])*([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)|any|all))?)?)?)?$'
-    sed 's/\(^\|[^[:digit:]]\)[0]\+\([[:digit:]]\)/\1\2/g' "${1}" \
-        | grep -Ei "${local_regex}" \
+    local local_regex="^[[:space:]]*(${REGEX_IPV4})([[:space:]]+(${REGEX_IPV4})([[:space:]]+(tcp|udp|udplite|sctp|dccp)([[:space:]]+((([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)[\,])*([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)|any|all)([[:space:]]+((([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)[\,])*([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)|any|all))?)?)?)?$"
+    sed -e 's/^[[:space:]]\+//g' -e 's/[#].*$//g' -e 's/[[:space:]]\+/ /g' -e 's/[[:space:]]\+$//g' \
+        -e 's/\(^\|[^[:digit:]]\)[0]\+\([[:digit:]]\)/\1\2/g' "${1}" \
+        | grep -Eio "${local_regex}" \
         | tr '[:A-Z:]' '[:a-z:]' \
-        | sed -e 's/^[[:space:]]\+//g' -e 's/[#].*$//g' -e 's/[[:space:]]\+/ /g' -e 's/[[:space:]]\+$//g' \
-        -e 's/\(^\|[^[:digit:]]\)[0]\+\([[:digit:]]\)/\1\2/g' \
-        -e '/^\([^[:space:]]\+[[:space:]]\)\?[^[:space:]]*\([3-9][0-9][0-9]\|[2][6-9][0-9]\|[2][5][6-9]\|[\/][4-9][0-9]\|[\/][3][3-9]\)[^[:space:]]*\([[:space:]]\|$\)/d' \
-        -e 's/[\/]32//g' \
-        -e "/\(^\|[[:space:]]\)\(0\([\.]0\)\{3\}\|${aq_route_local_ip}\)\([[:space:]]\|$\)/d" \
+        | sed -e 's/[\/]32//g' \
+            -e "/\(^\|[[:space:]]\)\(0\([\.]0\)\{3\}\|${aq_route_local_ip}\)\([[:space:]]\|$\)/d" \
         | awk 'function fix_cidr(ipa) {
             split(ipa, arr, /\.|\//);
             if (arr[5] !~ /^[0-9][0-9]?$/)
@@ -353,7 +348,7 @@ lz_aq_add_client_dest_port_net_address_sets() {
 ## 返回值：
 ##     条目数
 lz_aq_get_ipset_total_number() {
-    local retval="$( ipset -q -L "${1}" | grep -Ec '^([0-9]{1,3}[\.]){3}[0-9]{1,3}' )"
+    local retval="$( ipset -q -L "${1}" | grep -Ec "^${REGEX_IPV4}" )"
     echo "${retval}"
 }
 
@@ -713,9 +708,9 @@ lz_aq_get_route_local_address_info() {
     aq_route_local_ip_cidr_mask="$( echo "${local_route_local_info}" | awk 'NR==2 {print $4}' | awk -F: '{print $2}' )"
     [ -n "$aq_route_local_ip_cidr_mask" ] && aq_route_local_ip_cidr_mask="$( lz_aq_ipv4_mask_to_cidr "${aq_route_local_ip_cidr_mask}" )"
 
-    aq_route_static_subnet="$( ip -o -4 address list | awk '$2 == "br0" {print $4; exit;}' | grep -Eo '^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?$' )"
+    aq_route_static_subnet="$( ip -o -4 address list | awk '$2 == "br0" {print $4; exit;}' | grep -Eo "^${REGEX_IPV4}$" )"
     aq_route_local_subnet="$( awk -v ipv="${aq_route_static_subnet}" 'function fix_cidr(ipa) {
-            if (ipa ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?$/) {
+            if (ipa ~ "'"^${REGEX_IPV4}$"'") {
                 if (split(ipa, arr, /\.|\//) == 5) {
                     pos = int(arr[5] / 8) + 1;
                     step = rshift(255, arr[5] % 8) + 1;
@@ -1029,7 +1024,7 @@ lz_aq_resolve_ip() {
     local local_ip="$( echo "${1}" | sed -e 's/^[[:space:]]*\([^[:space:]].*$\)/\1/g' -e 's/[[:space:]]\+/ /g' \
                         -e 's/\(^.*[^[:space:]]\)[[:space:]]*$/\1/g' -e '/[3-9][0-9][0-9]/d' -e '/[2][6-9][0-9]/d' \
                         -e '/[2][5][6-9]/d' -e 's/[\/\:].*$//g' \
-                        | grep -Eo '^([0-9]{1,3}[\.]){3}[0-9]{1,3}$' | sed -n 1p )"
+                        | grep -Eo "^${REGEX_IPV4%"([\/]("*}$" | sed -n 1p )"
     local local_domain_name="$( echo "${1}" | sed -e 's/^[[:space:]]*\([^[:space:]].*$\)/\1/g' -e 's/[[:space:]]\+/ /g' \
                                 -e 's/\(^.*[^[:space:]]\)[[:space:]]*$/\1/g' -e 's/^.*\:\/\///g' -e 's/^[^[:space:]]\{0,6\}\://g' -e 's/[\/\:].*$//g' \
                                 -e '/^[[:alnum:]]\([[:alnum:]-]\{0,61\}[[:alnum:]]\)\?\([\.][[:alnum:]]\([[:alnum:]-]\{0,61\}[[:alnum:]]\)\?\)*$/!d' \
@@ -1046,7 +1041,7 @@ lz_aq_resolve_ip() {
                                         -e 's/\(^.*[^[:space:]]\)[[:space:]]*$/\1/g' \
                                         -e '/[3-9][0-9][0-9]/d' -e '/[2][6-9][0-9]/d' \
                                         -e '/[2][5][6-9]/d' -e 's/[\/\:].*$//g' \
-                                        | grep -Eo '^([0-9]{1,3}[\.]){3}[0-9]{1,3}$' | sed -n 1p )"
+                                        | grep -Eo "^${REGEX_IPV4%"([\/]("*}$" | sed -n 1p )"
         if ! echo "${local_domain_name}" | grep -qEo "[[:space:]]"; then
             local local_info=
             if [ -z "${local_dnslookup_server}" ]; then
@@ -1055,7 +1050,7 @@ lz_aq_resolve_ip() {
                 local_info="$( nslookup "${local_domain_name}" "${local_dnslookup_server}" 2> /dev/null )"
             fi
             local_ip="$( echo "${local_info}" | sed '1,4d' | awk '{print $3}' | grep -v : \
-                        | grep -Eo '^([0-9]{1,3}[\.]){3}[0-9]{1,3}$' )"
+                        | grep -Eo "^${REGEX_IPV4%"([\/]("*}$" )"
             local_domain_name="$( echo "${local_info}" | sed '1,3d' | grep -i Name | awk '{print $2}' | sed -n 1p )"
             [ -z "${local_domain_name}" ] && local_domain_name="$( echo "${1}" \
                                                                 | sed -e 's/^[[:space:]]*\([^[:space:]].*$\)/\1/g' \
@@ -1128,8 +1123,8 @@ lz_show_address_info() {
     elif [ "${3}" = "$(( AQ_ISP_TOTAL + 4 ))" ]; then 
         echo "$(lzdate)" [$$]: "  Private network address" | tee -ai "${ADDRESS_LOG}" 2> /dev/null
     elif echo "${1}" | sed -e 's/^[[:space:]]*\([^[:space:]].*$\)/\1/g' -e 's/[[:space:]]\+/ /g' -e 's/\(^.*[^[:space:]]\)[[:space:]]*$/\1/g' \
-                -e '/[3-9][0-9][0-9]/d' -e '/[2][6-9][0-9]/d' -e '/[2][5][6-9]/d' -e 's/[\/\:].*$//g' \
-                | grep -qEo '^([0-9]{1,3}[\.]){3}[0-9]{1,3}$'; then
+                -e 's/[\/\:].*$//g' \
+                | grep -qEo "^${REGEX_IPV4%"([\/]("*}$"; then
         if [ "${2}" = "0" ]; then
             if [ "${4}" = "0" ]; then
                 local local_isp_wan_port="$( lz_aq_get_isp_wan_port "${3}" )"
@@ -1220,8 +1215,8 @@ lz_query_address() {
 
     if [ "${local_ip_item_total}" -le "1" ]; then
         if echo "${local_net_ip}" | sed -e 's/^[[:space:]]*\([^[:space:]].*$\)/\1/g' -e 's/[[:space:]]\+/ /g' -e 's/\(^.*[^[:space:]]\)[[:space:]]*$/\1/g' \
-                -e '/[3-9][0-9][0-9]/d' -e '/[2][6-9][0-9]/d' -e '/[2][5][6-9]/d' -e 's/[\/\:].*$//g' \
-                | grep -qEo '^([0-9]{1,3}[\.]){3}[0-9]{1,3}$'; then
+                -e 's/[\/\:].*$//g' \
+                | grep -qEo "^${REGEX_IPV4%"([\/]("*}$"; then
             ipset -q flush lz_aq_ispip_tmp_sets && ipset -q destroy lz_aq_ispip_tmp_sets
             local local_index="1"
             until [ "${local_index}" -gt "${AQ_ISP_TOTAL}" ]
@@ -1276,9 +1271,9 @@ lz_query_address() {
                     ipset -q flush lz_aq_ispip_tmp_sets
                     ## 第一WAN口的DNS解析服务器网址
                     eval "$( nvram get "wan0_dns" | awk 'NF >= "1" {
-                        if ($1 != "0.0.0.0" && $1 != "127.0.0.1" && $1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?$/)
+                        if ($1 != "0.0.0.0" && $1 != "127.0.0.1" && $1 ~ "'"^${REGEX_IPV4}$"'")
                             print "ipset -q add lz_aq_ispip_tmp_sets "$1;
-                        if ($2 != "0.0.0.0" && $2 != "127.0.0.1" && $2 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?$/)
+                        if ($2 != "0.0.0.0" && $2 != "127.0.0.1" && $2 ~ "'"^${REGEX_IPV4}$"'")
                             print "ipset -q add lz_aq_ispip_tmp_sets "$2;
                         exit;
                     }' )"
@@ -1299,9 +1294,9 @@ lz_query_address() {
                     ipset -q flush lz_aq_ispip_tmp_sets
                     ## 第二WAN口的DNS解析服务器网址
                     eval "$( nvram get "wan1_dns" | awk 'NF >= "1" {
-                        if ($1 != "0.0.0.0" && $1 != "127.0.0.1" && $1 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?$/)
+                        if ($1 != "0.0.0.0" && $1 != "127.0.0.1" && $1 ~ "'"^${REGEX_IPV4}$"'")
                             print "ipset -q add lz_aq_ispip_tmp_sets "$1;
-                        if ($2 != "0.0.0.0" && $2 != "127.0.0.1" && $2 ~ /^([0-9]{1,3}[\.]){3}[0-9]{1,3}([\/][0-9]{1,2})?$/)
+                        if ($2 != "0.0.0.0" && $2 != "127.0.0.1" && $2 ~ "'"^${REGEX_IPV4}$"'")
                             print "ipset -q add lz_aq_ispip_tmp_sets "$2;
                         exit;
                     }' )"

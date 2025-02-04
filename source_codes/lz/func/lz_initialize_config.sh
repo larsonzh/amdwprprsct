@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_initialize_config.sh v4.7.0
+# lz_initialize_config.sh v4.7.1
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 初始化脚本配置
@@ -1235,7 +1235,7 @@ EOF_CFG
 ##     全局常量及变量
 ## 返回值：无
 lz_get_config_data() {
-    local restore_cfg="0" original_length="-1" current_length="-1"
+    local restore_cfg="0" original_length="-1" current_length="-1" patt="^([\\\"]${REGEX_IPV4%"([\/]("*}[\\\"]|${REGEX_IPV4%"([\/]("*})$"
     eval "$( awk -F "=" -v param_default="$( lz_get_param_default_list )" -v ini_param_default="$( lz_get_ini_param_default_list )" -v dmq="${dnsmasq_enable}" -v fname="${PATH_CONFIGS}/lz_rule_config.sh" \
         'BEGIN{
             x=0;
@@ -1468,8 +1468,7 @@ lz_get_config_data() {
                     invalid=2;
             } else if (key == "pre_dns") {
                 flag=2;
-                if (value !~ /^([\"]([0-9]{1,3}[\.]){3}[0-9]{1,3}[\"]|([0-9]{1,3}[\.]){3}[0-9]{1,3})$/ \
-                    || value ~ /[3-9][0-9][0-9]|[2][6-9][0-9]|[2][5][6-9]/)
+                if (value !~ "'"${patt}"'")
                     invalid=2;
             }
             if (flag == 0) next;
@@ -1592,6 +1591,7 @@ lz_restore_box_data() {
 ##     全局常量及变量
 ## 返回值：无
 lz_get_box_data() {
+    local  patt="^([\\\"]${REGEX_IPV4%"([\/]("*}[\\\"]|${REGEX_IPV4%"([\/]("*})$"
     eval "$( awk -F "=" -v ini_param_default="$( lz_get_ini_param_default_list )" -v dmq="${dnsmasq_enable}" -v fname="${PATH_CONFIGS}/lz_rule_config.box" \
         'BEGIN{
             count=0;
@@ -1856,8 +1856,7 @@ lz_get_box_data() {
                     invalid=2;
             } else if (key == "pre_dns") {
                 flag=2;
-                if (value !~ /^([\"]([0-9]{1,3}[\.]){3}[0-9]{1,3}[\"]|([0-9]{1,3}[\.]){3}[0-9]{1,3})$/ \
-                    || value ~ /[3-9][0-9][0-9]|[2][6-9][0-9]|[2][5][6-9]/)
+                if (value !~ "'"${patt}"'")
                     invalid=2;
             }
             if (flag == 0) next;
