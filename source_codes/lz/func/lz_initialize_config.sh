@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_initialize_config.sh v4.7.2
+# lz_initialize_config.sh v4.7.3
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 初始化脚本配置
@@ -1235,7 +1235,7 @@ EOF_CFG
 ##     全局常量及变量
 ## 返回值：无
 lz_get_config_data() {
-    local restore_cfg="0" original_length="-1" current_length="-1" patt="^([\\\"]${REGEX_IPV4%"([\/]("*}[\\\"]|${REGEX_IPV4%"([\/]("*})$"
+    local restore_cfg="0" original_length="-1" current_length="-1" patt="^([\\\"]${REGEX_IPV4}[\\\"]|${REGEX_IPV4})$"
     eval "$( awk -F "=" -v param_default="$( lz_get_param_default_list )" -v ini_param_default="$( lz_get_ini_param_default_list )" -v dmq="${dnsmasq_enable}" -v fname="${PATH_CONFIGS}/lz_rule_config.sh" \
         'BEGIN{
             x=0;
@@ -1591,7 +1591,7 @@ lz_restore_box_data() {
 ##     全局常量及变量
 ## 返回值：无
 lz_get_box_data() {
-    local  patt="^([\\\"]${REGEX_IPV4%"([\/]("*}[\\\"]|${REGEX_IPV4%"([\/]("*})$"
+    local  patt="^([\\\"]${REGEX_IPV4}[\\\"]|${REGEX_IPV4})$"
     eval "$( awk -F "=" -v ini_param_default="$( lz_get_ini_param_default_list )" -v dmq="${dnsmasq_enable}" -v fname="${PATH_CONFIGS}/lz_rule_config.box" \
         'BEGIN{
             count=0;

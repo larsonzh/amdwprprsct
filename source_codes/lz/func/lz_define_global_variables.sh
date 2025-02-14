@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_define_global_variables.sh v4.7.2
+# lz_define_global_variables.sh v4.7.3
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 # QnkgTFog5aaZ5aaZ5ZGc77yI6Juk6J+G5aKp5YS/77yJ（首次运行标识，切勿修改）
 
@@ -409,14 +409,14 @@ route_hardware_type="$( uname -m )"
 route_os_name="$( uname -o )"
 
 ## 路由器本地静态子网
-route_static_subnet="$( ip -o -4 address list | awk '$2 == "br0" {print $4; exit;}' | grep -Eo "^${REGEX_IPV4}$" )"
+route_static_subnet="$( ip -o -4 address list | awk '$2 == "br0" {print $4; exit;}' | grep -Eo "^${REGEX_IPV4_NET}$" )"
 
 ## 路由器本地IP地址
 route_local_ip="${route_static_subnet%/*}"
 
 ## 路由器本地子网
 route_local_subnet="$( awk -v ipv="${route_static_subnet}" 'function fix_cidr(ipa) {
-        if (ipa ~ "'"^${REGEX_IPV4}$"'") {
+        if (ipa ~ "'"^${REGEX_IPV4_NET}$"'") {
             if (split(ipa, arr, /\.|\//) == 5) {
                 pos = int(arr[5] / 8) + 1;
                 step = rshift(255, arr[5] % 8) + 1;

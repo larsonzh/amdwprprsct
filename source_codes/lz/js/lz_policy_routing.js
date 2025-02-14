@@ -1,5 +1,5 @@
 /*
-# lz_policy_routing.js v4.7.2
+# lz_policy_routing.js v4.7.3
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ JavaScript for Asuswrt-Merlin Router
@@ -483,7 +483,7 @@ function checkIPaddress(ptr, defaultVal) {
     if (val4 > 255) val4 = "255";
     let val = val1 + "." + val2 + "." + val3 + "." + val4;
     if (val != ptr.value) ptr.value = val;
-    patt = /^((?:(?:[2][5][0-5]|[2][0-4][\d]|[01]?[\d]?[\d])[\.]){3}(?:[2][5][0-5]|[2][0-4][\d]|[01]?[\d]?[\d]))$/;
+    patt = /^((?:(?:[2][5][0-5]|(?:[2][0-4]|[1][\d]|[\d])?[\d])[\.]){3}(?:[2][5][0-5]|(?:[2][0-4]|[1][\d]|[\d])?[\d]))$/;
     if (!patt.test(val)) ptr.value = defaultVal;
 }
 

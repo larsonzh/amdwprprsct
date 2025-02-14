@@ -1,5 +1,5 @@
 #!/bin/sh
-# uninstall.sh v4.7.2
+# uninstall.sh v4.7.3
 # By LZ (larsonzhang@gmail.com)
 
 # LZ RULE script for Asuswrt-Merlin Router
@@ -8,7 +8,7 @@
 
 #BEGIN
 
-LZ_VERSION=v4.7.2
+LZ_VERSION=v4.7.3
 CURRENT_PATH="${0%/*}"
 [ "${CURRENT_PATH:0:1}" != '/' ] && CURRENT_PATH="$( pwd )${CURRENT_PATH#*.}"
 PATH_LOCK="/var/lock" LOCK_FILE_ID="555"

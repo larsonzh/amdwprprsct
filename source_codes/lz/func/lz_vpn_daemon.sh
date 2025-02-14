@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_vpn_daemon.sh v4.7.2
+# lz_vpn_daemon.sh v4.7.3
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 虚拟专网客户端路由刷新处理后台守护进程脚本
@@ -10,7 +10,7 @@
 #BEGIN
 
 ## 版本号
-LZ_VERSION=v4.7.2
+LZ_VERSION=v4.7.3
 
 ## 项目接口文件部署路径
 PATH_INTERFACE="${0%/*}"
@@ -54,8 +54,8 @@ ipset -q create "${VPN_CLIENT_DAEMON_IP_SET_LOCK}" list:set
 if [ "${1}" -gt "0" ] && [ "${1}" -le "60" ]; then POLLING_TIME="${1}"; else POLLING_TIME="5"; fi;
 POLLING_TIME="${POLLING_TIME}s"
 
-# IPv4地址正则表达式
-REGEX_IPV4='((25[0-5]|(2[0-4]|1?[0-9])?[0-9])[\.]){3}(25[0-5]|(2[0-4]|1?[0-9])?[0-9])([\/]([0-9]|[1-2][0-9]|3[0-2]))?'
+# IPv4网络地址正则表达式（含0.0.0.0/0）
+REGEX_IPV4_NET='(((25[0-5]|(2[0-4]|1[0-9]|[1-9])?[0-9])[\.]){3}(25[0-5]|(2[0-4]|1[0-9]|[1-9])?[0-9])([\/]([1-9]|[1-2][0-9]|3[0-2]))?|0[\.]0[\.]0[\.]0[\/]0)'
 
 ## 系统记录文件名
 SYSLOG="/tmp/syslog.log"
@@ -108,14 +108,14 @@ update_vpn_client_sub_route() {
         else
             call_openvpn_event_interface && return "0"
         fi
-        for vpn_client in $( ipset -q list "${PPTP_CLIENT_IP_SET}" | grep -Eo "^${REGEX_IPV4}$" ) \
-            $( ipset -q list "${WIREGUARD_CLIENT_IP_SET}" | grep -Eo "^${REGEX_IPV4}$" )
+        for vpn_client in $( ipset -q list "${PPTP_CLIENT_IP_SET}" | grep -Eo "^${REGEX_IPV4_NET}$" ) \
+            $( ipset -q list "${WIREGUARD_CLIENT_IP_SET}" | grep -Eo "^${REGEX_IPV4_NET}$" )
         do
             ! echo "${vpn_client_list}" | grep -q "^${vpn_client}$" && call_openvpn_event_interface && return "0"
         done
     else
-        { ipset -q list "${PPTP_CLIENT_IP_SET}" | grep -qE "^${REGEX_IPV4}$" \
-            || ipset -q list "${WIREGUARD_CLIENT_IP_SET}" | grep -qE "^${REGEX_IPV4}$"; } \
+        { ipset -q list "${PPTP_CLIENT_IP_SET}" | grep -qE "^${REGEX_IPV4_NET}$" \
+            || ipset -q list "${WIREGUARD_CLIENT_IP_SET}" | grep -qE "^${REGEX_IPV4_NET}$"; } \
             && call_openvpn_event_interface && return "0"
     fi
     return "1"
@@ -161,7 +161,7 @@ update_vpn_client() {
         if [ "${IPSEC_SERVER_ENABLE}" = "1" ]; then
             IPSEC_SERVER_ENABLE="$( nvram get "ipsec_server_enable" )"
             [ "${IPSEC_SERVER_ENABLE}" = "0" ] && call_openvpn_event_interface && return "0"
-        elif ipset -q list "${IPSEC_SUBNET_IP_SET}" | grep -qE "^${REGEX_IPV4}$"; then
+        elif ipset -q list "${IPSEC_SUBNET_IP_SET}" | grep -qE "^${REGEX_IPV4_NET}$"; then
             call_openvpn_event_interface && return "0"
         fi
     fi
@@ -216,7 +216,7 @@ do
             if [ "${IPSEC_SERVER_ENABLE}" = "1" ]; then
                 IPSEC_SERVER_ENABLE="$( nvram get "ipsec_server_enable" )"
                 [ "${IPSEC_SERVER_ENABLE}" = "0" ] && call_openvpn_event_interface
-            elif ipset -q list "${IPSEC_SUBNET_IP_SET}" | grep -qE "^${REGEX_IPV4}$"; then
+            elif ipset -q list "${IPSEC_SUBNET_IP_SET}" | grep -qE "^${REGEX_IPV4_NET}$"; then
                 call_openvpn_event_interface
             fi
         fi

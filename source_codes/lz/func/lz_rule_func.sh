@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v4.7.2
+# lz_rule_func.sh v4.7.3
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 #BEGIN
@@ -58,15 +58,13 @@ lz_create_project_status_id() {
 ## 返回值：
 ##     IPv4地址数据列表
 lz_print_ipv4_address_list() {
-    sed -e 's/^[[:space:]]\+//g' -e 's/[[:space:]#].*$//g' \
-        -e 's/\(^\|[^[:digit:]]\)[0]\+\([[:digit:]]\)/\1\2/g' \
-        -e "/^${REGEX_SED_IPV4}$/!d" \
-        -e 's/[\/]32//g' \
-        -e "/\(^\|[[:space:]]\)\(0\([\.]0\)\{3\}\|${route_local_ip}\)\([[:space:]]\|$\)/d" "${1}" \
+    sed 's/\(^\|[^[:digit:]]\)[0]\+\([[:digit:]]\)/\1\2/g' "${1}" \
         | awk 'function fix_cidr(ipa) {
             split(ipa, arr, /\.|\//);
             if (arr[5] !~ /^[0-9][0-9]?$/)
                 ip_value = ipa;
+            else if (arr[5] == "32")
+                ip_value = arr[1]"."arr[2]"."arr[3]"."arr[4];
             else {
                 pos = int(arr[5] / 8) + 1;
                 step = rshift(255, arr[5] % 8) + 1;
@@ -81,7 +79,7 @@ lz_print_ipv4_address_list() {
             delete arr;
             return ip_value;
         } \
-        NF == "1" && !i[$1]++ {print fix_cidr($1);}' \
+        NF >= "1" && $1 ~ "'"^${REGEX_IPV4_NET}$"'" && $1 !~ "'"^(${route_local_ip}|0\.0\.0\.0)$"'" && !i[$1]++ {print fix_cidr($1);}' \
         | awk 'NF == "1" && !i[$1]++ {print $1}'
 }
 
@@ -105,16 +103,13 @@ lz_print_valid_ipv4_address_list() {
 ## 返回值：
 ##     IPv4源地址至目标地址数据列表
 lz_print_src_to_dst_ipv4_address_list() {
-    sed -e 's/^[[:space:]]\+//g' -e 's/[#].*$//g' -e 's/[[:space:]]\+/ /g' -e 's/[[:space:]]\+$//g' \
-        -e 's/\(^\|[^[:digit:]]\)[0]\+\([[:digit:]]\)/\1\2/g' \
-        -e "s/^\(${REGEX_SED_IPV4}[[:space:]]${REGEX_SED_IPV4}\)[[:space:]].*$/\1/" \
-        -e "/^${REGEX_SED_IPV4}[[:space:]]${REGEX_SED_IPV4}$/!d" \
-        -e 's/[\/]32//g' \
-        -e "/\(^\|[[:space:]]\)\(0\([\.]0\)\{3\}\|${route_local_ip}\)\([[:space:]]\|$\)/d" "${1}" \
+    sed 's/\(^\|[^[:digit:]]\)[0]\+\([[:digit:]]\)/\1\2/g' "${1}" \
         | awk 'function fix_cidr(ipa) {
             split(ipa, arr, /\.|\//);
             if (arr[5] !~ /^[0-9][0-9]?$/)
                 ip_value = ipa;
+            else if (arr[5] == "32")
+                ip_value = arr[1]"."arr[2]"."arr[3]"."arr[4];
             else {
                 pos = int(arr[5] / 8) + 1;
                 step = rshift(255, arr[5] % 8) + 1;
@@ -129,7 +124,9 @@ lz_print_src_to_dst_ipv4_address_list() {
             delete arr;
             return ip_value;
         } \
-        NF == "2" && !i[$1_$2]++ {print fix_cidr($1),fix_cidr($2);}' \
+        NF >= "2" && $1 ~ "'"^${REGEX_IPV4_NET}$"'" && $2 ~ "'"^${REGEX_IPV4_NET}$"'" \
+        && $1 !~ "'"^(${route_local_ip}|0\.0\.0\.0)$"'" && $2 !~ "'"^(${route_local_ip}|0\.0\.0\.0)$"'" \
+        && !i[$1_$2]++ {print fix_cidr($1),fix_cidr($2);}' \
         | awk 'NF == "2" && $1 != $2 && !i[$1_$2]++ {print $0; next;} \
         NF == "2" && $1 == "0.0.0.0/0" && $2 == "0.0.0.0/0" && !i[$1_$2]++ {print $1,$2; next;}'
 }
@@ -140,17 +137,17 @@ lz_print_src_to_dst_ipv4_address_list() {
 ## 返回值：
 ##     IPv4源地址至目标地址协议端口数据列表
 lz_print_src_to_dst_port_ipv4_address_list() {
-    local local_regex="^[[:space:]]*(${REGEX_IPV4})([[:space:]]+(${REGEX_IPV4})([[:space:]]+(tcp|udp|udplite|sctp|dccp)([[:space:]]+((([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)[\,])*([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)|any|all)([[:space:]]+((([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)[\,])*([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)|any|all))?)?)?)?$"
+    local local_regex="^[[:space:]]*(${REGEX_IPV4_NET})([[:space:]]+(${REGEX_IPV4_NET})([[:space:]]+(tcp|udp|udplite|sctp|dccp)([[:space:]]+((([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)[\,])*([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)|any|all)([[:space:]]+((([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)[\,])*([1-9][0-9]*|[1-9][0-9]*[\:][1-9][0-9]*)|any|all))?)?)?)?$"
     sed -e 's/^[[:space:]]\+//g' -e 's/[#].*$//g' -e 's/[[:space:]]\+/ /g' -e 's/[[:space:]]\+$//g' \
-        -e 's/\(^\|[^[:digit:]]\)[0]\+\([[:digit:]]\)/\1\2/g' "${1}" \
-        | grep -Eio "${local_regex}" \
+        -e 's/\(^\|[^[:digit:]]\)[0]\+\([[:digit:]]\)/\1\2/g' \
+        -e "/$( echo "${local_regex}" | sed 's/[(){}|+?]/\\&/g' )/!d" "${1}" \
         | tr '[:A-Z:]' '[:a-z:]' \
-        | sed -e 's/[\/]32//g' \
-            -e "/\(^\|[[:space:]]\)\(0\([\.]0\)\{3\}\|${route_local_ip}\)\([[:space:]]\|$\)/d" \
         | awk 'function fix_cidr(ipa) {
             split(ipa, arr, /\.|\//);
             if (arr[5] !~ /^[0-9][0-9]?$/)
                 ip_value = ipa;
+            else if (arr[5] == "32")
+                ip_value = arr[1]"."arr[2]"."arr[3]"."arr[4];
             else {
                 pos = int(arr[5] / 8) + 1;
                 step = rshift(255, arr[5] % 8) + 1;
@@ -165,7 +162,8 @@ lz_print_src_to_dst_port_ipv4_address_list() {
             delete arr;
             return ip_value;
         } \
-        NF >= "1" && !i[$1"_"$2"_"$3"_"$4"_"$5]++ {print fix_cidr($1),fix_cidr($2),$3,$4,$5;}' \
+        NF >= "1" && $1 !~ "'"^(${route_local_ip}|0\.0\.0\.0)$"'" && $2 !~ "'"^(${route_local_ip}|0\.0\.0\.0)$"'" \
+        && !i[$1"_"$2"_"$3"_"$4"_"$5]++ {print fix_cidr($1),fix_cidr($2),$3,$4,$5;}' \
         | awk 'NF >= "1" && !i[$1"_"$2"_"$3"_"$4"_"$5]++ {print $1,$2,$3,$4,$5;}'
 }
 
@@ -1039,7 +1037,7 @@ lz_get_route_info() {
     fi
     echo "$(lzdate)" [$$]: --------------------------------------------- | tee -ai "${SYSLOG}" 2> /dev/null
 
-    route_local_ip="$( echo "${route_local_ip}" | grep -Eo "^${REGEX_IPV4%"([\/]("*}$" )"
+    route_local_ip="$( echo "${route_local_ip}" | grep -Eo "^${REGEX_IPV4}$" )"
 }
 
 ## 处理系统负载均衡分流策略规则函数
@@ -2432,7 +2430,7 @@ lz_define_fwmark_flow_export() {
 ## 返回值：
 ##     条目数
 lz_get_ipset_total_number() {
-    local retval="$( ipset -q -L "${1}" | grep -Ec "^${REGEX_IPV4}" )"
+    local retval="$( ipset -q -L "${1}" | grep -Ec "^${REGEX_IPV4_NET}" )"
     echo "${retval}"
 }
 
@@ -2755,7 +2753,7 @@ lz_create_domain_wan_set() {
         while IFS= read -r line
         do
             nslookup "${line}" 2> /dev/null | sed '1,4d' \
-                | awk '$3 ~ "'"^${REGEX_IPV4%"([\/]("*}$"'" {system("'"ipset -q add ${3} "'"$3)}'
+                | awk '$3 ~ "'"^${REGEX_IPV4}$"'" {system("'"ipset -q add ${3} "'"$3)}'
         done <<DOMAIN_BUF_INPUT
 ${DOMAIN_BUF}
 DOMAIN_BUF_INPUT
@@ -3404,16 +3402,16 @@ lz_initialize_ip_data_policy() {
     ## 获取WAN口的DNS解析服务器网址
     local local_ifip_wan0_dns1="" local_ifip_wan0_dns2="" local_ifip_wan1_dns1="" local_ifip_wan1_dns2=""
     eval "$( nvram get "wan0_dns" | awk 'NF >= "1" {
-        if ($1 != "0.0.0.0" && $1 != "127.0.0.1" && $1 ~ "'"^${REGEX_IPV4}$"'")
+        if ($1 != "0.0.0.0" && $1 != "127.0.0.1" && $1 ~ "'"^${REGEX_IPV4_NET}$"'")
             print "local_ifip_wan0_dns1="$1;
-        if ($2 != "0.0.0.0" && $2 != "127.0.0.1" && $2 ~ "'"^${REGEX_IPV4}$"'")
+        if ($2 != "0.0.0.0" && $2 != "127.0.0.1" && $2 ~ "'"^${REGEX_IPV4_NET}$"'")
             print "local_ifip_wan0_dns2="$2;
         exit;
     }' )"
     eval "$( nvram get "wan1_dns" | awk 'NF >= "1" {
-        if ($1 != "0.0.0.0" && $1 != "127.0.0.1" && $1 ~ "'"^${REGEX_IPV4}$"'")
+        if ($1 != "0.0.0.0" && $1 != "127.0.0.1" && $1 ~ "'"^${REGEX_IPV4_NET}$"'")
             print "local_ifip_wan1_dns1="$1;
-        if ($2 != "0.0.0.0" && $2 != "127.0.0.1" && $2 ~ "'"^${REGEX_IPV4}$"'")
+        if ($2 != "0.0.0.0" && $2 != "127.0.0.1" && $2 ~ "'"^${REGEX_IPV4_NET}$"'")
             print "local_ifip_wan1_dns2="$2;
         exit;
     }' )"
@@ -3715,30 +3713,30 @@ lz_proxy_route_support() {
     [ "${proxy_route}" != "0" ] && wan_no="${WAN1}"
     if [ "${dn_pre_resolved}" = "1" ] || [ "${dn_pre_resolved}" = "2" ]; then
         eval "$( awk -v x="${pre_dns}" 'BEGIN{
-            if (x ~ "'"^${REGEX_IPV4%"([\/]("*}$"'")
+            if (x ~ "'"^${REGEX_IPV4}$"'")
                 print "pre_dns_enable=\"0\""
         }' )"
     fi
     PROXY_NODE_BUF="$( lz_get_remote_node_list "${proxy_remote_node_addr_file}" )"
     while IFS= read -r line
     do
-        if awk -v x="${line}" 'BEGIN{if (x ~ "'"^${REGEX_IPV4}$"'") exit(0); else exit(1)}'; then
+        if awk -v x="${line}" 'BEGIN{if (x ~ "'"^${REGEX_IPV4_NET}$"'") exit(0); else exit(1)}'; then
             ip rule add from "0.0.0.0" to "${line}" table "${wan_no}" prio "${IP_RULE_PRIO_TOPEST}" > /dev/null 2>&1
             ip rule add from "${line}" to "0.0.0.0" table "${wan_no}" prio "${IP_RULE_PRIO_TOPEST}" > /dev/null 2>&1
         else
             if [ "${dn_pre_resolved}" = "0" ]; then
-                nslookup "${line}" 2> /dev/null | awk 'NR > 4 && $3 ~ "'"^${REGEX_IPV4%"([\/]("*}$"'" && $3 != "0.0.0.0" \
+                nslookup "${line}" 2> /dev/null | awk 'NR > 4 && $3 ~ "'"^${REGEX_IPV4}$"'" && $3 != "0.0.0.0" \
                     {system("ip rule add from 0.0.0.0 to "$3"'" table ${wan_no} prio ${IP_RULE_PRIO_TOPEST} > /dev/null 2>&1; ip rule add from "'"$3"'" to 0.0.0.0 table ${wan_no} prio ${IP_RULE_PRIO_TOPEST} > /dev/null 2>&1"'")}'
             elif [ "${dn_pre_resolved}" = "1" ]; then
                 [ "${pre_dns_enable}" = "0" ] \
-                    && nslookup "${line}" "${pre_dns}" 2> /dev/null | awk 'NR > 4 && $3 ~ "'"^${REGEX_IPV4%"([\/]("*}$"'" && $3 != "0.0.0.0" \
+                    && nslookup "${line}" "${pre_dns}" 2> /dev/null | awk 'NR > 4 && $3 ~ "'"^${REGEX_IPV4}$"'" && $3 != "0.0.0.0" \
                         {system("ip rule add from 0.0.0.0 to "$3"'" table ${wan_no} prio ${IP_RULE_PRIO_TOPEST} > /dev/null 2>&1; ip rule add from "'"$3"'" to 0.0.0.0 table ${wan_no} prio ${IP_RULE_PRIO_TOPEST} > /dev/null 2>&1"'")}'
             elif [ "${dn_pre_resolved}" = "2" ]; then
-                node_list="$( nslookup "${line}" 2> /dev/null | awk 'NR > 4 && $3 ~ "'"^${REGEX_IPV4%"([\/]("*}$"'" && $3 != "0.0.0.0" {print $3}' )"
+                node_list="$( nslookup "${line}" 2> /dev/null | awk 'NR > 4 && $3 ~ "'"^${REGEX_IPV4}$"'" && $3 != "0.0.0.0" {print $3}' )"
                 [ "${pre_dns_enable}" = "0" ] \
-                    && eval "$( nslookup "${line}" "${pre_dns}" 2> /dev/null | awk 'NR > 4 && $3 ~ "'"^${REGEX_IPV4%"([\/]("*}$"'" && $3 != "0.0.0.0" \
+                    && eval "$( nslookup "${line}" "${pre_dns}" 2> /dev/null | awk 'NR > 4 && $3 ~ "'"^${REGEX_IPV4}$"'" && $3 != "0.0.0.0" \
                         {printf "node_list=\"\$\( echo \"\${node_list}\" \| sed -e \"\\\$a %s\" -e \"\/\^[[:space:]]\*\$\/d\" \)\"\n", $3}' )"
-                echo "${node_list}" | awk '$1 ~ "'"^${REGEX_IPV4%"([\/]("*}$"'" && !i[$1]++ \
+                echo "${node_list}" | awk '$1 ~ "'"^${REGEX_IPV4}$"'" && !i[$1]++ \
                     {system("ip rule add from 0.0.0.0 to "$1"'" table ${wan_no} prio ${IP_RULE_PRIO_TOPEST} > /dev/null 2>&1; ip rule add from "'"$1"'" to 0.0.0.0 table ${wan_no} prio ${IP_RULE_PRIO_TOPEST} > /dev/null 2>&1"'")}'
             fi
         fi
@@ -3769,7 +3767,10 @@ lz_add_openvpn_event_scripts() {
 [ ! -d "${PATH_LOCK}" ] && { mkdir -p "${PATH_LOCK}" > /dev/null 2>&1; chmod 777 "${PATH_LOCK}" > /dev/null 2>&1; }
 exec ${LOCK_FILE_ID}<>"${LOCK_FILE}"; flock -x "${LOCK_FILE_ID}" > /dev/null 2>&1;
 
-REGEX_IPV4='((25[0-5]|(2[0-4]|1?[0-9])?[0-9])[\.]){3}(25[0-5]|(2[0-4]|1?[0-9])?[0-9])([\/]([0-9]|[1-2][0-9]|3[0-2]))?'
+REGEX_IPV4_NET='(((25[0-5]|(2[0-4]|1[0-9]|[1-9])?[0-9])[\.]){3}(25[0-5]|(2[0-4]|1[0-9]|[1-9])?[0-9])([\/]([1-9]|[1-2][0-9]|3[0-2]))?|0[\.]0[\.]0[\.]0[\/]0)'
+REGEX_IPV4="\$( echo "\${REGEX_IPV4_NET%"([\/]("*}" | sed 's/^(//' )"
+REGEX_SED_IPV4_NET="\$( echo "\${REGEX_IPV4_NET}" | sed 's/[(){}|+?]/\\&/g' )"
+REGEX_SED_IPV4="\$( echo "\${REGEX_IPV4}" | sed 's/[(){}|+?]/\\&/g' )"
 
 lzdate() { date +"%F %T"; }
 
@@ -3778,15 +3779,14 @@ lzdate() { date +"%F %T"; }
     echo "\$(lzdate)" [\$\$]: Running LZ VPN Event Handling Process "${LZ_VERSION}"
 } >> "${SYSLOG}"
 
-lz_ovpn_subnet_list="\$( ipset -q list "${OPENVPN_SUBNET_IP_SET}" | grep -Eo '^\${REGEX_IPV4}$' )"
-lz_pptp_client_list="\$( ipset -q list "${PPTP_CLIENT_IP_SET}" | grep -Eo '^\${REGEX_IPV4}$' )"
-lz_ipsec_subnet_list="\$( ipset -q list "${IPSEC_SUBNET_IP_SET}" | grep -Eo '^\${REGEX_IPV4}$' )"
-lz_wireguard_client_list="\$( ipset -q list "${WIREGUARD_CLIENT_IP_SET}" | grep -Eo '^\${REGEX_IPV4}$' )"
+lz_ovpn_subnet_list="\$( ipset -q list "${OPENVPN_SUBNET_IP_SET}" | grep -Eo '^\${REGEX_IPV4_NET}$' )"
+lz_pptp_client_list="\$( ipset -q list "${PPTP_CLIENT_IP_SET}" | grep -Eo '^\${REGEX_IPV4_NET}$' )"
+lz_ipsec_subnet_list="\$( ipset -q list "${IPSEC_SUBNET_IP_SET}" | grep -Eo '^\${REGEX_IPV4_NET}$' )"
+lz_wireguard_client_list="\$( ipset -q list "${WIREGUARD_CLIENT_IP_SET}" | grep -Eo '^\${REGEX_IPV4_NET}$' )"
 lz_nvram_ipsec_subnet_list=
 if [ "\$( nvram get "ipsec_server_enable" )" = "1" ]; then
-    lz_nvram_ipsec_subnet_list="\$( nvram get "ipsec_profile_1" | sed 's/>/\n/g' | sed -n 15p | grep -Eo "\${REGEX_IPV4%"([\/]("*}" | sed 's/^.*\$/&\.0\/24/' )"
-    [ -z "\${lz_nvram_ipsec_subnet_list}" ] && lz_nvram_ipsec_subnet_list="\$( nvram get "ipsec_profile_2" | sed 's/>/\n/g' | sed -n 15p | grep -Eo "\${REGEX_IPV4%"([\/]("*}" | sed 's/^.*\$/&\.0\/24/' )"
-fi
+    lz_nvram_ipsec_subnet_list="\$( nvram get "ipsec_profile_1" | sed 's/>/\n/g' | sed -n "15{s/^[[:space:]]*\(\${REGEX_SED_IPV4/3/2}\)\([^[:digit:]].*\)\?$/\1\.0\/24/;/^\${REGEX_SED_IPV4_NET}$/!d;p}" )"
+    [ -z "\${lz_nvram_ipsec_subnet_list}" ] && lz_nvram_ipsec_subnet_list="\$( nvram get "ipsec_profile_2" | sed 's/>/\n/g' | sed -n "15{s/^[[:space:]]*\(\${REGEX_SED_IPV4/3/2}\)\([^[:digit:]].*\)\?$/\1\.0\/24/;/^\${REGEX_SED_IPV4_NET}$/!d;p}" )"
 ip rule show | awk -F: '\$1 == "${IP_RULE_PRIO_VPN}" || \$1 == "${IP_RULE_PRIO_STATIC_SYS_VPN}" {system("ip rule del prio "\$1" > /dev/null 2>&1")}'
 if ! ip route show | grep -qw nexthop; then
     echo "\$(lzdate)" [\$\$]: Non dual network operation mode. >> "${SYSLOG}"
@@ -4325,14 +4325,19 @@ lz_vpn_support() {
         ## 获取IPSec虚拟专用子网网段地址
         local_vpn_item="$( nvram get "ipsec_profile_1" \
                             | sed 's/>/\n/g' \
-                            | sed -n 15p \
-                            | grep -Eo "${REGEX_IPV4%"([\/]("*}" \
-                            | sed 's/^.*$/&\.0\/24/' )"
-        [ -z "${local_vpn_item}" ] && local_vpn_item="$( nvram get "ipsec_profile_2" \
-                                                        | sed 's/>/\n/g' \
-                                                        | sed -n 15p \
-                                                        | grep -Eo "${REGEX_IPV4%"([\/]("*}" \
-                                                        | sed 's/^.*$/&\.0\/24/' )"
+                            | sed -n "15{
+                                    s/^[[:space:]]*\(${REGEX_SED_IPV4/3/2}\)\([^[:digit:]].*\)\?$/\1\.0\/24/;
+                                    /^${REGEX_SED_IPV4_NET}$/!d;
+                                    p
+                                }" )"
+        [ -z "${local_vpn_item}" ] \
+            && local_vpn_item="$( nvram get "ipsec_profile_2" \
+                                    | sed 's/>/\n/g' \
+                                    | sed -n "15{
+                                            s/^[[:space:]]*\(${REGEX_SED_IPV4/3/2}\)\([^[:digit:]].*\)\?$/\1\.0\/24/;
+                                            /^${REGEX_SED_IPV4_NET}$/!d;
+                                            p
+                                        }" )"
         if [ -n "${local_vpn_item}" ]; then
             ## 虚拟专网客户端路由出口规则添加及分流数据集更新处理
             ## 输入项：
@@ -4377,22 +4382,26 @@ lz_vpn_support() {
 ##     $1--WAN口ID
 ##     全局常量
 ## 返回值：
-##     IPv4公网IP地址:-私网IP地址:-1或0（1--公网IP，0--私网IP）
+##     IPv4公网IP地址:-私网IP地址:-1或0（1--公网IP，0--私网IP）:-IPv6公网IP地址
 lz_get_wan_pub_ip() {
     local local_wan_ip=""
     local local_local_wan_ip=""
+    local local_wan_ipv6=""
     local local_public_ip_enable="0"
     local local_wan_dev="$( ip route show table "${1}" | awk '/default/ && /ppp[0-9]*/ {print $5; exit;}' )"
     if [ -z "${local_wan_dev}" ]; then
         local_wan_dev="$( ip route show table "${1}" | awk '/default/ {print $5; exit;}' )"
     fi
     if [ -n "${local_wan_dev}" ]; then
-        local_wan_ip="$( curl -s --connect-timeout 20 --interface "${local_wan_dev}" "whatismyip.akamai.com" | grep -Eo "'"^${REGEX_IPV4%"([\/]("*}"'" )"
+        local_wan_ip="$( curl -s --connect-timeout 20 --interface "${local_wan_dev}" -w '\n' "whatismyip.akamai.com" | grep -Eo "^${REGEX_IPV4}$" )"
         [ -n "${local_wan_ip}" ] && local_public_ip_enable="1"
-        local_local_wan_ip="$( ip -o -4 address list | awk '$2 == "'"${local_wan_dev}"'" {print $4; exit;}' | grep -Eo "'"^${REGEX_IPV4%"([\/]("*}"'" )"
+        local_local_wan_ip="$( ip -o -4 address list | awk '$2 == "'"${local_wan_dev}"'" && $4 ~ "'"^${REGEX_IPV4_NET}$"'" {print $4; exit;}' | sed 's/\/.*$//g' )"
+        local_wan_ipv6="$( ip -o -6 address list \
+            | awk '$2 == "'"${local_wan_dev}"'" && $4 !~ /^[fF]([eE][89abAB]|[cdCD][0-9a-fA-F])[0-9a-fA-F]:/ && $4 ~ "'"^${REGEX_IPV4_NET_V6}$"'" {print $4; exit;}' \
+            | sed 's/\/.*$//g' )"
         [ "${local_wan_ip}" != "${local_local_wan_ip}" ] && local_public_ip_enable="0"
     fi
-    echo "${local_wan_ip}:-${local_local_wan_ip}:-${local_public_ip_enable}"
+    echo "${local_wan_ip}:-${local_local_wan_ip}:-${local_public_ip_enable}:-${local_wan_ipv6}"
 }
 
 ## 获取路由器WAN出口接入ISP运营商信息函数
@@ -4402,9 +4411,11 @@ lz_get_wan_pub_ip() {
 ##     local_wan0_isp--第一WAN出口接入ISP运营商信息--全局变量
 ##     local_wan0_pub_ip--第一WAN出口公网IP地址--全局变量
 ##     local_wan0_local_ip--第一WAN出口本地IP地址--全局变量
+##     local_wan0_pub_ipv6--第一WAN出口公网IPv6地址--全局变量
 ##     local_wan1_isp--第二WAN出口接入ISP运营商信息--全局变量
 ##     local_wan1_pub_ip--第二WAN出口公网IP地址--全局变量
 ##     local_wan1_local_ip--第二WAN出口本地IP地址--全局变量
+##     local_wan1_pub_ipv6--第二WAN出口公网IP地址--全局变量
 lz_get_wan_isp_info() {
     ## 初始化临时的运营商网段数据集
     local local_no="${ISP_TOTAL}"
@@ -4442,11 +4453,8 @@ lz_get_wan_isp_info() {
     ##     $1--WAN口ID
     ##     全局常量
     ## 返回值：
-    ##     IPv4公网IP地址:-私网IP地址:-1或0（1--公网IP，0--私网IP）
-    local_wan1_pub_ip="$( lz_get_wan_pub_ip "${WAN1}" )"
-    local_wan_ip_type="$( echo "${local_wan1_pub_ip}" | awk -F ':-' '{print $3}' )"
-    local_wan1_local_ip="$( echo "${local_wan1_pub_ip}" | awk -F ':-' '{print $2}' )"
-    local_wan1_pub_ip="$( echo "${local_wan1_pub_ip}" | awk -F ':-' '{print $1}' )"
+    ##     IPv4公网IP地址:-私网IP地址:-1或0（1--公网IP，0--私网IP）:-IPv6公网IP地址
+    eval "$( lz_get_wan_pub_ip "${WAN1}" | awk -F ':-' '{print "local_wan1_pub_ip="$1"; local_wan1_local_ip="$2"; local_wan_ip_type="$3"; local_wan1_pub_ipv6="$4";";}' )"
     if [ "${local_wan_ip_type}" = "1" ]; then
         local_wan_ip_type="Public"
     else
@@ -4506,11 +4514,8 @@ lz_get_wan_isp_info() {
     ##     $1--WAN口ID
     ##     全局常量
     ## 返回值：
-    ##     IPv4公网IP地址:-私网IP地址:-1或0（1--公网IP，0--私网IP）
-    local_wan0_pub_ip="$( lz_get_wan_pub_ip "${WAN0}" )"
-    local_wan_ip_type="$( echo "${local_wan0_pub_ip}" | awk -F ':-' '{print $3}' )"
-    local_wan0_local_ip="$( echo "${local_wan0_pub_ip}" | awk -F ':-' '{print $2}' )"
-    local_wan0_pub_ip="$( echo "${local_wan0_pub_ip}" | awk -F ':-' '{print $1}' )"
+    ##     IPv4公网IP地址:-私网IP地址:-1或0（1--公网IP，0--私网IP）:-IPv6公网IP地址
+    eval "$( lz_get_wan_pub_ip "${WAN0}" | awk -F ':-' '{print "local_wan0_pub_ip="$1"; local_wan0_local_ip="$2"; local_wan_ip_type="$3"; local_wan0_pub_ipv6="$4";";}' )"
     if [ "${local_wan_ip_type}" = "1" ]; then
         local_wan_ip_type="Public"
     else
@@ -4617,6 +4622,8 @@ lz_output_ispip_info_to_system_records() {
     elif [ -n "${local_wan0_local_ip}" ]; then
         echo "$(lzdate)" [$$]: "                         ${local_wan0_local_ip}" | tee -ai "${SYSLOG}" 2> /dev/null
     fi
+    [ -n "${local_wan0_pub_ipv6}" ] \
+        && echo "$(lzdate)" [$$]: "           ${local_wan0_pub_ipv6}" | tee -ai "${SYSLOG}" 2> /dev/null
     {
         echo "$(lzdate)" [$$]: ---------------------------------------------
         echo "$(lzdate)" [$$]: "   Secondary WAN   ${3}"
@@ -4633,6 +4640,8 @@ lz_output_ispip_info_to_system_records() {
     elif [ -n "${local_wan1_local_ip}" ]; then
         echo "$(lzdate)" [$$]: "                         ${local_wan1_local_ip}" | tee -ai "${SYSLOG}" 2> /dev/null
     fi
+    [ -n "${local_wan1_pub_ipv6}" ] \
+        && echo "$(lzdate)" [$$]: "           ${local_wan1_pub_ipv6}" | tee -ai "${SYSLOG}" 2> /dev/null
     echo "$(lzdate)" [$$]: --------------------------------------------- | tee -ai "${SYSLOG}" 2> /dev/null
 
     local local_hd=""
@@ -4780,10 +4789,10 @@ lz_output_ispip_info_to_system_records() {
     }
     llz_get_client_src_rt_item_total() {
         ip rule show | sed -n "/^[[:space:]]*${1}:/{
-            s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]]*lookup.*$/\1/;
+            s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*\(${REGEX_SED_IPV4_NET_SPL}\)[[:space:]]*lookup.*$/\1/;
             s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*all[[:space:]]*lookup.*$/0.0.0.0\/0/;
             s/^[[:space:]]*${1}:[[:space:]]*not[[:space:]]*from[[:space:]]*0[\.]0[\.]0[\.]0[[:space:]]*lookup.*$/0.0.0.0\/0/;
-            /^${REGEX_SED_IPV4}$/!d;
+            /^${REGEX_SED_IPV4_NET}$/!d;
             p
         }" | awk -v count="0" 'NF == "1" {count++;} END{print count;}'
     }
@@ -4805,7 +4814,7 @@ lz_output_ispip_info_to_system_records() {
     llz_get_domain_src_rt_item_total() {
         if [ "${3}" = "0" ] || [ "${3}" = "1" ]; then
             eval ipset -q list "\${DOMAIN_CLT_SRC_SET_${3}}" \
-                | awk -v count="0" '$1 ~ "'"^${REGEX_IPV4}$"'" {count++;} \
+                | awk -v count="0" '$1 ~ "'"^${REGEX_IPV4_NET}$"'" {count++;} \
                 END{if (count > "0") print count; else print "1";}'
         else
             printf "0\n"
@@ -4842,15 +4851,21 @@ lz_output_ispip_info_to_system_records() {
     }
     llz_get_src_to_dst_port_rt_item_total() {
         if ip rule show | grep -q "^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*all[[:space:]]*fwmark[[:space:]]*${2}[[:space:]]*lookup"; then
-            iptables -t mangle -L "${CUSTOM_PREROUTING_CONNMARK_CHAIN}" -n 2> /dev/null \
+            iptables -t mangle -L LZPRCNMK -v -n --line-numbers 2> /dev/null \
                 | sed -n "/CONNMARK[[:space:]]*set[[:space:]]*${2}$/p" \
-                | sed -e "s/^.*[[:space:]]\(tcp\|udp\|udplite\|sctp\|dccp\)[^[:alpha:]].*[[:space:]]\(${REGEX_SED_IPV4}\)[[:space:]]\+\(${REGEX_SED_IPV4}\)[[:space:]].*sports[[:space:]]\+\([^[:space:]]\+\)[[:space:]].*dports[[:space:]]\+\([^[:space:]]\+\)[[:space:]].*$/\2 \10 \1 \18 \19/g" \
-                -e "s/^.*[[:space:]]\(tcp\|udp\|udplite\|sctp\|dccp\)[^[:alpha:]].*[[:space:]]\(${REGEX_SED_IPV4}\)[[:space:]]\+\(${REGEX_SED_IPV4}\)[[:space:]].*sports[[:space:]]\+\([^[:space:]]\+\)[[:space:]].*$/\2 \10 \1 \18 any/g" \
-                -e "s/^.*[[:space:]]\(tcp\|udp\|udplite\|sctp\|dccp\)[^[:alpha:]].*[[:space:]]\(${REGEX_SED_IPV4}\)[[:space:]]\+\(${REGEX_SED_IPV4}\)[[:space:]].*dports[[:space:]]\+\([^[:space:]]\+\)[[:space:]].*$/\2 \10 \1 any \18/g" \
-                -e "s/^.*[[:space:]]\(tcp\|udp\|udplite\|sctp\|dccp\)[^[:alpha:]].*[[:space:]]\(${REGEX_SED_IPV4}\)[[:space:]]\+\(${REGEX_SED_IPV4}\)[[:space:]].*$/\2 \10 \1/g" \
-                -e "s/^.*[[:space:]]\(all\)[^[:alpha:]].*[[:space:]]\(${REGEX_SED_IPV4}\)[[:space:]]\+\(${REGEX_SED_IPV4}\)[[:space:]].*$/\2 \10/g" \
-                -e '/CONNMARK/d' \
-                | awk -v count="0" 'NF >= "2" {count++;} END{print count;}'
+                | awk -v count="0" '$4 == "CONNMARK" && $5 ~ /^(tcp|udp|udplite|sctp|dccp|all)([^[:space:]]|$)/ {
+                    x = 0;
+                    if ($5 ~ /^(tcp|udp|udplite|sctp|dccp|all)$/)
+                        x = 1;
+                    if ($5 !~ /^all/ && $(11 + x) == "sports" && $(14 + x) == "dports")
+                        count++;
+                    else if ($5 !~ /^all/ && $(11 + x) ~ /^(sports|dports)$/)
+                        count++;
+                    else if ($5 !~ /^all/)
+                        count++;
+                    else if ($5 ~ /^all/)
+                        count++;
+                } END{print count;}'
         else
             printf "0\n"
         fi
@@ -4900,12 +4915,12 @@ lz_output_ispip_info_to_system_records() {
     }
     llz_get_src_to_dst_rt_item_total() {
         ip rule show | sed -n "/^[[:space:]]*${1}:/{
-            s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*all[[:space:]]*to[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]].*$/0.0.0.0\/0 \1/;
-            s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]]*to[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]].*$/\1 \9/;
-            s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]]*lookup.*$/\1 0.0.0.0\/0/;
+            s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*all[[:space:]]*to[[:space:]]*\(${REGEX_SED_IPV4_NET_SPL}\)[[:space:]].*$/0.0.0.0\/0 \1/;
+            s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*\(${REGEX_SED_IPV4_NET_SPL}\)[[:space:]]*to[[:space:]]*\(${REGEX_SED_IPV4_NET_SPL}\)[[:space:]].*$/\1 \4/;
+            s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*\(${REGEX_SED_IPV4_NET_SPL}\)[[:space:]]*lookup.*$/\1 0.0.0.0\/0/;
             s/^[[:space:]]*${1}:[[:space:]]*from[[:space:]]*all[[:space:]]*lookup.*$/0.0.0.0\/0 0.0.0.0\/0/;
             s/^[[:space:]]*${1}:[[:space:]]*not[[:space:]]*from[[:space:]]*0[\.]0[\.]0[\.]0[[:space:]]*lookup.*$/0.0.0.0\/0 0.0.0.0\/0/;
-            /^${REGEX_SED_IPV4}[[:space:]]${REGEX_SED_IPV4}$/!d;
+            /^${REGEX_SED_IPV4_NET}[[:space:]]${REGEX_SED_IPV4_NET}$/!d;
             p
         }" | awk -v count="0" 'NF == "2" {count++;} END{print count;}'
     }
@@ -4925,8 +4940,8 @@ lz_output_ispip_info_to_system_records() {
         local_exist="1"
     }
     local_item_count="$( ip rule show | sed -n "/^[[:space:]]*${IP_RULE_PRIO_TOPEST}:/{
-        s/^[[:space:]]*${IP_RULE_PRIO_TOPEST}:[[:space:]]*from[[:space:]]*0[\.]0[\.]0[\.]0[[:space:]]*to[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]]*lookup.*$/\1/;
-        /^${REGEX_SED_IPV4}$/!d;
+        s/^[[:space:]]*${IP_RULE_PRIO_TOPEST}:[[:space:]]*from[[:space:]]*0[\.]0[\.]0[\.]0[[:space:]]*to[[:space:]]*\(${REGEX_SED_IPV4_NET_SPL}\)[[:space:]]*lookup.*$/\1/;
+        /^${REGEX_SED_IPV4_NET}$/!d;
         p
     }" | awk -v count="0" 'NF == "1" {count++;} END{print count;}' )"
     [ "${local_item_count}" -gt "0" ] && {
@@ -4940,23 +4955,29 @@ lz_output_ispip_info_to_system_records() {
     }
     ip route show table "${LZ_IPTV}" | grep -qw "default" && {
         local total1=0 total2=0
-        eval "$( ip rule show | sed -n "/^[[:space:]]*${IP_RULE_PRIO_IPTV}:/{
-            s/^[[:space:]]*${IP_RULE_PRIO_IPTV}:[[:space:]]*from[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]]*lookup.*$/\1/;
-            s/^[[:space:]]*${IP_RULE_PRIO_IPTV}:[[:space:]]*from[[:space:]]*all[[:space:]]*to[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]]*lookup.*$/\1/;
-            s/^[[:space:]]*${IP_RULE_PRIO_IPTV}:[[:space:]]*from[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]]*to[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]]*lookup.*$/\1 \9/;
-            /^\(${REGEX_SED_IPV4}\|${REGEX_SED_IPV4}[[:space:]]\+${REGEX_SED_IPV4}\)$/!d;
-            p
-        }" | awk -v count1=0 -v count2=0 'NF == "1" {count1++; next;} NF == "2" {count2++; next;} END{print "total1="count1/2"; total2="count2/2;}' )"
-        local_item_count="$( ip rule show | sed -n "/^[[:space:]]*${IP_RULE_PRIO_IPTV}:/{
-            s/^[[:space:]]*${IP_RULE_PRIO_IPTV}:[[:space:]]*from[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]]*lookup.*$/\1/;
-            s/^[[:space:]]*${IP_RULE_PRIO_IPTV}:[[:space:]]*from[[:space:]]*all[[:space:]]*to[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]]*lookup.*$/\1/;
-            s/^[[:space:]]*${IP_RULE_PRIO_IPTV}:[[:space:]]*from[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]]*to[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]]*lookup.*$/\1 \9/;
-            /^\(${REGEX_SED_IPV4}\|${REGEX_SED_IPV4}[[:space:]]\+${REGEX_SED_IPV4}\)$/!d;
-            p
-        }" | awk -v count=0 'NF == "1" && "'"${total1}"'" != "0" {
+        eval "$( ip rule show | awk -v count1=0 -v count2=0 '$1 == "'"${IP_RULE_PRIO_IPTV}:"'" {
+            if ($3 ~ "'"${REGEX_IPV4_NET}"'" && $5 ~ "'"${REGEX_IPV4_NET}"'") {
+                count2++;
+            } else if ($3 ~ "'"${REGEX_IPV4_NET}"'") {
+                count1++;
+            } else if ($5 ~ "'"${REGEX_IPV4_NET}"'") {
+                count1++;
+            }
+        } END{print "total1="count1/2"; total2="count2/2;}' )"
+        local_item_count="$( ip rule show | awk '$1 == "'"${IP_RULE_PRIO_IPTV}:"'" {
+            if ($3 ~ "'"${REGEX_IPV4_NET}"'" && $5 ~ "'"${REGEX_IPV4_NET}"'") {
+                print $3,$5;
+            } else if ($3 ~ "'"${REGEX_IPV4_NET}"'") {
+                print $3;
+            } else if ($5 ~ "'"${REGEX_IPV4_NET}"'") {
+                print $5;
+            }
+        }' \
+        | awk -v count=0 'NF == "1" && "'"${total1}"'" != "0" {
             print $1;
             next;
-        } NF == "2" && "'"${total1}"'" == "0" && "'"${total2}"'" != "0" {
+        } \
+        NF == "2" && "'"${total1}"'" == "0" && "'"${total2}"'" != "0" {
             count++;
             if (count <= ("'"${total2}"'" + 0))
                 print $1;
@@ -4972,25 +4993,18 @@ lz_output_ispip_info_to_system_records() {
             fi
         }
         local total=0
-        eval "$( ip rule show | sed -n "/^[[:space:]]*${IP_RULE_PRIO_IPTV}:/{
-            s/^[[:space:]]*${IP_RULE_PRIO_IPTV}:[[:space:]]*from[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]]*lookup.*$/\1/;
-            s/^[[:space:]]*${IP_RULE_PRIO_IPTV}:[[:space:]]*from[[:space:]]*all[[:space:]]*to[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]]*lookup.*$/\1/;
-            s/^[[:space:]]*${IP_RULE_PRIO_IPTV}:[[:space:]]*from[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]]*to[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]]*lookup.*$/\1 \9/;
-            /^\(${REGEX_SED_IPV4}\|${REGEX_SED_IPV4}[[:space:]]\+${REGEX_SED_IPV4}\)$/!d;
-            p
-        }" | awk -v count=0 'NF == "2" {count++;} END{print "total="count/2;}' )"
-        local_item_count="$( ip rule show | sed -n "/^[[:space:]]*${IP_RULE_PRIO_IPTV}:/{
-            s/^[[:space:]]*${IP_RULE_PRIO_IPTV}:[[:space:]]*from[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]]*lookup.*$/\1/;
-            s/^[[:space:]]*${IP_RULE_PRIO_IPTV}:[[:space:]]*from[[:space:]]*all[[:space:]]*to[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]]*lookup.*$/\1/;
-            s/^[[:space:]]*${IP_RULE_PRIO_IPTV}:[[:space:]]*from[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]]*to[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]]*lookup.*$/\1 \9/;
-            /^\(${REGEX_SED_IPV4}\|${REGEX_SED_IPV4}[[:space:]]\+${REGEX_SED_IPV4}\)$/!d;
-            p
-        }" | awk -v count=0 'NF == "2" && "'"${total}"'" != "0" {
-            count++;
-            if (count <= ("'"${total}"'" + 0))
-                print $2;
-            else
-                exit;
+        eval "$( ip rule show | awk -v count=0 '$1 == "'"${IP_RULE_PRIO_IPTV}:"'" {
+            if ($3 ~ "'"${REGEX_IPV4_NET}"'" && $5 ~ "'"${REGEX_IPV4_NET}"'")
+                count++;
+        } END{print "total="count/2;}' )"
+        local_item_count="$( ip rule show | awk -v count=0 '"'"${total}"'" != "0" && $1 == "'"${IP_RULE_PRIO_IPTV}:"'" {
+            if ($3 ~ "'"${REGEX_IPV4_NET}"'" && $5 ~ "'"${REGEX_IPV4_NET}"'") {
+                count++;
+                if (count <= ("'"${total}"'" + 0))
+                    print $5;
+                else
+                    exit;
+            }
         }' | awk -v count="0" 'NF == "1" && !i[$1]++ {count++;} END{print count;}' )"
         [ "${local_item_count}" -gt "0" ] && {
             echo "$(lzdate)" [$$]: "   IPTVSrvIPLst    Available       HD  ${local_item_count}" | tee -ai "${SYSLOG}" 2> /dev/null
@@ -4998,19 +5012,19 @@ lz_output_ispip_info_to_system_records() {
         }
     }
     local_item_count="$( ip rule show | sed -n "/^[[:space:]]*${IP_RULE_PRIO_ISP_DATA_LB}:/{
-        s/^[[:space:]]*${IP_RULE_PRIO_ISP_DATA_LB}:[[:space:]]*from[[:space:]]*\(${REGEX_SED_IPV4}\)[[:space:]]*lookup.*$/\1/;
-        /^${REGEX_SED_IPV4}$/!d;
+        s/^[[:space:]]*${IP_RULE_PRIO_ISP_DATA_LB}:[[:space:]]*from[[:space:]]*\(${REGEX_SED_IPV4_NET_SPL}\)[[:space:]]*lookup.*$/\1/;
+        /^${REGEX_SED_IPV4_NET}$/!d;
         p
     }" | awk -v count="0" 'NF == "1" {count++;} END{print count;}' )"
     [ "${local_item_count}" -le "0" ] && local_item_count="$( ipset -q list "${BLACK_CLT_SRC_SET}" \
-            | awk -v count="0" '$1 ~ "'"^${REGEX_IPV4}$"'" {count++;} END{print count;}' )"
+            | awk -v count="0" '$1 ~ "'"^${REGEX_IPV4_NET}$"'" {count++;} END{print count;}' )"
     [ "${local_item_count}" -gt "0" ] && {
         echo "$(lzdate)" [$$]: "   LocalIPBlcLst   Load Balancing      ${local_item_count}" | tee -ai "${SYSLOG}" 2> /dev/null
         local_exist="1"
     }
     [ -s "${PATH_DNSMASQ_DOMAIN_CONF}/${CUSTOM_HOSTS_CONF}" ] && {
-        local_item_count="$( sed -e "/^[[:space:]]*\(address=[\/][[:alnum:]]\([[:alnum:]-]\{0,61\}[[:alnum:]]\)\?\([\.][[:alnum:]]\([[:alnum:]-]\{0,61\}[[:alnum:]]\)\?\)*[\/]${REGEX_SED_IPV4%"\([\/]\("*}\|cname=[[:alnum:]]\([[:alnum:]-]\{0,61\}[[:alnum:]]\)\?\([\.][[:alnum:]]\([[:alnum:]-]\{0,61\}[[:alnum:]]\)\?\)*[\,][[:alnum:]]\([[:alnum:]-]\{0,61\}[[:alnum:]]\)\?\([\.][[:alnum:]]\([[:alnum:]-]\{0,61\}[[:alnum:]]\)\?\)*\)[[:space:]]*$/!d" \
-            -e "s/^[[:space:]]*address=[\/]\([[:alnum:]]\([[:alnum:]-]\{0,61\}[[:alnum:]]\)\?\([\.][[:alnum:]]\([[:alnum:]-]\{0,61\}[[:alnum:]]\)\?\)*\)[\/]\(${REGEX_SED_IPV4%"\([\/]\("*}\)[[:space:]]*$/\5 \1/" \
+        local_item_count="$( sed -e "/^[[:space:]]*\(address=[\/][[:alnum:]]\([[:alnum:]-]\{0,61\}[[:alnum:]]\)\?\([\.][[:alnum:]]\([[:alnum:]-]\{0,61\}[[:alnum:]]\)\?\)*[\/]${REGEX_SED_IPV4}\|cname=[[:alnum:]]\([[:alnum:]-]\{0,61\}[[:alnum:]]\)\?\([\.][[:alnum:]]\([[:alnum:]-]\{0,61\}[[:alnum:]]\)\?\)*[\,][[:alnum:]]\([[:alnum:]-]\{0,61\}[[:alnum:]]\)\?\([\.][[:alnum:]]\([[:alnum:]-]\{0,61\}[[:alnum:]]\)\?\)*\)[[:space:]]*$/!d" \
+            -e "s/^[[:space:]]*address=[\/]\([[:alnum:]]\([[:alnum:]-]\{0,61\}[[:alnum:]]\)\?\([\.][[:alnum:]]\([[:alnum:]-]\{0,61\}[[:alnum:]]\)\?\)*\)[\/]\(${REGEX_SED_IPV4}\)[[:space:]]*$/\5 \1/" \
             -e "s/^[[:space:]]*cname=\([[:alnum:]]\([[:alnum:]-]\{0,61\}[[:alnum:]]\)\?\([\.][[:alnum:]]\([[:alnum:]-]\{0,61\}[[:alnum:]]\)\?\)*\)[\,]\([[:alnum:]]\([[:alnum:]-]\{0,61\}[[:alnum:]]\)\?\([\.][[:alnum:]]\([[:alnum:]-]\{0,61\}[[:alnum:]]\)\?\)*\)[[:space:]]*$/\5 \1/" "${PATH_DNSMASQ_DOMAIN_CONF}/${CUSTOM_HOSTS_CONF}" \
             | awk -v count="0" 'NF == "2" && $1 != $2 && !i[$1_$2]++ {count++;} END{print count;}' )"
         [ "${local_item_count}" -gt "0" ] && {
@@ -5343,15 +5357,19 @@ lz_deployment_routing_policy() {
     ##     local_wan0_isp--第一WAN出口接入ISP运营商信息--全局变量
     ##     local_wan0_pub_ip--第一WAN出口公网IP地址--全局变量
     ##     local_wan0_local_ip--第一WAN出口本地IP地址--全局变量
+    ##     local_wan0_pub_ipv6--第一WAN出口公网IPv6地址--全局变量
     ##     local_wan1_isp--第二WAN出口接入ISP运营商信息--全局变量
     ##     local_wan1_pub_ip--第二WAN出口公网IP地址--全局变量
     ##     local_wan1_local_ip--第二WAN出口本地IP地址--全局变量
+    ##     local_wan1_pub_ipv6--第二WAN出口公网IP地址--全局变量
     local_wan0_isp=
     local_wan0_pub_ip=
     local_wan0_local_ip=
+    local_wan0_pub_ipv6=
     local_wan1_isp=
     local_wan1_pub_ip=
     local_wan1_local_ip=
+    local_wan1_pub_ipv6=
     lz_get_wan_isp_info
 
     ## 互联网访问路由器管理页面及华硕路由器APP终端支持，优先级：IP_RULE_PRIO_INNER_ACCESS
@@ -5526,7 +5544,7 @@ lz_deployment_routing_policy() {
     local iptv_getway_ip_1=
 
     if [ "${wan1_iptv_mode}" != "0" ] && [ -n "${iptv_wan0_ifname}" ]; then
-        eval "$( lz_show_routing_table "${rt_wan0}" | awk '$1 == "default" && $3 ~ "'"^${REGEX_IPV4%"([\/]("*}$"'" && $5 == "'"${iptv_wan0_ifname}"'" \
+        eval "$( lz_show_routing_table "${rt_wan0}" | awk '$1 == "default" && $3 ~ "'"^${REGEX_IPV4}$"'" && $5 == "'"${iptv_wan0_ifname}"'" \
             {printf "iptv_interface_id_0=%s\niptv_getway_ip_0=%s\n", $5,$3; exit}' )"
         [ -z "${iptv_interface_id_0}" ] && { [ "${iptv_igmp_switch}" = "0" ] || [ "${wan1_udpxy_switch}" = "0" ]; } && {
             [ -z "${local_info}" ] && echo "$(lzdate)" [$$]: --------------------------------------------- | tee -ai "${SYSLOG}" 2> /dev/null
@@ -5547,7 +5565,7 @@ lz_deployment_routing_policy() {
         fi
         local_info="1"
     elif [ "${wan1_iptv_mode}" = "0" ] && [ -n "${iptv_wan0_pppoe_ifname}" ]; then
-        eval "$( lz_show_routing_table "${rt_wan0}" | awk '$1 == "default" && $3 ~ "'"^${REGEX_IPV4%"([\/]("*}$"'" && $5 == "'"${iptv_wan0_pppoe_ifname}"'" \
+        eval "$( lz_show_routing_table "${rt_wan0}" | awk '$1 == "default" && $3 ~ "'"^${REGEX_IPV4}$"'" && $5 == "'"${iptv_wan0_pppoe_ifname}"'" \
             {printf "iptv_interface_id_0=%s\niptv_getway_ip_0=%s\n", $5,$3; exit}' )"
         [ -z "${iptv_interface_id_0}" ] && { [ "${iptv_igmp_switch}" = "0" ] || [ "${wan1_udpxy_switch}" = "0" ]; } && {
             [ -z "${local_info}" ] && echo "$(lzdate)" [$$]: --------------------------------------------- | tee -ai "${SYSLOG}" 2> /dev/null
@@ -5561,7 +5579,7 @@ lz_deployment_routing_policy() {
         local_info="1"
     fi
     if [ "${wan2_iptv_mode}" != "0" ] && [ -n "${iptv_wan1_ifname}" ]; then
-        eval "$( lz_show_routing_table "${rt_wan1}" | awk '$1 == "default" && $3 ~ "'"^${REGEX_IPV4%"([\/]("*}$"'" && $5 == "'"${iptv_wan1_ifname}"'" \
+        eval "$( lz_show_routing_table "${rt_wan1}" | awk '$1 == "default" && $3 ~ "'"^${REGEX_IPV4}$"'" && $5 == "'"${iptv_wan1_ifname}"'" \
             {printf "iptv_interface_id_1=%s\niptv_getway_ip_1=%s\n", $5,$3; exit}' )"
         [ -z "${iptv_interface_id_1}" ] && { [ "${iptv_igmp_switch}" = "1" ] || [ "${wan2_udpxy_switch}" = "0" ]; } && {
             [ -z "${local_info}" ] && echo "$(lzdate)" [$$]: --------------------------------------------- | tee -ai "${SYSLOG}" 2> /dev/null
@@ -5582,7 +5600,7 @@ lz_deployment_routing_policy() {
         fi
         local_info="1"
     elif [ "${wan2_iptv_mode}" = "0" ] && [ -n "${iptv_wan1_pppoe_ifname}" ]; then
-        eval "$( lz_show_routing_table "${rt_wan1}" | awk '$1 == "default" && $3 ~ "'"^${REGEX_IPV4%"([\/]("*}$"'" && $5 == "'"${iptv_wan1_pppoe_ifname}"'" \
+        eval "$( lz_show_routing_table "${rt_wan1}" | awk '$1 == "default" && $3 ~ "'"^${REGEX_IPV4}$"'" && $5 == "'"${iptv_wan1_pppoe_ifname}"'" \
             {printf "iptv_interface_id_1=%s\niptv_getway_ip_1=%s\n", $5,$3; exit}' )"
         [ -z "${iptv_interface_id_1}" ] && { [ "${iptv_igmp_switch}" = "1" ] || [ "${wan2_udpxy_switch}" = "0" ]; } && {
             [ -z "${local_info}" ] && echo "$(lzdate)" [$$]: --------------------------------------------- | tee -ai "${SYSLOG}" 2> /dev/null
@@ -6096,9 +6114,11 @@ EOF_START_DAEMON_SCRIPT
     unset local_wan0_isp
     unset local_wan0_pub_ip
     unset local_wan0_local_ip
+    unset local_wan0_pub_ipv6
     unset local_wan1_isp
     unset local_wan1_pub_ip
     unset local_wan1_local_ip
+    unset local_wan1_pub_ipv6
 }
 
 ## 启动单网络的IPTV机顶盒服务函数
@@ -6185,7 +6205,7 @@ lz_start_single_net_iptv_box_services() {
     local iptv_getway_ip_1=
 
     if [ "${wan1_iptv_mode}" != "0" ] && [ -n "${iptv_wan0_ifname}" ]; then
-        eval "$( lz_show_routing_table "${rt_main}" | awk '$1 == "default" && $3 ~ "'"^${REGEX_IPV4%"([\/]("*}$"'" && $5 == "'"${iptv_wan0_ifname}"'" \
+        eval "$( lz_show_routing_table "${rt_main}" | awk '$1 == "default" && $3 ~ "'"^${REGEX_IPV4}$"'" && $5 == "'"${iptv_wan0_ifname}"'" \
             {printf "iptv_interface_id_0=%s\niptv_getway_ip_0=%s\n", $5,$3; exit}' )"
         [ -z "${iptv_interface_id_0}" ] && { [ "${iptv_igmp_switch}" = "0" ] || [ "${wan1_udpxy_switch}" = "0" ]; } && {
             local_info="1"
@@ -6204,7 +6224,7 @@ lz_start_single_net_iptv_box_services() {
             echo "$(lzdate)" [$$]: The interface \( wan0 DHCP or IPoE \) of Primary WAN: Not Available | tee -ai "${SYSLOG}" 2> /dev/null
         fi
     elif [ "${wan1_iptv_mode}" = "0" ] && [ -n "${iptv_wan0_pppoe_ifname}" ]; then
-        eval "$( lz_show_routing_table "${rt_main}" | awk '$1 == "default" && $3 ~ "'"^${REGEX_IPV4%"([\/]("*}$"'" && $5 == "'"${iptv_wan0_pppoe_ifname}"'" \
+        eval "$( lz_show_routing_table "${rt_main}" | awk '$1 == "default" && $3 ~ "'"^${REGEX_IPV4}$"'" && $5 == "'"${iptv_wan0_pppoe_ifname}"'" \
             {printf "iptv_interface_id_0=%s\niptv_getway_ip_0=%s\n", $5,$3; exit}' )"
         [ -z "${iptv_interface_id_0}" ] && { [ "${iptv_igmp_switch}" = "0" ] || [ "${wan1_udpxy_switch}" = "0" ]; } \
             && local_info="1" \
@@ -6215,7 +6235,7 @@ lz_start_single_net_iptv_box_services() {
         echo "$(lzdate)" [$$]: The interface \( wan0 PPPoE \) of Primary WAN: Not Available | tee -ai "${SYSLOG}" 2> /dev/null
     fi
     if [ "${wan2_iptv_mode}" != "0" ] && [ -n "${iptv_wan1_ifname}" ]; then
-        eval "$( lz_show_routing_table "${rt_main}" | awk '$1 == "default" && $3 ~ "'"^${REGEX_IPV4%"([\/]("*}$"'" && $5 == "'"${iptv_wan1_ifname}"'" \
+        eval "$( lz_show_routing_table "${rt_main}" | awk '$1 == "default" && $3 ~ "'"^${REGEX_IPV4}$"'" && $5 == "'"${iptv_wan1_ifname}"'" \
             {printf "iptv_interface_id_1=%s\niptv_getway_ip_1=%s\n", $5,$3; exit}' )"
         [ -z "${iptv_interface_id_1}" ] && { [ "${iptv_igmp_switch}" = "1" ] || [ "${wan2_udpxy_switch}" = "0" ]; } && {
             local_info="1"
@@ -6234,7 +6254,7 @@ lz_start_single_net_iptv_box_services() {
             echo "$(lzdate)" [$$]: The interface \( wan1 DHCP or IPoE \) of Secondary WAN: Not Available | tee -ai "${SYSLOG}" 2> /dev/null
         fi
     elif [ "${wan2_iptv_mode}" = "0" ] && [ -n "${iptv_wan1_pppoe_ifname}" ]; then
-        eval "$( lz_show_routing_table "${rt_main}" | awk '$1 == "default" && $3 ~ "'"^${REGEX_IPV4%"([\/]("*}$"'" && $5 == "'"${iptv_wan1_pppoe_ifname}"'" \
+        eval "$( lz_show_routing_table "${rt_main}" | awk '$1 == "default" && $3 ~ "'"^${REGEX_IPV4}$"'" && $5 == "'"${iptv_wan1_pppoe_ifname}"'" \
             {printf "iptv_interface_id_1=%s\niptv_getway_ip_1=%s\n", $5,$3; exit}' )"
         [ -z "${iptv_interface_id_1}" ] && { [ "${iptv_igmp_switch}" = "1" ] || [ "${wan2_udpxy_switch}" = "0" ]; } \
             && local_info="1" \
