@@ -1,7 +1,7 @@
 # amdwprprsct
-Asuswrt-Merlin dual WAN port router policy routing service configuration tool
+Asuswrt-Merlin Router Dual-WAN Policy Routing Configuration Tool
 
-华硕梅林固件路由器外网双线路接入策略路由服务配置工具
+华硕梅林路由器双线路策略路由配置工具
 
 **v4.7.3**
 
