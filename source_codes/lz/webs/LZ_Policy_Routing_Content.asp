@@ -64,16 +64,17 @@
                     cursor: default;
                 }
             </style>
+            <script language="JavaScript" type="text/javascript" src="/js/jquery.js"></script>
             <script language="JavaScript" type="text/javascript" src="/state.js"></script>
-            <script type="text/javascript" language="JavaScript" src="/help.js"></script>
+            <script language="JavaScript" type="text/javascript" src="/js/httpApi.js"></script>
             <script language="JavaScript" type="text/javascript" src="/general.js"></script>
             <script language="JavaScript" type="text/javascript" src="/popup.js"></script>
-            <script language="JavaScript" type="text/javascript" src="/client_function.js"></script>
+            <script language="JavaScript" type="text/javascript" src="/help.js"></script>
             <script language="JavaScript" type="text/javascript" src="/validator.js"></script>
+            <script language="JavaScript" type="text/javascript" src="/js/table/table.js"></script>
+            <script language="JavaScript" type="text/javascript" src="/client_function.js"></script>
             <script language="JavaScript" type="text/javascript" src="/form.js"></script>
-            <script type="text/javascript" language="JavaScript" src="/js/jquery.js"></script>
-            <script type="text/javascript" src="/js/httpApi.js"></script>
-            <script type="text/javascript" src="/switcherplugin/jquery.iphone-switch.js"></script>
+            <script language="JavaScript" type="text/javascript" src="/switcherplugin/jquery.iphone-switch.js"></script>
             <script language="JavaScript" type="text/javascript" src="/ext/lzr/lz_policy_routing.js"></script>
             <script>
             function isNewVersion() {
@@ -83,7 +84,7 @@
                     url: '/ext/lzr/LZRGlobal.html',
                     dataType: 'text',
                     success: function(response) {
-                        // v4.7.3
+                        // v4.7.4
                         retVal = (response.match(/QnkgTFog5aaZ5aaZ5ZGc77yI6Juk6J[\+]G5aKp5YS[\/]77yJ/m) != null) ? true : false;
                     }
                 });

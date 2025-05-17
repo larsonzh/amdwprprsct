@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v4.7.3
+# lz_rule_func.sh v4.7.4
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 #BEGIN
@@ -3769,8 +3769,8 @@ exec ${LOCK_FILE_ID}<>"${LOCK_FILE}"; flock -x "${LOCK_FILE_ID}" > /dev/null 2>&
 
 REGEX_IPV4_NET='(((25[0-5]|(2[0-4]|1[0-9]|[1-9])?[0-9])[\.]){3}(25[0-5]|(2[0-4]|1[0-9]|[1-9])?[0-9])([\/]([1-9]|[1-2][0-9]|3[0-2]))?|0[\.]0[\.]0[\.]0[\/]0)'
 REGEX_IPV4="\$( echo "\${REGEX_IPV4_NET%"([\/]("*}" | sed 's/^(//' )"
-REGEX_SED_IPV4_NET="\$( echo "\${REGEX_IPV4_NET}" | sed 's/[(){}|+?]/\\&/g' )"
-REGEX_SED_IPV4="\$( echo "\${REGEX_IPV4}" | sed 's/[(){}|+?]/\\&/g' )"
+REGEX_SED_IPV4_NET="\$( echo "\${REGEX_IPV4_NET}" | sed 's/[(){}|+?]/\\\\&/g' )"
+REGEX_SED_IPV4="\$( echo "\${REGEX_IPV4}" | sed 's/[(){}|+?]/\\\\&/g' )"
 
 lzdate() { date +"%F %T"; }
 
@@ -3779,14 +3779,15 @@ lzdate() { date +"%F %T"; }
     echo "\$(lzdate)" [\$\$]: Running LZ VPN Event Handling Process "${LZ_VERSION}"
 } >> "${SYSLOG}"
 
-lz_ovpn_subnet_list="\$( ipset -q list "${OPENVPN_SUBNET_IP_SET}" | grep -Eo '^\${REGEX_IPV4_NET}$' )"
-lz_pptp_client_list="\$( ipset -q list "${PPTP_CLIENT_IP_SET}" | grep -Eo '^\${REGEX_IPV4_NET}$' )"
-lz_ipsec_subnet_list="\$( ipset -q list "${IPSEC_SUBNET_IP_SET}" | grep -Eo '^\${REGEX_IPV4_NET}$' )"
-lz_wireguard_client_list="\$( ipset -q list "${WIREGUARD_CLIENT_IP_SET}" | grep -Eo '^\${REGEX_IPV4_NET}$' )"
+lz_ovpn_subnet_list="\$( ipset -q list "${OPENVPN_SUBNET_IP_SET}" | grep -Eo "^\${REGEX_IPV4_NET}$" )"
+lz_pptp_client_list="\$( ipset -q list "${PPTP_CLIENT_IP_SET}" | grep -Eo "^\${REGEX_IPV4_NET}$" )"
+lz_ipsec_subnet_list="\$( ipset -q list "${IPSEC_SUBNET_IP_SET}" | grep -Eo "^\${REGEX_IPV4_NET}$" )"
+lz_wireguard_client_list="\$( ipset -q list "${WIREGUARD_CLIENT_IP_SET}" | grep -Eo "^\${REGEX_IPV4_NET}$" )"
 lz_nvram_ipsec_subnet_list=
 if [ "\$( nvram get "ipsec_server_enable" )" = "1" ]; then
     lz_nvram_ipsec_subnet_list="\$( nvram get "ipsec_profile_1" | sed 's/>/\n/g' | sed -n "15{s/^[[:space:]]*\(\${REGEX_SED_IPV4/3/2}\)\([^[:digit:]].*\)\?$/\1\.0\/24/;/^\${REGEX_SED_IPV4_NET}$/!d;p}" )"
     [ -z "\${lz_nvram_ipsec_subnet_list}" ] && lz_nvram_ipsec_subnet_list="\$( nvram get "ipsec_profile_2" | sed 's/>/\n/g' | sed -n "15{s/^[[:space:]]*\(\${REGEX_SED_IPV4/3/2}\)\([^[:digit:]].*\)\?$/\1\.0\/24/;/^\${REGEX_SED_IPV4_NET}$/!d;p}" )"
+fi
 ip rule show | awk -F: '\$1 == "${IP_RULE_PRIO_VPN}" || \$1 == "${IP_RULE_PRIO_STATIC_SYS_VPN}" {system("ip rule del prio "\$1" > /dev/null 2>&1")}'
 if ! ip route show | grep -qw nexthop; then
     echo "\$(lzdate)" [\$\$]: Non dual network operation mode. >> "${SYSLOG}"

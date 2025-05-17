@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_status.sh v4.7.3
+# lz_rule_status.sh v4.7.4
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 显示脚本运行状态脚本
