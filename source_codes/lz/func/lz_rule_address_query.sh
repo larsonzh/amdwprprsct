@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_address_query.sh v4.7.4
+# lz_rule_address_query.sh v4.7.5
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 网址信息查询脚本
@@ -24,7 +24,7 @@ lz_define_aq_constant() {
     AQ_ISP_DATA_1="lz_chinatelecom_cidr.txt"
     AQ_ISP_DATA_2="lz_unicom_cnc_cidr.txt"
     AQ_ISP_DATA_3="lz_cmcc_cidr.txt"
-    AQ_ISP_DATA_4="lz_crtc_cidr.txt"
+    AQ_ISP_DATA_4="lz_chinabtn_cidr.txt"
     AQ_ISP_DATA_5="lz_cernet_cidr.txt"
     AQ_ISP_DATA_6="lz_gwbn_cidr.txt"
     AQ_ISP_DATA_7="lz_othernet_cidr.txt"
@@ -808,7 +808,7 @@ lz_aq_get_box_data() {
                 key="aq_isp_wan_port_2";
             else if ($1 == "lz_config_cmcc_wan_port")
                 key="aq_isp_wan_port_3";
-            else if ($1 == "lz_config_crtc_wan_port")
+            else if ($1 == "lz_config_chinabtn_wan_port")
                 key="aq_isp_wan_port_4";
             else if ($1 == "lz_config_cernet_wan_port")
                 key="aq_isp_wan_port_5";
@@ -1187,7 +1187,7 @@ lz_query_address() {
     local local_isp_name_1="CTCC"
     local local_isp_name_2="CUCC/CNC"
     local local_isp_name_3="CMCC"
-    local local_isp_name_4="CRTC"
+    local local_isp_name_4="CBTN"
     local local_isp_name_5="CERNET"
     local local_isp_name_6="GWBN"
     local local_isp_name_7="OTHER"

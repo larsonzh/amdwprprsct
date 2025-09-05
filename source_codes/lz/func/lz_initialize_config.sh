@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_initialize_config.sh v4.7.4
+# lz_initialize_config.sh v4.7.5
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 初始化脚本配置
@@ -46,7 +46,7 @@ lz_init_cfg_data() {
     local_ini_chinatelecom_wan_port=0
     local_ini_unicom_cnc_wan_port=0
     local_ini_cmcc_wan_port=1
-    local_ini_crtc_wan_port=1
+    local_ini_chinabtn_wan_port=1
     local_ini_cernet_wan_port=1
     local_ini_gwbn_wan_port=1
     local_ini_othernet_wan_port=0
@@ -302,7 +302,7 @@ lz_restore_cfg_file() {
 ## ----------------用户运行策略自定义区----------------
 ## 缺省设置：
 ##     1.去往联通、电信、国内其他ISP、港澳台地区、国外ISP的IPv4网络访问流量走第一WAN口。
-##     2.去往移动、铁通、教育网、长城宽带/鹏博士的IPv4网络访问流量走第二WAN口。
+##     2.去往移动、广电、教育网、电信通/长城宽带/鹏博士的IPv4网络访问流量走第二WAN口。
 ##     3.应用模式：动态分流模式
 ##                主要采用动态路由技术，按基于连接跟踪的报文数据包IPv4地址匹配标记导流出口方式输出流量。
 ##     4.未启用定时更新IPv4网络运营商CIDR网段数据（强烈建议启用）。
@@ -392,22 +392,22 @@ chinatelecom_wan_port=${local_chinatelecom_wan_port}
 ## 缺省为第一WAN口（0）。
 unicom_cnc_wan_port=${local_unicom_cnc_wan_port}
 
-## 中国移动IPv4目标网段流量出口（网段数据文件：cmcc_cidr.txt）
+## 中国移动（含铁通）IPv4目标网段流量出口（网段数据文件：cmcc_cidr.txt）
 ## 0--第一WAN口；1--第二WAN口；2--均分出口；3--反向均分出口；>3--自动分配出口；取值范围：0~9
 ## 缺省为第二WAN口（1）。
 cmcc_wan_port=${local_cmcc_wan_port}
 
-## 中国铁通IPv4目标网段流量出口（网段数据文件：crtc_cidr.txt）
+## 中国广电IPv4目标网段流量出口（网段数据文件：chinabtn_cidr.txt）
 ## 0--第一WAN口；1--第二WAN口；2--均分出口；3--反向均分出口；>3--自动分配出口；取值范围：0~9
 ## 缺省为第二WAN口（1）。
-crtc_wan_port=${local_crtc_wan_port}
+chinabtn_wan_port=${local_chinabtn_wan_port}
 
 ## 中国教育网IPv4目标网段流量出口（网段数据文件：cernet_cidr.txt）
 ## 0--第一WAN口；1--第二WAN口；2--均分出口；3--反向均分出口；>3--自动分配出口；取值范围：0~9
 ## 缺省值为第二WAN口（1）。
 cernet_wan_port=${local_cernet_wan_port}
 
-## 长城宽带/鹏博士IPv4目标网段流量出口（网段数据文件：gwbn_cidr.txt）
+## 电信通/长城宽带/鹏博士IPv4目标网段流量出口（网段数据文件：gwbn_cidr.txt）
 ## 0--第一WAN口；1--第二WAN口；2--均分出口；3--反向均分出口；>3--自动分配出口；取值范围：0~9
 ## 缺省为第二WAN口（1）。
 gwbn_wan_port=${local_gwbn_wan_port}
@@ -1265,7 +1265,7 @@ lz_get_config_data() {
                 || key == "chinatelecom_wan_port" \
                 || key == "unicom_cnc_wan_port" \
                 || key == "cmcc_wan_port" \
-                || key == "crtc_wan_port" \
+                || key == "chinabtn_wan_port" \
                 || key == "cernet_wan_port" \
                 || key == "gwbn_wan_port" \
                 || key == "othernet_wan_port" \
@@ -1658,7 +1658,7 @@ lz_get_box_data() {
             } else if (key == "chinatelecom_wan_port" \
                 || key == "unicom_cnc_wan_port" \
                 || key == "cmcc_wan_port" \
-                || key == "crtc_wan_port" \
+                || key == "chinabtn_wan_port" \
                 || key == "cernet_wan_port" \
                 || key == "gwbn_wan_port" \
                 || key == "othernet_wan_port" \
@@ -1944,7 +1944,7 @@ lz_optimize_to_iptv() {
                 || key == "chinatelecom_wan_port" \
                 || key == "unicom_cnc_wan_port" \
                 || key == "cmcc_wan_port" \
-                || key == "crtc_wan_port" \
+                || key == "chinabtn_wan_port" \
                 || key == "cernet_wan_port" \
                 || key == "gwbn_wan_port" \
                 || key == "othernet_wan_port" \

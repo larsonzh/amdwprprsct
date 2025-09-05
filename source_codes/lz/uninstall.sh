@@ -1,5 +1,5 @@
 #!/bin/sh
-# uninstall.sh v4.7.4
+# uninstall.sh v4.7.5
 # By LZ (larsonzhang@gmail.com)
 
 # LZ RULE script for Asuswrt-Merlin Router
@@ -8,7 +8,7 @@
 
 #BEGIN
 
-LZ_VERSION=v4.7.4
+LZ_VERSION=v4.7.5
 CURRENT_PATH="${0%/*}"
 [ "${CURRENT_PATH:0:1}" != '/' ] && CURRENT_PATH="$( pwd )${CURRENT_PATH#*.}"
 PATH_LOCK="/var/lock" LOCK_FILE_ID="555"
@@ -73,7 +73,7 @@ rm -f "${CURRENT_PATH}/data/lz_all_cn_cidr.txt" > /dev/null 2>&1
 rm -f "${CURRENT_PATH}/data/lz_chinatelecom_cidr.txt" > /dev/null 2>&1
 rm -f "${CURRENT_PATH}/data/lz_unicom_cnc_cidr.txt" > /dev/null 2>&1
 rm -f "${CURRENT_PATH}/data/lz_cmcc_cidr.txt" > /dev/null 2>&1
-rm -f "${CURRENT_PATH}/data/lz_crtc_cidr.txt" > /dev/null 2>&1
+rm -f "${CURRENT_PATH}/data/lz_chinabtn_cidr.txt" > /dev/null 2>&1
 rm -f "${CURRENT_PATH}/data/lz_cernet_cidr.txt" > /dev/null 2>&1
 rm -f "${CURRENT_PATH}/data/lz_gwbn_cidr.txt" > /dev/null 2>&1
 rm -f "${CURRENT_PATH}/data/lz_othernet_cidr.txt" > /dev/null 2>&1

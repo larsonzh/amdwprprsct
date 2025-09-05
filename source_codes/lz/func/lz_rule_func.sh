@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v4.7.4
+# lz_rule_func.sh v4.7.5
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 #BEGIN
@@ -4477,7 +4477,7 @@ lz_get_wan_isp_info() {
         }
         [ -z "${local_wan1_isp}" ] && [ "${isp_data_4_item_total}" -gt "0" ] && {
             ipset -q test lz_ispip_tmp_4 "${local_wan1_pub_ip}" \
-                && local_wan1_isp="CRTC${local_mark_str}      ${local_wan_ip_type}"
+                && local_wan1_isp="CBTN${local_mark_str}      ${local_wan_ip_type}"
         }
         [ -z "${local_wan1_isp}" ] && [ "${isp_data_5_item_total}" -gt "0" ] && {
             ipset -q test lz_ispip_tmp_5 "${local_wan1_pub_ip}" \
@@ -4538,7 +4538,7 @@ lz_get_wan_isp_info() {
         }
         [ -z "${local_wan0_isp}" ] && [ "${isp_data_4_item_total}" -gt "0" ] && {
             ipset -q test lz_ispip_tmp_4 "${local_wan0_pub_ip}" \
-                && local_wan0_isp="CRTC${local_mark_str}      ${local_wan_ip_type}"
+                && local_wan0_isp="CBTN${local_mark_str}      ${local_wan_ip_type}"
         }
         [ -z "${local_wan0_isp}" ] && [ "${isp_data_5_item_total}" -gt "0" ] && {
             ipset -q test lz_ispip_tmp_5 "${local_wan0_pub_ip}" \
@@ -4660,7 +4660,7 @@ lz_output_ispip_info_to_system_records() {
             local_isp_name="CTCC          "
             [ "${local_index}" = "2" ] && local_isp_name="CUCC/CNC      "
             [ "${local_index}" = "3" ] && local_isp_name="CMCC          "
-            [ "${local_index}" = "4" ] && local_isp_name="CRTC          "
+            [ "${local_index}" = "4" ] && local_isp_name="CBTN          "
             [ "${local_index}" = "5" ] && local_isp_name="CERNET        "
             [ "${local_index}" = "6" ] && local_isp_name="GWBN          "
             [ "${local_index}" = "7" ] && local_isp_name="OTHER         "

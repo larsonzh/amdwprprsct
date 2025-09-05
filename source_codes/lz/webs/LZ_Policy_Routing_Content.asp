@@ -84,7 +84,7 @@
                     url: '/ext/lzr/LZRGlobal.html',
                     dataType: 'text',
                     success: function(response) {
-                        // v4.7.4
+                        // v4.7.5
                         retVal = (response.match(/QnkgTFog5aaZ5aaZ5ZGc77yI6Juk6J[\+]G5aKp5YS[\/]77yJ/m) != null) ? true : false;
                     }
                 });
@@ -180,7 +180,7 @@
                                                                     </td>
                                                                 </tr>
                                                                 <tr>
-                                                                    <th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(4);">中国移动</a></th>
+                                                                    <th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(4);">中国移动 (含铁通)</a></th>
                                                                     <td>
                                                                         <select id="lzr_cmcc_wan_port" name="lzr_cmcc_wan_port" class="input_option" style="margin-left:2px;">
                                                                             <option value="0">首选 WAN</option>
@@ -192,9 +192,9 @@
                                                                     </td>
                                                                 </tr>
                                                                 <tr>
-                                                                    <th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(5);">中国铁通</a></th>
+                                                                    <th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(5);">中国广电</a></th>
                                                                     <td>
-                                                                        <select id="lzr_crtc_wan_port" name="lzr_crtc_wan_port" class="input_option" style="margin-left:2px;">
+                                                                        <select id="lzr_chinabtn_wan_port" name="lzr_chinabtn_wan_port" class="input_option" style="margin-left:2px;">
                                                                             <option value="0">首选 WAN</option>
                                                                             <option value="1" selected>第二 WAN</option>
                                                                             <option value="2">均分出口</option>
@@ -216,7 +216,7 @@
                                                                     </td>
                                                                 </tr>
                                                                 <tr>
-                                                                    <th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(7);">长城宽带/鹏博士</a></th>
+                                                                    <th><a class="hintstyle" href="javascript:void(0);" onClick="openOverHint(7);">电信通/长城宽带/鹏博士</a></th>
                                                                     <td>
                                                                         <select id="lzr_gwbn_wan_port" name="lzr_gwbn_wan_port" class="input_option" style="margin-left:2px;">
                                                                             <option value="0">首选 WAN</option>

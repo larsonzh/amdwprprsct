@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_status.sh v4.7.4
+# lz_rule_status.sh v4.7.5
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 显示脚本运行状态脚本
@@ -38,7 +38,7 @@ lz_define_status_constant() {
     STATUS_ISP_DATA_1="lz_chinatelecom_cidr.txt"
     STATUS_ISP_DATA_2="lz_unicom_cnc_cidr.txt"
     STATUS_ISP_DATA_3="lz_cmcc_cidr.txt"
-    STATUS_ISP_DATA_4="lz_crtc_cidr.txt"
+    STATUS_ISP_DATA_4="lz_chinabtn_cidr.txt"
     STATUS_ISP_DATA_5="lz_cernet_cidr.txt"
     STATUS_ISP_DATA_6="lz_gwbn_cidr.txt"
     STATUS_ISP_DATA_7="lz_othernet_cidr.txt"
@@ -474,7 +474,7 @@ lz_get_box_data_status() {
                 key="status_isp_wan_port_2";
             else if ($1 == "lz_config_cmcc_wan_port")
                 key="status_isp_wan_port_3";
-            else if ($1 == "lz_config_crtc_wan_port")
+            else if ($1 == "lz_config_chinabtn_wan_port")
                 key="status_isp_wan_port_4";
             else if ($1 == "lz_config_cernet_wan_port")
                 key="status_isp_wan_port_5";
@@ -1518,7 +1518,7 @@ lz_get_wan_isp_info_staus() {
         }
         [ -z "${local_wan1_isp}" ] && [ "${status_isp_data_4_item_total}" -gt "0" ] && {
             ipset -q test lz_ispip_tmp_4 "${local_wan1_pub_ip}" \
-                && local_wan1_isp="CRTC${local_mark_str}      ${local_wan_ip_type}"
+                && local_wan1_isp="CBTN${local_mark_str}      ${local_wan_ip_type}"
         }
         [ -z "${local_wan1_isp}" ] && [ "${status_isp_data_5_item_total}" -gt "0" ] && {
             ipset -q test lz_ispip_tmp_5 "${local_wan1_pub_ip}" \
@@ -1579,7 +1579,7 @@ lz_get_wan_isp_info_staus() {
         }
         [ -z "${local_wan0_isp}" ] && [ "${status_isp_data_4_item_total}" -gt "0" ] && {
             ipset -q test lz_ispip_tmp_4 "${local_wan0_pub_ip}" \
-                && local_wan0_isp="CRTC${local_mark_str}      ${local_wan_ip_type}"
+                && local_wan0_isp="CBTN${local_mark_str}      ${local_wan_ip_type}"
         }
         [ -z "${local_wan0_isp}" ] && [ "${status_isp_data_5_item_total}" -gt "0" ] && {
             ipset -q test lz_ispip_tmp_5 "${local_wan0_pub_ip}" \
@@ -1700,7 +1700,7 @@ lz_output_ispip_status_info() {
             local_isp_name="CTCC          "
             [ "${local_index}" = "2" ] && local_isp_name="CUCC/CNC      "
             [ "${local_index}" = "3" ] && local_isp_name="CMCC          "
-            [ "${local_index}" = "4" ] && local_isp_name="CRTC          "
+            [ "${local_index}" = "4" ] && local_isp_name="CBTN          "
             [ "${local_index}" = "5" ] && local_isp_name="CERNET        "
             [ "${local_index}" = "6" ] && local_isp_name="GWBN          "
             [ "${local_index}" = "7" ] && local_isp_name="OTHER         "

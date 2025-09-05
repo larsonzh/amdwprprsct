@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_define_global_variables.sh v4.7.4
+# lz_define_global_variables.sh v4.7.5
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 # QnkgTFog5aaZ5aaZ5ZGc77yI6Juk6J+G5aKp5YS/77yJ（首次运行标识，切勿修改）
 
@@ -39,7 +39,7 @@ ISP_DATA_0="lz_all_cn_cidr.txt"
 ISP_DATA_1="lz_chinatelecom_cidr.txt"
 ISP_DATA_2="lz_unicom_cnc_cidr.txt"
 ISP_DATA_3="lz_cmcc_cidr.txt"
-ISP_DATA_4="lz_crtc_cidr.txt"
+ISP_DATA_4="lz_chinabtn_cidr.txt"
 ISP_DATA_5="lz_cernet_cidr.txt"
 ISP_DATA_6="lz_gwbn_cidr.txt"
 ISP_DATA_7="lz_othernet_cidr.txt"
@@ -64,7 +64,7 @@ isp_wan_port_0="${all_foreign_wan_port}"
 isp_wan_port_1="${chinatelecom_wan_port}"
 isp_wan_port_2="${unicom_cnc_wan_port}"
 isp_wan_port_3="${cmcc_wan_port}"
-isp_wan_port_4="${crtc_wan_port}"
+isp_wan_port_4="${chinabtn_wan_port}"
 isp_wan_port_5="${cernet_wan_port}"
 isp_wan_port_6="${gwbn_wan_port}"
 isp_wan_port_7="${othernet_wan_port}"

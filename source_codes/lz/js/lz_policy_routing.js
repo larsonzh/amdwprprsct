@@ -1,5 +1,5 @@
 /*
-# lz_policy_routing.js v4.7.4
+# lz_policy_routing.js v4.7.5
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # LZ JavaScript for Asuswrt-Merlin Router
@@ -320,7 +320,7 @@ function initControls() {
     initListBox("lzr_chinatelecom_wan_port", 0, 3, 5);
     initListBox("lzr_unicom_cnc_wan_port", 0, 3, 5);
     initListBox("lzr_cmcc_wan_port", 0, 3, 5);
-    initListBox("lzr_crtc_wan_port", 0, 3, 5);
+    initListBox("lzr_chinabtn_wan_port", 0, 3, 5);
     initListBox("lzr_cernet_wan_port", 0, 3, 5);
     initListBox("lzr_gwbn_wan_port", 0, 3, 5);
     initListBox("lzr_othernet_wan_port", 0, 3, 5);
@@ -650,7 +650,7 @@ function openOverHint(itemNum) {
         content += "<br /><b>负载均衡</b>：<b>动态分流模式</b>时，由系统采用<b>链路负载均衡</b>技术在<b>首选 WAN</b> 与<b>第二 WAN</b> 二者之中按流量比例随机分配<b>链路</b>流量出口，缺点是易导致网络访问不稳定和不正常；<b>静态分流模式</b>时，软件将根据路由器中所有已设置策略的流量出口分布情况，以系统策略路由库资源占用最小化为原则，自动为策略流量指定一个固定出口，运行中的实际出口可在<b>外部网络(WAN) - 策略路由(IPv4) - 运行</b>中点击<b>「获取运行状态」</b>按钮查看。<br />";
         content += "<br /><b>策略执行优先级</b>：详见<b>基本设置&nbsp;-&nbsp;策略路由优先级</b></div>";
     } else if (itemNum == 4) {
-        content = "<div><b>中国移动</b>流量出口选项："
+        content = "<div><b>中国移动 (含铁通) </b>流量出口选项："
         content += "<ul>";
         content += "<li>首选 WAN</li>";
         content += "<li>第二 WAN (缺省)</li>";
@@ -658,12 +658,12 @@ function openOverHint(itemNum) {
         content += "<li>反向均分</li>";
         content += "<li>负载均衡</li>";
         content += "</ul>";
-        content += "<b>出口均分</b>：将<b>中国移动 IP 地址</b>条目数据平均划分为两部分，前一部分匹配<b>首选 WAN</b>，后一部分匹配<b>第二 WAN</b>。<br />";
+        content += "<b>出口均分</b>：将<b>中国移动 (含铁通) IP 地址</b>条目数据平均划分为两部分，前一部分匹配<b>首选 WAN</b>，后一部分匹配<b>第二 WAN</b>。<br />";
         content += "<br /><b>反向均分</b>：将<b>出口均分</b>的流量出口匹配方式倒置。<br />";
         content += "<br /><b>负载均衡</b>：<b>动态分流模式</b>时，由系统采用<b>链路负载均衡</b>技术在<b>首选 WAN</b> 与<b>第二 WAN</b> 二者之中按流量比例随机分配<b>链路</b>流量出口，缺点是易导致网络访问不稳定和不正常；<b>静态分流模式</b>时，软件将根据路由器中所有已设置策略的流量出口分布情况，以系统策略路由库资源占用最小化为原则，自动为策略流量指定一个固定出口，运行中的实际出口可在<b>外部网络(WAN) - 策略路由(IPv4) - 运行</b>中点击<b>「获取运行状态」</b>按钮查看。<br />";
         content += "<br /><b>策略执行优先级</b>：详见<b>基本设置&nbsp;-&nbsp;策略路由优先级</b></div>";
     } else if (itemNum == 5) {
-        content = "<div><b>中国铁通</b>流量出口选项："
+        content = "<div><b>中国广电</b>流量出口选项："
         content += "<ul>";
         content += "<li>首选 WAN</li>";
         content += "<li>第二 WAN (缺省)</li>";
@@ -671,7 +671,7 @@ function openOverHint(itemNum) {
         content += "<li>反向均分</li>";
         content += "<li>负载均衡</li>";
         content += "</ul>";
-        content += "<b>出口均分</b>：将<b>中国铁通 IP 地址</b>条目数据平均划分为两部分，前一部分匹配<b>首选 WAN</b>，后一部分匹配<b>第二 WAN</b>。<br />";
+        content += "<b>出口均分</b>：将<b>中国广电 IP 地址</b>条目数据平均划分为两部分，前一部分匹配<b>首选 WAN</b>，后一部分匹配<b>第二 WAN</b>。<br />";
         content += "<br /><b>反向均分</b>：将<b>出口均分</b>的流量出口匹配方式倒置。<br />";
         content += "<br /><b>负载均衡</b>：<b>动态分流模式</b>时，由系统采用<b>链路负载均衡</b>技术在<b>首选 WAN</b> 与<b>第二 WAN</b> 二者之中按流量比例随机分配<b>链路</b>流量出口，缺点是易导致网络访问不稳定和不正常；<b>静态分流模式</b>时，软件将根据路由器中所有已设置策略的流量出口分布情况，以系统策略路由库资源占用最小化为原则，自动为策略流量指定一个固定出口，运行中的实际出口可在<b>外部网络(WAN) - 策略路由(IPv4) - 运行</b>中点击<b>「获取运行状态」</b>按钮查看。<br />";
         content += "<br /><b>策略执行优先级</b>：详见<b>基本设置&nbsp;-&nbsp;策略路由优先级</b></div>";
@@ -689,7 +689,7 @@ function openOverHint(itemNum) {
         content += "<br /><b>负载均衡</b>：<b>动态分流模式</b>时，由系统采用<b>链路负载均衡</b>技术在<b>首选 WAN</b> 与<b>第二 WAN</b> 二者之中按流量比例随机分配<b>链路</b>流量出口，缺点是易导致网络访问不稳定和不正常；<b>静态分流模式</b>时，软件将根据路由器中所有已设置策略的流量出口分布情况，以系统策略路由库资源占用最小化为原则，自动为策略流量指定一个固定出口，运行中的实际出口可在<b>外部网络(WAN) - 策略路由(IPv4) - 运行</b>中点击<b>「获取运行状态」</b>按钮查看。<br />";
         content += "<br /><b>策略执行优先级</b>：详见<b>基本设置&nbsp;-&nbsp;策略路由优先级</b></div>";
     } else if (itemNum == 7) {
-        content = "<div><b>长城宽带/鹏博士</b>流量出口选项："
+        content = "<div><b>电信通/长城宽带/鹏博士</b>流量出口选项："
         content += "<ul>";
         content += "<li>首选 WAN</li>";
         content += "<li>第二 WAN (缺省)</li>";
@@ -697,7 +697,7 @@ function openOverHint(itemNum) {
         content += "<li>反向均分</li>";
         content += "<li>负载均衡</li>";
         content += "</ul>";
-        content += "<b>出口均分</b>：将<b>长城宽带/鹏博士 IP 地址</b>条目数据平均划分为两部分，前一部分匹配<b>首选 WAN</b>，后一部分匹配<b>第二 WAN</b>。<br />";
+        content += "<b>出口均分</b>：将<b>电信通/长城宽带/鹏博士 IP 地址</b>条目数据平均划分为两部分，前一部分匹配<b>首选 WAN</b>，后一部分匹配<b>第二 WAN</b>。<br />";
         content += "<br /><b>反向均分</b>：将<b>出口均分</b>的流量出口匹配方式倒置。<br />";
         content += "<br /><b>负载均衡</b>：<b>动态分流模式</b>时，由系统采用<b>链路负载均衡</b>技术在<b>首选 WAN</b> 与<b>第二 WAN</b> 二者之中按流量比例随机分配<b>链路</b>流量出口，缺点是易导致网络访问不稳定和不正常；<b>静态分流模式</b>时，软件将根据路由器中所有已设置策略的流量出口分布情况，以系统策略路由库资源占用最小化为原则，自动为策略流量指定一个固定出口，运行中的实际出口可在<b>外部网络(WAN) - 策略路由(IPv4) - 运行</b>中点击<b>「获取运行状态」</b>按钮查看。<br />";
         content += "<br /><b>策略执行优先级</b>：详见<b>基本设置&nbsp;-&nbsp;策略路由优先级</b></div>";
