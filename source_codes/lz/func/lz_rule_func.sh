@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v4.7.5
+# lz_rule_func.sh v4.7.6
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 #BEGIN
@@ -1887,7 +1887,7 @@ if [ "\${dl_succeed}" = "1" ]; then
         for isp_file_name in \${ispip_file_list}
         do
             [ ! -f "${PATH_DATA}/cookies.isp" ] && COOKIES_STR="--save-cookies=${PATH_DATA}/cookies.isp" || COOKIES_STR="--load-cookies=${PATH_DATA}/cookies.isp"
-            eval "wget -nc -c --timeout=20 --random-wait --user-agent=\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.5304.88 Safari/537.36 Edg/108.0.1462.46\" --referer=${UPDATE_ISPIP_DATA_DOWNLOAD_URL} \${COOKIES_STR} --keep-session-cookies --no-check-certificate -O ${PATH_TMP_DATA}/lz_\${isp_file_name} ${UPDATE_ISPIP_DATA_DOWNLOAD_URL}/\${isp_file_name}"
+            eval "wget -nc -c --timeout=20 --random-wait --user-agent=\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.5304.88 Safari/537.36 Edg/108.0.1462.46\" --referer=${UPDATE_ISPIP_DATA_DOWNLOAD_URL} \${COOKIES_STR} --keep-session-cookies --no-check-certificate -O ${PATH_TMP_DATA}/lz_\${isp_file_name} ${UPDATE_ISPIP_DATA_DOWNLOAD_URL}/\${isp_file_name%_cidr.*}.txt"
         done
         if [ "\$( find "${PATH_TMP_DATA}" -name "*_cidr.txt" -print0 2> /dev/null | awk '{} END{print NR}' )" -ge "\$(( ${ISP_TOTAL} + 1 ))" ]; then
             dl_succeed="1"
@@ -4398,7 +4398,7 @@ lz_get_wan_pub_ip() {
         [ -n "${local_wan_ip}" ] && local_public_ip_enable="1"
         local_local_wan_ip="$( ip -o -4 address list | awk '$2 == "'"${local_wan_dev}"'" && $4 ~ "'"^${REGEX_IPV4_NET}$"'" {print $4; exit;}' | sed 's/\/.*$//g' )"
         local_wan_ipv6="$( ip -o -6 address list \
-            | awk '$2 == "'"${local_wan_dev}"'" && $4 !~ /^[fF]([eE][89abAB]|[cdCD][0-9a-fA-F])[0-9a-fA-F]:/ && $4 ~ "'"^${REGEX_IPV4_NET_V6}$"'" {print $4; exit;}' \
+            | awk '$2 == "'"${local_wan_dev}"'" && $4 !~ /^[fF]([eE][89abAB]|[cdCD][0-9a-fA-F])[0-9a-fA-F]:/ && $4 ~ "'"^${REGEX_IPV6_NET}$"'" {print $4; exit;}' \
             | sed 's/\/.*$//g' )"
         [ "${local_wan_ip}" != "${local_local_wan_ip}" ] && local_public_ip_enable="0"
     fi

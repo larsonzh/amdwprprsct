@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_initialize_config.sh v4.7.5
+# lz_initialize_config.sh v4.7.6
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 初始化脚本配置
@@ -1922,7 +1922,7 @@ lz_restore_config() {
     [ "${local_udpxy_used_changed}" = "1" ] \
         && sed -i "s|^[[:space:]]*udpxy_used=${local_udpxy_used}|udpxy_used=${local_ini_udpxy_used}|" "${PATH_FUNC}/lz_define_global_variables.sh"
     eval "$( echo "${param_list}" | sed -n "/^all_foreign_wan_port$/,/^custom_dualwan_scripts_filename$/{
-        s/^[[:alnum:]_]\+$/local_&=\"\${local_ini_&}\"/;P}" )"
+        s/^[[:alnum:]_]\+$/local_&=\"\${local_ini_&}\"/;p}" )"
 }
 
 ## 将当前配置优化至IPTV配置函数

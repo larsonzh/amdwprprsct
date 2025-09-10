@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_status.sh v4.7.5
+# lz_rule_status.sh v4.7.6
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 ## 显示脚本运行状态脚本
@@ -1439,7 +1439,7 @@ lz_get_wan_pub_ip_status() {
         [ -n "${local_wan_ip}" ] && local_public_ip_enable="1"
         local_local_wan_ip="$( ip -o -4 address list | awk '$2 == "'"${local_wan_dev}"'" && $4 ~ "'"^${REGEX_IPV4_NET}$"'" {print $4; exit;}' | sed 's/\/.*$//g' )"
         local_wan_ipv6="$( ip -o -6 address list \
-            | awk '$2 == "'"${local_wan_dev}"'" && $4 !~ /^[fF]([eE][89abAB]|[cdCD][0-9a-fA-F])[0-9a-fA-F]:/ && $4 ~ "'"^${REGEX_IPV4_NET_V6}$"'" {print $4; exit;}' \
+            | awk '$2 == "'"${local_wan_dev}"'" && $4 !~ /^[fF]([eE][89abAB]|[cdCD][0-9a-fA-F])[0-9a-fA-F]:/ && $4 ~ "'"^${REGEX_IPV6_NET}$"'" {print $4; exit;}' \
             | sed 's/\/.*$//g' )"
         [ "${local_wan_ip}" != "${local_local_wan_ip}" ] && local_public_ip_enable="0"
     fi
