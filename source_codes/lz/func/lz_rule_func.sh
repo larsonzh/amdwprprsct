@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v4.7.6
+# lz_rule_func.sh v4.7.7
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 #BEGIN
@@ -1882,22 +1882,39 @@ dl_succeed="1"
 if [ "\${dl_succeed}" = "1" ]; then
     retry_count="1"
     retry_limit="\$(( retry_count + ${ruid_retry_num} ))"
+    status_pipe="/tmp/lz_wget_status.\$\$.tmp"
+    err_tmp="/tmp/lz_wget_err.\$\$.tmp"
     while [ "\${retry_count}" -le "\${retry_limit}" ]
     do
+        [ "\${retry_count}" -gt "1" ] \\
+            && echo "\$(lzdate)" [\$\$]: LZ "${LZ_VERSION}" retry to download the ISP IP data files, the \${retry_count} time... \\
+                | tee -ai "${SYSLOG}" 2> /dev/null
         for isp_file_name in \${ispip_file_list}
         do
-            [ ! -f "${PATH_DATA}/cookies.isp" ] && COOKIES_STR="--save-cookies=${PATH_DATA}/cookies.isp" || COOKIES_STR="--load-cookies=${PATH_DATA}/cookies.isp"
-            eval "wget -nc -c --timeout=20 --random-wait --user-agent=\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.5304.88 Safari/537.36 Edg/108.0.1462.46\" --referer=${UPDATE_ISPIP_DATA_DOWNLOAD_URL} \${COOKIES_STR} --keep-session-cookies --no-check-certificate -O ${PATH_TMP_DATA}/lz_\${isp_file_name} ${UPDATE_ISPIP_DATA_DOWNLOAD_URL}/\${isp_file_name%_cidr.*}.txt"
+            ( wget -c --timeout=20 --random-wait --show-progress --progress=bar:force \\
+                --user-agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.3650.96" \\
+                --referer=${UPDATE_ISPIP_DATA_DOWNLOAD_URL} --no-check-certificate \\
+                -O ${PATH_TMP_DATA}/lz_\${isp_file_name} \\
+                ${UPDATE_ISPIP_DATA_DOWNLOAD_URL}/\${isp_file_name%_cidr.*}.txt 2>&1; echo \$? > "\${status_pipe}" ) | tee -i "\${err_tmp}" 2> /dev/null
+            if [ "\$( cat "\${status_pipe}" )" -ne 0 ] \\
+                || ! grep -qE '^[[:space:]]*[0-9]{1,3}(\.[0-9]{1,3}){3}(/[0-9]{1,2})?([^0-9]|$)' "${PATH_TMP_DATA}/lz_\${isp_file_name}" 2> /dev/null \\
+                || grep -qEi '<html|</html|<!DOCTYPE|<head>|<body>|{.*}' "${PATH_TMP_DATA}/lz_\${isp_file_name}" 2> /dev/null \\
+                || grep -qEi 'ERROR|failed|404|503|Timeout|Connection refused' "\${err_tmp}" 2> /dev/null; then
+                cat "\${err_tmp}" >> "${SYSLOG}" 2>/dev/null
+                echo "'lz_\${isp_file_name}' is empty or has no valid address data." | tee -ai "${SYSLOG}" 2> /dev/null
+                rm -f "${PATH_TMP_DATA}/lz_\${isp_file_name}" > /dev/null 2>&1
+            fi
         done
-        if [ "\$( find "${PATH_TMP_DATA}" -name "*_cidr.txt" -print0 2> /dev/null | awk '{} END{print NR}' )" -ge "\$(( ${ISP_TOTAL} + 1 ))" ]; then
+        if [ "\$( find "${PATH_TMP_DATA}" -name "*_cidr.txt" -size +0c -print0 2> /dev/null | awk 'END{print NR}' )" -ge "\$(( ${ISP_TOTAL} + 1 ))" ]; then
             dl_succeed="1"
             break
         else
             dl_succeed="0"
-            retry_count=\"\$(( retry_count + 1 ))\"
+            retry_count="\$(( retry_count + 1 ))"
             sleep "5s"
         fi
     done
+    rm -f "\${status_pipe}" "\${err_tmp}"
 fi
 
 if [ "\${dl_succeed}" = "1" ]; then

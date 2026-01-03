@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule.sh v4.7.6
+# lz_rule.sh v4.7.7
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # 本软件采用CIDR（无类别域间路由，Classless Inter-Domain Routing）技术，是一个在Internet上创建附加地
@@ -88,7 +88,7 @@
 ## -------------全局数据定义及初始化-------------------
 
 ## 版本号
-LZ_VERSION=v4.7.6
+LZ_VERSION=v4.7.7
 
 ## 关闭系统ASD进程
 ## 0--启用（缺省）；非0--停用
