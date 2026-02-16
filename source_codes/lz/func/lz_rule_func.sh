@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v4.7.7
+# lz_rule_func.sh v4.7.8
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 #BEGIN
@@ -1899,13 +1899,17 @@ if [ "\${dl_succeed}" = "1" ]; then
             if [ "\$( cat "\${status_pipe}" )" -ne 0 ] \\
                 || ! grep -qE '^[[:space:]]*[0-9]{1,3}(\.[0-9]{1,3}){3}(/[0-9]{1,2})?([^0-9]|$)' "${PATH_TMP_DATA}/lz_\${isp_file_name}" 2> /dev/null \\
                 || grep -qEi '<html|</html|<!DOCTYPE|<head>|<body>|{.*}' "${PATH_TMP_DATA}/lz_\${isp_file_name}" 2> /dev/null \\
-                || grep -qEi 'ERROR|failed|404|503|Timeout|Connection refused' "\${err_tmp}" 2> /dev/null; then
+                || grep -qEi 'ERROR|failed|Timeout|Connection refused' "\${err_tmp}" 2> /dev/null; then
                 cat "\${err_tmp}" >> "${SYSLOG}" 2>/dev/null
                 echo "'lz_\${isp_file_name}' is empty or has no valid address data." | tee -ai "${SYSLOG}" 2> /dev/null
                 rm -f "${PATH_TMP_DATA}/lz_\${isp_file_name}" > /dev/null 2>&1
             fi
         done
-        if [ "\$( find "${PATH_TMP_DATA}" -name "*_cidr.txt" -size +0c -print0 2> /dev/null | awk 'END{print NR}' )" -ge "\$(( ${ISP_TOTAL} + 1 ))" ]; then
+        find "${PATH_TMP_DATA}" -name "lz_*_cidr.txt" -exec test -s {} \\; -print0 2> /dev/null | sort -z | tr '\\0' '\\n' \\
+            | awk -v header="\$(lzdate) [\$\$]:" 'NF > 0 {str = \$1; gsub(/^.*\\//, "", str); print header,str}' | tee -ai "${SYSLOG}" 2> /dev/null
+        file_total="\$( find "${PATH_TMP_DATA}" -name "lz_*_cidr.txt" -exec test -s {} \\; -print0 2> /dev/null | awk 'END{print NR}' )"
+        echo "\$(lzdate)" [\$\$]: The total number of files downloaded for LZ "${LZ_VERSION}" is "\${file_total}". | tee -ai "${SYSLOG}" 2> /dev/null
+        if [ "\${file_total}" -ge "\$(( ${ISP_TOTAL} + 1 ))" ]; then
             dl_succeed="1"
             break
         else
