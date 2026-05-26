@@ -1885,7 +1885,7 @@ fix_hsts_perm() {
     ls -l "\${hsts_file}" | grep -q "^-rw-------" || chmod 600 "\${hsts_file}" 2>/dev/null
 }
 
-chmod 777 /root
+chmod 700 /root
 fix_hsts_perm
 
 if [ "\${dl_succeed}" = "1" ]; then
