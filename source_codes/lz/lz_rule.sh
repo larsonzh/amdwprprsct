@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule.sh v4.7.9
+# lz_rule.sh v4.8.0
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 # 本软件采用CIDR（无类别域间路由，Classless Inter-Domain Routing）技术，是一个在Internet上创建附加地
@@ -88,7 +88,7 @@
 ## -------------全局数据定义及初始化-------------------
 
 ## 版本号
-LZ_VERSION=v4.7.9
+LZ_VERSION=v4.8.0
 
 ## 关闭系统ASD进程
 ## 0--启用（缺省）；非0--停用
@@ -156,6 +156,9 @@ PATH_WEB_LZR="${PATH_WEBPAGE}/lzr"
 ASD_BIN="$( readlink -f "/root" )"
 { [ -z "${ASD_BIN}" ] || [ "${ASD_BIN}" = '/' ]; } && ASD_BIN="$( readlink -f "/tmp" )"
 [ -d "/koolshare/bin" ] && ASD_BIN="$( readlink -f "/koolshare/bin" )"
+
+## 恢复 /root 目录默认权限
+chmod u=rwx,go= /root 2>/dev/null
 
 ## 项目文件名及项目标识
 PROJECT_FILENAME="${0##*/}"

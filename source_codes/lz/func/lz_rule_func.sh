@@ -1,5 +1,5 @@
 #!/bin/sh
-# lz_rule_func.sh v4.7.9
+# lz_rule_func.sh v4.8.0
 # By LZ 妙妙呜 (larsonzhang@gmail.com)
 
 #BEGIN
@@ -1885,7 +1885,7 @@ fix_hsts_perm() {
     ls -l "\${hsts_file}" | grep -q "^-rw-------" || chmod 600 "\${hsts_file}" 2>/dev/null
 }
 
-chmod 777 /root
+chmod u=rwx,go= /root 2>/dev/null
 fix_hsts_perm
 
 if [ "\${dl_succeed}" = "1" ]; then
